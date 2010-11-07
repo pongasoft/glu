@@ -1,0 +1,347 @@
+/*
+* Copyright 2010-2010 LinkedIn, Inc
+*
+* Licensed under the Apache License, Version 2.0 (the "License"); you may not
+* use this file except in compliance with the License. You may obtain a copy of
+* the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+* License for the specific language governing permissions and limitations under
+* the License.
+*/
+
+apply plugin: 'groovy'
+
+buildscript {
+  repositories {
+    mavenRepo urls: localMavenRepo.toURL()
+    mavenCentral()
+  }
+  dependencies {
+    classpath external.linkedinZookeeperCli
+  }
+}
+
+dependencies {
+  compile project(':agent:org.linkedin.glu.agent-impl')
+  compile project(':agent:org.linkedin.glu.agent-rest-resources')
+  compile external.restlet
+  compile external.restletExtSimple
+  compile external.simpleFramework
+
+  groovy external.groovy
+
+  testCompile project(':agent:org.linkedin.glu.agent-rest-client')
+
+  runtime external.commonsCli
+  runtime external.slf4jLog4j
+  runtime external.log4j
+}
+
+// 'main' product is the upgrade package
+productName = "${project.name}-upgrade-${version}".toString()
+
+project."${productName}-tokens" = [
+    'agent.version': version
+]
+
+// creates the versionned package agent (the one used for upgrade only)
+createCmdLineBuild(this)
+
+// customizing package-create task to add sigar
+project.'package-create' << {
+  copy {
+    from new File(localMavenRepo, "com/hyperic/sigar/${sigarVersion}")
+    include '*.so'
+    include '*.dylib'
+    into new File(packageDir, 'lib')
+  }
+}
+
+// second product is the full agent which contains base + upgrade to latest version
+fullProductName = "${project.name}-${version}".toString()
+
+fullPackageDir = new File(buildDir, fullProductName)
+fullInstallDir = new File(topInstallDir, fullProductName)
+
+/********************************************************
+ * task: package-create-full
+ ********************************************************/
+task([dependsOn: 'package-create'], 'package-create-full') << {
+  copy {
+    from packageDir
+    into new File(fullPackageDir, version)
+  }
+
+  copy {
+    from new File(projectDir, 'src/base/resources')
+    into fullPackageDir
+  }
+  
+  ant.echo(message: version, file: new File(fullPackageDir, "version.txt"))
+
+  logger.lifecycle("Created full package in ${fullPackageDir}")
+}
+
+/********************************************************
+ * task: package-full
+ ********************************************************/
+task([dependsOn: 'package-create-full'], 'package-full') << {
+  def archivePath = new File("${buildDir}/distributions", "${fullProductName}.tgz")
+  // YP Note: the problem with the Tar gradle task is that it does not maintain the +x persmission
+  // => using ant tar task instead
+  ant.tar(tarFile: archivePath, compression: "gzip", longfile: "gnu") {
+    tarfileset(dir: fullPackageDir.parentFile, includes: "${fullPackageDir.name}/**/*.sh", filemode: "755")
+    fileset(dir: fullPackageDir.parentFile, includes: "${fullPackageDir.name}/**", excludes: "**/*.sh")
+  }
+  logger.lifecycle("Created package ${archivePath}")
+}
+
+/********************************************************
+ * task: package-install: overrides the default package-install as it does not make
+ * too much sense to install just the upgrade package
+ ********************************************************/
+task([dependsOn: 'package-create-full', overwrite: true], 'package-install') << {
+  copy {
+    from fullPackageDir
+    into fullInstallDir
+  }
+  ['bin', "${version}/bin"].each {
+    ant.chmod(dir: new File(fullInstallDir, it), perm: 'ugo+rx', includes: '*.sh')
+  }
+  logger.lifecycle("Installed agent ${version} in ${fullInstallDir}")
+}
+
+/**************************************************************
+ * task: clean-package-install
+ * Overriding to delete the full install dir instead
+ ***************************************************************/
+task([overwrite: true], 'clean-package-install') << {
+  delete fullInstallDir
+  logger.lifecycle("Deleted ${fullInstallDir}")
+}
+
+/**************************************************************
+ * task: setup
+ * This is used for dev only to quickly set up the environment.
+ * Create one fabric (dev) and use canonical host name for the agent
+ ***************************************************************/
+task 'setup' << {
+  def fabric = userConfig.glu.agent.devsetup.fabric ?: 'dev'
+
+  setupFabricInZooKeeper(fabric)
+
+  def agentName = userConfig.glu.agent.devsetup.name ?:
+                  InetAddress.getLocalHost().canonicalHostName
+
+  setupAgentInZooKeeper(fabric, agentName)
+}
+
+/**************************************************************
+ * task: setup-<f>-<a>
+ * This is used for dev only to quickly set up the environment
+ * Creates <f> fabrics with <a> agents
+ ***************************************************************/
+def setupFabricsCount = (userConfig.glu.agent.devsetup.fabrics ?: 2) as int
+def setupAgentsCount = (userConfig.glu.agent.devsetup.agents ?: 5) as int
+(1..setupFabricsCount).each { fc ->
+  (1..setupAgentsCount).each { ac ->
+    task([dependsOn: 'package-create-full', description: "Setup ${ac} agent(s) in ${fc} fabric(s)"], "setup-${ac}-${fc}") << {
+      def setupFabrics = (1..fc).collect { "glu-dev-${it}"}
+
+      def setupAgents = [:]
+      (0..<ac).each { i ->
+        setupAgents["agent-${i+1}"] = setupFabrics[i % fc]
+      }
+
+      // setting up the fabrics: loading the keys and the agent config
+      setupFabrics.each { setupFabricInZooKeeper(it) }
+
+      def basePort = (userConfig.glu.agent.devsetup.basePort ?: 13906) as int
+
+      // setup each agent fabric
+      setupAgents.eachWithIndex { agent, fabric, idx ->
+        setupAgentInZooKeeper(fabric, agent)
+        setupAgent(agent, basePort + idx)
+      }
+
+      def devStartupFile = new File(devsetupDir, "agentdevctl.sh")
+
+      devStartupFile.text = createAgentDevCtl(setupAgents.keySet())
+
+      ant.chmod(file: devStartupFile, perm: 'ugo+rx')
+    }
+  }
+}
+
+/**
+ * Create the shell script that will launch the agents installed during setup-x-y target
+ */
+private String createAgentDevCtl(def agents)
+{
+"""#!/bin/bash
+
+usage()
+{
+  echo ""
+  echo "   Usage:  agentdevctl.sh start|stop|status|tail"
+  echo ""
+}
+
+start()
+{
+${agents.collect { computeDevsetupCmd("start", it) }.join("\n")}
+}
+
+stop()
+{
+${agents.collect { computeDevsetupCmd("stop", it) }.join("\n")}
+}
+
+status()
+{
+${agents.collect { computeDevsetupCmd("status", it) }.join("\n")}
+}
+
+tail()
+{
+exec tail -f ${agents.collect { "${it}/data/logs/glu-agent.out" }.join(" ")}
+}
+
+case \$1 in
+  'start' ) start
+            ;;
+  'stop'  ) stop
+            ;;
+  'status') status
+            ;;
+  'tail') tail
+            ;;
+         *) usage
+            exit 1
+            ;;
+esac
+"""
+}
+
+private String computeDevsetupCmd(String cmd, def agent)
+{
+  "GLU_AGENT_APPS=${new File(devsetupDir, "apps/${agent}")} ./${agent}/bin/agentctl.sh ${cmd}"
+}
+
+/**************************************************************
+ * Cleans what was setup
+ ***************************************************************/
+task 'clean-setup' << {
+  zk(['rm', '-r', zkRoot])
+  delete devsetupDir
+  logger.lifecycle("Deleted ${devsetupDir}")
+}
+
+/**
+ * Invoke the zk cli directly from gradle
+ * @param args
+ */
+private void zk(args)
+{
+  def clientMainClass
+
+  try
+  {
+    clientMainClass = buildscript.classLoader.loadClass("org.linkedin.zookeeper.cli.ClientMain")
+  }
+  catch (ClassNotFoundException cnfe)
+  {
+    logger.error ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    logger.error ("Could not find ClientMain... for now make sure you run gradle jar in linkedin-zookeeper/zookeeper-cli")
+    logger.error ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    throw cnfe
+  }
+
+  clientMainClass.metaClass.invokeStaticMethod(clientMainClass, "mainNoExit", [args] as Object[])
+}
+
+/**
+ * Uploads the provided file in zookeeper at the provided path
+ */
+private void zkUpload(String filePath, String zkPath)
+{
+  if(new File(filePath).exists())
+    zk(['upload', '-f', filePath, zkPath])
+}
+
+/**
+ * @return root in zookeeper (configurable via glu.agent.devsetup.zkRoot property)
+ */
+String getZkRoot()
+{
+  return userConfig.glu.agent.devsetup.zkRoot ?: '/org/glu'
+}
+
+/**
+ * @return setup directory (configurable via glu.agent.devsetup.dir property)
+ */
+File getDevsetupDir()
+{
+  if(userConfig.glu.agent.devsetup.dir)
+    return new File(userConfig.glu.agent.devsetup.dir)
+
+  new File(topInstallDir, "devsetup")
+}
+
+/**
+ * Setup the fabric in zookeeper: copy the zookeeper agent config and key store
+ */
+private void setupFabricInZooKeeper(def fabric)
+{
+  def zkConfigDir = new File(userConfig.glu.agent.setup.zkConfigDir ?: 'src/zk-config').canonicalPath
+  def zkAgentConfigPath = "${zkRoot}/agents/fabrics/${fabric}/config"
+
+  // keys
+  zkUpload("${zkConfigDir}/keys/agent.dev.keystore", "${zkAgentConfigPath}/agent.keystore")
+  zkUpload("${zkConfigDir}/keys/console.dev.truststore", "${zkAgentConfigPath}/console.truststore")
+
+  // config
+  zkUpload("${zkConfigDir}/zkAgentConfig.properties", "${zkAgentConfigPath}/config.properties")
+
+  logger.lifecycle("Fabric ${fabric} setup in zookeeper")
+}
+
+/**
+ * Configure the given agent to use the given port
+ */
+private void setupAgent(def agent, int port)
+{
+  def agentDir = new File(devsetupDir, agent)
+  copy {
+    from fullPackageDir
+    into agentDir
+  }
+  ['bin', "${version}/bin"].each {
+    ant.chmod(dir: new File(agentDir, it), perm: 'ugo+rx', includes: '*.sh')
+  }
+
+  def agentConfig = """
+
+# Special config added during dev setup
+glu.agent.name=${agent}
+glu.agent.port=${port}
+glu.agent.zkConnectString=localhost:2181
+  """
+
+  new File(agentDir, "${version}/conf/agentConfig.properties").append(agentConfig)
+  logger.lifecycle("Agent ${agent} installed in ${agentDir}")
+}
+
+/**
+ * Assign the agent to the fabric in zookeeper
+ */
+private void setupAgentInZooKeeper(def fabric, def agent)
+{
+  zk(['put', '-f', fabric, "${zkRoot}/agents/names/${agent}/fabric"])
+  logger.lifecycle("Agent ${agent} fabric set to ${fabric}")
+}

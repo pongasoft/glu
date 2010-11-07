@@ -1,0 +1,87 @@
+/*
+ * Copyright 2010-2010 LinkedIn, Inc
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+.ERROR {
+  color: black;
+  background: #ffdddd;
+}
+
+.RUNNING {
+  color: black;
+  background: #ddffdd;
+}
+
+.UNKNOWN {
+  color: #000000;
+  background: #dddddd;
+}
+
+.NA {
+  color: #000000;
+  background: #888888;
+}
+
+#__audit_content td a:link {
+  text-decoration: underline;
+  color: #0000ee;
+}
+#__audit_content td a:visited {
+  text-decoration: underline;
+  color: #0000ee;
+}
+#__audit_content td a:hover {
+  text-decoration: underline;
+  color: #0000ee;
+}
+#__audit_content td {
+  white-space: nowrap;
+}
+#__audit_content td.column0 {
+  vertical-align: top;
+}
+#__audit_content td.totalCount {
+  text-align: center;
+  vertical-align: top;
+}
+#__audit_content td.errorsCount {
+  text-align: center;
+  vertical-align: top;
+}
+#__audit_content table {
+  width: auto;
+}
+#__audit_content table th {
+  text-align: center;
+}
+#__audit_inaccurate td {
+  color: red;
+  font-size: 1.5em;
+  font-weight: bold;
+  white-space: normal;
+}
+div.count {
+  text-align: center;
+  font-style: italic;
+  width: 100%;
+  color: #888888;
+}
+ul.wars {
+  padding: 0;
+  margin: 0;
+}
+li.wars {
+ list-style: none;
+}

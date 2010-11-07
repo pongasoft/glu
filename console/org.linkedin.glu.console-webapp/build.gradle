@@ -1,0 +1,159 @@
+/*
+* Copyright 2010-2010 LinkedIn, Inc
+*
+* Licensed under the Apache License, Version 2.0 (the "License"); you may not
+* use this file except in compliance with the License. You may obtain a copy of
+* the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+* License for the specific language governing permissions and limitations under
+* the License.
+*/
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
+apply plugin: 'groovy'
+
+dependencies {
+  compile project(':agent:org.linkedin.glu.agent-api')
+  compile project(':agent:org.linkedin.glu.agent-rest-client')
+  compile project(':agent:org.linkedin.glu.agent-tracker')
+  compile project(':provisioner:org.linkedin.glu.provisioner-agent')
+  compile external.linkedinUtilsGroovy
+  compile external.linkedinZookeeperImpl
+  compile external.shiro
+
+  groovy external.groovy
+
+  runtime external.slf4jLog4j
+  runtime external.log4j
+}
+
+def facets = """
+<component name="FacetManager">
+  <facet type="Spring" name="Spring">
+    <configuration>
+      <fileset id="Grails" name="Grails" removed="false">
+        <file>file://\$MODULE_DIR\$/web-app/WEB-INF/applicationContext.xml</file>
+      </fileset>
+    </configuration>
+  </facet>
+  <facet type="web" name="GrailsWeb">
+    <configuration>
+      <webroots>
+        <root url="file://\$MODULE_DIR\$/web-app" relative="/" />
+      </webroots>
+      <sourceRoots />
+    </configuration>
+  </facet>
+</component>
+"""
+
+ideaModule {
+  whenConfigured { module ->
+    ['grails-app/utils', 'grails-app/controllers', 'grails-app/domain', 'grails-app/services', 'grails-app/realms', 'grails-app/taglib'].each {
+      module.sourceFolders << new org.gradle.plugins.idea.model.Path("file://\$MODULE_DIR\$/${it}")
+    }
+    ['test/unit', 'test/integration'].each {
+      module.testSourceFolders << new org.gradle.plugins.idea.model.Path("file://\$MODULE_DIR\$/${it}")
+    }
+  }
+
+  withXml { root ->
+    // add facets
+    root.asNode().append(new XmlParser().parseText(facets))
+    
+    // add grails library
+    root.asNode().component.find { it.@name == 'NewModuleRootManager'}.appendNode('orderEntry', [type: 'library', name: "grails-${grailsVersion}", level: 'application'])
+  }
+}
+
+project.clean << {
+  fileTree(dir: 'lib').each { it.delete() }
+}
+
+task lib(dependsOn: jar) << {
+  fileTree(dir: 'lib').each { it.delete() }
+  copy {
+    from configurations.runtime
+    into 'lib'
+  }
+  // workaround against /org/apache/tools/ant/antlib.xml:37: Problem: failed to create 
+  // task or type componentdef
+  delete 'lib/ant-1.8.1.jar'
+  delete 'lib/ant-launcher-1.8.1.jar'
+
+  def keysDir = new File("${rootDir}/agent/org.linkedin.glu.agent-server/src/zk-config/keys")
+  def secretKeyStoreDir = new File(buildDir, 'conf')
+  copy {
+    from new File(keysDir, 'console.dev.secretkeystore')
+    into secretKeyStoreDir
+  }
+
+  new File("${projectDir}/lib/build.properties.groovy").text = """
+console.keystorePath="${new File(keysDir, 'console.dev.keystore').canonicalPath}"
+console.secretkeystorePath="${new File(secretKeyStoreDir, 'console.dev.secretkeystore').canonicalPath}"
+console.truststorePath="${new File(keysDir, 'agent.dev.truststore').canonicalPath}"
+"""
+
+  // generate a hello world system for dev
+  def helloWorldScript = 
+    new File("${rootDir}/scripts/glu.script-hello-world/src/main/groovy/HelloWorldScript.groovy")
+  copy {
+    from("dev/hello-world-system.json") {
+      filter(tokens: ['script.url': helloWorldScript.canonicalFile.toURI().toString()], ReplaceTokens)
+     }
+    into "${buildDir}/systems"
+  }
+
+  logger.lifecycle "Created dev system under: ${new File(buildDir, 'systems/hello-world-system.json')}"
+}
+
+
+['run-app', 'war', 'test-app'].each { taskName ->
+  task "${taskName}"(dependsOn: lib) << {
+    ant.exec(dir: '.', executable: "grails") {
+      arg(line: "${taskName}")
+    }
+  }
+}
+
+task test(overwrite:true, dependsOn: 'test-app') << {
+  // nothing to do... test-app will do it
+}
+
+// external plugin
+//buildscript {
+//  repositories {
+//    mavenCentral()
+//    mavenRepo urls: "http://repository.jboss.org/maven2/"
+//  }
+//
+//  dependencies {
+//    classpath "org.grails:grails-gradle-plugin:1.0",
+//              "org.grails:grails-bootstrap:${grailsVersion}"
+//  }
+//}
+//
+//apply plugin: "grails"
+//
+//repositories {
+//  mavenRepo urls: "http://repository.jboss.org/maven2/"
+//}
+//
+//dependencies {
+//  compile "org.grails:grails-crud:${grailsVersion}"
+//  compile "org.grails:grails-gorm:${grailsVersion}"
+//
+//  compile project(':kiwidoc:com.pongasoft.kiwidoc.index.api')
+//  compile project(':kiwidoc:com.pongasoft.kiwidoc.index.impl')
+//  compile project(':kiwidoc:com.pongasoft.kiwidoc.builder')
+//  compile project(':utils:util.html')
+//
+//  runtime external.slf4jLog4j
+//}
+//

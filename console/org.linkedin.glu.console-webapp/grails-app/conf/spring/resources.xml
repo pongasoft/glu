@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2010-2010 LinkedIn, Inc
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not
+  ~ use this file except in compliance with the License. You may obtain a copy of
+  ~ the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+  ~ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+  ~ License for the specific language governing permissions and limitations under
+  ~ the License.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+  <bean id="agentFactory"
+        class="org.linkedin.glu.agent.rest.client.AgentFactoryImpl"
+        factory-method="create">
+    <constructor-arg>
+      <map>
+        <entry key="sslEnabled" value="${console.sslEnabled}"/>
+
+        <entry key="keystorePath" value="${console.keystorePath}"/>
+        <entry key="keystorePassword" value="${console.keystorePassword}"/>
+        <entry key="keyPassword" value="${console.keyPassword}"/>
+
+        <entry key="truststorePath" value="${console.truststorePath}"/>
+        <entry key="truststorePassword" value="${console.truststorePassword}"/>
+
+      </map>
+    </constructor-arg>
+  </bean>
+
+   <bean id="encryptionKeysProvider"
+        class="org.linkedin.glu.agent.rest.client.EncryptionKeysProviderImpl"
+        factory-method="create">
+    <constructor-arg>
+      <map>
+        <entry key="secretkeystorePath" value="${console.secretkeystorePath}"/>
+        <entry key="keystorePassword" value="${console.keystorePassword}"/>
+        <entry key="keyPassword" value="${console.keyPassword}"/>
+      </map>
+    </constructor-arg>
+  </bean>
+
+  <bean id="actionFactory" class="org.linkedin.glu.provisioner.core.touchpoint.TouchpointActionFactory">
+    <constructor-arg>
+      <list>
+        <bean class="org.linkedin.glu.provisioner.impl.agent.AgentTouchpoint">
+          <constructor-arg ref="agentFactory"/>
+          <constructor-arg ref="encryptionKeysProvider"/>
+        </bean>
+        <bean class="org.linkedin.glu.provisioner.impl.agent.AgentUpgradeTouchpoint">
+          <constructor-arg ref="agentFactory"/>
+          <constructor-arg ref="encryptionKeysProvider"/>
+        </bean>
+      </list>
+    </constructor-arg>
+  </bean>
+
+  <bean id="executor" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool"/>
+
+  <bean id="leafExecutor" class="org.linkedin.glu.provisioner.deployment.impl.ActionDescriptorStepExecutor">
+    <property name="actionFactory" ref="actionFactory"/>
+  </bean>
+
+  <bean id="planExecutor" class="org.linkedin.glu.provisioner.plan.impl.PlanExecutor">
+    <property name="clock"><bean class="org.linkedin.util.clock.SystemClock" factory-method="instance"/></property>
+    <property name="executorService" ref="executor"/>
+    <property name="leafStepExecutor" ref="leafExecutor"/>
+  </bean>
+
+  <bean id="simplePlanner" class="org.linkedin.glu.provisioner.impl.planner.SimplePlanner">
+    <property name="propsExcludes">
+      <set>
+        <value>skeleton</value>
+        <value>metadata</value>
+        <value>release</value>
+        <value>cluster</value>
+        <value>glu.installation.name</value>
+      </set>
+    </property>
+    <property name="fieldExcludes"><set><value>gluScript</value></set></property>
+  </bean>
+
+  <bean id="deploymentMgr" class="org.linkedin.glu.provisioner.deployment.impl.DeploymentManager">
+    <property name="planExecutor" ref="planExecutor"/>
+    <property name="planner" ref="simplePlanner"/>
+  </bean>
+
+  <bean id="agentPlanner" class="org.linkedin.glu.provisioner.impl.planner.AgentPlanner"/>
+
+  <bean id="configurableFactory" class="org.linkedin.glu.agent.rest.client.ConfigurableFactoryImpl"/>
+
+  <bean id="consoleConfig" class="org.linkedin.glu.grails.utils.ConsoleConfig"/>
+
+</beans>

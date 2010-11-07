@@ -1,0 +1,78 @@
+/*
+ * Copyright 2010-2010 LinkedIn, Inc
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+
+package org.linkedin.glu.agent.impl.script
+
+import org.linkedin.glu.agent.api.ScriptExecutionException
+import org.linkedin.groovy.util.state.StateMachine
+
+/**
+ * The goal of this class is to wrap a script so that it has access to convenient variables like
+ * the shell, params,...
+ *
+ * @author ypujante@linkedin.com
+ */
+def class ScriptWrapperImpl
+{
+  def static scriptWrapper = { args ->
+    def script = args.script
+    def scriptProperties = args.scriptProperties ?: [:]
+    def scriptClosures = args.scriptClosures ?: [:]
+
+    def mc = script.metaClass
+
+    // add closures
+    scriptClosures.each { k,v ->
+      mc."${k}" = {
+        def closure = script.metaPropertyValues.find { it.name == k }?.value
+        v(closure, it)
+      }
+    }
+
+    // add properties
+    scriptProperties.each { k, v ->
+      mc."${k}" = v
+    }
+
+    return script
+  }
+
+  def static getAvailableActionsClosures(StateMachine stateMachine, String name)
+  {
+    def closures = [:]
+
+    stateMachine.availableActions.each { action ->
+      closures[action] = { closure, args ->
+        stateMachine.executeAction(action) {
+          if(closure != null)
+          {
+            try
+            {
+              closure(args)
+            }
+            catch (Throwable th)
+            {
+              throw new ScriptExecutionException(name, action, args, th)
+            }
+          }
+        }
+      }
+    }
+
+    return closures
+  }
+}

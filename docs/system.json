@@ -1,0 +1,50 @@
+{
+  "entries": [
+    {
+      "agent": "agent-1",
+      "initParameters": {"message": "Hello World"},
+      "metadata": {
+        "cluster": "c1",
+        "container": {"name": "m1"},
+        "version": "1.0.0"
+      },
+      "mountPoint": "/m1/i001",
+      "script": "file:///Users/ypujante/src/linkedinos/glu/scripts/script-noop/src/main/groovy/NoopGluScript.groovy"
+    },
+    {
+      "agent": "agent-1",
+      "initParameters": {"message": "Hello World"},
+      "metadata": {
+        "cluster": "c2",
+        "container": {"name": "m2"},
+        "version": "1.0.0"
+      },
+      "mountPoint": "/m2/i001",
+      "script": "file:///Users/ypujante/src/linkedinos/glu/scripts/script-noop/src/main/groovy/NoopGluScript.groovy"
+    },
+    {
+      "agent": "agent-1",
+      "initParameters": {"message": "Hello World"},
+      "metadata": {
+        "cluster": "c1",
+        "container": {"name": "m3"},
+        "version": "1.0.0"
+      },
+      "mountPoint": "/m3/i001",
+      "script": "file:///Users/ypujante/src/linkedinos/glu/scripts/script-noop/src/main/groovy/NoopGluScript.groovy"
+    },
+    {
+      "agent": "agent-1",
+      "initParameters": {"message": "Hello World"},
+      "metadata": {
+        "cluster": "c1",
+        "container": {"name": "m4"},
+        "version": "1.0.0"
+      },
+      "mountPoint": "/m4/i001",
+      "script": "file:///Users/ypujante/src/linkedinos/glu/scripts/script-noop/src/main/groovy/NoopGluScript.groovy"
+    }
+  ],
+  "fabric": "glu-dev-1",
+  "metadata": {"product": {}}
+}

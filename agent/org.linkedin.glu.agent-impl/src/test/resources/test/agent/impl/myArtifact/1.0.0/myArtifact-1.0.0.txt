@@ -1,0 +1,1 @@
+myArtifact-1.0.0.txt content

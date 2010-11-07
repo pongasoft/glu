@@ -1,0 +1,43 @@
+/*
+ * Copyright 2010-2010 LinkedIn, Inc
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+.COMPLETED {
+  border: 1px solid #008000;
+  background: #ddffdd;
+}
+.PARTIAL {
+  border: 1px solid #885500;
+  background: #ffdd00;
+}
+.FAILED {
+  border: 1px solid #880000;
+  background: #ffdddd;
+}
+.SKIPPED {
+  border: 1px solid #888888;
+  background: #dddddd;
+}
+.CANCELLED {
+  border: 1px solid #885500;
+  background: #ff9000;
+}
+.RUNNING {
+  border: 1px solid #000080;
+  background: #ddddff;
+}
+.NONE {
+  border: 1px solid black;
+}

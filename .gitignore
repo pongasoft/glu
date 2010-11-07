@@ -1,0 +1,9 @@
+.gradle
+.idea
+*.iml
+*.ipr
+*.iws
+build
+out
+console/org.linkedin.glu.console-webapp/target
+console/org.linkedin.glu.console-webapp/lib

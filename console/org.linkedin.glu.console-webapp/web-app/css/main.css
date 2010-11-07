@@ -1,0 +1,259 @@
+/*
+ * Copyright 2010-2010 LinkedIn, Inc
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+body {
+  background: #fff;
+  color: black;
+  font: 13px arial, helvetica, sans-serif;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+table th {
+  text-align: left;
+  background-color: #005a87;
+  border: solid 1px #000000;
+  border-bottom-width: 2px;
+  padding: .3em;
+  color: #ffffff;
+
+}
+
+table td {
+  border: solid 1px #005a87;
+}
+
+#header {
+  border: solid 1px #005a87;
+  border-right-width: 2px;
+  border-bottom-width: 2px;
+}
+
+#header #fabric .zk-notConnected {
+  color: red;
+  font-style: bold;
+}
+
+#header ul li {
+  background: #005a87;
+  border-top: solid 1px #ffffff;
+  border-right: solid 1px #ffffff;
+  border-left: solid 1px #004976;
+  display: inline-block;
+  margin: 0;
+  padding: .2em;
+  margin-right: .5em;
+  min-width: 5em;
+  text-align: center;
+}
+
+#header ul {
+  margin: 0;
+  padding: 0;
+}
+
+#header ul li a:link {
+  text-decoration: none;
+  color: white;
+}
+
+#header ul li a:hover {
+  text-decoration: none;
+  color: white;
+}
+
+#header ul li a:visited {
+  text-decoration: none;
+  color: white;
+}
+
+#header ul li.selected {
+  background: #ffffff;
+  border-top: solid 1px #004976;
+  border-right: solid 1px #004976;
+  border-left: solid 1px #ffffff;
+}
+
+#header ul li.selected a:link {
+  color: #005a87;
+}
+
+#header ul li.selected a:hover {
+  color: #005a87;
+}
+
+#header ul li.selected a:visited {
+  color: #005a87;
+}
+
+#header #header-info {
+  display: block;
+  text-align: right;
+  font-style: italic;
+  font-size: 2em;
+  padding-right: .5em;
+}
+
+#header #header-info a:hover {
+  border-bottom: solid 1px #005a87;
+  color: black;
+}
+
+#header #header-info a:link {
+  text-decoration: none;
+  color: black;
+}
+
+#header #header-info a:visited {
+  text-decoration: none;
+  color: black;
+}
+
+div.env-unknown {
+  background: -webkit-gradient(linear, left top, right top, from(#555555), to(#ffffff)) #eeeeee;
+}
+
+.ERROR {
+  background: #ffdddd;
+}
+
+.TRANSITION {
+  background: #ddddff;
+}
+
+.RUNNING {
+  background: #ddffdd;
+}
+
+.NOT_RUNNING {
+  background: #dddddd;
+}
+
+.flash-error {
+  font-size: 2em;
+  color: white;
+  background-color: red;
+  padding: 0.5em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  border: solid 1px #550000;
+}
+
+.flash-stackTrace {
+  display: none;
+}
+
+.flash-message {
+  font-size: 1.3em;
+  color: white;
+  background-color: green;
+  padding: 0.5em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  border: solid 1px #005500;
+}
+
+.example {
+  color: #aaaaaa;
+  border: solid 1px #aaaaaa;
+  font-size: 0.8em;
+  font-style: italic;
+  white-space: pre;
+}
+
+.info {
+  color: #333;
+  border: dashed 1px black;
+  background: #F0F0F0;
+  padding: 5px;
+  width: auto;
+}
+
+.error-status {
+  color: red;
+}
+
+ul.submenu {
+  font-size: 1.2em;
+  padding: 0.5em 0.5em 0.1em 0em;
+  margin: 0 0 0.2em 0;
+}
+ul.submenu li {
+  list-style: none;
+  clear: both;
+  display: inline;
+  text-align: left;
+  margin-right: 10px;
+}
+
+ul.submenu li.selected {
+  color: black;
+  font-size: 1.5em;
+}
+
+ul.submenu a:link {
+  text-decoration: none;
+  color: grey;
+  border: solid 1px white;
+}
+
+ul.submenu a:visited {
+  text-decoration: none;
+  border: solid 1px white;
+  color: grey;
+}
+
+ul.submenu a:hover {
+  border: solid 1px black;
+  color: black;
+}
+
+.hidden {
+  display: none;
+}
+
+dl.plan dd {
+  margin-left: 2em;
+}
+
+dl.plan .LEAF {
+  margin: .2em 0em .2em 0em;
+}
+
+.paginateButtons {
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+.paginateButtons a {
+  margin-left: 0.3em;
+  margin-right: 0.3em;
+}
+
+.paginateButtons .currentStep {
+  font-size: 1.2em;
+  background-color: #005a87;
+  color: #ffffff;
+  margin-left: 0.3em;
+  margin-right: 0.3em;
+  padding: 0.3em;
+}
+
+.systemId {
+  font-family: monospace;
+}

@@ -1,0 +1,75 @@
+%{--
+  - Copyright 2010-2010 LinkedIn, Inc
+  -
+  - Licensed under the Apache License, Version 2.0 (the "License"); you may not
+  - use this file except in compliance with the License. You may obtain a copy of
+  - the License at
+  -
+  - http://www.apache.org/licenses/LICENSE-2.0
+  -
+  - Unless required by applicable law or agreed to in writing, software
+  - distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+  - WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+  - License for the specific language governing permissions and limitations under
+  - the License.
+  --}%
+
+<%@ page contentType="text/html;charset=UTF-8" %>
+<html>
+<head>
+  <title>GLU Console - System</title>
+  <meta name="layout" content="main"/>
+  <style type="text/css">
+  ul {
+    padding: 0;
+    margin: 0;
+  }
+  li {
+   list-style: none;
+  }
+  td {
+    padding: 0.5em;
+  }
+  input.stepCheckBox {
+    display: none;
+  }
+  input.quickSelect {
+    display: none;
+  }
+  </style>
+</head>
+<body>
+<ul class="submenu">
+  <li><g:link controller="dashboard">Dashboard</g:link></li>
+  <li><g:link action="list">System</g:link></li>
+  <li class="selected">Current</li>
+</ul>
+<g:if test="${request.system}">
+  <h1>Current System</h1>
+  <g:render template="/system/systemModel"/>
+  <p>
+  <g:if test="${executingDeploymentPlan}">Executing deployment plan... <g:link controller="plan" action="deployments">Check progress.</g:link></g:if>
+  </p>
+
+  <g:render template="/plan/selectDelta" model="[delta: delta, title: 'Deploy: ' + title]"/>
+
+  <g:render template="/plan/selectDelta" model="[delta: bounce, title: 'Bounce: ' + title]"/>
+
+  <g:render template="/plan/selectDelta" model="[delta: redeploy, title: 'Redeploy: ' + title]"/>
+
+  <g:render template="/plan/selectDelta" model="[delta: undeploy, title: 'Undeploy: ' + title]"/>
+
+  <g:if test="${missingAgents}">
+    <h2>Missing agents [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h2>
+    <ul>
+      <g:each in="${missingAgents}" var="agentName">
+        <li>${agentName.encodeAsHTML()}</li>
+      </g:each>
+    </ul>
+  </g:if>
+</g:if>
+<g:else>
+  <h2>No System selected.</h2>
+</g:else>
+</body>
+</html>

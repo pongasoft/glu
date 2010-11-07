@@ -1,0 +1,135 @@
+#
+# Copyright 2010-2010 LinkedIn, Inc
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+#
+
+# ***************************************************************************
+# * The following steps will generate 2 keystores and 2 truststores:
+# ***************************************************************************
+# * the agent keystore and the console truststore are deployed on the agent
+# * the agent truststore and the console keystore are deployed on the console
+# ***************************************************************************
+
+# ***************************************************************************
+# WARNING WARNING WARNING: 
+# the console keystore is the important one and the password (for the key)
+# must be strong (not for dev of course...)
+# WARNING WARNING WARNING: 
+# ***************************************************************************
+
+# ***************************************************************************
+# The passwords are encrypted in the config files. To generate the proper
+# encryption refers to the code
+# ***************************************************************************
+
+
+# generating keystore for agent (we don't care about this one but is required for SSL)
+keytool -genkey -alias agent -keystore agent.dev.keystore -keyalg RSA -keysize 2048 -validity 2000
+Enter keystore password:  linkedin
+Re-enter new password: linkedin
+What is your first and last name?
+  [Unknown]:  localhost
+What is the name of your organizational unit?
+  [Unknown]:  Dev
+What is the name of your organization?
+  [Unknown]:  LinkedIn
+What is the name of your City or Locality?
+  [Unknown]:  Mountain View
+What is the name of your State or Province?
+  [Unknown]:  CA
+What is the two-letter country code for this unit?
+  [Unknown]:  US
+Is CN=localhost, OU=Dev, O=LinkedIn, L=Mountain View, ST=CA, C=US correct?
+  [no]:  yes
+
+Enter key password for <agent>
+	(RETURN if same as keystore password): password
+Re-enter new password: password
+
+# expport the RSA certificate (without the private key)
+keytool -export -keystore agent.dev.keystore -alias agent -file /tmp/test.cert
+Enter keystore password:  linkedin
+Certificate stored in file </tmp/test.cert>
+
+# import the RSA certificate in the trustore
+keytool -import -alias agent -keystore agent.dev.truststore -file /tmp/test.cert
+Enter keystore password:  linkedin
+Re-enter new password: linkedin
+Owner: CN=localhost, OU=Dev, O=LinkedIn, L=Mountain View, ST=CA, C=US
+Issuer: CN=localhost, OU=Dev, O=LinkedIn, L=Mountain View, ST=CA, C=US
+Serial number: 4a98415a
+Valid from: Fri Aug 28 13:43:06 PDT 2009 until: Wed Feb 18 12:43:06 PST 2015
+Certificate fingerprints:
+	 MD5:  EC:68:E1:DA:CF:74:FC:9B:F3:5A:31:CF:8A:C8:18:EB
+	 SHA1: A5:A9:5B:D1:68:9C:F6:E4:34:95:54:A6:B1:4A:5B:E8:2C:96:9F:1F
+	 Signature algorithm name: SHA1withRSA
+	 Version: 3
+Trust this certificate? [no]:  yes
+Certificate was added to keystore
+
+
+# generating keystore for console (this keystore is very important and must remain protected: password must be strong!)
+keytool -genkey -alias console -keystore console.dev.keystore -keyalg RSA -keysize 2048 -validity 2000
+Enter keystore password:  linkedin
+Re-enter new password: linkedin
+What is your first and last name?
+  [Unknown]:  Console
+What is the name of your organizational unit?
+  [Unknown]:  Dev
+What is the name of your organization?
+  [Unknown]:  LinkedIn
+What is the name of your City or Locality?
+  [Unknown]:  Mountain View
+What is the name of your State or Province?
+  [Unknown]:  CA
+What is the two-letter country code for this unit?
+  [Unknown]:  US
+Is CN=Console, OU=Dev, O=LinkedIn, L=Mountain View, ST=CA, C=US correct?
+  [no]:  yes
+Enter key password for <console>
+  	(RETURN if same as keystore password):  password
+Re-enter new password: password
+
+# export the RSA certificate (without the private key)
+keytool -export -keystore console.dev.keystore -alias console -file /tmp/test.cert
+Enter keystore password:  linkedin
+Certificate stored in file </tmp/test.cert>
+
+# import the RSA certificate in the trustore
+keytool -import -alias console -keystore console.dev.truststore -file /tmp/test.cert
+Enter keystore password:  linkedin
+Re-enter new password: linkedin
+Owner: CN=Console, OU=Dev, O=LinkedIn, L=Mountain View, ST=CA, C=US
+Issuer: CN=Console, OU=Dev, O=LinkedIn, L=Mountain View, ST=CA, C=US
+Serial number: 4a89a060
+Valid from: Mon Aug 17 11:24:32 PDT 2009 until: Sun Nov 15 10:24:32 PST 2009
+Certificate fingerprints:
+	 MD5:  0B:B1:1A:E4:83:13:26:FF:90:8E:7A:15:78:AF:3B:27
+	 SHA1: 87:12:E6:F3:A6:11:04:14:0F:C3:A0:96:B6:D5:20:83:28:CA:0E:E6
+	 Signature algorithm name: SHA1withRSA
+	 Version: 3
+Trust this certificate? [no]:  yes
+Certificate was added to keystore
+
+# generating the pem file for testing:
+# I used the application called portecle: http://portecle.sourceforge.net/
+# I loaded the keystore console.dev.keystore and then exported the private key + certificate as PEM
+
+# In order to test manually: start the agent and run the following command:
+curl -k https://localhost:12906/agent -E console.dev.pem
+
+Enter PEM pass phrase: linkedin
+{"mountPoints":["/"]}
+
+# you should see the same result 
