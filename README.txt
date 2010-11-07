@@ -14,11 +14,24 @@ In order to compile the code you need
 * groovy 1.7.5 (http://groovy.codehaus.org/) (only for the console)
 * grails 1.3.5 (http://www.grails.org/) (only for the console)
 
+Before doing anything go to
+console/org.linkedin.glu.console-webapp
+
+and issue:
+
+grails upgrade
+
 At the top simply run
 
 gradle test
 
 which should compile and run all the tests.
+
+Note: if you do not run the 'grails upgrade' command, you may see this messages:
+Plugin [shiro-1.1-SNAPSHOT] not installed. ...
+Plugin [yui-2.7.0.1] not installed. ...
+Plugin [hibernate-1.3.5] not installed. ...
+Plugin [tomcat-1.3.5] not installed. ...
 
 3. IDE Support
 --------------
