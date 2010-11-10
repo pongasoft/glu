@@ -61,9 +61,6 @@ import org.linkedin.groovy.util.config.Config
 import org.restlet.Component
 import org.restlet.data.Protocol
 import org.restlet.routing.Template
-import org.restlet.engine.security.DefaultSslContextFactory
-import org.slf4j.bridge.SLF4JBridgeHandler
-import java.util.logging.LogManager
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 
 /**
@@ -99,7 +96,7 @@ class AgentMain implements LifecycleListener
   private final Sigar _sigar
   private final long _pid
 
-  private def _config
+  protected def _config
   private  def _agentProperties = [:]
 
   private File _agentTempDir
@@ -135,16 +132,16 @@ class AgentMain implements LifecycleListener
     // determine the host name of the agent
     def hostname = InetAddress.getLocalHost().canonicalHostName
     _agentName = Config.getOptionalString(config,
-                                          "glu.agent.name",
+                                          "${prefix}.agent.name",
                                           hostname)
 
-    properties['glu.agent.name'] = _agentName
-    properties['glu.agent.hostname'] = hostname
-    properties['glu.agent.version'] = config['org.linkedin.app.version']
+    properties["${prefix}.agent.name".toString()] = _agentName
+    properties["${prefix}.agent.hostname".toString()] = hostname
+    properties["${prefix}.agent.version".toString()] = config['org.linkedin.app.version']
 
     log.info "Agent ZooKeeper name: ${_agentName}"
 
-    _zookeeperRoot = Config.getRequiredString(config, "glu.agent.zookeeper.root")
+    _zookeeperRoot = Config.getRequiredString(config, "${prefix}.agent.zookeeper.root")
 
     // create zookeeper client and registers a url handler with it
     _zkClient = createZooKeeperClient(config)
@@ -160,13 +157,13 @@ class AgentMain implements LifecycleListener
     _fabric = computeFabric(config)
 
     // makes the fabric available
-    properties['glu.agent.fabric'] = _fabric
+    properties["${prefix}.agent.fabric".toString()] = _fabric
 
     log.info "Agent fabric: ${_fabric}"
 
     // read the config provided in configURL (most likely in zookeeper, this is why we
     // need to register the handler beforehand)
-    readConfig(Config.getOptionalString(config, 'glu.agent.configURL', null), properties)
+    readConfig(Config.getOptionalString(config, "${prefix}.agent.configURL", null), properties)
 
     _agentProperties.putAll(properties.groupBy { k,v ->
       k.toLowerCase().contains('password') ? 'passwordKeys' : 'nonPasswordKeys'
@@ -179,12 +176,17 @@ class AgentMain implements LifecycleListener
     _pid = getAgentPid()
     if(_pid)
     {
-      _agentProperties['glu.agent.pid'] = _pid
+      _agentProperties["${prefix}.agent.pid".toString()] = _pid
     }
 
     log.info("Starting the agent with config: ${_agentProperties}")
 
     _config = properties
+  }
+
+  String getPrefix()
+  {
+    return 'glu'
   }
 
   /**
@@ -207,7 +209,7 @@ class AgentMain implements LifecycleListener
    */
   private String computeFabric(def config)
   {
-    def fabric = Config.getOptionalString(config, 'glu.agent.fabric', null)
+    def fabric = Config.getOptionalString(config, "${prefix}.agent.fabric", null)
 
     if(!fabric)
     {
@@ -253,15 +255,15 @@ class AgentMain implements LifecycleListener
   {
     _shutdown = new Shutdown()
     _agent = new AgentImpl()
-    _agentTempDir = GroovyIOUtils.toFile(Config.getRequiredString(_config, 'glu.agent.tempDir'))
+    _agentTempDir = GroovyIOUtils.toFile(Config.getRequiredString(_config, "${prefix}.agent.tempDir"))
 
     def rootShell = createRootShell()
 
     def agentArgs =
     [
       rootShell: rootShell,
-      shellForScripts: createShell(rootShell, 'glu.agent.scriptRootDir'),
-      agentLogDir: rootShell.toResource(Config.getRequiredString(_config, 'glu.agent.logDir')),
+      shellForScripts: createShell(rootShell, "${prefix}.agent.scriptRootDir"),
+      agentLogDir: rootShell.toResource(Config.getRequiredString(_config, "${prefix}.agent.logDir")),
       storage: createStorage(),
       sigar: _sigar,
       sync: _zkSync
@@ -324,7 +326,7 @@ class AgentMain implements LifecycleListener
 
   def startRestServer()
   {
-    def port = Config.getOptionalInt(_config, 'glu.agent.port', 12906)
+    def port = Config.getOptionalInt(_config, "${prefix}.agent.port", 12906)
 
     _restServer = new Component();
     def context = _restServer.getContext().createChildContext()
@@ -353,30 +355,30 @@ class AgentMain implements LifecycleListener
 
     def secure = ''
 
-    if(Config.getOptionalBoolean(_config, 'glu.agent.sslEnabled', true))
+    if(Config.getOptionalBoolean(_config, "${prefix}.agent.sslEnabled", true))
     {
       def serverContext = context.createChildContext()
 
       Series params = serverContext.getParameters();
       // keystore
-      def keystore = fetchFile(Config.getRequiredString(_config, 'glu.agent.keystorePath'),
-                               Config.getRequiredString(_config, 'glu.agent.keystoreChecksum'))
+      def keystore = fetchFile(Config.getRequiredString(_config, "${prefix}.agent.keystorePath"),
+                               Config.getRequiredString(_config, "${prefix}.agent.keystoreChecksum"))
       params.add('keystorePath', keystore.path)
-      params.add('keystorePassword', getPassword(_config, 'glu.agent.keystorePassword'))
-      params.add('keyPassword', getPassword(_config, 'glu.agent.keyPassword'))
+      params.add('keystorePassword', getPassword(_config, "${prefix}.agent.keystorePassword"))
+      params.add('keyPassword', getPassword(_config, "${prefix}.agent.keyPassword"))
 
       // truststore
-      def trustore = fetchFile(Config.getRequiredString(_config, 'glu.agent.truststorePath'),
-                               Config.getRequiredString(_config, 'glu.agent.truststoreChecksum'))
+      def trustore = fetchFile(Config.getRequiredString(_config, "${prefix}.agent.truststorePath"),
+                               Config.getRequiredString(_config, "${prefix}.agent.truststoreChecksum"))
       params.add('truststorePath', trustore.path)
-      params.add('truststorePassword', getPassword(_config, 'glu.agent.truststorePassword'))
+      params.add('truststorePassword', getPassword(_config, "${prefix}.agent.truststorePassword"))
 
       params.add('sslContextFactory', 'org.restlet.engine.security.DefaultSslContextFactory')
 
       params.add('needClientAuthentication', 'true')
 
       params.add('defaultThreads',
-                 Config.getOptionalString(_config, 'glu.agent.rest.server.defaultThreads', '3'))
+                 Config.getOptionalString(_config, "${prefix}.agent.rest.server.defaultThreads", '3'))
       
       def server = _restServer.getServers().add(Protocol.HTTPS, port);
       server.setContext(serverContext)
@@ -416,7 +418,7 @@ class AgentMain implements LifecycleListener
   {
     // registering ivy url handler
     def ivySettings =
-      GroovyNetUtils.toURI(Config.getOptionalString(_config, 'glu.agent.ivySettings', null))
+      GroovyNetUtils.toURI(Config.getOptionalString(_config, "${prefix}.agent.ivySettings", null))
     if(ivySettings)
     {
       _urlFactory.registerHandler('ivy') {
@@ -433,7 +435,7 @@ class AgentMain implements LifecycleListener
   {
     def fileSystem =
       new FileSystemImpl(GroovyIOUtils.toFile(Config.getRequiredString(_config,
-                                                                       'glu.agent.scriptStateDir')),
+                                                                       "${prefix}.agent.scriptStateDir")),
                          _agentTempDir)
     
     Storage storage = new FileSystemStorage(fileSystem)
@@ -504,7 +506,7 @@ class AgentMain implements LifecycleListener
         {
           // we filter out the properties
           def props = _agentProperties.findAll { k, v ->
-            k.startsWith('glu.') || k.startsWith('java.vm')
+            k.startsWith(prefix) || k.startsWith('java.vm')
           }
           _zkClient.createWithParents(enode,
                                       JsonUtils.toJSON(props).toString(),
@@ -563,7 +565,7 @@ class AgentMain implements LifecycleListener
     }
   }
 
-  private static String getPassword(def config, String name)
+  protected String getPassword(def config, String name)
   {
     def password = Config.getRequiredString(config, name)
 
@@ -572,9 +574,11 @@ class AgentMain implements LifecycleListener
     {
       password = CodecUtils.decodeString(TWO_WAY_CODEC, password)
     }
+
+    return password
   }
 
-  private static File fetchFile(fileLocation, checksum)
+  protected File fetchFile(fileLocation, checksum)
   {
     File file = GroovyIOUtils.toFile(fileLocation)
     def computedChecksum = ONE_WAY_CODEC.encode(file.readBytes())
