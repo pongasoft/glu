@@ -101,7 +101,7 @@ class AgentMain implements LifecycleListener
 
   private File _agentTempDir
   private String _agentName
-  private String _zookeeperRoot
+  private String _zooKeeperRoot
   private Shutdown _shutdown
   private Agent _proxiedAgent
   private AgentImpl _agent
@@ -141,7 +141,7 @@ class AgentMain implements LifecycleListener
 
     log.info "Agent ZooKeeper name: ${_agentName}"
 
-    _zookeeperRoot = Config.getRequiredString(config, "${prefix}.agent.zookeeper.root")
+    _zooKeeperRoot = Config.getRequiredString(config, "${prefix}.agent.zookeeper.root")
 
     // create zookeeper client and registers a url handler with it
     _zkClient = createZooKeeperClient(config)
@@ -218,7 +218,7 @@ class AgentMain implements LifecycleListener
         fabricFile = new File(fabricFile)
 
       def mgr = new FabricManager(_zkClient,
-                                  "${_zookeeperRoot}/agents/names/${_agentName}",
+                                  computeZKAgentFabricPath(),
                                   fabricFile)
 
       fabric = mgr.getFabric()
@@ -230,9 +230,29 @@ class AgentMain implements LifecycleListener
     return fabric
   }
 
+  protected String computeZKAgentFabricPath()
+  {
+    return "${_zooKeeperRoot}/agents/names/${_agentName}"
+  }
+
+  protected def getRemoteConfigCodec()
+  {
+    return ONE_WAY_CODEC_2
+  }
+
+  protected def getTwoWayCodec()
+  {
+    TWO_WAY_CODEC
+  }
+
+  protected def getOneWayCodec()
+  {
+    ONE_WAY_CODEC
+  }
+
   private IZKClient createZooKeeperClient(def config)
   {
-    def factory = new IZKClientFactory(config: config, codec: ONE_WAY_CODEC_2)
+    def factory = new IZKClientFactory(config: config, codec: remoteConfigCodec, prefix: prefix)
     IZKClient zkClient = factory.create()
 
     if(zkClient)
@@ -500,7 +520,7 @@ class AgentMain implements LifecycleListener
       {
         // register an (ephemeral) entry in zookeeper: when the agent dies, it will automatically
         // be removed
-        def enode = "${_zookeeperRoot}/agents/fabrics/${_fabric}/instances/${_agentName}"
+        def enode = computeAgentEphemeralPath()
         log.info("Registering zk ephemeral node ${enode}")
         if(!_zkClient.exists(enode))
         {
@@ -520,6 +540,11 @@ class AgentMain implements LifecycleListener
     }
   }
 
+  protected String computeAgentEphemeralPath()
+  {
+    return "${_zooKeeperRoot}/agents/fabrics/${_fabric}/instances/${_agentName}"
+  }
+
   public void onDisconnected()
   {
     if(_zkClient)
@@ -530,10 +555,30 @@ class AgentMain implements LifecycleListener
   {
     if(_zkClient)
     {
-      return new ZooKeeperStorage(_zkClient.chroot("${_zookeeperRoot}/agents/fabrics/${_fabric}/state/${_agentName}"))
+      return new ZooKeeperStorage(_zkClient.chroot(computeZooKeeperStoragePath()))
     }
 
     return null
+  }
+
+  protected String computeZooKeeperStoragePath()
+  {
+    return "${_zooKeeperRoot}/agents/fabrics/${_fabric}/state/${_agentName}"
+  }
+
+  String getZookeeperRoot()
+  {
+    return _zooKeeperRoot
+  }
+
+  String getFabric()
+  {
+    return _fabric
+  }
+
+  String getAgentName()
+  {
+    return _agentName
   }
 
   static void main(args)
@@ -572,7 +617,7 @@ class AgentMain implements LifecycleListener
     // to encrypt the password use the password.sh cli (provided with agent-cli)
     if(Config.getOptionalBoolean(config, "${name}Encrypted", true))
     {
-      password = CodecUtils.decodeString(TWO_WAY_CODEC, password)
+      password = CodecUtils.decodeString(twoWayCodec, password)
     }
 
     return password
@@ -581,7 +626,7 @@ class AgentMain implements LifecycleListener
   protected File fetchFile(fileLocation, checksum)
   {
     File file = GroovyIOUtils.toFile(fileLocation)
-    def computedChecksum = ONE_WAY_CODEC.encode(file.readBytes())
+    def computedChecksum = oneWayCodec.encode(file.readBytes())
     if(computedChecksum != checksum)
       throw new IllegalArgumentException("wrong checksum for ${fileLocation}")
     return file

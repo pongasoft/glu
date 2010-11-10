@@ -20,7 +20,6 @@ import org.linkedin.glu.agent.rest.resources.AgentConfigResource
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.config.Config
 import org.linkedin.util.clock.Timespan
-import org.linkedin.util.codec.OneWayCodec
 import org.linkedin.util.collections.CollectionsUtils
 import org.linkedin.util.lifecycle.Configurable
 import org.linkedin.zookeeper.client.IZKClient
@@ -39,11 +38,12 @@ class IZKClientFactory implements Configurable
   public static final String MODULE = IZKClientFactory.class.getName();
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
-  public static final String ZK_CONNECT_STRING = 'glu.agent.zkConnectString'
-  public static final String ZK_PROPERTIES = 'glu.agent.zkProperties'
+  public static final String ZK_CONNECT_STRING = 'agent.zkConnectString'
+  public static final String ZK_PROPERTIES = 'agent.zkProperties'
   
   def config
-  OneWayCodec codec
+  String prefix = 'glu'
+  def codec
   String zkConnectString
 
   private def _restConfig
@@ -51,7 +51,7 @@ class IZKClientFactory implements Configurable
 
   IZKClient create()
   {
-    zkConnectString = Config.getOptionalString(config, ZK_CONNECT_STRING, null)
+    zkConnectString = Config.getOptionalString(config, "${prefix}.${ZK_CONNECT_STRING}".toString(), null)
 
     if(zkConnectString == 'none')
       return null
@@ -68,7 +68,7 @@ class IZKClientFactory implements Configurable
     if(zkConnectString)
     {
       def zkClient = new ZKClient(zkConnectString,
-                                  Timespan.parse(Config.getOptionalString(config, 'glu.agent.zkSessionTimeout', '5s')),
+                                  Timespan.parse(Config.getOptionalString(config, "${prefix}.agent.zkSessionTimeout".toString(), '5s')),
                                   null)
 
       return zkClient
@@ -105,7 +105,7 @@ class IZKClientFactory implements Configurable
       server.stop()
     }
 
-    zkConnectString = Config.getRequiredString(_restConfig, ZK_CONNECT_STRING)
+    zkConnectString = Config.getRequiredString(_restConfig, "${prefix}.${ZK_CONNECT_STRING}".toString())
 
     if(zkConnectString)
     {
@@ -117,7 +117,7 @@ class IZKClientFactory implements Configurable
 
   def startRestServer()
   {
-    def port = Config.getOptionalInt(config, 'glu.agent.rest.nonSecure.port', 12907)
+    def port = Config.getOptionalInt(config, "${prefix}.agent.rest.nonSecure.port".toString(), 12907)
 
     def component = new Component();
     def server = component.getServers().add(Protocol.HTTP, port);
@@ -133,7 +133,7 @@ class IZKClientFactory implements Configurable
 
     def serverAddress = server.address ?: InetAddress.getLocalHost().canonicalHostName
 
-    log.info "Waiting for ${ZK_CONNECT_STRING} (rest:put:http://${serverAddress}:${server.port})"
+    log.info "Waiting for ${prefix}.${ZK_CONNECT_STRING} (rest:put:http://${serverAddress}:${server.port})"
 
     return component
   }
@@ -149,14 +149,14 @@ class IZKClientFactory implements Configurable
 
   private void readFromFile()
   {
-    def zkProperties = Config.getOptionalString(config, ZK_PROPERTIES, null)
+    def zkProperties = Config.getOptionalString(config, "${prefix}.${ZK_PROPERTIES}".toString(), null)
     if(zkProperties)
     {
       zkProperties = new File(zkProperties)
       if(zkProperties.exists())
       {
         def zkConfig = CollectionsUtils.loadProperties(zkProperties)
-        zkConnectString = Config.getOptionalString(zkConfig, ZK_CONNECT_STRING, null)
+        zkConnectString = Config.getOptionalString(zkConfig, "${prefix}.${ZK_CONNECT_STRING}".toString(), null)
       }
     }
 
@@ -168,10 +168,10 @@ class IZKClientFactory implements Configurable
   
   private void saveToFile()
   {
-    def zkProperties = new File(Config.getRequiredString(config, ZK_PROPERTIES))
+    def zkProperties = new File(Config.getRequiredString(config, "${prefix}.${ZK_PROPERTIES}".toString()))
     GroovyIOUtils.mkdirs(zkProperties.parentFile)
     Properties p = new Properties()
-    p.put(ZK_CONNECT_STRING, zkConnectString)
+    p.put("${prefix}.${ZK_CONNECT_STRING}".toString(), zkConnectString)
     zkProperties.withWriter { Writer w -> p.store(w, null) }
     log.info "ZooKeeper connection string stored in ${zkProperties.canonicalPath}"
   }

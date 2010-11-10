@@ -16,7 +16,6 @@
 
 package org.linkedin.glu.agent.rest.resources
 
-import org.linkedin.util.codec.OneWayCodec
 import org.linkedin.util.lifecycle.Configurable
 import org.restlet.Context
 import org.restlet.Request
@@ -32,7 +31,7 @@ class AgentConfigResource extends BaseResource
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
   Configurable configurable
-  OneWayCodec codec
+  def codec
 
   AgentConfigResource(Context context, Request request, Response response)
   {
