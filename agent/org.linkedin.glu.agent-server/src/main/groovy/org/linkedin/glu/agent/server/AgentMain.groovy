@@ -114,7 +114,6 @@ class AgentMain implements LifecycleListener
   AgentMain()
   {
     JulToSLF4jBridge.installBridge()
-    log.info "from gluos: Installed JulToSLF4jBridge"
   }
 
   void init(args)
