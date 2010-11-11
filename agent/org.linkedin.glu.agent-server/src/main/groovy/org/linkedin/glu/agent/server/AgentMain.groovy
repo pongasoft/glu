@@ -90,28 +90,34 @@ class AgentMain implements LifecycleListener
       OneWayMessageDigestCodec.createSHA1Instance(p1, new Base64Codec(p2))
   }
 
-  private IZKClient _zkClient
-  private final def _urlFactory
-  private final String _fabric
-  private final Sigar _sigar
-  private final long _pid
+  protected IZKClient _zkClient
+  protected def _urlFactory
+  protected String _fabric
+  protected Sigar _sigar
+  protected long _pid
 
   protected def _config
-  private  def _agentProperties = [:]
+  protected  def _agentProperties = [:]
 
-  private File _agentTempDir
-  private String _agentName
-  private String _zooKeeperRoot
-  private Shutdown _shutdown
-  private Agent _proxiedAgent
-  private AgentImpl _agent
-  private def _restServer
-  private DualWriteStorage _dwStorage = null
+  protected File _agentTempDir
+  protected String _agentName
+  protected String _zooKeeperRoot
+  protected Shutdown _shutdown
+  protected Agent _proxiedAgent
+  protected AgentImpl _agent
+  protected def _restServer
+  protected DualWriteStorage _dwStorage = null
 
-  private final Object _lock = new Object()
-  private volatile boolean _receivedShutdown = false
+  protected final Object _lock = new Object()
+  protected volatile boolean _receivedShutdown = false
 
-  AgentMain(args)
+  AgentMain()
+  {
+    JulToSLF4jBridge.installBridge()
+    log.info "from gluos: Installed JulToSLF4jBridge"
+  }
+
+  void init(args)
   {
     // register url factory
     _urlFactory = new SingletonURLStreamHandlerFactory()
@@ -194,7 +200,7 @@ class AgentMain implements LifecycleListener
    * @param config
    * @param name
    */
-  private void toCanonicalPath(config, name)
+  protected void toCanonicalPath(config, name)
   {
     def path = Config.getOptionalString(config, name, null)
     if(path)
@@ -207,7 +213,7 @@ class AgentMain implements LifecycleListener
   /**
    * Computes the fabric
    */
-  private String computeFabric(def config)
+  protected String computeFabric(def config)
   {
     def fabric = Config.getOptionalString(config, "${prefix}.agent.fabric", null)
 
@@ -250,7 +256,7 @@ class AgentMain implements LifecycleListener
     ONE_WAY_CODEC
   }
 
-  private IZKClient createZooKeeperClient(def config)
+  protected IZKClient createZooKeeperClient(def config)
   {
     def factory = new IZKClientFactory(config: config, codec: remoteConfigCodec, prefix: prefix)
     IZKClient zkClient = factory.create()
@@ -426,7 +432,7 @@ class AgentMain implements LifecycleListener
     }
   }
 
-  private Shell createShell(ShellImpl rootShell, String root)
+  protected Shell createShell(ShellImpl rootShell, String root)
   {
     def fs =
       rootShell.fileSystem.newFileSystem(GroovyIOUtils.toFile(Config.getRequiredString(_config,
@@ -434,7 +440,7 @@ class AgentMain implements LifecycleListener
     return rootShell.newShell(fs)
   }
 
-  private ShellImpl createRootShell()
+  protected ShellImpl createRootShell()
   {
     // registering ivy url handler
     def ivySettings =
@@ -451,7 +457,7 @@ class AgentMain implements LifecycleListener
                          env: Collections.unmodifiableMap(_agentProperties))
   }
 
-  private Storage createStorage()
+  protected Storage createStorage()
   {
     def fileSystem =
       new FileSystemImpl(GroovyIOUtils.toFile(Config.getRequiredString(_config,
@@ -477,7 +483,7 @@ class AgentMain implements LifecycleListener
   /**
    * Create Sigar.
    */
-  private Sigar createSigar()
+  protected Sigar createSigar()
   {
     try
     {
@@ -491,7 +497,7 @@ class AgentMain implements LifecycleListener
     }
   }
 
-  private long getAgentPid()
+  protected long getAgentPid()
   {
     if(_sigar)
     {
@@ -551,7 +557,7 @@ class AgentMain implements LifecycleListener
       log.warn("Detected ZooKeeper failure.")
   }
 
-  private ZooKeeperStorage createZooKeeperStorage()
+  protected ZooKeeperStorage createZooKeeperStorage()
   {
     if(_zkClient)
     {
@@ -583,14 +589,12 @@ class AgentMain implements LifecycleListener
 
   static void main(args)
   {
-    JulToSLF4jBridge.installBridge()
-
-    AgentMain agentMain = new AgentMain(args)
-
+    AgentMain agentMain = new AgentMain()
+    agentMain.init(args)
     agentMain.startAndWait()
   }
 
-  private static def readConfig(url, Properties properties)
+  protected def readConfig(url, Properties properties)
   {
     if(url)
     {
