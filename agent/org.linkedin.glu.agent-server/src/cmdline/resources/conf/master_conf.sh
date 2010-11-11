@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #
 # Copyright 2010-2010 LinkedIn, Inc
 #
@@ -14,25 +16,29 @@
 # the License.
 #
 
+if [ -z "$GLU_CONFIG_PREFIX" ]; then
+  GLU_CONFIG_PREFIX="glu"
+fi
+
 # handle GLU_ZOOKEEPER
 if [ -z "$GLU_ZOOKEEPER" ]; then
   D_GLU_ZOOKEEPER=""
 else
-  D_GLU_ZOOKEEPER="-Dglu.agent.zkConnectString=$GLU_ZOOKEEPER"
+  D_GLU_ZOOKEEPER="-D$GLU_CONFIG_PREFIX.agent.zkConnectString=$GLU_ZOOKEEPER"
 fi
 
 # handle GLU_AGENT_NAME
 if [ -z "$GLU_AGENT_NAME" ]; then
   D_GLU_AGENT_NAME=""
 else
-  D_GLU_AGENT_NAME="-Dglu.agent.name=$GLU_AGENT_NAME"
+  D_GLU_AGENT_NAME="-D$GLU_CONFIG_PREFIX.agent.name=$GLU_AGENT_NAME"
 fi
 
 # handle GLU_AGENT_FABRIC
 if [ -z "$GLU_AGENT_FABRIC" ]; then
   D_GLU_AGENT_FABRIC=""
 else
-  D_GLU_AGENT_FABRIC="-Dglu.agent.fabric=$GLU_AGENT_FABRIC"
+  D_GLU_AGENT_FABRIC="-D$GLU_CONFIG_PREFIX.agent.fabric=$GLU_AGENT_FABRIC"
 fi
 
 if [ -z "$GLU_AGENT_APPS" ]; then
@@ -48,53 +54,84 @@ if [ -z "$GLU_AGENT_ZOOKEEPER_ROOT" ]; then
 fi
 
 # Application name (for the container/cmdline app) - build-time expansion
-APP_NAME="glu-agent"
+if [ -z "$APP_NAME" ]; then
+  APP_NAME="@agent.name@"
+fi
 
 # Application version (for the container/cmdline app) - build-time expansion
-APP_VERSION="@agent.version@"
+if [ -z "$APP_VERSION" ]; then
+  APP_VERSION="@agent.version@"
+fi
 
 # Java Classpath (leave empty - set by the ctl script)
-JVM_CLASSPATH=
+if [ -z "$JVM_CLASSPATH" ]; then
+  JVM_CLASSPATH=
+fi
 
 # Min, max, total JVM size (-Xms -Xmx)
-JVM_SIZE=-Xmx256m
+if [ -z "$JVM_SIZE" ]; then
+  JVM_SIZE=-Xmx256m
+fi
 
 # New Generation Sizes (-XX:NewSize -XX:MaxNewSize)
-JVM_SIZE_NEW=
+if [ -z "$JVM_SIZE_NEW" ]; then
+  JVM_SIZE_NEW=
+fi
 
 # Perm Generation Sizes (-XX:PermSize -XX:MaxPermSize)
-JVM_SIZE_PERM=
+if [ -z "$JVM_SIZE_PERM" ]; then
+  JVM_SIZE_PERM=
+fi
 
 # Type of Garbage Collector to use
-JVM_GC_TYPE=
+if [ -z "$JVM_GC_TYPE" ]; then
+  JVM_GC_TYPE=
+fi
 
 # Tuning options for the above garbage collector
-JVM_GC_OPTS=
+if [ -z "$JVM_GC_OPTS" ]; then
+  JVM_GC_OPTS=
+fi
 
 # JVM GC activity logging settings ($LOG_DIR set in the ctl script)
-JVM_GC_LOG="-XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -Xloggc:$GC_LOG"
+if [ -z "$JVM_GC_LOG" ]; then
+  JVM_GC_LOG="-XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -Xloggc:$GC_LOG"
+fi
 
 # Log4J configuration
-JVM_LOG4J="-Dlog4j.configuration=file:$CONF_DIR/log4j.xml"
+if [ -z "$JVM_LOG4J" ]; then
+  JVM_LOG4J="-Dlog4j.configuration=file:$CONF_DIR/log4j.xml"
+fi
 
 # Java I/O tmp dir
-JVM_TMP_DIR="-Djava.io.tmpdir=$TMP_DIR"
+if [ -z "$JVM_TMP_DIR" ]; then
+  JVM_TMP_DIR="-Djava.io.tmpdir=$TMP_DIR"
+fi
 
 # Any additional JVM arguments
-JVM_XTRA_ARGS="-Dsun.security.pkcs11.enable-solaris=false $D_GLU_ZOOKEEPER $D_GLU_AGENT_NAME $D_GLU_AGENT_FABRIC -Dglu.agent.homeDir=$GLU_AGENT_HOME -Dglu.agent.apps=$GLU_AGENT_APPS -Dglu.agent.zookeeper.root=$GLU_AGENT_ZOOKEEPER_ROOT"
-#JVM_XTRA_ARGS="-Djavax.net.debug=all"
+if [ -z "$JVM_XTRA_ARGS" ]; then
+  JVM_XTRA_ARGS="-Dsun.security.pkcs11.enable-solaris=false $D_GLU_ZOOKEEPER $D_GLU_AGENT_NAME $D_GLU_AGENT_FABRIC -D$GLU_CONFIG_PREFIX.agent.homeDir=$GLU_AGENT_HOME -D$GLU_CONFIG_PREFIX.agent.apps=$GLU_AGENT_APPS -D$GLU_CONFIG_PREFIX.agent.zookeeper.root=$GLU_AGENT_ZOOKEEPER_ROOT"
+fi
 
 # Debug arguments to pass to the JVM (when starting with '-d' flag)
-JVM_DEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=8887,server=y,suspend=n"
+if [ -z "$JVM_DEBUG" ]; then
+  JVM_DEBUG="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=8887,server=y,suspend=n"
+fi
 
 # Application Info - name, version, instance, etc.
-JVM_APP_INFO="-Dorg.linkedin.app.name=$APP_NAME -Dorg.linkedin.app.version=$APP_VERSION"
+if [ -z "$JVM_APP_INFO" ]; then
+  JVM_APP_INFO="-Dorg.linkedin.app.name=$APP_NAME -Dorg.linkedin.app.version=$APP_VERSION"
+fi
 
 # Main Java Class to run
-MAIN_CLASS=org.linkedin.glu.agent.server.AgentMain
+if [ -z "$MAIN_CLASS" ]; then
+  MAIN_CLASS=org.linkedin.glu.agent.server.AgentMain
+fi
 
 # Main Java Class arguments
-MAIN_CLASS_ARGS="file:$CONF_DIR/agentConfig.properties"
+if [ -z "$MAIN_CLASS_ARGS" ]; then
+  MAIN_CLASS_ARGS="file:$CONF_DIR/agentConfig.properties"
+fi
 
 # set JAVA_HOME (JDK6) & JAVA_CMD
 if [ -z "$JAVA_HOME" ]; then

@@ -78,6 +78,7 @@ subprojects {
 
   repositories {
     mavenRepo urls: localMavenRepo.toURL()
+    //mavenCentral name: 'mavenMirrors', urls: ['http://mirrors.ibiblio.org/pub/mirrors/maven2']
     mavenCentral()
     mavenRepo name: 'restlet', urls: "http://maven.restlet.org"
   }

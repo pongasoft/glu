@@ -46,7 +46,8 @@ dependencies {
 productName = "${project.name}-upgrade-${version}".toString()
 
 project."${productName}-tokens" = [
-    'agent.version': version
+    'agent.version': version,
+    'agent.name': project.name
 ]
 
 // creates the versionned package agent (the one used for upgrade only)
