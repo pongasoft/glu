@@ -26,6 +26,7 @@ import org.linkedin.util.url.URLBuilder
  */
 class AgentInfo extends NodeInfo
 {
+  AgentInfoPropertyAccessor agentInfoPropertyAccessor = PrefixAgentInfoPropertyAccessor.DEFAULT
   String agentName
 
   Map getAgentProperties()
@@ -35,19 +36,19 @@ class AgentInfo extends NodeInfo
 
   int getPort()
   {
-    return (agentProperties['glu.agent.port'] ?: "-1") as int
+    return (agentInfoPropertyAccessor.getPropertyValue(this, 'agent.port') ?: "-1") as int
   }
 
   String getHostname()
   {
-    return agentProperties['glu.agent.hostname'] ?: agentName
+    return agentInfoPropertyAccessor.getPropertyValue(this, 'agent.hostname') ?: agentName
   }
 
   URI getURI()
   {
     URLBuilder url = new URLBuilder()
 
-    if(agentProperties['glu.agent.sslEnabled']?.toString() == 'true')
+    if(agentInfoPropertyAccessor.getPropertyValue(this, 'agent.sslEnabled')?.toString() == 'true')
       url.scheme = 'https'
     else
       url.scheme = 'http'

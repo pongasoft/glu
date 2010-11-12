@@ -43,14 +43,10 @@ import org.restlet.util.Series
 class HttpsClientHelper extends HttpClientHelper
 {
   private static final Codec TWO_WAY_CODEC
-  private static final OneWayCodec ONE_WAY_CODEC
-
+ 
   static {
     String p0 = "gluos2way"
     TWO_WAY_CODEC = new Base64Codec(p0)
-    String p1 = "gluos1way1"
-    ONE_WAY_CODEC =
-      OneWayMessageDigestCodec.createSHA1Instance(p1, TWO_WAY_CODEC)
   }
 
   private final def _protocol
@@ -144,7 +140,10 @@ class HttpsClientHelper extends HttpClientHelper
 
     if(Config.getOptionalBoolean(config, "${name}Encrypted", true))
     {
-      password = CodecUtils.decodeString(TWO_WAY_CODEC, password)
+      def codec = config.codec ?: TWO_WAY_CODEC
+      password = CodecUtils.decodeString(codec, password)
     }
+
+    return password
   }
 }

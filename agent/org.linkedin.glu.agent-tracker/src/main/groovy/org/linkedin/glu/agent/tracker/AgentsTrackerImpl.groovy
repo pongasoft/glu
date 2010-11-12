@@ -58,6 +58,9 @@ class AgentsTrackerImpl implements AgentsTracker, LifecycleListener, ErrorListen
   @Initializable
   Clock clock = SystemClock.INSTANCE
 
+  @Initializable
+  AgentInfoPropertyAccessor agentInfoPropertyAccessor = PrefixAgentInfoPropertyAccessor.DEFAULT
+
   private final IZKClient _zk
   private final String _zkAgentsInstances
   private final String _zkAgentsState
@@ -105,7 +108,11 @@ class AgentsTrackerImpl implements AgentsTracker, LifecycleListener, ErrorListen
 
       _state = State.CONNECTING
       def agentsTrackerInstance =
-      new AgentsTrackerInstance(this, _zk, _zkAgentsInstances, _zkAgentsState)
+        new AgentsTrackerInstance(this,
+                                  _zk,
+                                  _zkAgentsInstances,
+                                  _zkAgentsState,
+                                  agentInfoPropertyAccessor)
       _agentListeners.each { agentsTrackerInstance.registerAgentListener(it) }
       _mountPointListeners.each { agentsTrackerInstance.registerMountPointListener(it) }
       _errorListeners.each { agentsTrackerInstance.registerErrorListener(it) }
@@ -294,6 +301,7 @@ class AgentsTrackerInstance
   private final IZKClient _zk
   private final String _zkAgentsInstances
   private final String _zkAgentsState
+  private final AgentInfoPropertyAccessor _agentInfoPropertyAccessor
 
   private ZooKeeperTreeTracker _agentsTracker
   private ZooKeeperTreeTracker _mountPointsTracker
@@ -311,12 +319,14 @@ class AgentsTrackerInstance
   AgentsTrackerInstance(AgentsTrackerImpl parent,
                         IZKClient zk,
                         String zkAgentsInstances,
-                        String zkAgentsState)
+                        String zkAgentsState,
+                        AgentInfoPropertyAccessor agentInfoPropertyAccessor)
   {
     _parent = parent
     _zk = zk
     _zkAgentsInstances = zkAgentsInstances
     _zkAgentsState = zkAgentsState
+    _agentInfoPropertyAccessor = agentInfoPropertyAccessor
   }
 
   public void track()
@@ -505,7 +515,9 @@ class AgentsTrackerInstance
           {
             case NodeEventType.ADDED:
             case NodeEventType.UPDATED:
-              info = new AgentInfo(agentName: agentName, trackedNode: event.node)
+              info = new AgentInfo(agentInfoPropertyAccessor: _agentInfoPropertyAccessor,
+                                   agentName: agentName, 
+                                   trackedNode: event.node)
               agents[agentName] = info
               break;
 
