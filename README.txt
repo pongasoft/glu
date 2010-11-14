@@ -103,3 +103,7 @@ top.install.dir=xxx
 top.publish.dir=xxx
 
 (see build.gradle for how it is being used)
+
+7. Support and discussion
+-------------------------
+The forum for this project can be found at http://groups.google.com/group/glu-project

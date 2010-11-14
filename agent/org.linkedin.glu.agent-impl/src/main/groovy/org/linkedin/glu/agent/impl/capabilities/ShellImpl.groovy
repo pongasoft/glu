@@ -35,6 +35,7 @@ import org.linkedin.util.clock.SystemClock
 import org.linkedin.groovy.util.net.GroovyNetUtils
 import org.linkedin.groovy.util.encryption.EncryptionUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
+import org.linkedin.util.lang.MemorySize
 
 /**
  * contains the utility methods for the shell
