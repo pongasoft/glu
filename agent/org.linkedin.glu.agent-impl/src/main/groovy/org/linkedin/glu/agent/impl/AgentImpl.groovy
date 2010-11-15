@@ -427,7 +427,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   InputStream tailAgentLog(args)
   {
     handleException {
-      args.location = _agentLogDir.createRelative(args.log?.toString() ?: 'glu-agent.out')
+      args.location = _agentLogDir.createRelative(args.log?.toString() ?: "${_rootShell.env['org.linkedin.app.name']}.out")
       getFileContent(args)
     }
   }

@@ -99,8 +99,10 @@ class TestMountPointResource extends GroovyTestCase
     logFileSystem = FileSystemImpl.createTempFileSystem()
 
     agent = new AgentImpl()
-    agent.boot(shellForScripts: shell,
-               rootShell: new ShellImpl(fileSystem: new FileSystemImpl(new File('/'))),
+    agent.boot(name: 'glu-agent',
+               shellForScripts: shell,
+               rootShell: new ShellImpl(fileSystem: new FileSystemImpl(new File('/')),
+                                        env: ['org.linkedin.app.name': 'glu-agent']),
                agentLogDir: logFileSystem.root,
                storage: new RAMStorage(ramStorage),
                sync: { sync << clock.currentTimeMillis() })

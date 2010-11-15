@@ -89,7 +89,8 @@ def class TestAgentImpl extends GroovyTestCase
 
     agent = new AgentImpl(clock: clock)
     agent.boot(shellForScripts: shell,
-               rootShell: new ShellImpl(fileSystem: logFileSystem),
+               rootShell: new ShellImpl(fileSystem: logFileSystem,
+                                        env: ['org.linkedin.app.name': 'glu-agent']),
                agentLogDir: logFileSystem.root,
                storage: createStorage() as Storage)
   }

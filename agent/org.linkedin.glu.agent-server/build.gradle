@@ -209,7 +209,7 @@ ${agents.collect { computeDevsetupCmd("status", it) }.join("\n")}
 
 tail()
 {
-exec tail -f ${agents.collect { "${it}/data/logs/glu-agent.out" }.join(" ")}
+exec tail -f ${agents.collect { "${it}/data/logs/${project.name}.out" }.join(" ")}
 }
 
 case \$1 in
