@@ -94,29 +94,29 @@ class BootStrap {
           }
         }
       }
+    }
 
-      // if no user in the database then simply create an admin user
-      if(!User.count())
-      {
-        log.info "No user detected. Creating admin account..."
+    // if no user in the database then simply create an admin user
+    if(!User.count())
+    {
+      log.info "No user detected. Creating admin account..."
 
-        User.withTransaction { status ->
-          def userInstance = new User(username: "admin")
-          userInstance.setRoles([RoleName.USER, RoleName.RELEASE, RoleName.ADMIN])
-          if(!userInstance.save())
-            throw new RuntimeException("could not create admin user")
+      User.withTransaction { status ->
+        def userInstance = new User(username: "admin")
+        userInstance.setRoles([RoleName.USER, RoleName.RELEASE, RoleName.ADMIN])
+        if(!userInstance.save())
+          throw new RuntimeException("could not create admin user")
 
-          DbUserCredentials credentials = new DbUserCredentials(username: "admin",
-                                                                password: "admin")
-          if(!credentials.save())
-          {
-            status.setRollbackOnly() // rollback the transaction
-            throw new RuntimeException("could not create admin user")
-          }
+        DbUserCredentials credentials = new DbUserCredentials(username: "admin",
+                                                              password: "admin")
+        if(!credentials.save())
+        {
+          status.setRollbackOnly() // rollback the transaction
+          throw new RuntimeException("could not create admin user")
         }
-
-        log.info "Successfully created (original) admin user. MAKE SURE YOU LOG IN AND CHANGE THE PASSWORD!"
       }
+
+      log.info "Successfully created (original) admin user. MAKE SURE YOU LOG IN AND CHANGE THE PASSWORD!"
     }
 
     log.info "Console started."
