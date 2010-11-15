@@ -25,6 +25,7 @@ import org.linkedin.glu.agent.rest.client.EncryptionKeysProvider
 import org.linkedin.glu.agent.api.Agent
 import org.linkedin.glu.agent.api.AgentException
 import org.linkedin.glu.agent.api.ScriptExecutionException
+import org.linkedin.util.annotations.Initializable
 
 /**
  * A touchpoint that interacts with the agent for the upgrade
@@ -39,6 +40,9 @@ public class AgentUpgradeTouchpoint extends BaseAgentTouchpoint
 
   // wait for 5s (default) for the agent to restart
   Timespan waitForRestartTimeout = Timespan.parse("5s")
+
+  @Initializable
+  String autoUpgradeScriptClassname = 'org.linkedin.glu.agent.impl.script.AutoUpgradeScript'
 
   AgentUpgradeTouchpoint(AgentFactory factory, EncryptionKeysProvider keyProvider)
   {
@@ -79,7 +83,7 @@ public class AgentUpgradeTouchpoint extends BaseAgentTouchpoint
     def execute = {
       factory.withRemoteAgent(uri) { Agent a ->
         a.installScript(mountPoint: mp,
-                        scriptClassName: 'org.linkedin.glu.agent.impl.script.AutoUpgradeScript',
+                        scriptClassName: autoUpgradeScriptClassname,
                         parent: parent,
                         initParameters: ad.actionParams)
       }
