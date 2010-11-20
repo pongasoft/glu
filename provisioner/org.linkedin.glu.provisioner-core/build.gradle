@@ -15,10 +15,11 @@
  */
 
 apply plugin: 'groovy'
+apply plugin: 'org.linkedin.release'
 
 dependencies {
-  compile external.linkedinUtilsGroovy
-  groovy external.groovy
-  testCompile external.junit
-  testRuntime external.slf4jLog4j
+  compile spec.external.linkedinUtilsGroovy
+  groovy spec.external.groovy
+  testCompile spec.external.junit
+  testRuntime spec.external.slf4jLog4j
 }

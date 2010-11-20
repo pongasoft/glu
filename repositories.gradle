@@ -1,0 +1,101 @@
+
+/*
+ * Copyright (c) 2010-2010 LinkedIn, Inc
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+def topReleaseDir = new File(userConfig.top.release.dir ?: "${topBuildDir}/release").canonicalFile
+def topPublishDir = new File(userConfig.top.publish.dir ?: "${topBuildDir}/publish").canonicalFile
+
+/**
+ * Repositories for build
+ */
+allRepositories.build = {
+  mavenRepo urls: "file://${rootDir}/local-maven-repo"
+  add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
+    name = "build-release"
+    addIvyPattern "${topReleaseDir}/[organisation]/[module]/[revision]/[module]-[revision].ivy"
+    addArtifactPattern "${topReleaseDir}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+    m2compatible = true
+  }
+
+  mavenRepo name: 'build-publish', urls: topPublishDir.toURI()
+
+  mavenCentral()
+}
+
+/**
+ * Repositories for buildScript
+ */
+allRepositories.buildscript = allRepositories.build
+
+/**
+ * Repositories for release
+ */
+allRepositories.snapshotRelease = {
+  add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
+    name = 'local-release'
+    addIvyPattern "${topReleaseDir}/[organisation]/[module]/[revision]/[module]-[revision].ivy"
+    addArtifactPattern "${topReleaseDir}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+    m2compatible = true
+  }
+}
+
+allRepositories.release = allRepositories.snapshotRelease
+
+/**
+ * Repositories for publish
+ */
+allRepositories.snapshotPublish = {
+  mavenDeployer {
+    repository(url: "file://localhost${topPublishDir}")
+    pom.whenConfigured { pomToConfigure ->
+      pomToConfigure.project {
+        name project.name
+        description 'GLU Deployment Automation Platform'
+        url 'http://github.com/linkedin/glu'
+        licenses {
+          license {
+            name 'The Apache Software License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0'
+          }
+        }
+        developers {
+          developer {
+            id 'ypujante'
+            name 'Yan Pujante'
+            email 'yan@pongasoft.com'
+          }
+          developer {
+            id 'referretti'
+            name 'Ricardo Ferretti'
+            email 'rferretti@linkedin.com'
+          }
+          developer {
+            id 'mdubey'
+            name 'Manish Dubey'
+            email 'mdubey@linkedin.com'
+          }
+        }
+        scm {
+          connection "scm:git:${spec.scmUrl}"
+          developerConnection "scm:git:${spec.scmUrl}"
+          url spec.scmUrl
+        }
+      }
+    }
+  }
+}
+
+allRepositories.publish = allRepositories.snapshotPublish

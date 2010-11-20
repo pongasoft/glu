@@ -15,23 +15,23 @@
  */
 
 apply plugin: 'groovy'
+apply plugin: 'org.linkedin.cmdline'
+
 
 dependencies {
   compile project(':agent:org.linkedin.glu.agent-rest-client')
-  compile external.restlet
+  compile spec.external.restlet
 
-  groovy external.groovy
+  groovy spec.external.groovy
 
-  runtime external.commonsCli
-  runtime external.slf4jLog4j
-  runtime external.log4j
+  runtime spec.external.commonsCli
+  runtime spec.external.slf4jLog4j
+  runtime spec.external.log4j
 }
 
-createCmdLineBuild(this)
-
-// customizing package-create task to add the keys
-project.'package-create' << {
-  def keysDir = new File(packageDir, 'conf/keys')
+// customizing package-assemble task to add the keys
+project.'package-assemble' << {
+  def keysDir = new File(project.convention.plugins.cmdline.assemblePackageFile, 'conf/keys')
   mkdir keysDir
   copy {
     from('../org.linkedin.glu.agent-server/src/zk-config/keys') {

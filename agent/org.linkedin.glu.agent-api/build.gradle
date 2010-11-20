@@ -15,9 +15,10 @@
  */
 
 apply plugin: 'groovy'
+apply plugin: 'org.linkedin.release'
 
 dependencies {
-  groovy external.groovy
+  groovy spec.external.groovy
 
-  testCompile external.junit
+  testCompile spec.external.junit
 }

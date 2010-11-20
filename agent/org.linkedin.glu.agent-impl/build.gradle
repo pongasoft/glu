@@ -15,21 +15,22 @@
  */
 
 apply plugin: 'groovy'
+apply plugin: 'org.linkedin.release'
 
 dependencies {
   compile project(':agent:org.linkedin.glu.agent-api')
-  compile external.linkedinUtilsGroovy
-  compile external.linkedinZookeeperImpl
-  compile external.sigar
-  compile external.mimeUtil
+  compile spec.external.linkedinUtilsGroovy
+  compile spec.external.linkedinZookeeperImpl
+  compile spec.external.sigar
+  compile spec.external.mimeUtil
 
-  groovy external.groovy
+  groovy spec.external.groovy
 
-  testCompile external.junit
+  testCompile spec.external.junit
 
-  runtime external.ivy
+  runtime spec.external.ivy
 
-  testRuntime external.ivy
+  testRuntime spec.external.ivy
 }
 
 ideaModule {

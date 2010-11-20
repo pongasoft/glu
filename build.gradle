@@ -14,56 +14,37 @@
  * the License.
  */
 
-import org.apache.tools.ant.filters.ReplaceTokens
+buildscript {
+  repositories {
+    // in case you do not want to use mavenCentral at all
+    if(project.hasProperty('buildscript.repository'))
+    {
+      mavenRepo urls: new File(project."buildscript.repository").toURI()
+    }
+    else
+    {
+      mavenCentral()
+    }
+  }
+  dependencies {
+    classpath 'org.linkedin:org.linkedin.gradle-plugins:1.0.0-SNAPSHOT'
+  }
+}
 
-// allow overriding of properties based on user preference
-userConfig = getConfig("${System.getProperty('user.home')}/.org.linkedin.${project.name}.properties")
+apply plugin: 'org.linkedin.userConfig'
+apply plugin: 'org.linkedin.spec'
 
-// topBuildDir
-topBuildDir   = userConfig.top.build.dir   ?: "${rootDir}/out/build"
-topInstallDir = userConfig.top.install.dir ?: "${rootDir}/out/dist"
-topPublishDir = userConfig.top.publish.dir ?: "${rootDir}/out/repo"
+topBuildDir = userConfig.top.build.dir ?: "${rootDir}/out/build"
 
-localMavenRepo = file("${rootDir}/local-maven-repo")
-
-scmUrl = "git@github.com:linkedin/${project.name}.git"
-
-grailsVersion = '1.3.5'
-groovyVersion = '1.7.5'
-linkedinUtilsVersion = '1.0.0'
-linkedinZookeeperVersion = '1.0.0'
-restletVersion = '2.0.1'
-sigarVersion = '1.6.4'
-slf4jVersion= '1.5.8' // to be compatible with grails 1.3.5
-
-// external dependencies versions
-external = [
-    commonsCli: 'commons-cli:commons-cli:1.2',
-    groovy: "org.codehaus.groovy:groovy:${groovyVersion}",
-    httpClient: "org.apache.httpcomponents:httpclient:4.0",
-    ivy: 'org.apache.ivy:ivy:2.2.0',
-    junit: 'junit:junit:4.4',
-    linkedinUtilsCore: "org.linkedin:org.linkedin.util-core:${linkedinUtilsVersion}",
-    linkedinUtilsGroovy: "org.linkedin:org.linkedin.util-groovy:${linkedinUtilsVersion}",
-    linkedinZookeeperCli: "org.linkedin:org.linkedin.zookeeper-cli:${linkedinZookeeperVersion}",
-    linkedinZookeeperImpl: "org.linkedin:org.linkedin.zookeeper-impl:${linkedinZookeeperVersion}",
-    log4j: 'log4j:log4j:1.2.16',
-    mimeUtil: 'eu.medsea.mimeutil:mime-util:2.1.3',
-    restlet: "org.restlet.jse:org.restlet:${restletVersion}",
-    restletExtHttpClient: "org.restlet.jse:org.restlet.ext.httpclient:${restletVersion}",
-    restletExtJson: "org.restlet.jse:org.restlet.ext.json:${restletVersion}",
-    restletExtSimple: "org.restlet.jse:org.restlet.ext.simple:${restletVersion}",
-    shiro: "org.apache.shiro:shiro-all:1.0.0-incubating",
-    sigar: "com.hyperic:sigar:${sigarVersion}",
-    simpleFramework: 'org.simpleframework:simple:4.1.21',
-    slf4j: "org.slf4j:slf4j-api:${slf4jVersion}",
-    slf4jLog4j: "org.slf4j:slf4j-log4j12:${slf4jVersion}",
-    slf4jJul: "org.slf4j:jul-to-slf4j:${slf4jVersion}",
-    zookeeper: 'org.apache.zookeeper:zookeeper:3.3.1'
-]
+apply plugin: 'org.linkedin.repository'
 
 allprojects {
+  buildscript {
+    allRepositories.buildscript.configure(repositories)
+  }
   apply plugin: 'idea'
+  group = spec.group
+  version = spec.version
 }
 
 // we use git
@@ -76,181 +57,10 @@ ideaProject {
 subprojects {
   apply plugin: 'maven'
 
-  repositories {
-    mavenRepo urls: localMavenRepo.toURL()
-    //mavenCentral name: 'mavenMirrors', urls: ['http://mirrors.ibiblio.org/pub/mirrors/maven2']
-    mavenCentral()
-    mavenRepo name: 'restlet', urls: "http://maven.restlet.org"
-  }
-
-  // this is required because of bad pom files :(
-  repositories.restlet.checkconsistency = false
-
-  group = 'org.linkedin'
-  version = '1.1.0-SNAPSHOT'
+  allRepositories.build.configure(repositories)
 
   sourceCompatibility = '1.6'
   targetCompatibility = '1.6'
 
   buildDir = "${topBuildDir}${project.path.replace(':','/')}".toString()
-  productName = "${project.name}-${version}".toString()
-
-  afterEvaluate { 
-    createUploadArchives(it)
-  }
-}
-
-/**
- * Creates the set of tasks to create a command line:
- * package-create: create the (exploded) package (directory structure)
- * package: generate archive of the package (tar.gz)
- * package-install: for use in dev to install in a local destination
- * clean-package-install: to remove the package installed
- * @param p the project
- */
-void createCmdLineBuild(p)
-{    
-  def productName = p.productName
-
-  p.packageDir = new File(p.buildDir, productName)
-  p.installDir = new File(topInstallDir, productName)
-
-  def tokensProperty = "${productName}-tokens"
-  def tokens = p.hasProperty(tokensProperty) ? p.property(tokensProperty) : [:]
-
-  /********************************************************
-   * task: package-create
-   ********************************************************/
-  p.task([dependsOn: 'jar'], 'package-create') << {
-    copy {
-      from p.configurations.default
-      into new File(p.packageDir, 'lib')
-    }
-
-    copy {
-      from p.configurations.archives.artifacts.file
-      into new File(p.packageDir, 'lib')
-    }
-
-    copy {
-      from(new File(p.projectDir, 'src/cmdline/resources')) {
-        filter(tokens: tokens, ReplaceTokens)
-       }
-      into p.packageDir
-    }
-
-    mkdir new File(p.packageDir, 'logs')
-
-    p.ant.chmod(dir: new File(p.packageDir, 'bin'), perm: 'ugo+rx', includes: '*.sh')
-    logger.lifecycle("Created (exploded) package in ${p.packageDir}")
-  }
-
-  /********************************************************
-   * task: package
-   ********************************************************/
-  p.task([dependsOn: 'package-create'], 'package') << {
-    def archivePath = new File("${p.buildDir}/distributions", "${productName}.tgz")
-    ant.tar(tarFile: archivePath, compression: "gzip", longfile: "gnu") {
-      tarfileset(dir: p.packageDir.parentFile, includes: "${p.packageDir.name}/**/*.sh", filemode: "755")
-      fileset(dir: p.packageDir.parentFile, includes: "${p.packageDir.name}/**", excludes: "**/*.sh")
-    }
-    logger.lifecycle("Created (archived) package ${archivePath}")
-  }
-
-  /********************************************************
-   * task: package-install
-   ********************************************************/
-  p.task([dependsOn: 'package-create'], 'package-install') << {
-    copy {
-      from p.packageDir
-      into p.installDir
-    }
-
-    p.ant.chmod(dir: new File(p.installDir, 'bin'), perm: 'ugo+rx', includes: '*.sh')
-
-    logger.lifecycle("Installed in ${p.installDir}")
-  }
-
-  /********************************************************
-   * task: clean-package-install
-   ********************************************************/
-  p.task('clean-package-install') << {
-    delete p.installDir
-    logger.lifecycle("Deleted ${p.installDir}")
-  }
-}
-
-/**
- * Create the uploadArchives task.
- */
-void createUploadArchives(p)
-{
-  // the tasks and archives are only necessary when actually invoking the task!
-  if(p.gradle.startParameter.taskNames.find { it == 'uploadArchives'})
-  {
-    p.task([type: Jar, dependsOn: "classes"], 'sourcesJar') {
-        classifier = 'sources'
-        from p.sourceSets.main.allSource
-    }
-
-    p.task([type: Jar, dependsOn: "javadoc"], 'javadocJar') {
-        classifier = 'javadoc'
-        from p.javadoc.destinationDir
-    }
-
-    p.artifacts {
-        archives p.sourcesJar
-        archives p.javadocJar
-    }
-
-    if(p.plugins.hasPlugin('groovy'))
-    {
-      p.task([type: Jar, dependsOn: "groovydoc"], 'groovydocJar') {
-          classifier = 'groovydoc'
-          from p.groovydoc.destinationDir
-      }
-
-      p.artifacts {
-        archives p.groovydocJar
-      }
-    }
-  }
-
-  p.uploadArchives {
-    repositories.mavenDeployer {
-      repository(url: "file://localhost${topPublishDir}")
-      pom.whenConfigured { pomToConfigure ->
-        pomToConfigure.project {
-          licenses {
-            license {
-              name 'The Apache Software License, Version 2.0'
-              url 'http://www.apache.org/licenses/LICENSE-2.0'
-            }
-          }
-          scm {
-            connection "scm:git:${scmUrl}"
-            developerConnection "scm:git:${scmUrl}"
-            url scmUrl
-          }
-        }
-      }
-    }
-  }
-}
-
-def getConfig(def configFile)
-{
-  configFile = new File(configFile.toString())
-  if(configFile.exists())
-  {
-    logger.info "Loading user config [${configFile.toURL()}]"
-    def userProperties = new Properties()
-    configFile.withReader { userProperties.load(it) }
-    new ConfigSlurper().parse(userProperties)
-  }
-  else
-  {
-    logger.debug "No user config found [${configFile.toURL()}]"
-    return new ConfigObject()
-  }
 }

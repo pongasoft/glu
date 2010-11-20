@@ -1,0 +1,25 @@
+apply plugin: 'org.linkedin.release'
+apply plugin: 'org.linkedin.cmdline'
+apply plugin: 'java'
+
+dependencies {
+  compile project(":agent:org.linkedin.glu.agent-server-impl")
+}
+
+cmdline {
+  includeRoot = false
+  replacementTokens = [
+    'agent.version': version,
+    'agent.name': 'org.linkedin.glu.agent-server'
+  ]
+}
+
+// customizing package-assemble task to add sigar
+project.'package-assemble' << {
+  copy {
+    from new File("${rootDir}/local-maven-repo/com/hyperic/sigar/${spec.versions.sigar}")
+    include '*.so'
+    include '*.dylib'
+    into new File(project.convention.plugins.cmdline.assemblePackageFile, 'lib')
+  }
+}

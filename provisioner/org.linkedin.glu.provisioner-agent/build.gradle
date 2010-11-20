@@ -15,12 +15,13 @@
  */
 
 apply plugin: 'groovy'
+apply plugin: 'org.linkedin.release'
 
 dependencies {
   compile project(':provisioner:org.linkedin.glu.provisioner-core')
   compile project(':agent:org.linkedin.glu.agent-api')
   compile project(':agent:org.linkedin.glu.agent-rest-client')
-  groovy external.groovy
-  testCompile external.junit
-  testRuntime external.slf4jLog4j
+  groovy spec.external.groovy
+  testCompile spec.external.junit
+  testRuntime spec.external.slf4jLog4j
 }

@@ -14,115 +14,40 @@
 * the License.
 */
 
-apply plugin: 'groovy'
+apply plugin: 'org.linkedin.cmdline'
 
 buildscript {
-  repositories {
-    mavenRepo urls: localMavenRepo.toURL()
-  }
   dependencies {
-    classpath external.linkedinZookeeperCli
+    classpath spec.external.linkedinZookeeperCliImpl
   }
 }
 
-dependencies {
-  compile project(':agent:org.linkedin.glu.agent-impl')
-  compile project(':agent:org.linkedin.glu.agent-rest-resources')
-  compile external.restlet
-  compile external.restletExtSimple
-  compile external.simpleFramework
-
-  groovy external.groovy
-
-  testCompile project(':agent:org.linkedin.glu.agent-rest-client')
-
-  runtime external.commonsCli
-  runtime external.slf4jLog4j
-  runtime external.log4j
-}
-
-// 'main' product is the upgrade package
-productName = "${project.name}-upgrade-${version}".toString()
-
-project."${productName}-tokens" = [
+cmdline {
+  dependsOn = [':agent:org.linkedin.glu.agent-server-upgrade:package-assemble']
+  replacementTokens = [
     'agent.version': version,
-    'agent.name': project.name
-]
+    'agent.name': 'org.linkedin.glu.agent-server'
+  ]
+}
 
-// creates the versionned package agent (the one used for upgrade only)
-createCmdLineBuild(this)
+def agentServerUpgradeProject = evaluationDependsOn(':agent:org.linkedin.glu.agent-server-upgrade')
 
-// customizing package-create task to add sigar
-project.'package-create' << {
+// customizing package-assemble task to add agent upgrade to it
+project.'package-assemble'.doFirst {
   copy {
-    from new File(localMavenRepo, "com/hyperic/sigar/${sigarVersion}")
-    include '*.so'
-    include '*.dylib'
-    into new File(packageDir, 'lib')
+    from agentServerUpgradeProject.convention.plugins.cmdline.assemblePackageFile
+    into new File(project.convention.plugins.cmdline.assemblePackageFile, version)
   }
 }
 
-// second product is the full agent which contains base + upgrade to latest version
-fullProductName = "${project.name}-${version}".toString()
-
-fullPackageDir = new File(buildDir, fullProductName)
-fullInstallDir = new File(topInstallDir, fullProductName)
-
-/********************************************************
- * task: package-create-full
- ********************************************************/
-task([dependsOn: 'package-create'], 'package-create-full') << {
-  copy {
-    from packageDir
-    into new File(fullPackageDir, version)
-  }
-
-  copy {
-    from new File(projectDir, 'src/base/resources')
-    into fullPackageDir
-  }
-  
-  ant.echo(message: version, file: new File(fullPackageDir, "version.txt"))
-
-  logger.lifecycle("Created full package in ${fullPackageDir}")
-}
-
-/********************************************************
- * task: package-full
- ********************************************************/
-task([dependsOn: 'package-create-full'], 'package-full') << {
-  def archivePath = new File("${buildDir}/distributions", "${fullProductName}.tgz")
-  // YP Note: the problem with the Tar gradle task is that it does not maintain the +x persmission
-  // => using ant tar task instead
-  ant.tar(tarFile: archivePath, compression: "gzip", longfile: "gnu") {
-    tarfileset(dir: fullPackageDir.parentFile, includes: "${fullPackageDir.name}/**/*.sh", filemode: "755")
-    fileset(dir: fullPackageDir.parentFile, includes: "${fullPackageDir.name}/**", excludes: "**/*.sh")
-  }
-  logger.lifecycle("Created package ${archivePath}")
-}
-
-/********************************************************
- * task: package-install: overrides the default package-install as it does not make
- * too much sense to install just the upgrade package
- ********************************************************/
-task([dependsOn: 'package-create-full', overwrite: true], 'package-install') << {
-  copy {
-    from fullPackageDir
-    into fullInstallDir
-  }
-  ['bin', "${version}/bin"].each {
-    ant.chmod(dir: new File(fullInstallDir, it), perm: 'ugo+rx', includes: '*.sh')
-  }
-  logger.lifecycle("Installed agent ${version} in ${fullInstallDir}")
-}
-
-/**************************************************************
- * task: clean-package-install
- * Overriding to delete the full install dir instead
- ***************************************************************/
-task([overwrite: true], 'clean-package-install') << {
-  delete fullInstallDir
-  logger.lifecycle("Deleted ${fullInstallDir}")
+/**
+ * Install the package in the destinationDir
+ */
+private void packageInstall(File destinationDir)
+{
+  ant.untar(src: project.convention.plugins.cmdline.packageFile, dest: destinationDir.parentFile, compression: 'gzip')
+  ant.chmod(dir: destinationDir.parentFile, perm: 'ugo+rx', includes: '**/bin/*')
+  logger.lifecycle("Installed in ${destinationDir}")
 }
 
 /**************************************************************
@@ -142,7 +67,7 @@ task 'setup' << {
 }
 
 /**************************************************************
- * task: setup-<f>-<a>
+* task: setup-<a>-<f>
  * This is used for dev only to quickly set up the environment
  * Creates <f> fabrics with <a> agents
  ***************************************************************/
@@ -150,7 +75,7 @@ def setupFabricsCount = (userConfig.glu.agent.devsetup.fabrics ?: 2) as int
 def setupAgentsCount = (userConfig.glu.agent.devsetup.agents ?: 5) as int
 (1..setupFabricsCount).each { fc ->
   (1..setupAgentsCount).each { ac ->
-    task([dependsOn: 'package-create-full', description: "Setup ${ac} agent(s) in ${fc} fabric(s)"], "setup-${ac}-${fc}") << {
+    task([dependsOn: 'package', description: "Setup ${ac} agent(s) in ${fc} fabric(s)"], "setup-${ac}-${fc}") << {
       def setupFabrics = (1..fc).collect { "glu-dev-${it}"}
 
       def setupAgents = [:]
@@ -248,21 +173,7 @@ task 'clean-setup' << {
  */
 private void zk(args)
 {
-  def clientMainClass
-
-  try
-  {
-    clientMainClass = buildscript.classLoader.loadClass("org.linkedin.zookeeper.cli.ClientMain")
-  }
-  catch (ClassNotFoundException cnfe)
-  {
-    logger.error ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    logger.error ("Could not find ClientMain... for now make sure you run gradle jar in linkedin-zookeeper/zookeeper-cli")
-    logger.error ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    throw cnfe
-  }
-
-  clientMainClass.metaClass.invokeStaticMethod(clientMainClass, "mainNoExit", [args] as Object[])
+  org.linkedin.zookeeper.cli.ClientMain.mainNoExit(args)
 }
 
 /**
@@ -290,7 +201,7 @@ File getDevsetupDir()
   if(userConfig.glu.agent.devsetup.dir)
     return new File(userConfig.glu.agent.devsetup.dir)
 
-  new File(topInstallDir, "devsetup")
+  new File(project.convention.plugins.cmdline.installDir, "devsetup")
 }
 
 /**
@@ -317,13 +228,8 @@ private void setupFabricInZooKeeper(def fabric)
 private void setupAgent(def agent, int port)
 {
   def agentDir = new File(devsetupDir, agent)
-  copy {
-    from fullPackageDir
-    into agentDir
-  }
-  ['bin', "${version}/bin"].each {
-    ant.chmod(dir: new File(agentDir, it), perm: 'ugo+rx', includes: '*.sh')
-  }
+  packageInstall(agentDir)
+  new File(devsetupDir, project.convention.plugins.cmdline.packageName).renameTo(agentDir)
 
   def agentConfig = """
 
