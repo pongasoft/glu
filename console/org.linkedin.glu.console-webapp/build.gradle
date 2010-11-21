@@ -114,6 +114,13 @@ console.truststorePath="${new File(keysDir, 'agent.dev.truststore').canonicalPat
   logger.lifecycle "Created dev system under: ${new File(buildDir, 'systems/hello-world-system.json')}"
 }
 
+['run-app', 'test-app'].each { taskName ->
+  task "${taskName}"(dependsOn: lib) << {
+    ant.exec(dir: '.', executable: "grails") {
+      arg(line: "${taskName}")
+    }
+  }
+}
 
 def warFile = new File("${buildDir}/distributions/${project.name}-${project.version}.war")
 

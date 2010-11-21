@@ -64,10 +64,16 @@ gradle package-install // to install locally (for dev)
 * agent/org.linkedin.glu.agent-tracker
 Listens to ZooKeeper events to track the agent writes (used in console-webapp).
 
+* agent/org.linkedin.glu.agent-server-impl
+Contains the implementation of the agent server cli.
+
+* agent/org.linkedin.glu.agent-server-upgrade
+Create the upgrade package (to be used when uprading an already installed agent).
+gradle package // create the upgrade package
+
 * agent/org.linkedin.glu.agent-server
 The actual server
-gradle package // create the upgrade package
-gradle package-full // create the full package
+gradle package // create the package
 
 gradle package-install // to install locally (for dev)
 gradle setup // setup dev fabric and keys in zookeeper (used in conjunction with gradle install)
@@ -91,18 +97,15 @@ walkthrough the console.
 
 6. Build configuration
 ----------------------
-You can configure some of the build properties by creating the file
-~/.org.linkedin.glu.properties
+The project uses the 'org.linkedin.userConfig' plugin and as such can be configured
+See https://github.com/linkedin/gradle-plugins/blob/master/README.txt for details
 
-Properties:
-# where the build goes (if you don't like to have it in the source tree)
-top.build.dir=xxx
-# where the software is installed (when running package-install)
-top.install.dir=xxx
-# where the software is published (locally) (when running uploadArchives)
-top.publish.dir=xxx
-
-(see build.gradle for how it is being used)
+Example:
+~/.userConfig.properties
+top.build.dir="/Volumes/Disk2/deployment/${userConfig.project.name}"
+top.install.dir="/export/content/${userConfig.project.name}"
+top.release.dir="/export/content/repositories/release"
+top.publish.dir="/export/content/repositories/publish"
 
 7. Support and discussion
 -------------------------

@@ -71,35 +71,42 @@ task 'setup' << {
  * This is used for dev only to quickly set up the environment
  * Creates <f> fabrics with <a> agents
  ***************************************************************/
-def setupFabricsCount = (userConfig.glu.agent.devsetup.fabrics ?: 2) as int
-def setupAgentsCount = (userConfig.glu.agent.devsetup.agents ?: 5) as int
-(1..setupFabricsCount).each { fc ->
-  (1..setupAgentsCount).each { ac ->
-    task([dependsOn: 'package', description: "Setup ${ac} agent(s) in ${fc} fabric(s)"], "setup-${ac}-${fc}") << {
-      def setupFabrics = (1..fc).collect { "glu-dev-${it}"}
+def setupTaskPattern = ~/setup-([0-9]+)-([0-9]+)/
 
-      def setupAgents = [:]
-      (0..<ac).each { i ->
-        setupAgents["agent-${i+1}"] = setupFabrics[i % fc]
-      }
+tasks.addRule("Pattern: setup-<agentCount>-<fabricCount>") { String taskName ->
+  def matcher = setupTaskPattern.matcher(taskName)
+  if(matcher.matches())
+  {
+    createSetupTask(matcher[0][1] as int, matcher[0][2] as int)
+  }
+}
 
-      // setting up the fabrics: loading the keys and the agent config
-      setupFabrics.each { setupFabricInZooKeeper(it) }
+private createSetupTask(int ac, int fc)
+{
+  task([dependsOn: 'package', description: "Setup ${ac} agent(s) in ${fc} fabric(s)"], "setup-${ac}-${fc}") << {
+    def setupFabrics = (1..fc).collect { "glu-dev-${it}"}
 
-      def basePort = (userConfig.glu.agent.devsetup.basePort ?: 13906) as int
-
-      // setup each agent fabric
-      setupAgents.eachWithIndex { agent, fabric, idx ->
-        setupAgentInZooKeeper(fabric, agent)
-        setupAgent(agent, basePort + idx)
-      }
-
-      def devStartupFile = new File(devsetupDir, "agentdevctl.sh")
-
-      devStartupFile.text = createAgentDevCtl(setupAgents.keySet())
-
-      ant.chmod(file: devStartupFile, perm: 'ugo+rx')
+    def setupAgents = [:]
+    (0..<ac).each { i ->
+      setupAgents["agent-${i+1}"] = setupFabrics[i % fc]
     }
+
+    // setting up the fabrics: loading the keys and the agent config
+    setupFabrics.each { setupFabricInZooKeeper(it) }
+
+    def basePort = (userConfig.glu.agent.devsetup.basePort ?: 13906) as int
+
+    // setup each agent fabric
+    setupAgents.eachWithIndex { agent, fabric, idx ->
+      setupAgentInZooKeeper(fabric, agent)
+      setupAgent(agent, basePort + idx)
+    }
+
+    def devStartupFile = new File(devsetupDir, "agentdevctl.sh")
+
+    devStartupFile.text = createAgentDevCtl(setupAgents.keySet())
+
+    ant.chmod(file: devStartupFile, perm: 'ugo+rx')
   }
 }
 

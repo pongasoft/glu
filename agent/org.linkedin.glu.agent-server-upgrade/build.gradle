@@ -1,4 +1,3 @@
-apply plugin: 'org.linkedin.release'
 apply plugin: 'org.linkedin.cmdline'
 apply plugin: 'java'
 

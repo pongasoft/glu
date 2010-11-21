@@ -112,15 +112,13 @@ Check the document 2-QUICK-TUTORIAL.txt for a quick walkthrough the console.
 6. Setup configuration
 ----------------------
 The same way you can configure the build, you can also configure the setup by editing the file
-~/.org.linkedin.glu.properties
+~/.userConfig.properties
 
 # control the agent setup when running gradle setup from org.linkedin.glu.agent-server
 glu.agent.devsetup.fabric=...
 glu.agent.devsetup.name=...
 
 # control the agent setup when running gradle setup-x-y from org.linkedin.glu.agent-server
-glu.agent.devsetup.fabrics=2
-glu.agent.devsetup.agents=5
 glu.agent.devsetup.basePort=13906
 glu.agent.devsetup.zkRoot=/org/glu
 glu.agent.devsetup.dir=... <---- this is most likely the one you will modify to install somewhere else
@@ -131,9 +129,9 @@ are used.
 
 7. Different setups
 -------------------
-The command 'gradle setup-2-2' has several flavors from setup-1-1 to setup-5-2 (if you do not change
-the configuration as described in the previous section). It allows to configure and setup your
-development environment with multiple agents on multiple fabrics quickly and effortlessly.
+The command 'gradle setup-2-2' has several flavors using gradle task rules. It allows to configure
+and setup your development environment with multiple agents on multiple fabrics quickly
+and effortlessly: the first number is the number of agents, the second one is the number of fabrics.
 
 8. Cleaning up
 --------------

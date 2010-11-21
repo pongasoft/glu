@@ -27,7 +27,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath 'org.linkedin:org.linkedin.gradle-plugins:1.0.0-SNAPSHOT'
+    classpath 'org.linkedin:org.linkedin.gradle-plugins:1.0.0'
   }
 }
 
@@ -39,9 +39,6 @@ topBuildDir = userConfig.top.build.dir ?: "${rootDir}/out/build"
 apply plugin: 'org.linkedin.repository'
 
 allprojects {
-  buildscript {
-    allRepositories.buildscript.configure(repositories)
-  }
   apply plugin: 'idea'
   group = spec.group
   version = spec.version
@@ -55,9 +52,18 @@ ideaProject {
 }
 
 subprojects {
+  buildscript {
+    allRepositories.buildscript.configure(repositories)
+  }
   apply plugin: 'maven'
 
   allRepositories.build.configure(repositories)
+
+  if(repositories.findByName('restlet'))
+  {
+    // this is required because of bad pom files :(
+    repositories.restlet.checkconsistency = false
+  }
 
   sourceCompatibility = '1.6'
   targetCompatibility = '1.6'

@@ -23,7 +23,7 @@ spec = [
       grails: '1.3.5',
       groovy: '1.7.5',
       linkedinUtils: '1.0.0',
-      linkedinZookeeper: '1.0.0',
+      linkedinZookeeper: '1.1.0',
       restlet: '2.0.1',
       sigar: '1.6.4',
       slf4j: '1.5.8' // to be compatible with grails 1.3.5
@@ -54,7 +54,7 @@ spec.external = [
   junit: 'junit:junit:4.4',
   linkedinUtilsCore: "org.linkedin:org.linkedin.util-core:${spec.versions.linkedinUtils}",
   linkedinUtilsGroovy: "org.linkedin:org.linkedin.util-groovy:${spec.versions.linkedinUtils}",
-  linkedinZookeeperCliImpl: "org.linkedin:org.linkedin.zookeeper-cli:${spec.versions.linkedinZookeeper}",
+  linkedinZookeeperCliImpl: "org.linkedin:org.linkedin.zookeeper-cli-impl:${spec.versions.linkedinZookeeper}",
   linkedinZookeeperImpl: "org.linkedin:org.linkedin.zookeeper-impl:${spec.versions.linkedinZookeeper}",
   log4j: 'log4j:log4j:1.2.16',
   mimeUtil: 'eu.medsea.mimeutil:mime-util:2.1.3',

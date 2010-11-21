@@ -32,6 +32,8 @@ allRepositories.build = {
 
   mavenRepo name: 'build-publish', urls: topPublishDir.toURI()
 
+  mavenRepo name: 'restlet', urls: "http://maven.restlet.org"
+
   mavenCentral()
 }
 
