@@ -15,6 +15,7 @@
 */
 
 apply plugin: 'groovy'
+apply plugin: 'org.linkedin.release'
 
 dependencies {
   compile project(':agent:org.linkedin.glu.agent-impl')
