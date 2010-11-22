@@ -28,7 +28,10 @@ cmdline {
   ]
 }
 
-// customizing package-assemble task to add sigar
+/********************************************************
+ * task: package-assemble
+ * customizing package-assemble task to add sigar
+ ********************************************************/
 project.'package-assemble' << {
   copy {
     from new File("${rootDir}/local-maven-repo/com/hyperic/sigar/${spec.versions.sigar}")
@@ -36,4 +39,12 @@ project.'package-assemble' << {
     include '*.dylib'
     into new File(project.convention.plugins.cmdline.assemblePackageFile, 'lib')
   }
+}
+
+/********************************************************
+ * task: package-install
+ * overriden to not install as it does make too much sense
+ ********************************************************/
+task([overwrite: true], 'package-install') << {
+  // no op... it does not make sense to install the upgrade
 }
