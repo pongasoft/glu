@@ -16,18 +16,31 @@
 
 buildscript {
   repositories {
-    // in case you do not want to use mavenCentral at all
-    if(project.hasProperty('buildscript.repository'))
+    if(project.hasProperty('maven.buildscript.repository'))
     {
-      mavenRepo urls: new File(project."buildscript.repository").toURI()
+      mavenRepo urls: new File(project.properties["maven.buildscript.repository"]).toURI()
     }
-    else
+
+    if(project.hasProperty('ivy.buildscript.repository'))
+    {
+      add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
+        name = "ivy.buildscript.repository"
+        addIvyPattern "${project.properties['ivy.buildscript.repository']}/[organisation]/[module]/[revision]/[module]-[revision].ivy"
+        addArtifactPattern "${project.properties['ivy.buildscript.repository']}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+        m2compatible = true
+        checkmodified = true
+      }
+    }
+
+    // if you want to disallow maven central
+    if(project.properties['no.maven.central'] != 'true')
     {
       mavenCentral()
     }
   }
+
   dependencies {
-    classpath 'org.linkedin:org.linkedin.gradle-plugins:1.0.0'
+    classpath 'org.linkedin:org.linkedin.gradle-plugins:1.1.0'
   }
 }
 

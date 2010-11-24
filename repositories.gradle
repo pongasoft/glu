@@ -28,6 +28,7 @@ allRepositories.build = {
     addIvyPattern "${topReleaseDir}/[organisation]/[module]/[revision]/[module]-[revision].ivy"
     addArtifactPattern "${topReleaseDir}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
     m2compatible = true
+    checkmodified = true
   }
 
   mavenRepo name: 'build-publish', urls: topPublishDir.toURI()

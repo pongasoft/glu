@@ -29,6 +29,10 @@ dependencies {
   runtime spec.external.log4j
 }
 
+cmdline {
+  resourcesConfigurations.archives = 'lib'
+}
+
 // customizing package-assemble task to add the keys
 project.'package-assemble' << {
   def keysDir = new File(project.convention.plugins.cmdline.assemblePackageFile, 'conf/keys')

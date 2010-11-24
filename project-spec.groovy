@@ -17,13 +17,13 @@
 spec = [
     name: 'glu',
     group: 'org.linkedin',
-    version: '1.1.0',
+    version: '1.2.0',
 
     versions: [
       grails: '1.3.5',
       groovy: '1.7.5',
-      linkedinUtils: '1.0.0',
-      linkedinZookeeper: '1.1.0',
+      linkedinUtils: '1.2.0',
+      linkedinZookeeper: '1.2.0',
       restlet: '2.0.1',
       sigar: '1.6.4',
       slf4j: '1.5.8' // to be compatible with grails 1.3.5

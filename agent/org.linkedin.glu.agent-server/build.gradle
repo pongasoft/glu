@@ -15,6 +15,7 @@
 */
 
 apply plugin: 'org.linkedin.cmdline'
+apply plugin: 'org.linkedin.release'
 
 buildscript {
   dependencies {
@@ -28,6 +29,7 @@ cmdline {
     'agent.version': version,
     'agent.name': 'org.linkedin.glu.agent-server'
   ]
+  folders = ['data']
 }
 
 def agentServerUpgradeProject = evaluationDependsOn(':agent:org.linkedin.glu.agent-server-upgrade')
