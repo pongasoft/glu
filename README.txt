@@ -109,4 +109,4 @@ top.publish.dir="/export/content/repositories/publish"
 
 7. Support and discussion
 -------------------------
-The forum for this project can be found at http://groups.google.com/group/glu-project
+The forum for this project can be found at http://glu.977617.n3.nabble.com/
