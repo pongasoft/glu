@@ -15,6 +15,7 @@
  */
 
 include ':agent:org.linkedin.glu.agent-api',
+        ':agent:org.linkedin.glu.agent-cli-impl',
         ':agent:org.linkedin.glu.agent-cli',
         ':agent:org.linkedin.glu.agent-impl',
         ':agent:org.linkedin.glu.agent-rest-client',

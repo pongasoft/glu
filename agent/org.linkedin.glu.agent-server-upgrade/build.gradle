@@ -14,10 +14,10 @@
 * the License.
 */
 apply plugin: 'org.linkedin.cmdline'
-apply plugin: 'java'
+apply plugin: 'org.linkedin.release'
 
 dependencies {
-  compile project(":agent:org.linkedin.glu.agent-server-impl")
+  lib project(":agent:org.linkedin.glu.agent-server-impl")
 }
 
 cmdline {
