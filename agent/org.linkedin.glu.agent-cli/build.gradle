@@ -17,7 +17,6 @@
 apply plugin: 'org.linkedin.cmdline'
 apply plugin: 'org.linkedin.release'
 
-
 dependencies {
   lib project(':agent:org.linkedin.glu.agent-cli-impl')
 }

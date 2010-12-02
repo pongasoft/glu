@@ -324,9 +324,9 @@ class ClientMain implements Startable
     }
   }
 
-  private def extractArgs(Config config)
+  private def extractArgs(def config)
   {
-    return extractArgs(config.getString('args', '[:]'))
+    return extractArgs(Config.getOptionalString(config, 'args', '[:]'))
   }
 
   private def extractArgs(String args)
