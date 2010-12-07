@@ -6,7 +6,7 @@ Configuration and bootstrap
 ===========================
 For dev
 -------
-Check the document called [1-QUICK-DEV-SETUP.txt](https://github.com/linkedin/glu/blob/master/1-QUICK-DEV-SETUP.txt) for detailed instructions on how to set it up
+Check the document called [1-QUICK-DEV-SETUP.md](https://github.com/linkedin/glu/blob/master/1-QUICK-DEV-SETUP.md) for detailed instructions on how to set it up
 
 For production
 --------------
@@ -52,7 +52,7 @@ Even if you use LDAP, a user can assign himself a console password (useful if th
 
 Console tabs
 ------------
-Documentation coming soon. In the meantime, take a look at [2-QUICK-TUTORIAL.txt](https://github.com/linkedin/glu/blob/master/2-QUICK-TUTORIAL.txt)
+Documentation coming soon. In the meantime, take a look at [2-QUICK-TUTORIAL.md](https://github.com/linkedin/glu/blob/master/2-QUICK-TUTORIAL.md)
 
 REST API
 ========
