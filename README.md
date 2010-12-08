@@ -115,3 +115,11 @@ The project uses the [`org.linkedin.userConfig`](https://github.com/linkedin/gra
 Wiki
 ====
 Check the [wiki](https://github.com/linkedin/glu/wiki)
+
+Forum
+=====
+For any issues or comments please use the [forum](http://glu.977617.n3.nabble.com/)
+
+Issues
+======
+The issue tracker is currently hosted on [github](https://github.com/linkedin/glu/issues)
