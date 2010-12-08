@@ -75,7 +75,7 @@ class AuthFilters
             def encodedPair = authString - 'Basic '
             // for some reason I do not understand encodedPair.decodeAsBase64() is not working...
             def decodedPair =  new String(encodedPair.decodeBase64(), 'UTF-8')
-            def credentials = decodedPair.split(':')
+            def credentials = decodedPair.split(':', 2)
             SecurityUtils.subject.login(new UsernamePasswordToken(credentials[0],
                                                                   credentials[1]))
           }

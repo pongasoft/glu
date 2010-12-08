@@ -354,10 +354,9 @@ public class PlanController extends ControllerBase
       else
       {
         systemService.savePlan(plan)
-        response.setHeader('Location', g.createLink(absolute: true,
-                                                    controller: 'plan',
-                                                    action: 'rest_view_plan',
-                                                    id: plan.id, params: [fabric: request.fabric]))
+        response.addHeader('Location', g.createLink(absolute: true,
+                                                    mapping: 'restPlan',
+                                                    id: plan.id, params: [fabric: request.fabric]).toString())
         response.setStatus(HttpServletResponse.SC_CREATED)
         render plan.id
       }
@@ -404,10 +403,9 @@ public class PlanController extends ControllerBase
     if(plan?.hasLeafSteps())
     {
       systemService.savePlan(plan)
-      response.setHeader('Location', g.createLink(absolute: true,
-                                                  controller: 'plan',
-                                                  action: 'rest_view_plan',
-                                                  id: plan.id, params: [fabric: request.fabric]))
+      response.addHeader('Location', g.createLink(absolute: true,
+                                                  mapping: 'restPlan',
+                                                  id: plan.id, params: [fabric: request.fabric]).toString())
       response.setStatus(HttpServletResponse.SC_CREATED)
       render plan.id
     }
@@ -446,10 +444,9 @@ public class PlanController extends ControllerBase
                                                             plan.name,
                                                             new ProgressTracker())
 
-      response.setHeader('Location', g.createLink(absolute: true,
-                                                  controller: 'plan',
-                                                  action: 'rest_execution_status',
-                                                  id: executionId, params: [planId: plan.id, fabric: request.fabric.name]))
+      response.addHeader('Location', g.createLink(absolute: true,
+                                                  mapping: 'restExecution',
+                                                  id: executionId, params: [planId: plan.id, fabric: request.fabric.name]).toString())
       response.setStatus(HttpServletResponse.SC_CREATED)
       render executionId
     }

@@ -168,13 +168,13 @@ class UrlMappings
     "/rest/v1/$fabric/plans"(controller: 'plan') {
       action = [GET: 'rest_list_plans', POST: 'rest_create_plan']
     }
-    "/rest/v1/$fabric/plan/$id"(controller: 'plan') {
+    name restPlan: "/rest/v1/$fabric/plan/$id"(controller: 'plan') {
       action = [GET: 'rest_view_plan']
     }
     "/rest/v1/$fabric/plan/$id/execution"(controller: 'plan') {
       action = [POST: 'rest_execute_plan']
     }
-    "/rest/v1/$fabric/plan/$planId/execution/$id"(controller: 'plan') {
+    name restExecution: "/rest/v1/$fabric/plan/$planId/execution/$id"(controller: 'plan') {
       action = [GET: 'rest_view_execution', HEAD: 'rest_execution_status']
     }
     "/rest/v1/$fabric/system/model"(controller: 'model') {

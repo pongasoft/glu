@@ -20,14 +20,13 @@
   <meta name="layout" content="main"/>
 </head>
 <body>
-<h2>You are currently logged in as user '<span id="body-username">${user.username.encodeAsHTML()}</span>'<h2>
+<h2>You are currently logged in as user '<span id="body-username">${user.username.encodeAsHTML()}</span>'</h2>
 <h2>User Roles</h2>
   <ul id="body-user-roles">
     <g:each in="${ConsoleUtils.sortByName(roles)}" var="role">
     <li id="body-user-role-${role.name}">${role.name}</li>
     </g:each>
   </ul>
-<h2>
 
 <h2><g:link controller="user" action="credentials">Manage your credentials</g:link></h2>
 <g:if test="${request.fabric}">
@@ -36,7 +35,6 @@
 <g:else>
   You currently have not selected a fabric. <g:link controller="fabric" action="select">Select a fabric</g:link>
 </g:else>
-</h2>
 <h2><g:link controller="auth" action="signOut">Sign Out</g:link></h2>
 </body>
 </html>
