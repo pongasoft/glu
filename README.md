@@ -11,9 +11,11 @@ Compilation
 ===========
 In order to compile the code you need
 
-* [gradle 0.9-rc2](http://www.gradle.org/)
+* java 1.6
+* [gradle 0.9-rc2](http://www.gradle.org/) ([Download rc-2](http://dist.codehaus.org/gradle/gradle-0.9-rc-2-all.zip))
 * [groovy 1.7.5](http://groovy.codehaus.org/) (only for the console)
 * [grails 1.3.5](http://www.grails.org/) (only for the console)
+* Unix (tested on Mac OS X and Solaris)
 
 Before doing anything go to
 
