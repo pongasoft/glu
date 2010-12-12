@@ -29,7 +29,7 @@ Go back to checkout root
 
 Go to the dist devsetup folder
 
-    cd out/dist/devsetup
+    cd out/build/agent/org.linkedin.glu.agent-server/install/devsetup
 
 and start the 2 agents:
 

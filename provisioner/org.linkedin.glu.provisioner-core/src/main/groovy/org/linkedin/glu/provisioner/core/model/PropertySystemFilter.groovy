@@ -53,8 +53,8 @@ class PropertySystemFilter extends NameEqualsValueSystemFilter
       {
         log.debug("missing property (ignored)", e)
       }
+      return false
     }
-
   }
 
   def String toString()
