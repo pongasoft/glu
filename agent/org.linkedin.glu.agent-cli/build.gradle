@@ -21,6 +21,10 @@ dependencies {
   lib project(':agent:org.linkedin.glu.agent-cli-impl')
 }
 
+cmdline {
+  resources << fileTree(dir: rootDir, includes: ['*.txt', '*.md'])
+}
+
 // customizing package-assemble task to add the keys
 project.'package-assemble' << {
   def keysDir = new File(project.convention.plugins.cmdline.assemblePackageFile, 'conf/keys')

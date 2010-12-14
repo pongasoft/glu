@@ -4,16 +4,19 @@ This is a quick setup guide that shows you how to bring all the stack up (step 3
 
 1. Install ZooKeeper
 --------------------
-First you need ZooKeeper installed. If you do not have a ZooKeeper running on your box then you
-can either:
+First you need ZooKeeper installed. If you do not have a ZooKeeper running on your box then you can either:
 
 * download it and install it from [the main website](http://hadoop.apache.org/zookeeper/)
 
-* checkout the sibling project on github called [linkedin-zookeeper](https://github.com/linkedin/linkedin-zookeeper)
+* download and install the server and cli from the sibling project on github called [linkedin-zookeeper](https://github.com/linkedin/linkedin-zookeeper/downloads) (if you want to build it yourself, follow the [instructions](https://github.com/linkedin/linkedin-zookeeper/blob/master/README.md))
 
-        gradle package-install
+In any case, make sure that ZooKeeper is up and running. If you installed the cli simply run:
 
-which will install the server and the cli. Check the [README.md](https://github.com/linkedin/linkedin-zookeeper/blob/master/README.md) in the project. Make sure ZooKeeper is up and running (you can use the cli that was built to check)
+    <path_to_cli>/bin/zk.sh ls /
+
+which will display
+
+    zookeeper
 
 2. Bring the glu agent(s) up
 ----------------------------
