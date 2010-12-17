@@ -1,0 +1,65 @@
+/*
+* Copyright 2010-2010 LinkedIn, Inc
+*
+* Licensed under the Apache License, Version 2.0 (the "License"); you may not
+* use this file except in compliance with the License. You may obtain a copy of
+* the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+* License for the specific language governing permissions and limitations under
+* the License.
+*/
+
+apply plugin: 'org.linkedin.cmdline'
+apply plugin: 'org.linkedin.release'
+
+configurations {
+  zookeeperPackages
+}
+
+dependencies {
+  zookeeperPackages spec.external.linkedinZookeeperCliPackage
+  zookeeperPackages spec.external.linkedinZookeeperServerPackage
+}
+
+cmdline {
+//  dependsOn = [
+//    ':agent:org.linkedin.glu.agent-server:package-assemble',
+//    ':agent:org.linkedin.glu.agent-cli:package-assemble',
+//    ':console:org.linkedin.glu.console-webapp:war'
+//  ]
+  resources << fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html'])
+  cmdlineLogLevel = 'lifecycle'
+}
+
+def agentServerProject = evaluationDependsOn(':agent:org.linkedin.glu.agent-server')
+def agentCliProject = evaluationDependsOn(':agent:org.linkedin.glu.agent-cli')
+def consoleWebappProject = evaluationDependsOn(':console:org.linkedin.glu.console-webapp')
+
+// customizing package-assemble task to add agent cli, agent server and war
+project.'package-assemble'.doFirst {
+  File basePackage = project.convention.plugins.cmdline.assemblePackageFile
+
+  copy {
+    from agentServerProject.convention.plugins.cmdline.assemblePackageFile
+    into new File(basePackage, "org.linkedin.glu.agent-server-${version}")
+  }
+
+  copy {
+    from agentCliProject.convention.plugins.cmdline.assemblePackageFile
+    into new File(basePackage, "org.linkedin.glu.agent-cli-${version}")
+  }
+
+  copy {
+    from consoleWebappProject.tasks.getByPath('package-war').artifactFile
+    into new File(basePackage, "org.linkedin.glu.console-webapp-${version}")
+  }
+
+  configurations.zookeeperPackages.resolve().each { zkp ->
+    ant.untar(src: zkp, dest: basePackage, compression: 'gzip')
+  }
+}

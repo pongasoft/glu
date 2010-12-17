@@ -1,0 +1,73 @@
+/*
+ * Copyright 2010-2010 LinkedIn, Inc
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+apply plugin: 'org.linkedin.cmdline'
+apply plugin: 'org.linkedin.release'
+
+configurations {
+  jetty
+}
+
+dependencies {
+  jetty spec.external.jettyPackage
+}
+
+def jettyDistribution = "jetty-distribution-${spec.versions.jetty}"
+
+cmdline {
+  dependsOn = [
+    ':console:org.linkedin.glu.console-webapp:war'
+  ]
+  resources = [
+    // licenses
+    fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html']),
+
+    // console configuration
+    [
+      from: 'src/cmdline/resources',
+      into: new File(assemblePackageFile, jettyDistribution)
+    ],
+
+    // keys
+    [
+      from: fileTree(dir: new File(rootDir, 'agent/org.linkedin.glu.agent-server/src/zk-config/keys'),
+                     includes: ['console.dev.keystore', 'agent.dev.truststore', 'console.dev.secretkeystore']),
+      into: new File(assemblePackageFile, "${jettyDistribution}/conf"),
+      replaceTokens: false
+    ]
+  ]
+}
+
+def consoleWebappProject = evaluationDependsOn(':console:org.linkedin.glu.console-webapp')
+
+/********************************************************
+ * task: package-assemble
+ * customizing package-assemble task to include jetty
+ ********************************************************/
+project.'package-assemble'.doFirst {
+  File basePackage = project.convention.plugins.cmdline.assemblePackageFile
+  File jettyRoot = new File(basePackage, jettyDistribution)
+
+  ant.untar(src: configurations.jetty.resolve().toList()[0],
+            dest: basePackage,
+            compression: 'gzip')
+
+  // remove the test.war application
+  project.delete(new File(jettyRoot, "webapps/test.war"))
+
+  ant.copy(file: consoleWebappProject.tasks.getByPath('package-war').artifactFile,
+           tofile: new File(jettyRoot, "webapps/console.war"))
+}
