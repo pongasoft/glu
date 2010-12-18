@@ -28,6 +28,8 @@ dependencies {
 def jettyDistribution = "jetty-distribution-${spec.versions.jetty}"
 
 cmdline {
+  folders = []
+  
   dependsOn = [
     ':console:org.linkedin.glu.console-webapp:war'
   ]

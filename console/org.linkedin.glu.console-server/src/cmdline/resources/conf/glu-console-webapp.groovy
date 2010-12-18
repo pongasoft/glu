@@ -1,3 +1,19 @@
+/*
+ * Copyright 2010-2010 LinkedIn, Inc
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 console.sslEnabled=true
 
 console.keystorePath="${System.properties['user.dir']}/conf/console.dev.keystore"
@@ -9,9 +25,12 @@ console.secretkeystorePath="${System.properties['user.dir']}/conf/console.dev.se
 console.truststorePath="${System.properties['user.dir']}/conf/agent.dev.truststore"
 console.truststorePassword = 'nacEn92x8-1'
 
+def dataSourceUrl =
+  System.properties['glu.console.dataSource.url'] ?: "jdbc:hsqldb:file:${System.properties['user.dir']}/database/prod;shutdown=true"
+
 // specify the database connection string
 dataSource.dbCreate = "update"
-dataSource.url = "jdbc:hsqldb:file:${System.properties['user.dir']}/database/tutorial;shutdown=true"
+dataSource.url = dataSourceUrl
 
 grails.serverURL = "http://${InetAddress.getLocalHost().canonicalHostName}:8080/console"
 

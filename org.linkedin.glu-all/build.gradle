@@ -27,18 +27,18 @@ dependencies {
 }
 
 cmdline {
-//  dependsOn = [
-//    ':agent:org.linkedin.glu.agent-server:package-assemble',
-//    ':agent:org.linkedin.glu.agent-cli:package-assemble',
-//    ':console:org.linkedin.glu.console-webapp:war'
-//  ]
+  dependsOn = [
+    ':agent:org.linkedin.glu.agent-server:package-assemble',
+    ':agent:org.linkedin.glu.agent-cli:package-assemble',
+    ':console:org.linkedin.glu.console-server:package-assemble'
+  ]
   resources << fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html'])
   cmdlineLogLevel = 'lifecycle'
 }
 
 def agentServerProject = evaluationDependsOn(':agent:org.linkedin.glu.agent-server')
 def agentCliProject = evaluationDependsOn(':agent:org.linkedin.glu.agent-cli')
-def consoleWebappProject = evaluationDependsOn(':console:org.linkedin.glu.console-webapp')
+def consoleServerProject = evaluationDependsOn(':console:org.linkedin.glu.console-server')
 
 // customizing package-assemble task to add agent cli, agent server and war
 project.'package-assemble'.doFirst {
@@ -55,8 +55,8 @@ project.'package-assemble'.doFirst {
   }
 
   copy {
-    from consoleWebappProject.tasks.getByPath('package-war').artifactFile
-    into new File(basePackage, "org.linkedin.glu.console-webapp-${version}")
+    from consoleServerProject.convention.plugins.cmdline.assemblePackageFile
+    into new File(basePackage, "org.linkedin.glu.console-server-${version}")
   }
 
   configurations.zookeeperPackages.resolve().each { zkp ->
