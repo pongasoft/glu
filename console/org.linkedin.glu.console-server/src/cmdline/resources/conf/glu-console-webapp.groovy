@@ -16,17 +16,20 @@
 
 console.sslEnabled=true
 
-console.keystorePath="${System.properties['user.dir']}/conf/console.dev.keystore"
+def keysDir = System.properties['org.linkedin.glu.console.keys.dir'] ?: "${System.properties['user.dir']}/keys"
+
+console.keystorePath="${keysDir}/console.keystore"
 console.keystorePassword = 'nacEn92x8-1'
 console.keyPassword = 'nWVxpMg6Tkv'
 
-console.secretkeystorePath="${System.properties['user.dir']}/conf/console.dev.secretkeystore"
+console.secretkeystorePath="${keysDir}/console.secretkeystore"
 
-console.truststorePath="${System.properties['user.dir']}/conf/agent.dev.truststore"
+console.truststorePath="${keysDir}/agent.truststore"
 console.truststorePassword = 'nacEn92x8-1'
 
 def dataSourceUrl =
-  System.properties['glu.console.dataSource.url'] ?: "jdbc:hsqldb:file:${System.properties['user.dir']}/database/prod;shutdown=true"
+  System.properties['org.linkedin.glu.console.dataSource.url'] ?:
+  "jdbc:hsqldb:file:${System.properties['user.dir']}/database/prod;shutdown=true"
 
 // specify the database connection string
 dataSource.dbCreate = "update"
@@ -36,7 +39,9 @@ grails.serverURL = "http://${InetAddress.getLocalHost().canonicalHostName}:8080/
 
 log4j = {
     appenders {
-    	file name:'file', file:'logs/console.log', layout:pattern(conversionPattern: '%d{yyyy/MM/dd HH:mm:ss.SSS} %p [%c{1}] %m%n')
+    	file name:'file',
+      file:'logs/console.log',
+      layout:pattern(conversionPattern: '%d{yyyy/MM/dd HH:mm:ss.SSS} %p [%c{1}] %m%n')
     }
 
     root {

@@ -33,24 +33,13 @@ cmdline {
   dependsOn = [
     ':console:org.linkedin.glu.console-webapp:war'
   ]
-  resources = [
-    // licenses
-    fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html']),
 
-    // console configuration
-    [
-      from: 'src/cmdline/resources',
-      into: new File(assemblePackageFile, jettyDistribution)
-    ],
-
-    // keys
-    [
-      from: fileTree(dir: new File(rootDir, 'agent/org.linkedin.glu.agent-server/src/zk-config/keys'),
-                     includes: ['console.dev.keystore', 'agent.dev.truststore', 'console.dev.secretkeystore']),
-      into: new File(assemblePackageFile, "${jettyDistribution}/conf"),
-      replaceTokens: false
-    ]
+  replacementTokens = [
+    'jetty.distribution': jettyDistribution
   ]
+
+  // licenses
+  resources << [ fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html']) ]
 }
 
 def consoleWebappProject = evaluationDependsOn(':console:org.linkedin.glu.console-webapp')
