@@ -28,5 +28,5 @@ include ':agent:org.linkedin.glu.agent-api',
         ':console:org.linkedin.glu.console-server',
         ':provisioner:org.linkedin.glu.provisioner-agent',
         ':provisioner:org.linkedin.glu.provisioner-core',
-        ':packaging:org.linkedin.glu.setup',
-        ':packaging:org.linkedin.glu-all'
+        ':packaging:org.linkedin.glu.packaging-setup',
+        ':packaging:org.linkedin.glu.packaging-all'
