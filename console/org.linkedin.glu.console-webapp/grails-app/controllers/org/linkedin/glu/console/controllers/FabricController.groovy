@@ -20,6 +20,8 @@ import org.linkedin.glu.console.services.FabricService
 import org.linkedin.glu.console.domain.Fabric
 import org.linkedin.glu.console.services.SystemService
 import org.linkedin.util.lifecycle.CannotConfigureException
+import org.linkedin.glu.console.domain.RoleName
+import org.linkedin.glu.console.domain.User
 
 class FabricController extends ControllerBase
 {
@@ -30,6 +32,16 @@ class FabricController extends ControllerBase
 
   def select = {
     def fabrics = fabricService.fabrics
+
+    if(!fabrics)
+    {
+      def user = User.findByUsername(request.user?.username)
+      if(user?.hasRole(RoleName.ADMIN))
+      {
+        redirect(action: create)
+        return
+      }
+    }
 
     if(params.id)
     {

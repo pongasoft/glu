@@ -42,7 +42,7 @@ class Fabric
   String name
   String zkConnectString
   String zkSessionTimeout
-  String color = '#ffffff'
+  String color = '#005a87'
 
   IZKClient zkClient
 
