@@ -219,7 +219,7 @@ File getDevsetupDir()
  */
 private void setupFabricInZooKeeper(def fabric)
 {
-  def zkConfigDir = new File(rootDir, "setup/org.linkedin.glu.setup/src/cmdline/resources/zookeeper-config").canonicalPath
+  def zkConfigDir = new File(rootDir, "packaging/org.linkedin.glu.setup/src/cmdline/resources/zookeeper-config").canonicalPath
   def zkAgentConfigPath = "${zkRoot}/agents/fabrics/${fabric}/config"
 
   // keys
