@@ -26,39 +26,38 @@ dependencies {
   zookeeperPackages spec.external.linkedinZookeeperServerPackage
 }
 
+def dependentClis = [
+  ':agent:org.linkedin.glu.agent-server',
+  ':agent:org.linkedin.glu.agent-cli',
+  ':console:org.linkedin.glu.console-server',
+  ':setup:org.linkedin.glu.setup'
+]
+
 cmdline {
-  dependsOn = [
-    ':agent:org.linkedin.glu.agent-server:package-assemble',
-    ':agent:org.linkedin.glu.agent-cli:package-assemble',
-    ':console:org.linkedin.glu.console-server:package-assemble'
-  ]
+  folders = []
+  dependsOn = dependentClis.collect { "${it}:package-assemble" }
   resources << fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html'])
-  cmdlineLogLevel = 'lifecycle'
+
+  replacementTokens = [
+    'jetty.distribution': "jetty-distribution-${spec.versions.jetty}",
+    'glu.version': version,
+    'zookeeper.version': spec.versions.linkedinZookeeper
+  ]
 }
 
-def agentServerProject = evaluationDependsOn(':agent:org.linkedin.glu.agent-server')
-def agentCliProject = evaluationDependsOn(':agent:org.linkedin.glu.agent-cli')
-def consoleServerProject = evaluationDependsOn(':console:org.linkedin.glu.console-server')
+def dependentProjects = dependentClis.collect { evaluationDependsOn(it) }
 
 // customizing package-assemble task to add agent cli, agent server and war
 project.'package-assemble'.doFirst {
   File basePackage = project.convention.plugins.cmdline.assemblePackageFile
 
-  copy {
-    from agentServerProject.convention.plugins.cmdline.assemblePackageFile
-    into new File(basePackage, "org.linkedin.glu.agent-server-${version}")
+  dependentProjects.each { dp ->
+    copy {
+      from dp.convention.plugins.cmdline.assemblePackageFile
+      into new File(basePackage, "${dp.name}-${version}")
+    }
   }
-
-  copy {
-    from agentCliProject.convention.plugins.cmdline.assemblePackageFile
-    into new File(basePackage, "org.linkedin.glu.agent-cli-${version}")
-  }
-
-  copy {
-    from consoleServerProject.convention.plugins.cmdline.assemblePackageFile
-    into new File(basePackage, "org.linkedin.glu.console-server-${version}")
-  }
-
+  
   configurations.zookeeperPackages.resolve().each { zkp ->
     ant.untar(src: zkp, dest: basePackage, compression: 'gzip')
   }
