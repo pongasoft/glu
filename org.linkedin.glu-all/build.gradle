@@ -22,7 +22,6 @@ configurations {
 }
 
 dependencies {
-  zookeeperPackages spec.external.linkedinZookeeperCliPackage
   zookeeperPackages spec.external.linkedinZookeeperServerPackage
 }
 

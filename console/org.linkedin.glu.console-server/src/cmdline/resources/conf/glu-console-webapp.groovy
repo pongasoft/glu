@@ -61,13 +61,13 @@ log4j = {
 	       'org.hibernate'
 
     info 'grails',
-         'com.linkedin'
+         'org.linkedin'
 
     //debug 'com.linkedin.glu.agent.tracker', 'com.linkedin.glu.zookeeper.client'
 
     //trace 'org.hibernate.SQL', 'org.hibernate.type'
 
-    warn   'org.mortbay.log', 'org.restlet.Context'
+    warn   'org.mortbay.log', 'org.restlet.Component.LogService', 'org.restlet'
 }
 
 /******************************************************

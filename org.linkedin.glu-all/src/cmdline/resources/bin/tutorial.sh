@@ -28,29 +28,39 @@ usage()
   echo ""
 }
 
+setup()
+{
+ echo "### Starting ZooKeeper..."
+ cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh start
+ echo "### Setting up keys and agent configuration..."
+ cd $BASEDIR/org.linkedin.glu.setup-@glu.version@; ./bin/setup-zookeeper.sh -f $GLU_FABRIC
+  echo "### Setting agent-1 in $GLU_FABRIC..."
+ cd $BASEDIR/org.linkedin.glu.setup-@glu.version@; ./bin/setup-agent.sh -f $GLU_FABRIC -n agent-1 -d $BASEDIR/org.linkedin.glu.agent-server-@glu.version@
+ echo "### Stopping ZooKeeper..."
+ cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh stop
+ echo "### Done."
+}
+
 start()
 {
- echo ### Starting ZooKeeper...
+ echo "### Starting ZooKeeper..."
  cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh start
- echo ### Setting up keys and configuration...
- cd $BASEDIR/org.linkedin.glu.setup-@glu.version@; ./bin/setup-zookeeper.sh -f $GLU_FABRIC
- cd $BASEDIR/org.linkedin.glu.setup-@glu.version@; ./bin/setup-agent.sh -f $GLU_FABRIC -n agent-1 -d $BASEDIR/org.linkedin.glu.agent-server-@glu.version@
- echo ### Starting Agent...
+ echo "### Starting Agent..."
  cd $BASEDIR/org.linkedin.glu.agent-server-@glu.version@; ./bin/agentctl.sh start
- echo ### Starting Console...
+ echo "### Starting Console..."
  cd $BASEDIR/org.linkedin.glu.console-server-@glu.version@; ./bin/consolectl.sh start
- echo ### Done.
+ echo "### Done."
 }
 
 stop()
 {
- echo ### Stopping Console...
+ echo "### Stopping Console..."
  cd $BASEDIR/org.linkedin.glu.console-server-@glu.version@; ./bin/consolectl.sh stop
- echo ### Stopping Agent...
+ echo "### Stopping Agent..."
  cd $BASEDIR/org.linkedin.glu.agent-server-@glu.version@; ./bin/agentctl.sh stop
- echo ### Stopping ZooKeeper...
+ echo "### Stopping ZooKeeper..."
  cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh stop
- echo ### Done.
+ echo "### Done."
 }
 
 status()
@@ -71,6 +81,8 @@ tail()
 }
 
 case $1 in
+  'setup' ) setup
+            ;;
   'start' ) start
             ;;
   'stop'  ) stop

@@ -29,7 +29,7 @@ def jettyDistribution = "jetty-distribution-${spec.versions.jetty}"
 
 def consoleWebappProject = evaluationDependsOn(':console:org.linkedin.glu.console-webapp')
 
-String consoleWebapp = "${consoleWebappProject.name}-${version}"
+String consoleWebapp = consoleWebappProject.tasks.getByPath('package-war').artifactFile.name
 
 cmdline {
   folders = []
@@ -45,6 +45,10 @@ cmdline {
 
   // licenses
   resources << [ fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html']) ]
+  resources << [
+    from: consoleWebappProject.tasks.getByPath('package-war').artifactFile,
+    replaceTokens: false
+  ]
 }
 
 File basePackage = project.convention.plugins.cmdline.assemblePackageFile
@@ -63,10 +67,6 @@ project.'package-assemble'.doFirst {
   // remove the webapps and contexts folders
   project.delete(new File(jettyRoot, "webapps"))
   project.delete(new File(jettyRoot, "contexts"))
-
-  // unwar the webapp
-  def webappDir = project.mkdir(new File(basePackage, "${consoleWebapp}"))
-  ant.unwar(src: consoleWebappProject.tasks.getByPath('package-war').artifactFile, dest: webappDir)
 }
 
 /********************************************************
