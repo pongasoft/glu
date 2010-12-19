@@ -27,6 +27,10 @@ dependencies {
 
 def jettyDistribution = "jetty-distribution-${spec.versions.jetty}"
 
+def consoleWebappProject = evaluationDependsOn(':console:org.linkedin.glu.console-webapp')
+
+String consoleWebapp = "${consoleWebappProject.name}-${version}"
+
 cmdline {
   folders = []
   
@@ -35,30 +39,43 @@ cmdline {
   ]
 
   replacementTokens = [
-    'jetty.distribution': jettyDistribution
+    'jetty.distribution': jettyDistribution,
+    'console.webapp': consoleWebapp
   ]
 
   // licenses
   resources << [ fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html']) ]
 }
 
-def consoleWebappProject = evaluationDependsOn(':console:org.linkedin.glu.console-webapp')
+File basePackage = project.convention.plugins.cmdline.assemblePackageFile
+File jettyRoot = new File(basePackage, jettyDistribution)
 
 /********************************************************
  * task: package-assemble
  * customizing package-assemble task to include jetty
  ********************************************************/
 project.'package-assemble'.doFirst {
-  File basePackage = project.convention.plugins.cmdline.assemblePackageFile
-  File jettyRoot = new File(basePackage, jettyDistribution)
-
+  // fetch/untar jetty distribution 
   ant.untar(src: configurations.jetty.resolve().toList()[0],
             dest: basePackage,
             compression: 'gzip')
 
-  // remove the test.war application
-  project.delete(new File(jettyRoot, "webapps/test.war"))
+  // remove the webapps and contexts folders
+  project.delete(new File(jettyRoot, "webapps"))
+  project.delete(new File(jettyRoot, "contexts"))
 
-  ant.copy(file: consoleWebappProject.tasks.getByPath('package-war').artifactFile,
-           tofile: new File(jettyRoot, "webapps/console.war"))
+  // unwar the webapp
+  def webappDir = project.mkdir(new File(basePackage, "${consoleWebapp}"))
+  ant.unwar(src: consoleWebappProject.tasks.getByPath('package-war').artifactFile, dest: webappDir)
+}
+
+/********************************************************
+ * task: package-assemble
+ * copy the context files in jetty distribution
+ ********************************************************/
+project.'package-assemble'.doLast {
+  copy {
+    from fileTree(dir: new File(basePackage, "conf"), includes: ["*-jetty-context.xml"])
+    into new File(jettyRoot, 'contexts')
+  }
 }

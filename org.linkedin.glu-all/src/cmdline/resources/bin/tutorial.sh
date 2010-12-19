@@ -30,27 +30,27 @@ usage()
 
 start()
 {
- echo Starting ZooKeeper...
+ echo ### Starting ZooKeeper...
  cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh start
- echo Setting up keys and configuration...
+ echo ### Setting up keys and configuration...
  cd $BASEDIR/org.linkedin.glu.setup-@glu.version@; ./bin/setup-zookeeper.sh -f $GLU_FABRIC
- cd $BASEDIR/org.linkedin.glu.setup-@glu.version@; ./bin/setup-agent.sh -f $GLU_FABRIC -d $BASEDIR/org.linkedin.glu.agent-server-@glu.version@
- echo Starting Agent...
+ cd $BASEDIR/org.linkedin.glu.setup-@glu.version@; ./bin/setup-agent.sh -f $GLU_FABRIC -n agent-1 -d $BASEDIR/org.linkedin.glu.agent-server-@glu.version@
+ echo ### Starting Agent...
  cd $BASEDIR/org.linkedin.glu.agent-server-@glu.version@; ./bin/agentctl.sh start
- echo Starting Console...
+ echo ### Starting Console...
  cd $BASEDIR/org.linkedin.glu.console-server-@glu.version@; ./bin/consolectl.sh start
- echo Done.
+ echo ### Done.
 }
 
 stop()
 {
- echo Stopping Console...
+ echo ### Stopping Console...
  cd $BASEDIR/org.linkedin.glu.console-server-@glu.version@; ./bin/consolectl.sh stop
- echo Stopping Agent...
+ echo ### Stopping Agent...
  cd $BASEDIR/org.linkedin.glu.agent-server-@glu.version@; ./bin/agentctl.sh stop
- echo Stopping ZooKeeper...
+ echo ### Stopping ZooKeeper...
  cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh stop
- echo Done.
+ echo ### Done.
 }
 
 status()
@@ -66,7 +66,7 @@ status()
 tail()
 {
  exec tail -f $BASEDIR/org.linkedin.glu.console-server-@glu.version@/@jetty.distribution@/logs/console.log \
-              $BASEDIR/org.linkedin.glu.agent-server-@glu.version@/data/logs/org.linkedin.glu.agent.out \
+              $BASEDIR/org.linkedin.glu.agent-server-@glu.version@/data/logs/org.linkedin.glu.agent-server.out \
               $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@/logs/zookeeper.log
 }
 
