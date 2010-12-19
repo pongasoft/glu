@@ -35,7 +35,7 @@
 
 
 # generating keystore for agent (we don't care about this one but is required for SSL)
-keytool -genkey -alias agent -keystore agent.dev.keystore -keyalg RSA -keysize 2048 -validity 2000
+keytool -genkey -alias agent -keystore agent.keystore -keyalg RSA -keysize 2048 -validity 2000
 Enter keystore password:  linkedin
 Re-enter new password: linkedin
 What is your first and last name?
@@ -58,12 +58,12 @@ Enter key password for <agent>
 Re-enter new password: password
 
 # expport the RSA certificate (without the private key)
-keytool -export -keystore agent.dev.keystore -alias agent -file /tmp/test.cert
+keytool -export -keystore agent.keystore -alias agent -file /tmp/test.cert
 Enter keystore password:  linkedin
 Certificate stored in file </tmp/test.cert>
 
 # import the RSA certificate in the trustore
-keytool -import -alias agent -keystore agent.dev.truststore -file /tmp/test.cert
+keytool -import -alias agent -keystore agent.truststore -file /tmp/test.cert
 Enter keystore password:  linkedin
 Re-enter new password: linkedin
 Owner: CN=localhost, OU=Dev, O=LinkedIn, L=Mountain View, ST=CA, C=US
@@ -80,7 +80,7 @@ Certificate was added to keystore
 
 
 # generating keystore for console (this keystore is very important and must remain protected: password must be strong!)
-keytool -genkey -alias console -keystore console.dev.keystore -keyalg RSA -keysize 2048 -validity 2000
+keytool -genkey -alias console -keystore console.keystore -keyalg RSA -keysize 2048 -validity 2000
 Enter keystore password:  linkedin
 Re-enter new password: linkedin
 What is your first and last name?
@@ -102,12 +102,12 @@ Enter key password for <console>
 Re-enter new password: password
 
 # export the RSA certificate (without the private key)
-keytool -export -keystore console.dev.keystore -alias console -file /tmp/test.cert
+keytool -export -keystore console.keystore -alias console -file /tmp/test.cert
 Enter keystore password:  linkedin
 Certificate stored in file </tmp/test.cert>
 
 # import the RSA certificate in the trustore
-keytool -import -alias console -keystore console.dev.truststore -file /tmp/test.cert
+keytool -import -alias console -keystore console.truststore -file /tmp/test.cert
 Enter keystore password:  linkedin
 Re-enter new password: linkedin
 Owner: CN=Console, OU=Dev, O=LinkedIn, L=Mountain View, ST=CA, C=US
@@ -124,10 +124,10 @@ Certificate was added to keystore
 
 # generating the pem file for testing:
 # I used the application called portecle: http://portecle.sourceforge.net/
-# I loaded the keystore console.dev.keystore and then exported the private key + certificate as PEM
+# I loaded the keystore console.keystore and then exported the private key + certificate as PEM
 
 # In order to test manually: start the agent and run the following command:
-curl -k https://localhost:12906/agent -E console.dev.pem
+curl -k https://localhost:12906/agent -E console.pem
 
 Enter PEM pass phrase: linkedin
 {"mountPoints":["/"]}

@@ -23,17 +23,9 @@ dependencies {
 
 cmdline {
   resources << fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html'])
-}
-
-// customizing package-assemble task to add the keys
-project.'package-assemble' << {
-  def keysDir = new File(project.convention.plugins.cmdline.assemblePackageFile, 'conf/keys')
-  mkdir keysDir
-  copy {
-    from('../org.linkedin.glu.agent-server/src/zk-config/keys') {
-      include 'console.dev.keystore'
-      include 'agent.dev.truststore'
-    }
-    into keysDir
-  }
+  resources << [
+    from: consoleKeys,
+    into: new File(assemblePackageFile, 'conf/keys'),
+    replaceTokens: false
+  ]
 }

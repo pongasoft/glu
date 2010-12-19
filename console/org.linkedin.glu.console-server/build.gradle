@@ -45,8 +45,17 @@ cmdline {
 
   // licenses
   resources << [ fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html']) ]
+
+  // console.war
   resources << [
     from: consoleWebappProject.tasks.getByPath('package-war').artifactFile,
+    replaceTokens: false
+  ]
+
+  // keys
+  resources << [
+    from: consoleKeys,
+    into: new File(assemblePackageFile, 'keys'),
     replaceTokens: false
   ]
 }

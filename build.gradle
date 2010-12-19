@@ -51,6 +51,11 @@ topBuildDir = userConfig.top.build.dir ?: "${rootDir}/out/build"
 
 apply plugin: 'org.linkedin.repository'
 
+consoleKeys = fileTree(dir: 'dev-keys',
+                       includes: ['console.keystore', 'agent.truststore', 'console.secretkeystore'])
+agentKeys = fileTree(dir: 'dev-keys',
+                     includes: ['console.truststore', 'agent.keystore'])
+
 allprojects {
   apply plugin: 'idea'
   group = spec.group

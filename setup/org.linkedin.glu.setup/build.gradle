@@ -31,6 +31,13 @@ cmdline {
   ]
   folders = []
   resources << fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html'])
+
+  // keys
+  resources << [
+    from: agentKeys,
+    into: new File(assemblePackageFile, 'zookeeper-config'),
+    replaceTokens: false
+  ]
 }
 
 // customizing package-assemble task to add zookeeper cli

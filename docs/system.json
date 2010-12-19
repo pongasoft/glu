@@ -6,10 +6,11 @@
       "metadata": {
         "cluster": "c1",
         "container": {"name": "m1"},
+        "product": "product1",
         "version": "1.0.0"
       },
       "mountPoint": "/m1/i001",
-      "script": "file:///Users/ypujante/src/linkedinos/glu/scripts/script-noop/src/main/groovy/NoopGluScript.groovy"
+      "script": "http://localhost:8080/glu/sample/scripts/HelloWorldScript.groovy"
     },
     {
       "agent": "agent-1",
@@ -17,10 +18,11 @@
       "metadata": {
         "cluster": "c2",
         "container": {"name": "m2"},
-        "version": "1.0.0"
+        "product": "product2",
+        "version": "2.0.0"
       },
       "mountPoint": "/m2/i001",
-      "script": "file:///Users/ypujante/src/linkedinos/glu/scripts/script-noop/src/main/groovy/NoopGluScript.groovy"
+      "script": "http://localhost:8080/glu/sample/scripts/HelloWorldScript.groovy"
     },
     {
       "agent": "agent-1",
@@ -28,10 +30,11 @@
       "metadata": {
         "cluster": "c1",
         "container": {"name": "m3"},
+        "product": "product1",
         "version": "1.0.0"
       },
       "mountPoint": "/m3/i001",
-      "script": "file:///Users/ypujante/src/linkedinos/glu/scripts/script-noop/src/main/groovy/NoopGluScript.groovy"
+      "script": "http://localhost:8080/glu/sample/scripts/HelloWorldScript.groovy"
     },
     {
       "agent": "agent-1",
@@ -39,12 +42,22 @@
       "metadata": {
         "cluster": "c1",
         "container": {"name": "m4"},
-        "version": "1.0.0"
+        "product": "product2",
+        "version": "2.0.0"
       },
       "mountPoint": "/m4/i001",
-      "script": "file:///Users/ypujante/src/linkedinos/glu/scripts/script-noop/src/main/groovy/NoopGluScript.groovy"
+      "script": "http://localhost:8080/glu/sample/scripts/HelloWorldScript.groovy"
     }
   ],
   "fabric": "glu-dev-1",
-  "metadata": {"product": {}}
+  "metadata": {"product": {
+    "product1": {
+      "name": "product1",
+      "version": "1.0.0"
+    },
+    "product2": {
+      "name": "product2",
+      "version": "2.0.0"
+    }
+  }}
 }

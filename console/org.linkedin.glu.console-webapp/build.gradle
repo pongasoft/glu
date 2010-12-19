@@ -88,17 +88,17 @@ task lib(dependsOn: jar) << {
   delete 'lib/ant-1.8.1.jar'
   delete 'lib/ant-launcher-1.8.1.jar'
 
-  def keysDir = new File("${rootDir}/agent/org.linkedin.glu.agent-server/src/zk-config/keys")
+  def keysDir = new File(rootDir, 'dev-keys')
   def secretKeyStoreDir = new File(buildDir, 'conf')
   copy {
-    from new File(keysDir, 'console.dev.secretkeystore')
+    from new File(keysDir, 'console.secretkeystore')
     into secretKeyStoreDir
   }
 
   new File("${projectDir}/lib/build.properties.groovy").text = """
-console.keystorePath="${new File(keysDir, 'console.dev.keystore').canonicalPath}"
-console.secretkeystorePath="${new File(secretKeyStoreDir, 'console.dev.secretkeystore').canonicalPath}"
-console.truststorePath="${new File(keysDir, 'agent.dev.truststore').canonicalPath}"
+console.keystorePath="${new File(keysDir, 'console.keystore').canonicalPath}"
+console.secretkeystorePath="${new File(secretKeyStoreDir, 'console.secretkeystore').canonicalPath}"
+console.truststorePath="${new File(keysDir, 'agent.truststore').canonicalPath}"
 """
 
   // generate a hello world system for dev
