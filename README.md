@@ -14,14 +14,14 @@ If you are interested in checking out glu (you don't want to build it yourself),
 All binaries can be found in the [downloads](https://github.com/linkedin/glu/downloads) section on github.
 
 If you are interested in building/developing glu itself, then check the *Compilation* section below, then check the [1-QUICK-DEV-SETUP.md](https://github.com/linkedin/glu/blob/master/1-QUICK-DEV-SETUP.md) document followed by the [2-QUICK-DEV-TUTORIAL.md](https://github.com/linkedin/glu/blob/master/2-QUICK-DEV-TUTORIAL.md) for a quick
-walkthrough the console.
+walkthrough the console in development mode.
 
 Compilation
 ===========
 In order to compile the code you need
 
 * java 1.6
-* [gradle 0.9-rc2](http://www.gradle.org/) ([Download rc-2](http://dist.codehaus.org/gradle/gradle-0.9-rc-2-all.zip))
+* [gradle 0.9](http://www.gradle.org/)
 * [grails 1.3.5](http://www.grails.org/) (only for the console)
 * Unix (tested on Mac OS X and Solaris)
 

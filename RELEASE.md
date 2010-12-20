@@ -1,3 +1,13 @@
+1.4.0 (2010/12/20)
+------------------
+* use of [gradle-plugins 1.5.0](https://github.com/linkedin/gradle-plugins/tree/REL_1.5.0) which now uses gradle 0.9
+* added packaging for all clis
+* added `org.linkedin.glu.packaging-all` which contains all binaries + quick tutorial
+* added `org.linkedin.glu.console-server` for a standalone console (using jetty under the cover)
+* moved keys to a top-level folder (`dev-keys`)
+* minor change in the console to handle the case where there is no fabric better
+* new tutorial based on pre-built binaries (`org.linkedin.glu.packaging-all`)
+
 1.3.2 (2010/12/07)
 ------------------
 * use of [linkedin-utils 1.2.1](https://github.com/linkedin/linkedin-utils/tree/REL_1.2.1) which fixes the issue of password not being masked properly

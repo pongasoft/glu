@@ -191,6 +191,12 @@ Perini and licensed under GPL. YUI's use of this technique is included under our
 with the author's permission.
 
      =========================================================================
+This product uses jetty, an HTTP server and servlet container capable of serving static and dynamic 
+contend either from a standalone or embedded instantiations (http://www.eclipse.org/jetty/about.php). 
+Jetty 7 is dual licensed (http://www.eclipse.org/jetty/licenses.php) and is being used in this product
+under the Apache 2.0 License (http://www.apache.org/licenses/LICENSE-2.0.html)
+
+     =========================================================================
 This product uses junit (for testing) with the following license (https://github.com/KentBeck/junit/blob/master/LICENSE):
 JUnit
 

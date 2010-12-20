@@ -81,7 +81,7 @@ All those operations are executed on the agent(s) and the console merely display
 
 View processes (ps)
 -------------------
-Go back to the agent view page and click `'All Processes'`. This essentialy runs the `'ps'` command on the agent and returns the result. In the `org.linkedin.app.name` column you should be able to identify the agent that is running. By clicking on the pid you can view details about the process as well as sending a signal to the process!
+Go back to the agent view page and click `'All Processes'`. This essentialy runs the `'ps'` command on the agent and returns the result. In the `org.linkedin.app.name` column you should be able to identify the agent that is running (as well as zookeeper and the console itself). By clicking on the pid you can view details about the process as well as sending a signal to the process!
 
 All those operations are executed on the agent(s) and the console merely displays the result (as can be seen in the log file of the agent).
 

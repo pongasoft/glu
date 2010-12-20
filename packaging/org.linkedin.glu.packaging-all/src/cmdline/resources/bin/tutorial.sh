@@ -20,6 +20,7 @@ BASEDIR=`cd $(dirname $0)/.. ; pwd`
 cd $BASEDIR
 
 GLU_FABRIC=glu-dev-1
+GLU_AGENT_NAME=agent-1
 
 usage()
 {
@@ -34,8 +35,8 @@ setup()
  cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh start
  echo "### Setting up keys and agent configuration..."
  cd $BASEDIR/org.linkedin.glu.packaging-setup-@glu.version@; ./bin/setup-zookeeper.sh -f $GLU_FABRIC
-  echo "### Setting agent-1 in $GLU_FABRIC..."
- cd $BASEDIR/org.linkedin.glu.packaging-setup-@glu.version@; ./bin/setup-agent.sh -f $GLU_FABRIC -n agent-1 -d $BASEDIR/org.linkedin.glu.agent-server-@glu.version@
+  echo "### Setting $GLU_AGENT_NAME in $GLU_FABRIC..."
+ cd $BASEDIR/org.linkedin.glu.packaging-setup-@glu.version@; ./bin/setup-agent.sh -f $GLU_FABRIC -n $GLU_AGENT_NAME -d $BASEDIR/org.linkedin.glu.agent-server-@glu.version@
  echo "### Stopping ZooKeeper..."
  cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh stop
  echo "### Done."
@@ -44,7 +45,7 @@ setup()
 start()
 {
  echo "### Starting ZooKeeper..."
- cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh start
+ cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; JVMFLAGS="-Dorg.linkedin.app.name=org.linkedin.zookeeper-server" ./bin/zkServer.sh start
  echo "### Starting Agent..."
  cd $BASEDIR/org.linkedin.glu.agent-server-@glu.version@; ./bin/agentctl.sh start
  echo "### Starting Console..."
@@ -79,6 +80,24 @@ tail()
               $BASEDIR/org.linkedin.glu.agent-server-@glu.version@/data/logs/org.linkedin.glu.agent-server.out \
               $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@/logs/zookeeper.log
 }
+
+# get script options
+while getopts "n:f:" opt ; do
+  case $opt in
+    n  )
+         GLU_AGENT_NAME=$OPTARG
+         ;;
+    f  )
+         GLU_FABRIC=$OPTARG
+         ;;
+    \? ) usage
+         exit 1
+         ;;
+  esac
+done
+
+# correct the index so the command argument is always $1
+shift $(($OPTIND - 1))
 
 case $1 in
   'setup' ) setup

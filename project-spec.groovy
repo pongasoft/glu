@@ -17,7 +17,7 @@
 spec = [
     name: 'glu',
     group: 'org.linkedin',
-    version: '1.3.2',
+    version: '1.4.0',
 
     versions: [
       grails: '1.3.5',
@@ -33,10 +33,10 @@ spec = [
     // information about the build framework itself
     build: [
         type: "gradle",
-        version: "0.9-rc-2",
-        uri: "http://dist.codehaus.org/gradle/gradle-0.9-rc-2-all.zip",
+        version: "0.9",
+        uri: "http://gradle.artifactoryonline.com/gradle/distributions/gradle-0.9-all.zip",
         commands: [
-            "snapshot": "gradle -Psnapshot=true release",
+            "snapshot": "gradle release",
             "release": "gradle -Prelease=true release"
         ]
     ]
