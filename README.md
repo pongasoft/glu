@@ -7,6 +7,15 @@ type of applications that can be deployed through GLU is not limited to java app
 a platform and the way it was architected and designed allows you to pick and choose which part you 
 want to use... Check the docs folder (and soon the wiki) for more documentation on GLU.
 
+Installing/Running locally
+==========================
+If you are interested in checking out glu (you don't want to build it yourself), then follow the steps in [3-TASTE-OF-GLU-TUTORIAL.md](https://github.com/linkedin/glu/blob/master/3-TASTE-OF-GLU-TUTORIAL.md).
+
+All binaries can be found in the [downloads](https://github.com/linkedin/glu/downloads) section on github.
+
+If you are interested in building/developing glu itself, then check the *Compilation* section below, then check the [1-QUICK-DEV-SETUP.md](https://github.com/linkedin/glu/blob/master/1-QUICK-DEV-SETUP.md) document followed by the [2-QUICK-DEV-TUTORIAL.md](https://github.com/linkedin/glu/blob/master/2-QUICK-DEV-TUTORIAL.md) for a quick
+walkthrough the console.
+
 Compilation
 ===========
 In order to compile the code you need
@@ -66,6 +75,9 @@ The command line which can talk to the agent directly
         gradle package // to create the package
         gradle package-install // to install locally (for dev)
 
+* `agent/org.linkedin.glu.agent-cli-impl`:
+Contains the implementation of the agent cli
+
 * `agent/org.linkedin.glu.agent-tracker`
 Listens to ZooKeeper events to track the agent writes (used in console-webapp).
 
@@ -97,10 +109,35 @@ The console webapp (grails application).
         grails run-app // after running gradle lib, you can simply run grails directly as it will use the
                        // libraries in lib to boot the app
 
-Installing/Running locally
-==========================
-Check the [1-QUICK-DEV-SETUP.md](https://github.com/linkedin/glu/blob/master/1-QUICK-DEV-SETUP.md) document followed by the [2-QUICK-TUTORIAL.md](https://github.com/linkedin/glu/blob/master/2-QUICK-TUTORIAL.md) for a quick
-walkthrough the console.
+* `console/org.linkedin.glu.console-server`:
+The `console/org.linkedin.glu.console-webapp` project generates the war (or is used in dev through grails). This project creates a ready to run console embedding jetty.
+
+        gradle package // create the package
+        gradle package-install // to install locally (for dev)
+
+
+* `packaging/org.linkedin.glu.packaging-all`:
+Creates a package which contains all prebuilt packages and is also used for the tutorial
+
+        gradle package // create the package
+        gradle package-install // to install locally (for dev)
+
+* `packaging/org.linkedin.glu.packaging-setup`:
+Creates a package with convenient shell scripts to setup the keys and agent in ZooKeeper
+
+        gradle package // create the package
+        gradle package-install // to install locally (for dev)
+
+* `dev-keys`:
+Contains the keys used in dev (check [key_generation.txt](https://github.com/linkedin/glu/blob/master/dev-keys/key_generation.txt) for instructions on how to generate a different set of keys)
+
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !!!!  WARNING WARNING WARNING WARNING WARNING WARNING  !!!!
+        !!!!                                                   !!!!
+        !!!! FOR PRODUCTION USE, PLEASE GENERATE YOUR OWN KEYS !!!!
+        !!!!                                                   !!!!
+        !!!!  WARNING WARNING WARNING WARNING WARNING WARNING  !!!!
+        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Build configuration
 ===================

@@ -33,9 +33,9 @@ setup()
  echo "### Starting ZooKeeper..."
  cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh start
  echo "### Setting up keys and agent configuration..."
- cd $BASEDIR/org.linkedin.glu.setup-@glu.version@; ./bin/setup-zookeeper.sh -f $GLU_FABRIC
+ cd $BASEDIR/org.linkedin.glu.packaging-setup-@glu.version@; ./bin/setup-zookeeper.sh -f $GLU_FABRIC
   echo "### Setting agent-1 in $GLU_FABRIC..."
- cd $BASEDIR/org.linkedin.glu.setup-@glu.version@; ./bin/setup-agent.sh -f $GLU_FABRIC -n agent-1 -d $BASEDIR/org.linkedin.glu.agent-server-@glu.version@
+ cd $BASEDIR/org.linkedin.glu.packaging-setup-@glu.version@; ./bin/setup-agent.sh -f $GLU_FABRIC -n agent-1 -d $BASEDIR/org.linkedin.glu.agent-server-@glu.version@
  echo "### Stopping ZooKeeper..."
  cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh stop
  echo "### Done."

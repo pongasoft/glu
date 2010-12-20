@@ -115,7 +115,7 @@ right set of dependencies and bootstrap information for the app.
 
 At this stage you are all setup!!!!
 
-Check the document [2-QUICK-TUTORIAL.md](https://github.com/linkedin/glu/blob/master/2-QUICK-TUTORIAL.md) for a quick walkthrough the console.
+Check the document [2-QUICK-DEV-TUTORIAL.md](https://github.com/linkedin/glu/blob/master/2-QUICK-DEV-TUTORIAL.md) for a quick walkthrough the console.
 
 6. Setup configuration
 ----------------------

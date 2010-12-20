@@ -29,7 +29,7 @@ def dependentClis = [
   ':agent:org.linkedin.glu.agent-server',
   ':agent:org.linkedin.glu.agent-cli',
   ':console:org.linkedin.glu.console-server',
-  ':packaging:org.linkedin.glu.setup'
+  ':packaging:org.linkedin.glu.packaging-setup'
 ]
 
 cmdline {
