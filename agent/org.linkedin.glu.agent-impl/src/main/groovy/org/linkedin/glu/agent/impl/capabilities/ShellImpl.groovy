@@ -320,7 +320,21 @@ def class ShellImpl implements Shell
       tempFile = tempFile.createRelative(filename)
     }
 
-    ant { ant -> ant.get(src: uri, dest: tempFile.file) }
+    // See http://download.oracle.com/javase/1.4.2/docs/api/java/net/URI.html#getUserInfo()
+    // Extract the user:pass if it exists
+    String username = null
+    String password = null
+    def userInfo = uri.userInfo
+    if(userInfo)
+    {
+      userInfo = userInfo.split(":")
+      if(userInfo.length == 2)
+      {
+        username = userInfo[0]
+        password = userInfo[1]
+      }
+    }
+    ant { ant -> ant.get(src: uri, dest: tempFile.file, username: username, password: password) }
 
     return tempFile
   }
