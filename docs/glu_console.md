@@ -4,6 +4,10 @@ The GLU console is the orchestrator of the whole system. It offers both a user f
 
 Configuration and bootstrap
 ===========================
+Tutorial
+--------
+Check the tutorial [3-TASTE-OF-GLU-TUTORIAL.md](https://github.com/linkedin/glu/blob/master/3-TASTE-OF-GLU-TUTORIAL.md) for detailed instructions on how to run the tutorial.
+
 For dev
 -------
 Check the document called [1-QUICK-DEV-SETUP.md](https://github.com/linkedin/glu/blob/master/1-QUICK-DEV-SETUP.md) for detailed instructions on how to set it up
@@ -52,7 +56,7 @@ Even if you use LDAP, a user can assign himself a console password (useful if th
 
 Console tabs
 ------------
-Documentation coming soon. In the meantime, take a look at [2-QUICK-TUTORIAL.md](https://github.com/linkedin/glu/blob/master/2-QUICK-TUTORIAL.md)
+Documentation coming soon. In the meantime, take a look at [3-TASTE-OF-GLU-TUTORIAL.md](https://github.com/linkedin/glu/blob/master/3-TASTE-OF-GLU-TUTORIAL.md)
 
 REST API
 ========
