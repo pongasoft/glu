@@ -150,7 +150,7 @@ Main URI: `/console/rest/v1/<fabric>` (all the URIs in the following tables star
     <td><li>TBD</td>
   </tr>
   <tr> 
-    <td>PUT</td>
+    <td>POST</td>
     <td>/system/model</td>
     <td>Loads the manifest in the console</td>
     <td>Body contains a query string rootUrl=file:/xxx&release=yyy</td>

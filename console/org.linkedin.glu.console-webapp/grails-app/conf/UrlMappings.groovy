@@ -178,7 +178,7 @@ class UrlMappings
       action = [GET: 'rest_view_execution', HEAD: 'rest_execution_status']
     }
     "/rest/v1/$fabric/system/model"(controller: 'model') {
-      action = [PUT: 'rest_upload_model', GET: 'rest_get_model']
+      action = [POST: 'rest_upload_model', GET: 'rest_get_current_model']
     }
     "/rest/v1/$fabric/system/live"(controller: 'system') {
       action = [GET: 'rest_get_live_system']

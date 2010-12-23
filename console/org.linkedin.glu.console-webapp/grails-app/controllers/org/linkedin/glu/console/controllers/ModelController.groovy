@@ -45,7 +45,7 @@ public class ModelController extends ControllerBase
     {
       def res = loadSystemModel()
 
-      if(!res.system.hasErrors())
+      if(!res?.system?.hasErrors())
       {
         if(res.errors)
         {
@@ -75,20 +75,23 @@ public class ModelController extends ControllerBase
 
   private def loadSystemModel()
   {
+    String model
+
+    if(params.jsonUri)
+    {
+      model = new URI(params.jsonUri).toURL().text
+    }
+    else
+    {
+      model = request.getFile('jsonFile').inputStream.text
+    }
+
+    return loadSystemModel(model)
+  }
+
+  private def loadSystemModel(String model)
+  {
     withLock('ModelController.saveCurrentSystem') {
-      def currentSystem = DbSystemModel.findCurrent(request.fabric)?.systemModel
-
-      def model
-
-      if(params.jsonUri)
-      {
-        model = new URI(params.jsonUri).toURL().text
-      }
-      else
-      {
-        model = request.getFile('jsonFile').inputStream.text
-      }
-
       if(model)
       {
         def system = JSONSystemModelSerializer.INSTANCE.deserialize(model)
@@ -97,27 +100,30 @@ public class ModelController extends ControllerBase
         system = systemService.saveCurrentSystem(system)
         return [system: system]
       }
+      else
+      {
+        return null
+      }
     }
   }
 
   def rest_upload_model = {
     try
     {
-      def rootDir = GroovyNetUtils.toURI(params.rootUrl)
+      String model
 
-      if(rootDir.scheme == 'file')
-        rootDir = rootDir.path
+      if(params.modelUrl)
+      {
+        model = GroovyNetUtils.toURI(params.modelUrl).toURL().text
+      }
       else
       {
-        response.sendError HttpServletResponse.SC_BAD_REQUEST
-        return
+        model = request.inputStream.text
       }
-
-      params.rootDir = rootDir
 
       def currentSystemId = request.system?.id
 
-      def res = loadSystemModel()
+      def res = loadSystemModel(model)
 
       if(!res.system.hasErrors())
       {
@@ -138,11 +144,11 @@ public class ModelController extends ControllerBase
     }
     catch(Throwable th)
     {
-      response.sendError HttpServletResponse.SC_BAD_REQUEST
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, th.message)
     }
   }
 
-  def rest_get_model = {
+  def rest_get_current_model = {
 
     def model
     if(params.prettyPrint)

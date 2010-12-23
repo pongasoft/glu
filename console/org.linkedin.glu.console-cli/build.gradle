@@ -18,6 +18,8 @@ apply plugin: 'org.linkedin.release'
 apply plugin: 'org.linkedin.cmdline'
 
 cmdline {
-  // no dependency at all
-  dependsOn = null
+  replacementTokens = [
+    'console.version': version,
+    'console.name': project.name
+  ]
 }

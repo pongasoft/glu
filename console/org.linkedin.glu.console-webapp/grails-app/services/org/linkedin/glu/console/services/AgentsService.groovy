@@ -261,14 +261,15 @@ class AgentsService
 
           se.agent = agentName
           se.mountPoint = mp.mountPoint.toString()
-          se.script = mp.data?.scriptDefinition?.scriptFactory?.location
+          def data = LangUtils.deepClone(mp.data)
+          se.script = data?.scriptDefinition?.scriptFactory?.location
 
           // all the necessary values are stored in the init parameters
-          mp.data?.scriptDefinition?.initParameters?.each { k,v ->
+          data?.scriptDefinition?.initParameters?.each { k,v ->
             if(v != null)
             {
               if(k == 'metadata')
-                se.metadata = LangUtils.deepClone(v)
+                se.metadata = v
               else
                 se.initParameters[k] = v
             }
@@ -278,6 +279,10 @@ class AgentsService
           if(mp.transitionState)
             se.metadata.transitionState = mp.transitionState
           se.metadata.modifiedTime = mp.modifiedTime
+          if(data?.scriptState)
+          {
+            se.metadata.scriptState = data.scriptState
+          }
 
           systemModel.addEntry(se)
         }

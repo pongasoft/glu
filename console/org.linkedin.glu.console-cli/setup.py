@@ -22,10 +22,10 @@ setup(
   version          = "0.1",
   author           = "Manish Dubey",
   author_email     = "mdubey@linkedin.com",
-  description      = ("GLU REST API"),
+  description      = "GLU REST API",
   install_requires = ['restkit', 'progressbar'],
   packages         = ['gluconsole'],
-  scripts          =  ['src/cmdline/resources/bin/glu'],
+  scripts          =  ['src/cmdline/resources/bin/console-cli.py'],
 
   package_dir      = {
     'gluconsole': 'src/cmdline/resources/lib/python/gluconsole'

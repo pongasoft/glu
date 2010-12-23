@@ -281,10 +281,6 @@ public class PlanController extends ControllerBase
    * Create a plan
    */
   def rest_create_plan = {
-    if(!params.planAction)
-    {
-      return legacyRestCreatePlan()
-    }
 
     def args = [:]
     args.system = request.system
@@ -365,54 +361,6 @@ public class PlanController extends ControllerBase
     {
       response.setStatus(HttpServletResponse.SC_NO_CONTENT, 'no plan created (no delta)')
       render ''
-    }
-  }
-
-
-  /**
-   * TODO MED YP: Legacy syntax kept for backward compatibility.. to be removed
-   */
-  private def legacyRestCreatePlan()
-  {
-    Plan startAllPlan = createStartAllPlan()
-    Plan stopAllPlan = createStopAllPlan()
-    Plan plan
-    request.inputStream.eachLine { line ->
-      if(line == 'instance=*')
-      {
-        plan = createStartAllPlan(IStep.Type.PARALLEL)
-        plan?.name = line
-      }
-      else
-      {
-        if(line == 'instance=-*')
-        {
-          plan = createStopAllPlan(IStep.Type.PARALLEL)
-          plan?.name = line
-        }
-        else
-        {
-          if(!line.startsWith('#'))
-          {
-            plan = createPlan(startAllPlan, stopAllPlan, line)
-          }
-        }
-      }
-    }
-
-    if(plan?.hasLeafSteps())
-    {
-      systemService.savePlan(plan)
-      response.addHeader('Location', g.createLink(absolute: true,
-                                                  mapping: 'restPlan',
-                                                  id: plan.id, params: [fabric: request.fabric]).toString())
-      response.setStatus(HttpServletResponse.SC_CREATED)
-      render plan.id
-    }
-    else
-    {
-      response.setStatus(HttpServletResponse.SC_NO_CONTENT, 'no plan created')
-      render '0'
     }
   }
 
