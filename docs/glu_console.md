@@ -96,8 +96,10 @@ Main URI: `/console/rest/v1/<fabric>` (all the URIs in the following tables star
     <td>Create a plan</td>
     <td>view details below for the content of body of the POST</td>
     <td>
+    <ul>
     <li>201 (CREATED) with Location header to access the plan (/plan/&lt;planId&gt;)
     <li>204 (NO CONTENT) when no plan created because there is nothing to do
+    </ul>
     </td>
   </tr>
   <tr> 
@@ -106,8 +108,10 @@ Main URI: `/console/rest/v1/<fabric>` (all the URIs in the following tables star
     <td>View the plan (as an xml document)</td>
     <td>N/A</td>
     <td>
+      <ul>
       <li>200 (OK) with an xml representation of the plan
       <li>204 (NOT_FOUND) if no such plan
+      </ul>
     </td>
   </tr>
   <tr> 
@@ -116,8 +120,10 @@ Main URI: `/console/rest/v1/<fabric>` (all the URIs in the following tables star
     <td>Executes the plan</td>
     <td>N/A</td>
     <td>
+      <ul>
       <li>201 (CREATED) with Location header to access the plan execution (/plan/&lt;planId&gt;/execution/&lt;executionId&gt;). Note that it is a non blocking call and it returns right away and you can check the progress thus allowing to have a progress bar!
       <li>204 (NOT_FOUND) if no such plan
+      </ul>
     </td>
   </tr>
   <tr> 
@@ -126,10 +132,12 @@ Main URI: `/console/rest/v1/<fabric>` (all the URIs in the following tables star
     <td>Returns the status of the execution</td>
     <td>N/A</td>
     <td>
+      <ul>
       <li>200 (OK) with X-LinkedIn-GLU-Completion header with value:
       <li>if plan non completed, percentage completion (ex: 87)
       <li>if completed: 100:<completion status> (ex:100:FAILED or 100:COMPLETED)
       <li>204 (NOT_FOUND) if no such execution
+      </ul>
     </td>
   </tr>
   <tr> 
@@ -138,8 +146,10 @@ Main URI: `/console/rest/v1/<fabric>` (all the URIs in the following tables star
     <td>Returns the execution as an xml document</td>
     <td>N/A</td>
     <td>
+      <ul>
       <li>200 (OK) with an xml representation of the execution (equivalent to the view in the console)
       <li>204 (NOT_FOUND) if no such execution
+      </ul>
     </td>
   </tr>
   <tr> 
@@ -147,18 +157,20 @@ Main URI: `/console/rest/v1/<fabric>` (all the URIs in the following tables star
     <td>/plan/&lt;planId&gt;/execution/&lt;executionId&gt;</td>
     <td>Aborts the execution</td>
     <td>N/A</td>
-    <td><li>TBD</td>
+    <td>TBD</td>
   </tr>
   <tr> 
     <td>POST</td>
     <td>/system/model</td>
     <td>Loads the manifest in the console</td>
-    <td>Body contains a query string rootUrl=file:/xxx&release=yyy</td>
+    <td>Body contains a query string rootUrl=file:/xxx&amp;release=yyy</td>
     <td>
+      <ul>
       <li>201 (CREATED) when loaded successfully
       <li>204 (NO_CONTENT) if model was loaded successfully and is equal to the previous one
       <li>400 (BAD_REQUEST) if rootUrl is not a file (note that it is temporary as well)
       <li>404 (NOT_FOUND) when error (note error handling needs to be revisited)
+      </ul>
     </td>
   </tr>
   <tr> 
@@ -167,12 +179,16 @@ Main URI: `/console/rest/v1/<fabric>` (all the URIs in the following tables star
     <td>Retrieves the current loaded model (aka 'desired' state)</td>
     <td>
       optional request parameters:
+      <ul>
       <li>prettyPrint=true for human readable output
       <li>systemFilter=... for filtering (see below for the syntax)
       <li>legacy=true for keeping the legacy section in the output
+      </ul>
     </td>
     <td>
+      <ul>
       <li>200 (OK) with a json representation of the model
+      </ul>
     </td>
   </tr>
   <tr> 
@@ -181,12 +197,16 @@ Main URI: `/console/rest/v1/<fabric>` (all the URIs in the following tables star
     <td>Retrieves the current live model coming from ZooKeeper (aka current state)</td>
     <td>
       optional request parameters:
+      <ul>
       <li>prettyPrint=true for human readable output
       <li>systemFilter=... for filtering (see below for the syntax)
       <li>legacy=true for keeping the legacy section in the output
+      </ul>
     </td>
     <td>
+      <ul>
       <li>200 (OK) with a json representation of the live model (note that the metadata contains information like currentState
+      </ul>
     </td>
   </tr>
 </table>
