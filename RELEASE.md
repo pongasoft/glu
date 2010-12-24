@@ -1,3 +1,10 @@
+1.5.0 (2010/12/24)
+------------------
+* fixed [glu-8](https://github.com/linkedin/glu/issues#issue/8): added support for urls with basic authentication (thanks to Ran)
+* added console cli (`org.linkedin.glu.console-cli`) which talks to the REST api of the console
+* changed tutorial to add a section which demonstrates the use of the new cli
+* added the glu logo (thanks to Markus for the logos)
+
 1.4.0 (2010/12/20)
 ------------------
 * use of [gradle-plugins 1.5.0](https://github.com/linkedin/gradle-plugins/tree/REL_1.5.0) which now uses gradle 0.9

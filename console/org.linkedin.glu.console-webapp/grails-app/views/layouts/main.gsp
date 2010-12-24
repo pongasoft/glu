@@ -36,6 +36,14 @@
       font-size: 0.8em;
       color: #aaaaaa;
     }
+    #footer-text {
+      position: relative;
+      top: -13px;
+      left: -30px;
+    }
+    #footer-image {
+      margin-top: 2px;
+    }
     </style>
   </cl:withFabric>
   <g:layoutHead/>
@@ -77,7 +85,8 @@
   <g:layoutBody/>
 </div>
 <div id="footer">
-  GLU Console - ${grailsApplication?.metadata?.getAt('app.version')}
+  <div id="footer-image"><img src="${resource(dir: 'images', file: 'glu_100_white.png')}" alt="glu deployment automation platform"/></div>
+  <div id="footer-text">GLU Console - ${grailsApplication?.metadata?.getAt('app.version')}</div>
 </div>
 </body>
 </html>
