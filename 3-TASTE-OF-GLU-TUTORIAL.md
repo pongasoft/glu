@@ -183,12 +183,48 @@ You can follow the same steps described previously to 'fix' this new delta.
 
 If you click on the `System` tab, you will be able to see all the various system. Note that the id is a `sha-1` of the content of the file.
 
-9. Viewing the audit log
-------------------------
-Click the `'Admin'` tab and then select `'View Audit Logs'`.
+Using the console cli
+---------------------
+In the console, click on the `'Plans'` tab and make sure you leave this window visible.
+
+Now open a new shell terminal (if you have followed all the instructions so far, you should have a shell terminal window with the tail command in it, this is why we need to open a new one).
+
+Go to the console cli directory:
+
+    cd $GLU_TUTORIAL_ROOT/org.linkedin.glu.console-cli-<version>
+
+Now issue the following command (`-b` is to make it more readable):
+
+    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -b status
+
+which will display the model that is currently loaded in the console.
+
+    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -b -l status
+
+which will display the current live model (note that you get a `scriptState` section similar to the one you can see in the console when clicking on the `View Details` link for an entry).
+
+Now we are going to redeploy everything by issuing:
+
+    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -a redeploy
+
+Please pay attention to the following:
+
+* in the shell window in which you just issued the command there will be a progress bar
+* in your web browser you should also see the plan appearing with a progress bar (you can click on the plan to see the details)
+* in the shell window with the tail you should see the ouput of the execution
+
+Try a dry-run mode (`-n`):
+
+    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -a -n redeploy
+    
+which will display an xml representation of the plan that would be executed if you remove the `-n` option.
+
+Viewing the audit log
+---------------------
+Go back to the console and click the `'Admin'` tab and then select `'View Audit Logs'`.
 
 You should be able to see all the actions that you have done in the system (usually all actions involving talking to the agent are logged).
 
-10. The end
------------
+The end
+-------
 That is it for this quick tutorial. You can now check the [documentation](https://github.com/linkedin/glu/wiki).

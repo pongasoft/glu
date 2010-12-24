@@ -85,19 +85,19 @@ class Client:
 
     return response
 
-  def generateSystemFilter(self, host=None, instance=None):
+  def generateSystemFilter(self, agent=None, instance=None):
     """
       Create a GLU systemFilter string
 
       :param action: Action to perform: start, stop, bounce, deploy, undeploy, redeploy
-      :param host: Host filter.
+      :param agent: agent filter.
       :param instance: Instance filter.
     """
 
     filter = None
 
-    if host:
-      filter = "agent='%s'" % host
+    if agent:
+      filter = "agent='%s'" % agent
 
     elif instance:
       filter = "key='%s'" % instance

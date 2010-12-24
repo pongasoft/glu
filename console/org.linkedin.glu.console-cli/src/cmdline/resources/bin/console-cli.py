@@ -55,7 +55,7 @@ def main():
   user = getpass.getuser()
 
   # command line parsing
-  usage = "usage: %prog <start|stop|bounce|deploy|undeploy|redeploy|load|status> [flags]"
+  usage = "usage: %prog -f <fabric> <start|stop|bounce|deploy|undeploy|redeploy|load|status> [flags]"
   parser = OptionParser(usage=usage, version="@console.name@: @console.version@")
 
   # common options for all actions
@@ -72,7 +72,7 @@ def main():
                     action="store",
                     help="Perform action on a fabric")
 
-  parser.add_option("-U", "--user", dest="user",
+  parser.add_option("-u", "--user", dest="user",
                     action="store", default=user,
                     help="GLU user to use for authentication, defaults to " + user)
 
@@ -89,9 +89,9 @@ def main():
                     default=False, action="store_true",
                     help="Perform action on all entries")
 
-  parser.add_option("-H", "--host", dest="host",
+  parser.add_option("-A", "--agent", dest="agent",
                     action="store",
-                    help="Perform action on one or more host(s)")
+                    help="Perform action on one or more agent(s)")
 
   parser.add_option("-I", "--instance", dest="instance",
                     action="store",
@@ -131,11 +131,6 @@ def main():
                     action="store_true", default=False,
                     help="Pretty print the model.")
 
-  # options for load action
-  parser.add_option("-u", "--url", dest="systemUrl",
-                    action="store",
-                    help="Required if loading new system. ex: file:/tmp/root/system.json or http://localhost/system.json")
-
   # get options provided on commandline. Remaining arg is 'action'
   (options, args) = parser.parse_args()
   if len(args) != 1:
@@ -161,8 +156,8 @@ def main():
   # FWIW, argparse supports mutually exclusive groups.
   exclusive_options = dict()
 
-  if options.host:
-    exclusive_options['host'] = True
+  if options.agent:
+    exclusive_options['agent'] = True
 
   if options.instance:
     exclusive_options['instance'] = True
@@ -174,7 +169,7 @@ def main():
     exclusive_options['all'] = True
 
   if len(exclusive_options.keys()) > 1:
-    parser.error("Only one of: host, instance, filter or all may be used.")
+    parser.error("Only one of: agent, instance, filter or all may be used.")
 
   # get user's and password
   if options.password:
@@ -211,7 +206,10 @@ def main():
 
   if action in ("start", "stop", "bounce", "deploy", "undeploy", "redeploy"):
     if filter is None:
-      filter = client.generateSystemFilter(options.host, options.instance)
+      filter = client.generateSystemFilter(options.agent, options.instance)
+
+    if (filter is None) and (not options.all):
+      parser.error("you need to specify one of: agent, instance, filter or all!")
 
     result = client.executePlan(action, filter, options.parallel, options.dryrun)
 
@@ -221,7 +219,7 @@ def main():
 
   elif action == "status":
     if filter is None:
-      filter = client.generateSystemFilter(options.host, options.instance)
+      filter = client.generateSystemFilter(options.agent, options.instance)
 
     result = client.status(options.live, options.beautify, filter)
 

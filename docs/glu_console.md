@@ -12,13 +12,21 @@ For dev
 -------
 Check the document called [1-QUICK-DEV-SETUP.md](https://github.com/linkedin/glu/blob/master/1-QUICK-DEV-SETUP.md) for detailed instructions on how to set it up
 
-For production
---------------
+For production: war only
+------------------------
 The console is packaged as a regular webapp (war file) and can simply be dropped in any servlet container (tested with tomcat). In order to run the console requires a configuration file. You can find a sample in the docs folder. There are 3 ways to provide this configuration file to the console:
 
 1. store it under `$HOME/.org.linkedin.glu/glu-console-webapp.groovy`
 2. store it under `conf/glu-console-webapp.groovy` (relative to wherever the VM user.dir is set to)
 3. pass a system property `-Dorg.linkedin.glu.console.config.location=/fullpath/to/file`
+
+For production: server
+----------------------
+The console is also packaged as a server (using jetty) (`org.linkedin.glu.console-server-<version>`) and comes with a default configuration file (under `conf/glu-console-webapp.groovy`) which you can edit to suit your own configuration. In order to start the console simply issue:
+
+    ./bin/consolectl.sh start
+
+The console will output a log file called `console.log` under `jetty-distribution-<version>/logs`
 
 First bootstrap
 ---------------
@@ -324,3 +332,81 @@ The body then contains a query string with the following parameters:
 Json/DSL Based
 ==============
 Coming soon
+
+Console cli
+===========
+The console also comes with a cli which is essentially a wrapper around the REST api which can be used in several ways:
+
+* directly to issue commands to the console
+* to build higher level cli(s) which use this cli as a base
+* as an example for how to talk to the REST api directly
+
+The cli currently requires python 2.6 to run.
+
+Help
+----
+This is the output when using the `-h` option
+
+    Usage: console-cli.py -f <fabric> <start|stop|bounce|deploy|undeploy|redeploy|load|status> [flags]
+
+    Options:
+      --version             show program's version number and exit
+      -h, --help            show this help message and exit
+      -d, --debug           Turn on debug output
+      -c CONSOLEURL, --console=CONSOLEURL
+                            Url to GLU Console for the given fabric.
+      -f FABRIC, --fabric=FABRIC
+                            Perform action on a fabric
+      -u USER, --user=USER  GLU user to use for authentication, defaults to
+                            ypujante
+      -x PASSWORD, --xpassword=PASSWORD
+                            Password. Warning password will appear in clear in ps
+                            output. Use only for testing.
+      -X PASSWORDFILE, --xpasswordfile=PASSWORDFILE
+                            Read user password from passwordfile specified. Make
+                            sure to protect this file using unix permissions
+      -a, --all             Perform action on all entries
+      -A AGENT, --agent=AGENT
+                            Perform action on one or more agent(s)
+      -I INSTANCE, --instance=INSTANCE
+                            Perform action on one or more instance(s)
+      -p, --parallel        Perform action on all instances in parallel. Default
+                            is serial.
+      -n, --dryrun          Do a dry run of your plan. No changes will be made.
+                            Default is false.
+      -s FILTER, --systemFilter=FILTER
+                            Filter in DSL sytax for filtering the model.
+                            Applicable only with 'status' command. See 'Filter
+                            Syntax' section here:
+                            https://github.com/linkedin/glu/wiki/Console
+      -S FILTERFILE, --systemFilterFile=FILTERFILE
+                            Filter file with filters in DSL sytax for filtering
+                            the model. Applicable only with 'status' command. See
+                            'Filter Syntax' section here:
+                            https://github.com/linkedin/glu/wiki/Console
+      -m MODEL, --model=MODEL
+                            Loads the model pointed to by model (should be a url!)
+      -M MODELFILE, --modelFile=MODELFILE
+                            Loads the model from the file
+      -l, --live            Show current model instead of expected model.
+                            Applicable only with 'status' command.
+      -b, --beautify        Pretty print the model.
+
+Unless you run the cli on the same host as the console you will need to specify its location:
+
+    Example: -c https://glu.console.host:8443/console
+    
+Here are some examples of usage:
+
+    # View the current loaded model (and format it for readability):
+    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -b status
+    
+    # View the live model only for applications in cluster cluster-1 (and format it for readability):
+    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -b -l -s "metadata.cluster='cluster-1'" status
+    
+    # Show me what will happen if I bounce all applcations in cluster cluster-1 (but don't do it!):
+    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -s "metadata.cluster='cluster-1'" -n bounce
+
+    # Bounce all applcations in cluster cluster-1:
+    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -s "metadata.cluster='cluster-1'" bounce
+    

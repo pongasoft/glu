@@ -16,6 +16,11 @@ All binaries can be found in the [downloads](https://github.com/linkedin/glu/dow
 If you are interested in building/developing glu itself, then check the *Compilation* section below, then check the [1-QUICK-DEV-SETUP.md](https://github.com/linkedin/glu/blob/master/1-QUICK-DEV-SETUP.md) document followed by the [2-QUICK-DEV-TUTORIAL.md](https://github.com/linkedin/glu/blob/master/2-QUICK-DEV-TUTORIAL.md) for a quick
 walkthrough the console in development mode.
 
+In order to run the code you need:
+
+* java 1.6
+* python 2.6 (for the console cli only)
+
 Compilation
 ===========
 In order to compile the code you need
@@ -108,6 +113,12 @@ The console webapp (grails application).
         gradle lib // compile all the dependencies and put them in the lib folder
         grails run-app // after running gradle lib, you can simply run grails directly as it will use the
                        // libraries in lib to boot the app
+
+* `console/org.linkedin.glu.console-cli`:
+The cli for the console (written in python) to use the REST api of the console
+
+        gradle package // create the package
+        gradle package-install // to install locally (for dev)
 
 * `console/org.linkedin.glu.console-server`:
 The `console/org.linkedin.glu.console-webapp` project generates the war (or is used in dev through grails). This project creates a ready to run console embedding jetty.
