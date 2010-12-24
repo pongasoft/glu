@@ -38,7 +38,7 @@
     }
     #footer-text {
       position: relative;
-      top: -13px;
+      top: -8px;
       left: -30px;
     }
     #footer-image {
