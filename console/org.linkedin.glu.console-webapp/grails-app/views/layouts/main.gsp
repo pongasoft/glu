@@ -22,30 +22,30 @@
   </title>
   <link rel="stylesheet" href="${resource(dir:'css',file:'main.css')}"/>
   <link rel="shortcut icon" href="${resource(dir:'images',file:'favicon.ico')}" type="image/x-icon"/>
+  <style type="text/css">
   <cl:withFabric>
-    <style type="text/css">
     div.env-${fabric.name} {
       background-color: ${fabric.color};
       background: -webkit-gradient(linear, left top, right top, from(${fabric.color}), to(#ffffff));
     }
-    div#footer {
-      margin-top: 2em;
-      border-top: solid 1px #dddddd;
-      text-align: right;
-      font-style: italic;
-      font-size: 0.8em;
-      color: #aaaaaa;
-    }
-    #footer-text {
-      position: relative;
-      top: -8px;
-      left: -30px;
-    }
-    #footer-image {
-      margin-top: 2px;
-    }
-    </style>
   </cl:withFabric>
+  div#footer {
+    margin-top: 2em;
+    border-top: solid 1px #dddddd;
+    text-align: right;
+    font-style: italic;
+    font-size: 0.8em;
+    color: #aaaaaa;
+  }
+  #footer-text {
+    position: relative;
+    top: -8px;
+    left: -30px;
+  }
+  #footer-image {
+    margin-top: 2px;
+  }
+  </style>
   <g:layoutHead/>
   <g:javascript library="prototype" />
   <g:javascript library="yui" />
