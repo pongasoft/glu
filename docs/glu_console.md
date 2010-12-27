@@ -170,8 +170,14 @@ Main URI: `/console/rest/v1/<fabric>` (all the URIs in the following tables star
   <tr> 
     <td>POST</td>
     <td>/system/model</td>
-    <td>Loads the manifest in the console</td>
-    <td>Body contains a query string rootUrl=file:/xxx&amp;release=yyy</td>
+    <td>Loads the (desired) model in the console</td>
+    <td>
+    Body can be of 2 types depending on the <tt>Content-Type</tt> header:
+    <ol>
+      <li><tt>Content-Type: application/x-www-form-urlencoded</tt> then body should contain <tt>modelUrl=xxx</tt> with the url pointing to the model (the console will 'download' it)
+      <li><tt>Content-Type: text/json</tt> then body should be the model itself (<a href="https://gist.github.com/755981">example</a>)
+    </ol>
+    </td>
     <td>
       <ul>
       <li>201 (CREATED) when loaded successfully

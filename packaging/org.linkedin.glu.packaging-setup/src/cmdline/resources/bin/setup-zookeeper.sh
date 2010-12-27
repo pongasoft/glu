@@ -32,6 +32,7 @@ usage()
   echo "     -f : fabric name (required)"
   echo "     -d : folder containing keys + config (default: $GLU_ZK_CONFIG)"
   echo "     -z : Zookeeper server:port comma-delimited list (default: $GLU_ZK_CONNECT_STRING)"
+  echo "     -v : verbose"
   echo ""
   echo "     -c : overrides location of config.properties"
   echo "     -k : overrides location of agent.keystore"
