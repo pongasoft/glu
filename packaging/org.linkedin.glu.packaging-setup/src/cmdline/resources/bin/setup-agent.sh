@@ -110,7 +110,7 @@ if [ ! -z "$VERBOSE" ]; then
   echo GLU_ZK_CLI=$GLU_ZK_CLI
 fi
 
-CMD="$GLU_ZK_CLI put -f $GLU_AGENT_FABRIC $GLU_ZK_ROOT/agents/names/$GLU_AGENT_NAME/fabric"
+CMD="$GLU_ZK_CLI -s $GLU_ZK_CONNECT_STRING put -f $GLU_AGENT_FABRIC $GLU_ZK_ROOT/agents/names/$GLU_AGENT_NAME/fabric"
 if [ ! -z "$VERBOSE" ]; then
   echo $CMD
 fi
