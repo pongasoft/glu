@@ -170,6 +170,11 @@ class AgentMain implements LifecycleListener
     // need to register the handler beforehand)
     readConfig(Config.getOptionalString(config, "${prefix}.agent.configURL", null), properties)
 
+    // dealing with optional properties
+    setOptionalProperty(properties, "${prefix}.agent.port", "12906")
+    setOptionalProperty(properties, "${prefix}.agent.sslEnabled", "true")
+    setOptionalProperty(properties, "${prefix}.agent.rest.server.defaultThreads", '3')
+
     _agentProperties.putAll(properties.groupBy { k,v ->
       k.toLowerCase().contains('password') ? 'passwordKeys' : 'nonPasswordKeys'
     }.nonPasswordKeys)
@@ -187,6 +192,16 @@ class AgentMain implements LifecycleListener
     log.info("Starting the agent with config: ${_agentProperties}")
 
     _config = properties
+  }
+
+  /**
+   * Ensures that a given property is set with at least its default value
+   */
+  private void setOptionalProperty(properties, String propertyName, String defaultPropertyValue)
+  {
+    properties[propertyName] = Config.getOptionalString(properties,
+                                                        propertyName,
+                                                        defaultPropertyValue)
   }
 
   String getPrefix()

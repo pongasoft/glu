@@ -1,3 +1,8 @@
+1.5.1 (2010/12/28)
+------------------
+* fixed [glu-10](https://github.com/linkedin/glu/issues#issue/10): missing -s $GLU_ZK_CONNECT_STRING in setup-agent.sh (thanks to Ran)
+* fixed [glu-11](https://github.com/linkedin/glu/issues#issue/11): missing glu.agent.port when not using default value
+
 1.5.0 (2010/12/24)
 ------------------
 * fixed [glu-8](https://github.com/linkedin/glu/issues#issue/8): added support for urls with basic authentication (thanks to Ran)
