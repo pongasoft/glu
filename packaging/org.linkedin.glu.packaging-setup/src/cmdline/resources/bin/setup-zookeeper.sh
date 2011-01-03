@@ -53,7 +53,7 @@ usage()
 ###############################################################################
 zk_upload()
 {
-  CMD="$GLU_ZK_CLI upload -f $1 $2"
+  CMD="$GLU_ZK_CLI -s $GLU_ZK_CONNECT_STRING upload -f $1 $2"
   if [ ! -z "$VERBOSE" ]; then
     echo $CMD
   fi
