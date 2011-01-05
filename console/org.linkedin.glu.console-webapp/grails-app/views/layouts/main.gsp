@@ -1,5 +1,5 @@
 %{--
-  - Copyright 2010-2010 LinkedIn, Inc
+  - Copyright 2010-2011 LinkedIn, Inc
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -77,6 +77,7 @@
       </g:if>
       <g:if test="${isAdminUser}"><li ${cl.navbarEntryClass(entry: 'Admin')} id="tab-admin"><g:link controller="admin">Admin</g:link></li></g:if>
       <li ${cl.navbarEntryClass(entry: 'User')} id="tab-home"><g:link controller="home"><span id="tab-home-username">${user.username.encodeAsHTML()}</span></g:link></li>
+      <li ${cl.navbarEntryClass(entry: 'Help')} id="tab-help"><g:link controller="help" action="index">Help</g:link></li>
     </ul>
   </div>
 </cl:withOrWithoutSystem>

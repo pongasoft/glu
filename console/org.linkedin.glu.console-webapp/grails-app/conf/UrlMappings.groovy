@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2010 LinkedIn, Inc
+ * Copyright 2010-2011 LinkedIn, Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -74,6 +74,10 @@ class UrlMappings
     // user credentials
     "/user/credentials"(controller: 'user', action: 'credentials') { __nvbe = 'User' }
     "/user/updatePassword"(controller: 'user', action: 'updatePassword') { __nvbe = 'User' }
+
+    // help
+    "/help"(controller: 'help', action: "index") { __nvbe = 'Help' }
+    "/help/forum"(controller: 'help', action: "forum") { __nvbe = 'Help' }
 
     // /
     "/"(controller: 'dashboard', action: 'audit') { __nvbe = 'Dashboard' }
