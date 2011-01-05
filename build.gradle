@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2010 LinkedIn, Inc
+ * Copyright 2010-2011 LinkedIn, Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -62,10 +62,29 @@ allprojects {
   version = spec.version
 }
 
-// we use git
+def ideaCopyright = """
+<component name="CopyrightManager" default="LinkedIn Apache 2.0">
+  <copyright>
+    <option name="notice" value="Copyright (c) 2010-&amp;#36;today.year LinkedIn, Inc&#10;&#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may not&#10;use this file except in compliance with the License. You may obtain a copy of&#10;the License at&#10;&#10;http://www.apache.org/licenses/LICENSE-2.0&#10;&#10;Unless required by applicable law or agreed to in writing, software&#10;distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT&#10;WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the&#10;License for the specific language governing permissions and limitations under&#10;the License." />
+    <option name="keyword" value="Copyright" />
+    <option name="allowReplaceKeyword" value="" />
+    <option name="myName" value="LinkedIn Apache 2.0" />
+    <option name="myLocal" value="true" />
+  </copyright>
+  <module2copyright>
+    <element module="All" copyright="LinkedIn Apache 2.0" />
+  </module2copyright>
+</component>
+"""
+
+// customizing idea project
 ideaProject {
   withXml { root ->
-    root.asNode().component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
+    root = root.asNode()
+    root.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
+    def copyrightNode = root.component.find { it.@name == 'CopyrightManager'}
+    root.remove(copyrightNode)
+    root.append(new XmlParser().parseText(ideaCopyright))
   }
 }
 
