@@ -60,7 +60,7 @@ class JettyGluScript
     log.info "Install complete."
   }
 
-  def configure = {
+  def configure = { args ->
     log.info "Configuring..."
 
     port = (params.port ?: 8080) as int
@@ -73,6 +73,10 @@ class JettyGluScript
     c << '\n' // forces an empty line
 
     config = shell.saveContent(serverRoot.'start.ini', c.join('\n'))
+
+    // setting up a timer to monitor the container
+    timers.schedule(timer: containerMonitor,
+                    repeatFrequency: args?.containerMonitorRepeatFrequency ?: '5s')
 
     log.info "Configuration complete."
   }
@@ -141,6 +145,8 @@ class JettyGluScript
   def unconfigure = {
     log.info "Unconfiguring..."
 
+    timers.cancel(timer: containerMonitor)
+
     port = null
 
     log.info "Unconfiguration complete."
@@ -156,7 +162,7 @@ class JettyGluScript
     {
       def output = shell.exec("${serverCmd} check")
       def matcher = output =~ /Jetty running pid=([0-9]+)/
-      if(matcher)
+      if(matcher && shell.listening('localhost', port))
         return matcher[0][1]
       else
         return null
@@ -170,6 +176,80 @@ class JettyGluScript
   private def isServerDown()
   {
     !isServerUp()
+  }
+
+  private boolean checkServices()
+  {
+    // for now returns true
+    return true
+  }
+
+  /**
+   * Check that both container and services are up
+   */
+  private def checkContainerAndServices = {
+    def up = [container: false, services: false]
+
+    pid = isServerUp()
+    up.container = pid != null
+    if(up.container)
+      up.services = checkServices()
+
+    return up
+  }
+
+  /**
+   * Defines the timer that will check for the container to be up and running and will act
+   * according if not (change state)
+   */
+  def containerMonitor = {
+    try
+    {
+      def up = checkContainerAndServices()
+
+      def newState = null
+      def error = null
+
+      if(stateManager.state.currentState == 'running')
+      {
+        if(!up.container || !up.services)
+        {
+          newState = 'stopped'
+          if(!up.container)
+          {
+            pid = null
+            error = 'Container down detected. Check the log file for errors.'
+          }
+          else
+            error = 'Container is up but services seem to be down. Check the log file for errors.'
+
+          log.warn "${error} => forcing new state ${newState}"
+        }
+      }
+      else
+      {
+        if(up.container && up.services)
+        {
+          newState = 'running'
+          log.info "Container up detected."
+        }
+      }
+
+      if(newState)
+        stateManager.forceChangeState(newState, error)
+
+      if(log.isDebugEnabled())
+        log.debug "Container Monitor: ${stateManager.state.currentState} / ${up}"
+
+      log.info "Container Monitor: ${stateManager.state.currentState} / ${up}"
+
+    }
+    catch(Throwable th)
+    {
+      log.warn "Exception while running containerMonitor: ${th.message}"
+      if(log.isDebugEnabled())
+        log.debug("Exception while running containerMonitor (ignored)", th)
+    }
   }
 
   static String DEFAULT_JETTY_CONFIG = """

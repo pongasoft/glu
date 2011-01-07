@@ -168,7 +168,7 @@ class AgentRestClient implements Agent
       }.fullState
 
     def error = state.scriptState.stateMachine.error
-    if(error)
+    if(error instanceof Map)
     {
       state.scriptState.stateMachine.error = doRebuildAgentException(RestException.fromJSON(error))
     }
