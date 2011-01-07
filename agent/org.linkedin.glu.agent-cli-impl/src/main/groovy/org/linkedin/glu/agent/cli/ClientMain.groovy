@@ -81,7 +81,7 @@ class ClientMain implements Startable
       }
 
       def agentActions =
-        ['installScript', 'installScriptClassname', 'clearError', 'install', 'executeAction', 'waitForState', 'start', 'uninstallScript', 'forceUninstallScript', 'uninstall'].findAll {
+        ['interruptAction', 'installScript', 'installScriptClassname', 'clearError', 'install', 'executeAction', 'waitForState', 'start', 'uninstallScript', 'forceUninstallScript', 'uninstall'].findAll {
           Config.getOptionalString(config, it, null)
         }
 
@@ -220,6 +220,23 @@ class ClientMain implements Startable
                         actionArgs: extractArgs(config))
   }
 
+  // interruptAction
+  def interruptAction =  { agent, mountPoint ->
+    def state = agent.getState(mountPoint: mountPoint)
+
+    if(state.transitionAction)
+    {
+      if(agent.interruptAction(mountPoint: mountPoint, action: state.transitionAction))
+        println "Interrupted action ${state.transitionAction}"
+      else
+        println "Action ${state.transitionAction} completed."
+    }
+    else
+    {
+      println "Not currently executing an action"
+    }
+  }
+
   // waitForState
   def waitForState = { agent, mountPoint ->
     if(agent.waitForState(mountPoint: mountPoint,
@@ -263,7 +280,7 @@ class ClientMain implements Startable
                                     '[-w state] [-t timeout] [-p parentMountPoint] [-m mountPoint]')
     cli.a(longOpt: 'args', 'arguments of the script or action (ex: [a:\'12\'])', args:1, required: false)
     cli.c(longOpt: 'installScriptClassname', 'install the script given a class name)', args:1, required: false)
-    cli.C(longOpt: 'fileContent', 'retrieves the file content)', args:1, required: false)
+    cli.C(longOpt: 'fileContent', 'retrieves the file content', args:1, required: false)
     cli.e(longOpt: 'executeAction', 'executes the provided action (ex: install)', args:1, required: false)
     cli.f(longOpt: 'clientConfigFile', 'the client config file', args: 1, required: false)
     cli.F(longOpt: 'forceUninstallScript', 'force uninstall script', args: 0, required: false)
@@ -284,6 +301,7 @@ class ClientMain implements Startable
     cli.v(longOpt: 'verbose', 'verbose', args: 0, required: false)
     cli.w(longOpt: 'waitForState', 'wait for the provided state', args:1, required: false)
     cli.x(longOpt: 'clearError', 'arguments of the script or action (ex: [a:\'12\'])', args:0, required: false)
+    cli.X(longOpt: 'interruptAction', 'interrupts the current action', args:0, required: false)
     cli.y(longOpt: 'sync', 'sync', args: 0, required: false)
 
     def options = cli.parse(args)

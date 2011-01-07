@@ -36,6 +36,7 @@ import org.linkedin.groovy.util.net.GroovyNetUtils
 import org.linkedin.groovy.util.encryption.EncryptionUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.util.lang.MemorySize
+import org.linkedin.glu.agent.api.ShellExecException
 
 /**
  * contains the utility methods for the shell
@@ -675,6 +676,9 @@ def class ShellImpl implements Shell
    */
   private String toStringCommandLine(commandLine)
   {
+    if(commandLine instanceof GString)
+      commandLine = commandLine.toString()
+
     if(!(commandLine instanceof String))
       commandLine = commandLine.collect { it.toString() }.join(' ')
 
@@ -703,7 +707,11 @@ def class ShellImpl implements Shell
         log.debug("output=${toStringOutput(map.output)}")
         log.debug("error=${toStringOutput(map.error)}") 
       }
-      throw new ScriptException("Error while executing command ${commandLine}: res=${map.res} - output=${toLimitedStringOutput(map.output, 512)} - error=${toLimitedStringOutput(map.error, 512)}".toString())
+
+      ShellExecException exception =
+        new ShellExecException("Error while executing command ${commandLine}: res=${map.res} - output=${toLimitedStringOutput(map.output, 512)} - error=${toLimitedStringOutput(map.error, 512)}".toString())
+      map.each { k,v -> exception."${k}" = v}
+      throw exception
     }
 
     return toStringOutput(map.output)

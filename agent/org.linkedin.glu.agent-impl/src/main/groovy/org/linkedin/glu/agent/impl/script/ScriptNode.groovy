@@ -300,12 +300,12 @@ def class ScriptNode implements Shutdownable
       return future.cancel(true)
     }
     else
-      return false
+      return interruptCurrentExecution()
   }
 
   private FutureExecution findFutureByNameOrId(args)
   {
-    def future
+    FutureExecution future = null
     if(args.action)
     {
       future = _scriptExecution.findFutureActionByName(args.action)

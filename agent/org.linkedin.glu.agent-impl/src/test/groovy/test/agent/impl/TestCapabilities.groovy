@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2010-2011 LinkedIn, Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -27,6 +27,7 @@ import org.linkedin.groovy.util.ivy.IvyURLHandler
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.net.GroovyNetUtils
+import org.linkedin.glu.agent.api.ShellExecException
 
 /**
  * Test for various capabilities.
@@ -102,8 +103,21 @@ class TestCapabilities extends GroovyTestCase
       def shell = new ShellImpl(fileSystem: fs)
 
       // non existent script
-      assertEquals('Error while executing command /non/existent/666: res=127 - output= - error=bash: /non/existent/666: No such file or directory',
-                   shouldFail(ScriptException) { shell.exec("/non/existent/666") })
+      try
+      {
+        shell.exec("/non/existent/666")
+        fail("should fail")
+      }
+      catch(ShellExecException e)
+      {
+        assertEquals(127, e.res)
+        assertEquals('', e.stringOutput)
+        String shellScriptError = 'bash: /non/existent/666: No such file or directory'
+        assertEquals(shellScriptError, e.stringError)
+        assertEquals('Error while executing command /non/existent/666: res=127 - output= - error='
+                     + shellScriptError,
+                     e.message)
+      }
 
       def shellScript = shell.fetch("./src/test/resources/shellScriptTestCapabilities.sh")
 
@@ -128,7 +142,22 @@ class TestCapabilities extends GroovyTestCase
 
       // we make the shell script non executable
       fs.chmod(shellScript, '-x')
-      assertTrue(shouldFail(ScriptException) { shell.exec("${shellScript} a b c") }.endsWith('Permission denied'))
+      try
+      {
+        shell.exec("${shellScript} a b c")
+        fail("should fail")
+      }
+      catch(ShellExecException e)
+      {
+        assertEquals(126, e.res)
+        assertEquals('', e.stringOutput)
+        String shellScriptError =
+          "bash: ${shellScript}: Permission denied".toString()
+        assertEquals(shellScriptError, e.stringError)
+        assertEquals("Error while executing command ${shellScript} a b c: " +
+                     "res=126 - output= - error=${shellScriptError}",
+                     e.message)
+      }
     }
   }
 

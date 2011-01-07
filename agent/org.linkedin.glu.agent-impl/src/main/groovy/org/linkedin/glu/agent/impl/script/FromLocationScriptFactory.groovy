@@ -40,7 +40,7 @@ def class FromLocationScriptFactory implements ScriptFactory, Serializable
   {
     if(!_script)
     {
-      if(!_scriptFile)
+      if(!_scriptFile?.exists())
         _scriptFile = scriptConfig.shell.fetch(_location)
 
       Class scriptClass = new GroovyClassLoader(getClass().classLoader).parseClass(_scriptFile.file)

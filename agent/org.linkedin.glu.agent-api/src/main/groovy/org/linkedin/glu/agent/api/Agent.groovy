@@ -72,11 +72,13 @@ public interface Agent
   String executeAction(args) throws AgentException
 
   /**
-   * Interrupts the action.
+   * Interrupts the action provided or the current one if neither <code>action</code> nor
+   * <code>actionId</code> is provided. If you provide one, you should provide only one of
+   * <code>action</code> or <code>actionId</code>.
    *
    * @param args.mountPoint same mount point provided during {@link #installScript(Object)}
-   * @param args.action the lifecycle method you want to interrupt on (for double checking)
-   *        (optional: if not provided will cancel any action currently running on the mountpoint)
+   * @param args.action the lifecycle method you want to interrupt
+   * @param args.actionId the id of the action to interrupt
    * @return <code>true</code> if the action was interrupted properly or <code>false</code> if
    * there was no such action or already completed
    */
