@@ -386,7 +386,7 @@ def class ShellImpl implements Shell
    * @param location
    * @return a map representing all the headers {@link java.net.URLConnection#getHeaderFields()}
    */
-  Map head(location)
+  Map httpHead(location)
   {
     Map res = [:]
 

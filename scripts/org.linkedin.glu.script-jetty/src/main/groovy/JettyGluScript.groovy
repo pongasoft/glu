@@ -16,6 +16,8 @@
  */
 
 import org.linkedin.glu.agent.api.ShellExecException
+import javax.management.ObjectName
+import javax.management.InstanceNotFoundException
 
 class JettyGluScript
 {
@@ -28,10 +30,9 @@ class JettyGluScript
   def serverCmd
   def logsDir
   def containerLog
-  def config
   def pid
   def port
-  def wars
+  def webapps
 
   def install = {
     log.info "Installing..."
@@ -45,14 +46,15 @@ class JettyGluScript
     // assigning variables
     logsDir = serverRoot.'logs'
     containerLog = logsDir.'jetty.log'
-    def serverScript = serverRoot.'bin/jetty.sh'
-    serverCmd = "JETTY_RUN=${logsDir.file} ${serverScript.file}"
+    serverCmd = "JETTY_RUN=${logsDir.file} ${serverRoot.'bin/jetty.sh'.file}"
 
     shell.rmdirs(serverRoot.'contexts')
     shell.rmdirs(serverRoot.'webapps')
 
-    // make sure that the shell script is executable
-    shell.chmodPlusX(serverScript)
+    // make sure all bin/*.sh files are executable
+    shell.ls(serverRoot.bin) {
+      include(name: '*.sh')
+    }.each { shell.chmodPlusX(it) }
 
     // creating etc/jetty-glu.xml
     shell.saveContent(serverRoot.'etc/jetty-glu.xml', DEFAULT_JETTY_XML)
@@ -63,25 +65,20 @@ class JettyGluScript
   def configure = { args ->
     log.info "Configuring..."
 
-    port = (params.port ?: 8080) as int
+    // first we configure the server
+    configureServer()
 
-    def c = []
-
-    c << DEFAULT_JETTY_CONFIG
-    c << '--pre=etc/jetty-logging.xml'
-    c << '--daemon'
-    c << '\n' // forces an empty line
-
-    config = shell.saveContent(serverRoot.'start.ini', c.join('\n'))
+    // second we configure the apps
+    configureWebapps()
 
     // setting up a timer to monitor the container
     timers.schedule(timer: containerMonitor,
-                    repeatFrequency: args?.containerMonitorRepeatFrequency ?: '5s')
+                    repeatFrequency: args?.containerMonitorRepeatFrequency ?: '15s')
 
     log.info "Configuration complete."
   }
 
-  def start = {
+  def start = { args ->
     log.info "Starting..."
 
     pid = isServerUp()
@@ -93,8 +90,7 @@ class JettyGluScript
     else
     {
       // we execute the start command (return right away)
-      String cmd = "JAVA_OPTIONS=\"-Xmx1024m -Djetty.port=${port}\" ${serverCmd} start > /dev/null 2>&1 &"
-      println config.file.text
+      String cmd = "JAVA_OPTIONS=\"-Djetty.port=${port} -Dcom.sun.management.jmxremote\" ${serverCmd} start > /dev/null 2>&1 &"
       shell.exec(cmd)
       shell.saveContent(logsDir.'jetty.cmd', cmd)
 
@@ -103,16 +99,16 @@ class JettyGluScript
         pid = isServerUp()
       }
 
-//      // we now wait for the war to be up: we use a jmx call to do that
-//      shell.waitFor(timeout: args?.startTimeout, heartbeat: '1s') { duration ->
-//        log.info "${duration}: Waiting for server to be up"
-//
-//        // we check if the server is down already... in which case we throw an exception
-//        if(isServerDown())
-//          shell.fail("Container could not start. Check the log file for errors.")
-//
-//        return checkServices()
-//      }
+      // we now wait for the war to be up: we use a jmx call to do that
+      shell.waitFor(timeout: args?.startTimeout, heartbeat: '1s') { duration ->
+        log.info "${duration}: Waiting for server to be up"
+
+        // we check if the server is down already... in which case we throw an exception
+        if(isServerDown())
+          shell.fail("Container could not start. Check the log file for errors.")
+
+        return checkWebappsAndStopOnFailure(args)
+      }
     }
 
     log.info "Started jetty on port ${port}."
@@ -121,6 +117,26 @@ class JettyGluScript
   def stop = { args ->
     log.info "Stopping..."
 
+    doStop(args)
+
+    log.info "Stopped."
+  }
+
+  def unconfigure = {
+    log.info "Unconfiguring..."
+
+    timers.cancel(timer: containerMonitor)
+
+    port = null
+
+    log.info "Unconfiguration complete."
+  }
+
+  def uninstall = {
+    // nothing
+  }
+
+  private def doStop = { args ->
     if(isServerDown())
     {
       log.info "Server already down."
@@ -138,22 +154,42 @@ class JettyGluScript
     }
 
     pid = null
-
-    log.info "Stopped."
   }
 
-  def unconfigure = {
-    log.info "Unconfiguring..."
+  /**
+   * use jmx to fetch status of webapps installed
+   * @return map where the key is the context path and the value is a <code>boolean</code>
+   *         (<code>true</code> means failed)
+   */
+  private Map<String, Boolean> getJmxInfo()
+  {
+    Map<String, Boolean> values = [:]
 
-    timers.cancel(timer: containerMonitor)
+    shell.withMBeanServerConnection(pid) { connection ->
+      if(connection)
+      {
+        try
+        {
+          def contexts =
+            connection.getAttribute('org.eclipse.jetty.server:type=server,id=0',
+                                    'contexts')?.toList()
 
-    port = null
+          contexts.each { ObjectName contextName ->
+            Map<String,Object> attributes = connection.getAttributes(contextName,
+                                                                    ['contextPath', 'failed'])
+            values[attributes.contextPath] = attributes.failed as boolean
+          }
+        }
+        catch (InstanceNotFoundException e)
+        {
+          log.debug("Could not find mbean", e)
+          println e
+          values = [:]
+        }
+      }
+    }
 
-    log.info "Unconfiguration complete."
-  }
-
-  def uninstall = {
-    // nothing
+    return values
   }
 
   private def isServerUp()
@@ -178,22 +214,152 @@ class JettyGluScript
     !isServerUp()
   }
 
-  private boolean checkServices()
-  {
-    // for now returns true
-    return true
+  private def configureServer = {
+    port = (params.port ?: 8080) as int
+    def c = []
+    c << DEFAULT_JETTY_CONFIG
+    c << 'etc/jetty-jmx.xml'
+    c << '--pre=etc/jetty-logging.xml'
+    c << '--daemon'
+    c << '\n' // forces an empty line
+    shell.saveContent(serverRoot.'start.ini', c.join('\n'))
+  }
+
+  private def configureWebapps = {
+    def w = params.webapps ?: []
+
+    // case when only one webapp provided as a map
+    if(w instanceof Map)
+      w = [w]
+
+    def ws = [:]
+
+    w.each {
+      def webapp = configureWebapp(it)
+      if(ws.containsKey(webapp.contextPath))
+        shell.fail("deplicate contextPath ${webapp.contextPath}")
+      ws[webapp.contextPath] = webapp
+    }
+
+    webapps = ws
+  }
+
+  private def configureWebapp = { webapp ->
+    if(webapp.war)
+      configureWar(webapp)
+    else
+    {
+      if(webapp.resources)
+        configureResources(webapp)
+      else
+        shell.fail("cannot configure webapp: ${webapp}")
+    }
+  }
+
+  private def configureWar = { webapp ->
+    String contextPath = (webapp.contextPath ?: '/').toString()
+    String name = contextPath.replace('/', '_')
+
+    def war = shell.fetch(webapp.war, serverRoot."wars/${name}.war")
+
+    def context = shell.saveContent(serverRoot."contexts/${name}.xml",
+                                    WAR_CONTEXT,
+                                    ['war.localWar': war.file.canonicalPath,
+                                    'war.contextPath': contextPath])
+
+    return [
+      remoteWar: webapp.war,
+      localWar: war,
+      contextPath: contextPath,
+      context: context,
+      monitor: webapp.monitor
+    ]
+  }
+
+  private def configureResources = { webapp ->
+
   }
 
   /**
-   * Check that both container and services are up
+   * @return a map of failed apps. The map is empty if there is none. The key is the context path
+   * and the value can be 'failedInit' (when failed during the init process),
+   * 'failedMonitor' when failed during monitoring or 'unknown', if in the process of being deployed
    */
-  private def checkContainerAndServices = {
-    def up = [container: false, services: false]
+  private Map<String, String> getFailedWebapps()
+  {
+    Map<String, String> failedWebapps = [:]
+
+    // when no webapps at all there is no need to talk to the server
+    if(!webapps)
+      return failedWebapps
+
+    webapps.keySet().each { failedWebapps[it] = 'unknown'}
+
+    Map<String, Boolean> jmxInfo = getJmxInfo()
+
+    jmxInfo.each { String contextPath, boolean failed ->
+      if(failed)
+        failedWebapps[contextPath] = 'failedInit'
+      else
+      {
+        failedWebapps.remove(contextPath)
+
+        def monitor = webapps[contextPath]?.monitor
+        if(monitor)
+        {
+          try
+          {
+            println shell.httpHead("http://localhost:${port}${contextPath}${monitor}")
+          }
+          catch(IOException e)
+          {
+            println e
+            failedWebapps[contextPath] = 'failedMonitor'
+          }
+        }
+      }
+    }
+
+    println "failedWebapps=${failedWebapps}"
+
+    return failedWebapps
+  }
+
+  /**
+   * @return <code>true</code> if all the webapps are up, <code>false</code> if any is failed or
+   * not responding
+   */
+  private boolean checkWebapps()
+  {
+    return failedWebapps.isEmpty()
+  }
+
+  private boolean checkWebappsAndStopOnFailure(args)
+  {
+    def failedApps = getFailedWebapps()
+
+    if(failedApps.isEmpty())
+      return true
+
+    if(failedApps.values().find { it.startsWith('failed')})
+    {
+      log.warn ("${failedApps} could not start properly. Shutting down container...")
+      doStop(args)
+    }
+
+    return false
+  }
+
+  /**
+   * Check that both container and webapps are up
+   */
+  private def checkContainerAndWebapps = {
+    def up = [container: false, webapps: false]
 
     pid = isServerUp()
     up.container = pid != null
     if(up.container)
-      up.services = checkServices()
+      up.webapps = checkWebapps()
 
     return up
   }
@@ -205,14 +371,14 @@ class JettyGluScript
   def containerMonitor = {
     try
     {
-      def up = checkContainerAndServices()
+      def up = checkContainerAndWebapps()
 
       def newState = null
       def error = null
 
       if(stateManager.state.currentState == 'running')
       {
-        if(!up.container || !up.services)
+        if(!up.container || !up.webapps)
         {
           newState = 'stopped'
           if(!up.container)
@@ -221,14 +387,14 @@ class JettyGluScript
             error = 'Container down detected. Check the log file for errors.'
           }
           else
-            error = 'Container is up but services seem to be down. Check the log file for errors.'
+            error = 'Container is up but webapps seem to be down. Check the log file for errors.'
 
           log.warn "${error} => forcing new state ${newState}"
         }
       }
       else
       {
-        if(up.container && up.services)
+        if(up.container && up.webapps)
         {
           newState = 'running'
           log.info "Container up detected."
@@ -308,6 +474,15 @@ etc/jetty-contexts.xml
     <Set name="sendDateHeader"><SystemProperty name="jetty.sendDateHeader" default="true"/></Set>
     <Set name="gracefulShutdown"><SystemProperty name="jetty.gracefulShutdown" default="1000"/></Set>
 
+</Configure>
+"""
+
+  static String WAR_CONTEXT = """<?xml version="1.0"  encoding="ISO-8859-1"?>
+<!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://jetty.eclipse.org/configure.dtd">
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+  <Call class="org.eclipse.jetty.util.log.Log" name="debug"><Arg>Configure war=@war.localWar@ contextPath=@war.contextPath@</Arg></Call>
+  <Set name="contextPath">@war.contextPath@</Set>
+  <Set name="war">@war.localWar@</Set>
 </Configure>
 """
 }
