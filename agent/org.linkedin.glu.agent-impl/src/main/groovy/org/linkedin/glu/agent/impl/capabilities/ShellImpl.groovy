@@ -25,7 +25,6 @@ import javax.management.ObjectName
 import javax.management.remote.JMXConnectorFactory
 import javax.management.remote.JMXServiceURL
 import org.apache.tools.ant.taskdefs.Execute
-import org.linkedin.glu.agent.api.ScriptException
 import org.linkedin.glu.agent.api.ScriptFailedException
 import org.linkedin.glu.agent.api.Shell
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
@@ -37,6 +36,10 @@ import org.linkedin.groovy.util.encryption.EncryptionUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.util.lang.MemorySize
 import org.linkedin.glu.agent.api.ShellExecException
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.apache.tools.ant.filters.ReplaceTokens.Token
+import org.linkedin.util.io.resource.Resource
+import javax.management.Attribute
 
 /**
  * contains the utility methods for the shell
@@ -63,9 +66,13 @@ def class ShellImpl implements Shell
   // environment variables
   def env = [:]
 
+  /**
+   * The charset to use for reading/writing files */
+  def charset = 'UTF-8'
+
   Shell newShell(fileSystem)
   {
-    return new ShellImpl(fileSystem: fileSystem, env: env, clock: clock)
+    return new ShellImpl(fileSystem: fileSystem, env: env, charset: charset, clock: clock)
   }
 
   def getMimeTypes(file)
@@ -305,10 +312,11 @@ def class ShellImpl implements Shell
     if(uri == null)
       return null
 
-    def tempFile
+    Resource tempFile
     if(destination)
     {
       tempFile = toResource(destination)
+      mkdirs(tempFile.parentResource)
     }
     else
     {
@@ -370,6 +378,45 @@ def class ShellImpl implements Shell
 
       return null
     }
+  }
+
+  /**
+   * Issue a 'HEAD' request. The location should be an http or https link.
+   *
+   * @param location
+   * @return a map representing all the headers {@link java.net.URLConnection#getHeaderFields()}
+   */
+  Map head(location)
+  {
+    Map res = [:]
+
+    URI uri = GroovyNetUtils.toURI(location)
+
+    URL url = uri.toURL()
+    URLConnection cx = url.openConnection()
+    try
+    {
+      if(cx instanceof HttpURLConnection)
+      {
+        cx.requestMethod = 'HEAD'
+        cx.doInput = true
+        cx.doOutput = false
+
+        cx.connect()
+
+        // content should be empty (but we force it otherwise we do not get the headers!)
+        cx.content
+
+        res = cx.headerFields
+      }
+    }
+    finally
+    {
+      if(cx.respondsTo('close'))
+        cx.close()
+    }
+
+    return res
   }
 
   /**
@@ -723,7 +770,7 @@ def class ShellImpl implements Shell
    */
   private def toStringOutput(byte[] output)
   {
-    return output ? new String(output, "UTF-8").readLines().join('\n') : ""
+    return output ? new String(output, charset).readLines().join('\n') : ""
   }
 
   /**
@@ -797,6 +844,90 @@ def class ShellImpl implements Shell
       ant.condition(property: 'listening') {
         socket(server: server, port: port)
       }.project.getProperty('listening') ? true : false
+    } as boolean
+  }
+
+  /**
+   * Replaces the tokens provided in the map in the input. Token replacement is using ant token
+   * replacement class so in the input, the tokens are surrounded by the '@' sign.
+   * Example:
+   *
+   * <pre>
+   * input = "abcd @myToken@"
+   * assert "abcd foo" == replaceTokens(input, [myToken: 'foo'])
+   * </pre>
+   */
+  String replaceTokens(String input, Map tokens)
+  {
+    if(input == null)
+      return null
+
+    ReplaceTokens rt = new ReplaceTokens(new StringReader(input))
+    tokens?.each { k,v ->
+      rt.addConfiguredToken(new Token(key: k, value: v))
+    }
+
+    return rt.text
+  }
+
+  /**
+   * Processes <code>from</code> through the replacement token mechanism and writes the result to
+   * <code>to</code>
+   *
+   * @param from anything that can be provided to {@link FileSystem#toResource(Object)}
+   * @param to anything that can be provided to {@link FileSystem#toResource(Object)}
+   * @param tokens a map of token
+   * @return <code>to</code> as a {@link Resource}
+   * @see #replaceTokens(String, Map)
+   */
+  Resource replaceTokens(def from, def to, Map tokens)
+  {
+    to = toResource(to)
+
+    withWriter(to) { Writer writer ->
+      withReader(from) { Reader reader ->
+        ReplaceTokens rt = new ReplaceTokens(reader)
+        tokens?.each { k,v ->
+          rt.addConfiguredToken(new Token(key: k, value: v))
+        }
+        writer << rt
+      }
+    }
+
+    return to
+  }
+
+  /**
+   * Processes the content to the token replacement method.
+   *
+   * @see FileSystem#saveContent(Object, String)
+   */
+  Resource saveContent(file, String content, Map tokens)
+  {
+    saveContent(file, replaceTokens(content, tokens))
+  }
+
+  /**
+   * Same as <code>withInputStream</code> but wraps in a reader using the {@link #charset}
+   * @param file anything that can be provided to {@link FileSystem#toResource(Object)}
+   * @return whatever the closure returns
+   */
+  def withReader(file, Closure closure)
+  {
+    withInputStream(file) { InputStream is ->
+      is.withReader(charset, closure)
+    }
+  }
+
+  /**
+   * Same as <code>withOutputStream</code> but wraps in a writer using the {@link #charset}
+   * @param file anything that can be provided to {@link FileSystem#toResource(Object)}
+   * @return whatever the closure returns
+   */
+  def withWriter(file, Closure closure)
+  {
+    withOutputStream(file) { OutputStream os ->
+      os.withWriter(charset, closure)
     }
   }
 
@@ -836,6 +967,21 @@ class MBeanServerConnectionCategory
     objectName = toObjectName(objectName)
 
     return self.getAttribute(objectName, attribute)
+  }
+
+  static Map<String, Object> getAttributes(MBeanServerConnection self, objectName, attributes)
+  {
+    objectName = toObjectName(objectName)
+
+    attributes = attributes as String[]
+
+    Map<String, Object> res = [:]
+
+    self.getAttributes(objectName, attributes)?.each { Attribute attribute ->
+      res[attribute.name] = attribute.value
+    }
+
+    return res
   }
 
   static def invoke(MBeanServerConnection self, objectName, String methodName, parameters)

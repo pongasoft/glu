@@ -379,6 +379,22 @@ line 3 abcdef
     }   
   }
 
+  void testReplaceTokens()
+  {
+    FileSystemImpl.createTempFileSystem() { FileSystem fs ->
+      def shell = new ShellImpl(fileSystem: fs)
+
+      assertEquals('abc foo efg bar hij foo', 
+                   shell.replaceTokens('abc @token1@ efg @token2@ hij @token1@',
+                                       [token1: 'foo', token2: 'bar']))
+
+      Resource testFile = shell.saveContent('test.txt', 'abc @token1@ efg @token2@ hij @token1@',
+                                            [token1: 'foo', token2: 'bar'])
+
+      assertEquals('abc foo efg bar hij foo', shell.fetchContent(testFile))
+    }
+  }
+
   private def leavesPaths(Resource root)
   {
     new TreeSet(GroovyIOUtils.findAll(root) { !it.isDirectory() }.collect { it.path })
