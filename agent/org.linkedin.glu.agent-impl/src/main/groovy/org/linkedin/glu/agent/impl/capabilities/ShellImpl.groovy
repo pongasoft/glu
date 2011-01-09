@@ -384,9 +384,12 @@ def class ShellImpl implements Shell
    * Issue a 'HEAD' request. The location should be an http or https link.
    *
    * @param location
-   * @return a map representing all the headers {@link java.net.URLConnection#getHeaderFields()}
+   * @return a map with the following entries:
+   * responseCode: 200, 404... {@link java.net.HttpURLConnection#getResponseCode()}
+   * responseMessage: message {@link java.net.HttpURLConnection#getResponseMessage()}
+   * headers: representing all the headers {@link java.net.URLConnection#getHeaderFields()}
    */
-  Map httpHead(location)
+  def httpHead(location)
   {
     Map res = [:]
 
@@ -404,10 +407,9 @@ def class ShellImpl implements Shell
 
         cx.connect()
 
-        // content should be empty (but we force it otherwise we do not get the headers!)
-        cx.content
-
-        res = cx.headerFields
+        res.responseCode = cx.responseCode
+        res.responseMessage = cx.responseMessage
+        res.headers = cx.headerFields
       }
     }
     finally
