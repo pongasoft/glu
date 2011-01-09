@@ -81,6 +81,7 @@ spec.external = [
   restletExtHttpClient: "org.restlet.jse:org.restlet.ext.httpclient:${spec.versions.restlet}",
   restletExtJson: "org.restlet.jse:org.restlet.ext.json:${spec.versions.restlet}",
   restletExtSimple: "org.restlet.jse:org.restlet.ext.simple:${spec.versions.restlet}",
+  servletApi: 'javax.servlet:servlet-api:2.5',
   shiro: "org.apache.shiro:shiro-all:1.0.0-incubating",
   sigar: "com.hyperic:sigar:${spec.versions.sigar}",
   simpleFramework: 'org.simpleframework:simple:4.1.21',
