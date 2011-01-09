@@ -73,7 +73,7 @@ class JettyGluScript
 
     // setting up a timer to monitor the container
     timers.schedule(timer: containerMonitor,
-                    repeatFrequency: args?.containerMonitorRepeatFrequency ?: '15s')
+                    repeatFrequency: args?.containerMonitorRepeatFrequency ?: '5s')
 
     log.info "Configuration complete."
   }
@@ -107,7 +107,7 @@ class JettyGluScript
         if(isServerDown())
           shell.fail("Container could not start. Check the log file for errors.")
 
-        return checkWebappsAndStopOnFailure(args)
+        return checkWebapps() == 'ok'
       }
     }
 
@@ -117,7 +117,7 @@ class JettyGluScript
   def stop = { args ->
     log.info "Stopping..."
 
-    doStop(args)
+    doStop()
 
     log.info "Stopped."
   }
@@ -136,7 +136,7 @@ class JettyGluScript
     // nothing
   }
 
-  private def doStop = { args ->
+  private def doStop = {
     if(isServerDown())
     {
       log.info "Server already down."
@@ -147,7 +147,7 @@ class JettyGluScript
       shell.exec("${serverCmd} stop")
 
       // we wait for the process to be stopped
-      shell.waitFor(timeout: args?.stopTimeout, heartbeat: '1s') { duration ->
+      shell.waitFor(timeout: params?.stopTimeout, heartbeat: '1s') { duration ->
         log.info "${duration}: Waiting for server to be down"
         isServerDown()
       }
@@ -282,8 +282,8 @@ class JettyGluScript
 
   /**
    * @return a map of failed apps. The map is empty if there is none. The key is the context path
-   * and the value can be 'failedInit' (when failed during the init process),
-   * 'failedMonitor' when failed during monitoring or 'unknown', if in the process of being deployed
+   * and the value can be 'init' (when failed during the init process),
+   * 'busy' or 'dead' when failed during monitoring or 'unknown', if in the process of being deployed
    */
   private Map<String, String> getFailedWebapps()
   {
@@ -299,7 +299,7 @@ class JettyGluScript
 
     jmxInfo.each { String contextPath, boolean failed ->
       if(failed)
-        failedWebapps[contextPath] = 'failedInit'
+        failedWebapps[contextPath] = 'init'
       else
       {
         failedWebapps.remove(contextPath)
@@ -309,12 +309,24 @@ class JettyGluScript
         {
           try
           {
-            println shell.httpHead("http://localhost:${port}${contextPath}${monitor}")
+            int code =
+              shell.httpHead("http://localhost:${port}${contextPath}${monitor}").responseCode
+
+            switch(code)
+            {
+              case 503:
+                failedWebapps[contextPath] = 'busy'
+                break
+
+              case 500:
+                failedWebapps[contextPath] = 'dead'
+                break
+            }
           }
           catch(IOException e)
           {
-            println e
-            failedWebapps[contextPath] = 'failedMonitor'
+            log.debug("Could not talk to ${contextPath}", e)
+            failedWebapps[contextPath] = 'dead'
           }
         }
       }
@@ -326,35 +338,36 @@ class JettyGluScript
   }
 
   /**
-   * @return <code>true</code> if all the webapps are up, <code>false</code> if any is failed or
-   * not responding
+   * @return 'ok' if all apps are good, 'dead' if any app is dead, 'busy' if any app is busy,
+   *         otherwise 'unknown' (which is when the apps are in the process of being deployed)
    */
-  private boolean checkWebapps()
-  {
-    return failedWebapps.isEmpty()
-  }
-
-  private boolean checkWebappsAndStopOnFailure(args)
+  private String checkWebapps()
   {
     def failedApps = getFailedWebapps()
 
     if(failedApps.isEmpty())
-      return true
+      return 'ok'
 
-    if(failedApps.values().find { it.startsWith('failed')})
+    if(failedApps.values().find { it == 'init' || it == 'dead' })
     {
-      log.warn ("${failedApps} could not start properly. Shutting down container...")
-      doStop(args)
+      log.warn ("Failed apps: ${failedApps}. Shutting down container...")
+      doStop()
+      return 'dead'
+    }
+    else
+    {
+      if(failedApps.values().find { it == 'busy'} )
+        return 'busy'
     }
 
-    return false
+    return 'unknown'
   }
 
   /**
    * Check that both container and webapps are up
    */
   private def checkContainerAndWebapps = {
-    def up = [container: false, webapps: false]
+    def up = [container: false, webapps: 'unknown']
 
     pid = isServerUp()
     up.container = pid != null
@@ -373,28 +386,43 @@ class JettyGluScript
     {
       def up = checkContainerAndWebapps()
 
-      def newState = null
-      def error = null
+      def currentState = stateManager.state.currentState
+      def currentError = stateManager.state.error
 
-      if(stateManager.state.currentState == 'running')
+      def newState = null
+      def newError = null
+
+      // case when current state is running
+      if(currentState == 'running')
       {
-        if(!up.container || !up.webapps)
+        if(!up.container || up.webapps == 'dead')
         {
           newState = 'stopped'
-          if(!up.container)
+          pid = null
+          newError = 'Container down detected. Check the log file for errors.'
+          log.warn "${newError} => forcing new state ${newState}"
+        }
+        else
+        {
+          if(up.webapps == 'busy')
           {
-            pid = null
-            error = 'Container down detected. Check the log file for errors.'
+            newState = 'running' // remain running
+            newError = 'Container is up but webapps seem to be down. Check the log file for errors.'
+            log.warn newError
           }
           else
-            error = 'Container is up but webapps seem to be down. Check the log file for errors.'
-
-          log.warn "${error} => forcing new state ${newState}"
+          {
+            if(up.webapps == 'ok' && currentError)
+            {
+              newState = 'running' // remain running
+              log.info "All webapps are up, clearing error status."
+            }
+          }
         }
       }
       else
       {
-        if(up.container && up.webapps)
+        if(up.container && up.webapps == 'ok')
         {
           newState = 'running'
           log.info "Container up detected."
@@ -402,7 +430,7 @@ class JettyGluScript
       }
 
       if(newState)
-        stateManager.forceChangeState(newState, error)
+        stateManager.forceChangeState(newState, newError)
 
       if(log.isDebugEnabled())
         log.debug "Container Monitor: ${stateManager.state.currentState} / ${up}"
