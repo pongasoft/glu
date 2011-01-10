@@ -29,15 +29,22 @@ public class MonitorServlet extends HttpServlet
 {
   public static enum MonitorState
   {
-    GOOD("Everything is fine"),
-    BUSY("Application is overloaded (recoverable)"),
-    DEAD("Application is in a dead state (non recoverable)");
+    GOOD(HttpServletResponse.SC_OK, "Everything is fine"),
+    BUSY(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Application is overloaded (recoverable)"),
+    DEAD(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Application is in a dead state (non recoverable)");
 
+    private final int _responseCode;
     private final String _description;
 
-    private MonitorState(String description)
+    private MonitorState(int responseCode, String description)
     {
+      _responseCode = responseCode;
       _description = description;
+    }
+
+    public int getResponseCode()
+    {
+      return _responseCode;
     }
 
     public String getDescription()
@@ -59,29 +66,9 @@ public class MonitorServlet extends HttpServlet
   {
     MonitorState state = (MonitorState) getServletContext().getAttribute(WEBAPP_STATE_ATTRIBUTE);
 
-    int responseCode;
+    response.setHeader("X-glu-monitoring", state.name() + " [" + state.getDescription() + "]");
 
-    switch(state)
-    {
-      case GOOD:
-        responseCode = HttpServletResponse.SC_OK;
-        break;
-
-      case BUSY:
-        responseCode = HttpServletResponse.SC_SERVICE_UNAVAILABLE;
-        break;
-
-      case DEAD:
-        responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-        break;
-
-      default:
-        throw new RuntimeException("not reached");
-    }
-
-    response.setHeader("X-glu-monitoring", state.name());
-
-    response.sendError(responseCode, state.name());
+    response.sendError(state.getResponseCode(), state.name());
   }
 
   @Override

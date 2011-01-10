@@ -39,7 +39,7 @@
 <%! MonitorServlet.MonitorState currentState; %>
 <% currentState = (MonitorServlet.MonitorState)
       getServletConfig().getServletContext().getAttribute(MonitorServlet.WEBAPP_STATE_ATTRIBUTE); %>
-<h1>Monitor</h1>
+<h1>Monitor for <%= getServletConfig().getServletContext().getContextPath() %></h1>
 Current state reported:
 <span class="<%= currentState %>" style="font-weight: bold; font-size: 2em;">
   <%= currentState %>

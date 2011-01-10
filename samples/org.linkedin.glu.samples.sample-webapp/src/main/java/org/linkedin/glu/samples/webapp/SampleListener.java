@@ -33,6 +33,31 @@ public class SampleListener implements ServletContextListener
   public void contextInitialized(ServletContextEvent sce)
   {
     sce.getServletContext().log("Initializing sample webapp...");
+
+    try
+    {
+      // artificial wait time to simulate initialization
+      Thread.sleep(1500);
+
+      if(sce.getServletContext().getContextPath().equals("/fail"))
+      {
+        sce.getServletContext().log("Failing");
+        throw new RuntimeException("does not boot");
+      }
+      else
+      {
+        sce.getServletContext().log("Not failing");
+      }
+
+      // artificial wait time to simulate initialization
+      Thread.sleep(1500);
+    }
+    catch(InterruptedException e)
+    {
+      throw new RuntimeException(e);
+    }
+
+    sce.getServletContext().log("Initialized.");
   }
 
   public void contextDestroyed(ServletContextEvent sce)
