@@ -21,6 +21,8 @@
  */
 class NoopGluScript
 {
+  def version = '@script.version@'
+
   def install = {
     // nothing
   }

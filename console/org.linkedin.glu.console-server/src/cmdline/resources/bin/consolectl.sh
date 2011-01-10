@@ -19,4 +19,16 @@
 BASEDIR=`cd $(dirname $0)/.. ; pwd`
 cd $BASEDIR
 
-JAVA_OPTIONS="-Dorg.linkedin.app.name=org.linkedin.glu.console-webapp -Dorg.linkedin.glu.console.config.location=$BASEDIR/conf/glu-console-webapp.groovy -Dorg.linkedin.glu.console.keys.dir=$BASEDIR/keys -Dorg.linkedin.glu.console.root=$BASEDIR" $BASEDIR/@jetty.distribution@/bin/jetty.sh $@
+JETTY_DISTRIBUTION=$BASEDIR/@jetty.distribution@
+
+if [ ! -d $JETTY_DISTRIBUTION ]; then
+  echo "Setting up jetty..."
+  tar -zxf $BASEDIR/glu/repository/tgzs/@jetty.archive@
+  rm -rf $JETTY_DISTRIBUTION/contexts/*
+  rm -rf $JETTY_DISTRIBUTION/webapps/*
+  cp $BASEDIR/conf/*-jetty-context.xml $JETTY_DISTRIBUTION/contexts
+  chmod +x $JETTY_DISTRIBUTION/bin/*.sh
+fi
+
+
+JAVA_OPTIONS="-Dorg.linkedin.app.name=org.linkedin.glu.console-webapp -Dorg.linkedin.glu.console.config.location=$BASEDIR/conf/glu-console-webapp.groovy -Dorg.linkedin.glu.console.keys.dir=$BASEDIR/keys -Dorg.linkedin.glu.console.root=$BASEDIR" $JETTY_DISTRIBUTION/bin/jetty.sh $@

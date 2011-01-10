@@ -89,13 +89,13 @@ Loading the model
 -----------------
 Click on the `'Model'` tab and enter
 
-    Json Uri: http://localhost:8080/glu/sample/systems/hello-world-system.json
+    Json Uri: http://localhost:8080/glu/repository/systems/hello-world-system.json
 
 and click `Load`.
 
 Note: the console is a simple web application and is being run in a jetty container which is also used to serve static content. In a production environment it is usually *not* the way it is being done as the agents would not in general talk to the console but instead would fetch their information from a binary repository (like Artifactory) using the ivy protocol for example.
 
-Note: you can view the model you just loaded at [http://localhost:8080/glu/sample/systems/hello-world-system.json](http://localhost:8080/glu/sample/systems/hello-world-system.json)
+Note: you can view the model you just loaded at [http://localhost:8080/glu/repository/systems/hello-world-system.json](http://localhost:8080/glu/repository/systems/hello-world-system.json)
 
 'Fixing' the issues
 -------------------
@@ -167,7 +167,7 @@ Now the system (also known as desired state) and the current state match. There 
 
 Reloading the model
 -------------------
-Manually edit the file: `$GLU_TUTORIAL_ROOT/org.linkedin.glu.console-server-<version>/glu/sample/systems/hello-world-system.json`
+Manually edit the file: `$GLU_TUTORIAL_ROOT/org.linkedin.glu.console-server-<version>/glu/repository/systems/hello-world-system.json`
 
 Change the message in the very first entry to `"Hello World 3"` and save your changes
 
@@ -175,7 +175,7 @@ Go back to the console and reload the model:
 
 Click on the `'Model'` tab and enter
 
-    Json Uri: http://localhost:8080/glu/sample/systems/hello-world-system.json
+    Json Uri: http://localhost:8080/glu/repository/systems/hello-world-system.json
 
 and click `Load`.
 

@@ -14,6 +14,8 @@
  * the License.
  */
 
+import org.linkedin.gradle.tasks.SingleArtifactTask
+
 apply plugin: 'org.linkedin.cmdline'
 apply plugin: 'org.linkedin.release'
 
@@ -26,21 +28,30 @@ dependencies {
 }
 
 def jettyDistribution = "jetty-distribution-${spec.versions.jetty}"
+def jettyArchive = configurations.jetty.resolve().toList()[0]
 
 def consoleWebappProject = evaluationDependsOn(':console:org.linkedin.glu.console-webapp')
+def sampleWebappProject = evaluationDependsOn(':samples:org.linkedin.glu.samples.sample-webapp')
 
-String consoleWebapp = consoleWebappProject.tasks.getByPath('package-war').artifactFile.name
+File consoleWebapp = consoleWebappProject.tasks.getByPath('package-war').artifactFile
+File sampleWebapp = sampleWebappProject.tasks.getByPath('war').archivePath
+
+def scriptProjects =
+  rootProject.childProjects.scripts.childProjects.values().collect { evaluationDependsOn(it.path) }
 
 cmdline {
   folders = []
-  
+
   dependsOn = [
-    ':console:org.linkedin.glu.console-webapp:war'
+    ':console:org.linkedin.glu.console-webapp:war', *scriptProjects.collect { "${it.path}:scripts"}
   ]
 
   replacementTokens = [
+    'version': version,
     'jetty.distribution': jettyDistribution,
-    'console.webapp': consoleWebapp
+    'jetty.archive': jettyArchive.name,
+    'console.webapp': consoleWebapp.name,
+    'sample.webapp': sampleWebapp.name
   ]
 
   // licenses
@@ -48,7 +59,15 @@ cmdline {
 
   // console.war
   resources << [
-    from: consoleWebappProject.tasks.getByPath('package-war').artifactFile,
+    from: consoleWebapp,
+    into: new File(assemblePackageFile, 'glu/repository/wars'),
+    replaceTokens: false
+  ]
+
+  // sample-webapp.war
+  resources << [
+    from: sampleWebapp,
+    into: new File(assemblePackageFile, 'glu/repository/wars'),
     replaceTokens: false
   ]
 
@@ -58,33 +77,22 @@ cmdline {
     into: new File(assemblePackageFile, 'keys'),
     replaceTokens: false
   ]
-}
 
-File basePackage = project.convention.plugins.cmdline.assemblePackageFile
-File jettyRoot = new File(basePackage, jettyDistribution)
+  // jetty archive
+  resources << [
+    from: jettyArchive,
+    into: new File(assemblePackageFile, 'glu/repository/tgzs'),
+    replaceTokens: false
+  ]
 
-/********************************************************
- * task: package-assemble
- * customizing package-assemble task to include jetty
- ********************************************************/
-project.'package-assemble'.doFirst {
-  // fetch/untar jetty distribution 
-  ant.untar(src: configurations.jetty.resolve().toList()[0],
-            dest: basePackage,
-            compression: 'gzip')
-
-  // remove the webapps and contexts folders
-  project.delete(new File(jettyRoot, "webapps"))
-  project.delete(new File(jettyRoot, "contexts"))
-}
-
-/********************************************************
- * task: package-assemble
- * copy the context files in jetty distribution
- ********************************************************/
-project.'package-assemble'.doLast {
-  copy {
-    from fileTree(dir: new File(basePackage, "conf"), includes: ["*-jetty-context.xml"])
-    into new File(jettyRoot, 'contexts')
+  // scripts
+  scriptProjects.each { scriptProject ->
+    scriptProject.tasks.withType(SingleArtifactTask.class).each { t ->
+      resources << [
+        from: t.artifactFile,
+        into: new File(assemblePackageFile, "glu/repository/scripts/${scriptProject.name}-${scriptProject.version}"),
+        replaceTokens: false
+      ]
+    }
   }
 }

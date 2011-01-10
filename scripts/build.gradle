@@ -40,7 +40,7 @@ configure(subprojects.findAll {it.name != gluScriptsTestProjectName}) {
     testCompile spec.external.junit
   }
 
-  processedScriptsDir = "${buildDir}/src/main/groovy"
+  processedScriptsDir = new File("${buildDir}/src/main/groovy")
 
   // compiling only the pre-processed files
   sourceSets.main.groovy.srcDirs = [processedScriptsDir]
@@ -58,12 +58,14 @@ configure(subprojects.findAll {it.name != gluScriptsTestProjectName}) {
   // make sure that the compileGroovy task runs preCompileGroovy first
   tasks.getByName('compileGroovy').dependsOn('preCompileGroovy')
 
-  def scripts = fileTree(dir: processedScriptsDir, include: '**/*.groovy')
+  def scriptTask = task('scripts')
+
+  def scripts = fileTree(dir: 'src/main/groovy', include: '*.groovy')
 
   scripts.each { File scriptFile ->
     def baseName = scriptFile.name - '.groovy'
-    task([type: SingleArtifactTask], baseName) {
-      artifactFile        = scriptFile
+    task([type: SingleArtifactTask, dependsOn: 'preCompileGroovy'], baseName) {
+      artifactFile        = new File(processedScriptsDir, scriptFile.name)
       artifactReleaseInfo =
         [
             name:           baseName,
@@ -71,5 +73,12 @@ configure(subprojects.findAll {it.name != gluScriptsTestProjectName}) {
             configurations: ['script']
         ]
     }
+
+    scriptTask.dependsOn(baseName)
+  }
+
+  // delete the processed scripts
+  project.'clean'.doLast {
+    delete processedScriptsDir
   }
 }

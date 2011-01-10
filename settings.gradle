@@ -32,4 +32,6 @@ include ':agent:org.linkedin.glu.agent-api',
         ':packaging:org.linkedin.glu.packaging-setup',
         ':packaging:org.linkedin.glu.packaging-all',
         ':scripts:org.linkedin.glu.script-jetty',
+        ':scripts:org.linkedin.glu.script-noop',
+        ':scripts:org.linkedin.glu.script-hello-world',
         ':samples:org.linkedin.glu.samples.sample-webapp'

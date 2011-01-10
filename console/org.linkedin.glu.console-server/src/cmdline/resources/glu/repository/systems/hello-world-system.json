@@ -10,7 +10,7 @@
         "version": "1.0.0"
       },
       "mountPoint": "/m1/i001",
-      "script": "http://localhost:8080/glu/sample/scripts/HelloWorldScript.groovy"
+      "script": "http://localhost:8080/glu/repository/scripts/org.linkedin.glu.scrip-hello-world-@version@/HelloWorldScript.groovy"
     },
     {
       "agent": "agent-1",
@@ -22,7 +22,7 @@
         "version": "2.0.0"
       },
       "mountPoint": "/m2/i001",
-      "script": "http://localhost:8080/glu/sample/scripts/HelloWorldScript.groovy"
+      "script": "http://localhost:8080/glu/repository/scripts/org.linkedin.glu.scrip-hello-world-@version@/HelloWorldScript.groovy"
     },
     {
       "agent": "agent-1",
@@ -34,7 +34,7 @@
         "version": "1.0.0"
       },
       "mountPoint": "/m3/i001",
-      "script": "http://localhost:8080/glu/sample/scripts/HelloWorldScript.groovy"
+      "script": "http://localhost:8080/glu/repository/scripts/org.linkedin.glu.scrip-hello-world-@version@/HelloWorldScript.groovy"
     },
     {
       "agent": "agent-1",
@@ -46,7 +46,7 @@
         "version": "2.0.0"
       },
       "mountPoint": "/m4/i001",
-      "script": "http://localhost:8080/glu/sample/scripts/HelloWorldScript.groovy"
+      "script": "http://localhost:8080/glu/repository/scripts/org.linkedin.glu.scrip-hello-world-@version@/HelloWorldScript.groovy"
     }
   ],
   "fabric": "glu-dev-1",

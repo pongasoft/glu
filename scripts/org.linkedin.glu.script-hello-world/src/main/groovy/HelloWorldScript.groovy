@@ -19,6 +19,8 @@
  */
 class HelloWorldGluScript
 {
+  def version = '@script.version@'
+
   def install = {
     log.info "Install (${params.message})"
   }
