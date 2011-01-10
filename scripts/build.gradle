@@ -19,6 +19,7 @@
  */
 
 import org.linkedin.gradle.tasks.SingleArtifactTask
+import org.apache.tools.ant.filters.ReplaceTokens
 
 def gluScriptsTestProjectName = 'org.linkedin.glu.scripts.tests'
 
@@ -39,7 +40,25 @@ configure(subprojects.findAll {it.name != gluScriptsTestProjectName}) {
     testCompile spec.external.junit
   }
 
-  def scripts = fileTree(dir: 'src/main/groovy', include: '**/*.groovy')
+  processedScriptsDir = "${buildDir}/src/main/groovy"
+
+  // compiling only the pre-processed files
+  sourceSets.main.groovy.srcDirs = [processedScriptsDir]
+
+  // copy all the scripts in the build folder to do token replacement
+  task preCompileGroovy << {
+    copy {
+      from('src/main/groovy') {
+        filter(tokens: ['script.version': version], ReplaceTokens)
+      }
+      into processedScriptsDir
+    }
+  }
+
+  // make sure that the compileGroovy task runs preCompileGroovy first
+  tasks.getByName('compileGroovy').dependsOn('preCompileGroovy')
+
+  def scripts = fileTree(dir: processedScriptsDir, include: '**/*.groovy')
 
   scripts.each { File scriptFile ->
     def baseName = scriptFile.name - '.groovy'
