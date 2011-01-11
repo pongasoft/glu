@@ -256,6 +256,10 @@ public class ConsoleTagLib
         out << 'nothing deployed'
         break;
 
+      case 'error':
+        out << "<a href=\"#\" title=\"${args.statusInfo.encodeAsHTML()}\" class=\"statusInfo\" onclick=\"toggleShowHide('si-${args.row}');return false;\">ERROR</a><dt id=\"si-${args.row}\" class=\"hidden\">${args.statusInfo.encodeAsHTML()}</dt>"
+        break;
+
       case 'unknown':
         out << 'Undetermined (no system defined)'
         break;

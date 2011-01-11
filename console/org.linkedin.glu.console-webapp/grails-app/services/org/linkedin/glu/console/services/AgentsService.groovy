@@ -278,6 +278,8 @@ class AgentsService
           se.metadata.currentState = mp.currentState
           if(mp.transitionState)
             se.metadata.transitionState = mp.transitionState
+          if(mp.error)
+            se.metadata.error = mp.error
           se.metadata.modifiedTime = mp.modifiedTime
           if(data?.scriptState)
           {

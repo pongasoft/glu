@@ -97,8 +97,18 @@ class AuditService
         {
           if(currentEntry['metadata.currentState'] == 'running')
           {
-            currentEntry.status = 'running'
-            currentEntry.state = 'RUNNING'
+            def error = currentEntry['metadata.error']
+            if(error)
+            {
+              currentEntry.status = 'error'
+              currentEntry.statusInfo = error.toString()
+              currentEntry.state = 'ERROR'
+            }
+            else
+            {
+              currentEntry.status = 'running'
+              currentEntry.state = 'RUNNING'
+            }
           }
           else
           {

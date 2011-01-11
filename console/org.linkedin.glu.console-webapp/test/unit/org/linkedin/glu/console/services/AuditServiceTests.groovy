@@ -227,6 +227,40 @@ class AuditServiceTests extends GrailsUnitTestCase
                            ],
                            doAudit(current, expected, []))
 
+    // error
+    current = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            initParameters: [wars: 'w1'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'running', error: 'in error']
+        ]
+    ]
+    expected = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            initParameters: [wars: 'w1'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2']
+        ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.container': 'c1',
+                            'metadata.currentState': 'running',
+                            'metadata.error': 'in error',
+                            key: 'a1:/m1',
+                            agent: 'a1',
+                            mountPoint: '/m1',
+                            'metadata.product': 'p1',
+                            script: 's1',
+                            state: 'ERROR',
+                            status: 'error',
+                            statusInfo: 'in error',
+                            'metadata.version': 'R2',
+                            'initParameters.wars': 'w1'
+                            ]
+                           ],
+                           doAudit(current, expected, []))
+
     // unknown
     current = [
         [
