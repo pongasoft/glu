@@ -293,14 +293,23 @@ def class ScriptNode implements Shutdownable
    */
   boolean interruptAction(args)
   {
-    FutureExecution future = findFutureByNameOrId(args)
-
-    if(future)
+    if(args.action || args.actionId)
     {
-      return future.cancel(true)
+      FutureExecution future = findFutureByNameOrId(args)
+
+      if(future)
+      {
+        return future.cancel(true)
+      }
+      else
+      {
+        return false
+      }
     }
     else
+    {
       return interruptCurrentExecution()
+    }
   }
 
   private FutureExecution findFutureByNameOrId(args)
