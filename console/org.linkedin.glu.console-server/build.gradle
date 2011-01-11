@@ -43,7 +43,9 @@ cmdline {
   folders = []
 
   dependsOn = [
-    ':console:org.linkedin.glu.console-webapp:war', *scriptProjects.collect { "${it.path}:scripts"}
+    ':console:org.linkedin.glu.console-webapp:war',
+    ':samples:org.linkedin.glu.samples.sample-webapp:war',
+    *scriptProjects.collect { "${it.path}:scripts"}
   ]
 
   replacementTokens = [

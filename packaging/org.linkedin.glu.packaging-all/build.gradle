@@ -26,38 +26,42 @@ dependencies {
 }
 
 def dependentClis = [
-  ':agent:org.linkedin.glu.agent-server',
-  ':agent:org.linkedin.glu.agent-cli',
-  ':console:org.linkedin.glu.console-server',
-  ':console:org.linkedin.glu.console-cli',
-  ':packaging:org.linkedin.glu.packaging-setup'
+  ':agent:org.linkedin.glu.agent-server': 'agent-server',
+  ':agent:org.linkedin.glu.agent-cli': 'agent-cli',
+  ':console:org.linkedin.glu.console-server': 'console-server',
+  ':console:org.linkedin.glu.console-cli': 'console-cli',
+  ':packaging:org.linkedin.glu.packaging-setup': 'setup'
 ]
 
 cmdline {
   folders = []
-  dependsOn = dependentClis.collect { "${it}:package-assemble" }
+  dependsOn = dependentClis.keySet().collect { "${it}:package-assemble" }
   resources << fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html'])
 
   replacementTokens = [
     'jetty.distribution': "jetty-distribution-${spec.versions.jetty}",
-    'glu.version': version,
     'zookeeper.version': spec.versions.linkedinZookeeper
   ]
 }
 
-def dependentProjects = dependentClis.collect { evaluationDependsOn(it) }
+def dependentProjects = dependentClis.keySet().collect { evaluationDependsOn(it) }
 
 // customizing package-assemble task to add agent cli, agent server and war
 project.'package-assemble'.doFirst {
   File basePackage = project.convention.plugins.cmdline.assemblePackageFile
 
   dependentProjects.each { dp ->
+    File destDir = new File(basePackage, dependentClis[dp.path])
     copy {
       from dp.convention.plugins.cmdline.assemblePackageFile
-      into new File(basePackage, "${dp.name}-${version}")
+      into destDir
+    }
+    // this information is redundant because it is at the root already
+    ant.delete {
+      fileset(dir: destDir, includes: '*.txt,*.md,*.html', excludes: 'version.txt')
     }
   }
-  
+
   configurations.zookeeperPackages.resolve().each { zkp ->
     ant.untar(src: zkp, dest: basePackage, compression: 'gzip')
   }

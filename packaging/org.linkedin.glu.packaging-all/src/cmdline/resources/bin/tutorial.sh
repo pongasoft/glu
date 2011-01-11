@@ -34,9 +34,9 @@ setup()
  echo "### Starting ZooKeeper..."
  cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh start
  echo "### Setting up keys and agent configuration..."
- cd $BASEDIR/org.linkedin.glu.packaging-setup-@glu.version@; ./bin/setup-zookeeper.sh -f $GLU_FABRIC
+ cd $BASEDIR/setup; ./bin/setup-zookeeper.sh -f $GLU_FABRIC
   echo "### Setting $GLU_AGENT_NAME in $GLU_FABRIC..."
- cd $BASEDIR/org.linkedin.glu.packaging-setup-@glu.version@; ./bin/setup-agent.sh -f $GLU_FABRIC -n $GLU_AGENT_NAME -d $BASEDIR/org.linkedin.glu.agent-server-@glu.version@
+ cd $BASEDIR/setup; ./bin/setup-agent.sh -f $GLU_FABRIC -n $GLU_AGENT_NAME -d $BASEDIR/agent-server
  echo "### Stopping ZooKeeper..."
  cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh stop
  echo "### Done."
@@ -47,18 +47,18 @@ start()
  echo "### Starting ZooKeeper..."
  cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; JVMFLAGS="-Dorg.linkedin.app.name=org.linkedin.zookeeper-server" ./bin/zkServer.sh start
  echo "### Starting Agent..."
- cd $BASEDIR/org.linkedin.glu.agent-server-@glu.version@; ./bin/agentctl.sh start
+ cd $BASEDIR/agent-server; ./bin/agentctl.sh start
  echo "### Starting Console..."
- cd $BASEDIR/org.linkedin.glu.console-server-@glu.version@; ./bin/consolectl.sh start
+ cd $BASEDIR/console-server; ./bin/consolectl.sh start
  echo "### Done."
 }
 
 stop()
 {
  echo "### Stopping Console..."
- cd $BASEDIR/org.linkedin.glu.console-server-@glu.version@; ./bin/consolectl.sh stop
+ cd $BASEDIR/console-server; ./bin/consolectl.sh stop
  echo "### Stopping Agent..."
- cd $BASEDIR/org.linkedin.glu.agent-server-@glu.version@; ./bin/agentctl.sh stop
+ cd $BASEDIR/agent-server; ./bin/agentctl.sh stop
  echo "### Stopping ZooKeeper..."
  cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh stop
  echo "### Done."
@@ -69,15 +69,15 @@ status()
  echo "### ZooKeeper Status"
  cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh status
  echo "### Agent Status"
- cd $BASEDIR/org.linkedin.glu.agent-server-@glu.version@; ./bin/agentctl.sh status
+ cd $BASEDIR/agent-server; ./bin/agentctl.sh status
  echo "### Console Status"
- cd $BASEDIR/org.linkedin.glu.console-server-@glu.version@; ./bin/consolectl.sh check
+ cd $BASEDIR/console-server; ./bin/consolectl.sh check
 }
 
 tail()
 {
- exec tail -f $BASEDIR/org.linkedin.glu.console-server-@glu.version@/@jetty.distribution@/logs/console.log \
-              $BASEDIR/org.linkedin.glu.agent-server-@glu.version@/data/logs/org.linkedin.glu.agent-server.out \
+ exec tail -f $BASEDIR/console-server/@jetty.distribution@/logs/console.log \
+              $BASEDIR/agent-server/data/logs/org.linkedin.glu.agent-server.out \
               $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@/logs/zookeeper.log
 }
 

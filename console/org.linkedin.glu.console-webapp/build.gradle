@@ -103,7 +103,7 @@ console.truststorePath="${new File(keysDir, 'agent.truststore').canonicalPath}"
 
   // generate a hello world system for dev
   def helloWorldScript = 
-    new File("${rootDir}/scripts/glu.script-hello-world/src/main/groovy/HelloWorldScript.groovy")
+    new File("${rootDir}/scripts/org.linkedin.glu.script-hello-world/src/main/groovy/HelloWorldScript.groovy")
   copy {
     from("dev/hello-world-system.json") {
       filter(tokens: ['script.url': helloWorldScript.canonicalFile.toURI().toString()], ReplaceTokens)
