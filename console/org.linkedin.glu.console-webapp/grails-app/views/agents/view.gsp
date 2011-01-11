@@ -14,7 +14,7 @@
   - the License.
   --}%
 
-<%@ page import="org.linkedin.groovy.util.io.GroovyIOUtils; org.linkedin.glu.provisioner.plan.api.IStep; org.linkedin.glu.agent.api.Agent" contentType="text/html;charset=UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
   <title>GLU Console - Agent: ${model.agent?.agentName}</title>
@@ -78,14 +78,7 @@
     <h2 class="${cl.mountPointState(mountPoint: mountPoint)}"><cl:linkToSystemFilter name="mountPoint" value="${key}">${key.encodeAsHTML()}</cl:linkToSystemFilter>
     </h2>
     <ul class="summary">
-      <g:set var="logFile" value="${GroovyIOUtils.toFile(mountPoint.data?.scriptState?.script?.containerLog)}"/>
-      <g:if test="${logFile}">
-        <li>Logs:
-        <g:link action="fileContent" id="${model.agent.agentName}" params="[location: logFile.path, maxLine: 500]">main</g:link> |
-        <g:link action="fileContent" id="${model.agent.agentName}" params="[location: new File(logFile.parent, 'gc.log').path, maxLine: 500]">gc</g:link> |
-        <g:link action="fileContent" id="${model.agent.agentName}" params="[location: logFile.parent]">more...</g:link>
-        </li>
-      </g:if>
+      <cl:mountPointLogs agent="${model.agent.agentName}" mountPoint="${mountPoint}"/>
       <li>Actions:
       <g:set var="actions" value="${model.actions[key]}"/>
 

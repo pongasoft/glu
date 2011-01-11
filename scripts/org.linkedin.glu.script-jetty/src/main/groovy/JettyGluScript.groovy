@@ -28,6 +28,7 @@ class JettyGluScript
   def serverCmd
   def logsDir
   def serverLog
+  def gcLog
   def pid
   def port
   def webapps
@@ -43,7 +44,8 @@ class JettyGluScript
 
     // assigning variables
     logsDir = serverRoot.'logs'
-    serverLog = logsDir.'jetty.log'
+    serverLog = logsDir.'start.log'
+    gcLog = logsDir.'gc.log'
     serverCmd = "JETTY_RUN=${logsDir.file} ${serverRoot.'bin/jetty.sh'.file}"
 
     shell.rmdirs(serverRoot.'contexts')
@@ -88,7 +90,7 @@ class JettyGluScript
     else
     {
       // we execute the start command (return right away)
-      String cmd = "JAVA_OPTIONS=\"-Djetty.port=${port} -Dcom.sun.management.jmxremote\" ${serverCmd} start > /dev/null 2>&1 &"
+      String cmd = "JAVA_OPTIONS=\"-Djetty.port=${port} -Xloggc:${gcLog.file} -XX:+PrintGCDateStamps -Dcom.sun.management.jmxremote\" ${serverCmd} start > /dev/null 2>&1 &"
       shell.exec(cmd)
       shell.saveContent(logsDir.'jetty.cmd', cmd)
 

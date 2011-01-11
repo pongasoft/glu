@@ -773,6 +773,44 @@ public class ConsoleTagLib
 }"""
   }
 
+  /**
+   * Render the log section for a given mountpoint
+   */
+  def mountPointLogs = { args ->
+    def script = args.mountPoint.data?.scriptState?.script
+    def agent = args.agent
+    if(script)
+    {
+      File gcLog = ConsoleHelper.toFileObject(script.gcLog)
+      File mainLog = ['containerLog', 'serverLog', 'applicationLog'].
+        collect { ConsoleHelper.toFileObject(script?.getAt(it))}.find { it }
+      File logsDir = ConsoleHelper.toFileObject(script.logsDir) ?: mainLog?.parentFile
+
+      def logs = [main: mainLog, gc: gcLog, 'more...': logsDir]
+
+      if(logs.any { k, v -> v})
+      {
+        out << "<li>Logs: "
+
+        out << logs.collect { String logType, File logFile ->
+          if(logFile)
+          {
+            g.link(controller: 'agents',
+                   action: 'fileContent',
+                   id: agent,
+                   params: [location: logFile.path, maxLine: 500]) {
+              out << logType
+            }
+          }
+          else
+           return null
+        }.findAll { it }.join(' | ')
+
+        out << "</li>"
+      }
+    }
+  }
+
   def extractArtifact(uri)
   {
     if(uri instanceof String)

@@ -26,6 +26,8 @@ import org.linkedin.util.codec.CodecUtils
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.clock.Timespan
 import org.linkedin.util.io.PathUtils
+import org.linkedin.groovy.util.net.GroovyNetUtils
+import org.linkedin.util.io.resource.Resource
 
 /**
  * @author ypujante@linkedin.com */
@@ -230,5 +232,50 @@ class ConsoleHelper
     }
 
     return versionString
+  }
+
+  /**
+   * returns a file object... handles <code>File</code>, URI, URL, string, <code>null</code>.
+   * The difference with GroovyIOUtils.toFile(s) is that it does *not* download the file if not
+   * local!
+   * TODO MED YP: promote to linkedin-utils
+   */
+  static File toFileObject(s)
+  {
+    if(s == null)
+      return null
+
+    if(s instanceof File)
+      return s
+
+    if(s instanceof Resource)
+    {
+      return s.getFile()
+    }
+
+    if(s instanceof String)
+    {
+      URI uri = null
+      try
+      {
+        uri = new URI(s)
+      }
+      catch(URISyntaxException e)
+      {
+        // ok will handle below
+      }
+
+      if(!uri?.scheme)
+      {
+        return new File(s)
+      }
+    }
+
+    URI uri = GroovyNetUtils.toURI(s)
+
+    if(uri.scheme == 'file')
+      return new File(uri.path)
+    else
+      return null
   }
 }
