@@ -17,12 +17,85 @@
 
 import org.linkedin.glu.agent.api.ShellExecException
 
+/**
+ * The purpose of this glu script is to deploy (in an atomic fashion), a jetty container and some
+ * webapps. This glu script is extensively commented in order to serve as good documentation on
+ * how to write a glu script.
+ *
+ * <p>
+ * This glu script has been tested with jetty v7.2.2.v20101205
+ *
+ * <p>
+ * This glu script uses the following <code>initParameters</code>:
+ * <ul>
+ * <li>
+ * skeleton: a url pointing to where the tar ball for jetty is located. Required.
+ * Example: http://repo2.maven.org/maven2/org/eclipse/jetty/jetty-distribution/7.2.2.v20101205/jetty-distribution-7.2.2.v20101205.tar.gz
+ * Note that in production, you should not point to this distribution directly but instead point to a local repo.
+ * </li>
+ * <li>
+ * port: which port should jetty run on. Optional (default to 8080)
+ * </li>
+ * <li>
+ * webapps: an array of webapps entries with each entry being a map:
+ * <pre>
+ *    contextPath: "/cp1" // where to 'mount' the webapp in jetty (required)
+ *    war: a url pointing to the war (similar to skeleton value) (required)
+ *    monitor: "/monitor" // a path (relative to contextPath!) for monitoring (optional)
+ * </pre>
+ * </li>
+ * <li>
+ * serverMonitorFrequency: how often to run the monitor. Optional (default to 15s)
+ * </li>
+ * <li>
+ * startTimeout: how long to wait for declaring the server up. Optional (default to
+ * <code>null</code> which means forever). Note that 'forever' is usually the right value
+ * as you can always interrupt an action if it takes an abnormal long time to execute.
+ * </li>
+ * <li>
+ * stopTimeout: how long to wait for declaring the server down. Optional (default to
+ * <code>null</code> which means forever). Note that 'forever' is usually the right value
+ * as you can always interrupt an action if it takes an abnormal long time to execute.
+ * </li>
+ * </ul>
+ *
+ * <p>Here is an example of system representing those values (json format)
+ * <pre>
+ * "initParameters": {
+ *  "port": 9000,
+ *  "skeleton": "http://localhost:8080/glu/repository/tgzs/jetty-distribution-7.2.2.v20101205.tar.gz",
+ *  "webapps": [
+ *    {
+ *      "contextPath": "/cp1",
+ *      "monitor": "/monitor",
+ *      "war": "http://localhost:8080/glu/repository/wars/org.linkedin.glu.samples.sample-webapp-1.6.0-SNAPSHOT.war"
+ *    },
+ *    {
+ *      "contextPath": "/cp2",
+ *      "monitor": "/monitor",
+ *      "war": "http://localhost:8080/glu/repository/wars/org.linkedin.glu.samples.sample-webapp-1.6.0-SNAPSHOT.war"
+ *    }
+ *  ]
+ *}
+ * </pre>
+ */
 class JettyGluScript
 {
+  // this is how you express a dependency on a given agent version (it is a min requirement, meaning
+  // if the agent is at least v1.6.0 then this glu script can run in it
   static requires = {
     agent(version: '1.6.0')
   }
 
+  /*******************************************************
+   * Script state
+   *******************************************************/
+
+  // the following fields represent the state of the script and will be exported to ZooKeeper
+  // automatically thus will be available in the console or any other program 'listening' to
+  // ZooKeeper
+
+  // this @script.version@ is replaced at build time
   def version = '@script.version@'
   def serverRoot
   def serverCmd
@@ -32,6 +105,18 @@ class JettyGluScript
   def pid
   def port
   def webapps
+
+  /*******************************************************
+   * install phase
+   *******************************************************/
+
+  // * log, shell and mountPoint are 3 'variables' available in any glu script
+  // * note how we use 'mountPoint' for the jetty installation. It is done this way because the
+  // agent automatically cleans up whatever goes in mountPoint on uninstall. Also mountPoint is
+  // guaranteed to be unique so it is a natural location to install the software which allows
+  // to install more than one instance of it on a given machine/agent.
+  // * every file system call (going through shell.xx methods) is always relative to wherever
+  // the agent apps folder was configured
 
   def install = {
     log.info "Installing..."
@@ -48,6 +133,7 @@ class JettyGluScript
     gcLog = logsDir.'gc.log'
     serverCmd = "JETTY_RUN=${logsDir.file} ${serverRoot.'bin/jetty.sh'.file}"
 
+    // the tar ball contains some default contexts and webapps that we don't want
     shell.rmdirs(serverRoot.'contexts')
     shell.rmdirs(serverRoot.'webapps')
 
@@ -62,6 +148,15 @@ class JettyGluScript
     log.info "Install complete."
   }
 
+  /*******************************************************
+   * configure phase
+   *******************************************************/
+
+  // in this phase we set up a timer which will monitor the server. The reason why it is setup
+  // in the configure phase rather than the start phase is because this way we can both detect
+  // when the server goes down and up! (for example if you kill it on the command line and
+  // restart it without going through glu, the monitor will detect it)
+
   def configure = {
     log.info "Configuring..."
 
@@ -73,11 +168,14 @@ class JettyGluScript
 
     // setting up a timer to monitor the server
     timers.schedule(timer: serverMonitor,
-                    repeatFrequency: params?.serverMonitorFrequency ?: '15s')
+                    repeatFrequency: params.serverMonitorFrequency ?: '15s')
 
     log.info "Configuration complete."
   }
 
+  /*******************************************************
+   * start phase
+   *******************************************************/
   def start = {
     log.info "Starting..."
 
@@ -103,7 +201,7 @@ class JettyGluScript
     // now that the process should be up, we wait for the server to be up
     // when jetty starts, it also starts all the contexts and only then start listening on
     // the port... this will effectively wait for all the apps to be up!
-    shell.waitFor(timeout: params?.startTimeout, heartbeat: '1s') { duration ->
+    shell.waitFor(timeout: params.startTimeout, heartbeat: '1s') { duration ->
       log.info "${duration}: Waiting for server to be up"
 
       // we check if the server is down already... in which case we throw an exception
@@ -123,6 +221,9 @@ class JettyGluScript
     }
   }
 
+  /*******************************************************
+   * stop phase
+   *******************************************************/
   def stop = { args ->
     log.info "Stopping..."
 
@@ -130,6 +231,12 @@ class JettyGluScript
 
     log.info "Stopped."
   }
+
+  /*******************************************************
+   * unconfigure phase
+   *******************************************************/
+
+  // we remove the timer set in the configure phase
 
   def unconfigure = {
     log.info "Unconfiguring..."
@@ -141,10 +248,19 @@ class JettyGluScript
     log.info "Unconfiguration complete."
   }
 
+  /*******************************************************
+   * uninstall phase
+   *******************************************************/
+
+  // note that since it does nothing, it can simply be removed. It is there just to enforce the
+  // fact that it really does nothing. Indeed the agent will automatically clean up after this
+  // phase and delete whatever was installed under 'mountPoint'
+
   def uninstall = {
     // nothing
   }
 
+  // a closure called by the rest of the code but not by the agent directly
   private def doStop = {
     if(isProcessDown())
     {
@@ -156,7 +272,7 @@ class JettyGluScript
       shell.exec("${serverCmd} stop")
 
       // we wait for the process to be stopped
-      shell.waitFor(timeout: params?.stopTimeout, heartbeat: '1s') { duration ->
+      shell.waitFor(timeout: params.stopTimeout, heartbeat: '1s') { duration ->
         log.info "${duration}: Waiting for server to be down"
         isProcessDown()
       }
@@ -164,6 +280,12 @@ class JettyGluScript
 
     pid = null
   }
+
+  // a method called by the rest of the code but not by the agent directly
+
+  // why use closure vs method ? the rule is simple: if you are modifying any field (the ones
+  // defined at the top of this file), then use a closure otherwise the update won't make it to
+  // ZooKeeper.
 
   private Integer isProcessUp()
   {

@@ -1,3 +1,13 @@
+1.6.0 (2011/01/11)
+------------------
+* changed the tutorial to deploy jetty and the sample webapps to better demonstrate the capabilities of glu
+* added jetty glu script which demonstrates a 'real' glu script and allows to deploy a webapp container with webapps and monitor them
+* added sample webapp with built in monitoring capabilities
+* added `replaceTokens` and `httpHead` to `shell` (for use in glu script)
+* added `Help` tab in the console with embedded forum
+* fixed [glu-12](https://github.com/linkedin/glu/issues#issue/12): better packaging
+* fixed [glu-13](https://github.com/linkedin/glu/issues#issue/13): missing connection string in setup-zookeeper.sh
+
 1.5.1 (2010/12/28)
 ------------------
 * fixed [glu-10](https://github.com/linkedin/glu/issues#issue/10): missing -s $GLU_ZK_CONNECT_STRING in setup-agent.sh (thanks to Ran)

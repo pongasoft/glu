@@ -57,7 +57,7 @@
         "webapps": [
           {
             "war": "http://localhost:8080/glu/repository/wars/@sample.webapp@",
-            "contextPath": "/fail",
+            "contextPath": "/cp4",
             "monitor": "/monitor"
           }
           ]
