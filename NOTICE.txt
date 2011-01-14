@@ -41,7 +41,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 This product uses (and include) other open source libraries from LinkedIn (util-core, util-groovy,
 zookeeper-impl and zookeeper-cli) with the following license:
 /*
- * Copyright 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2010-2010 LinkedIn, Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -453,7 +453,7 @@ DAMAGE.
 This product includes restkit, an HTTP resource kit for python (https://github.com/benoitc/restkit)
 with the following license (https://github.com/benoitc/restkit/blob/master/LICENSE):
 
-2008-2010 (c) Beno”t Chesneau <benoitc@e-engura.org>
+2008-2010 (c) Benoï¿½t Chesneau <benoitc@e-engura.org>
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation

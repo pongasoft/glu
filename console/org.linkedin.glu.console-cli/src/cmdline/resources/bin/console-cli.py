@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 #
-# Copyright 2010-2010 LinkedIn, Inc
+# Copyright (c) 2010-2010 LinkedIn, Inc
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
