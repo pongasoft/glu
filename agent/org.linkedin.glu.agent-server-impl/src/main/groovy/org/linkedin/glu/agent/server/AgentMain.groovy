@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -90,14 +91,16 @@ class AgentMain implements LifecycleListener
       OneWayMessageDigestCodec.createSHA1Instance(p1, new Base64Codec(p2))
   }
 
+  protected File _persistentPropertiesFile
   protected IZKClient _zkClient
   protected def _urlFactory
   protected String _fabric
   protected Sigar _sigar
   protected long _pid
+  protected Closure hostnameFactory
 
   protected def _config
-  protected  def _agentProperties = [:]
+  protected Map _agentProperties = Collections.synchronizedMap(new LinkedHashMap())
 
   protected File _agentTempDir
   protected String _agentName
@@ -123,26 +126,45 @@ class AgentMain implements LifecycleListener
     URL.setURLStreamHandlerFactory(_urlFactory)
 
     // read all the properties provided as urls on the command line
-    def properties = new Properties()
+    def config = new Properties()
 
     args.each {
-      readConfig(it, properties)
+      readConfig(it, config)
     }
-
-    def config = properties
 
     // make sure all directories have their canonical representation
     config.keySet().findAll { it.endsWith('Dir') }.each { toCanonicalPath(config, it) }
 
+    _persistentPropertiesFile = loadPersistentProperties(config)
+
     // determine the host name of the agent
-    def hostname = InetAddress.getLocalHost().canonicalHostName
+    def hf = Config.getOptionalString(config,
+                                          "${prefix}.agent.hostnameFactory",
+                                          ':ip')
+
+    switch(hf)
+    {
+      case ':ip':
+        hostnameFactory = { InetAddress.getLocalHost().hostAddress }
+        break
+
+      case ':canonical':
+        hostnameFactory = { InetAddress.getLocalHost().canonicalHostName }
+        break
+
+      default:
+        hostnameFactory = { hf }
+        break
+    }
+
     _agentName = Config.getOptionalString(config,
                                           "${prefix}.agent.name",
-                                          hostname)
+                                          InetAddress.getLocalHost().canonicalHostName)
 
-    properties["${prefix}.agent.name".toString()] = _agentName
-    properties["${prefix}.agent.hostname".toString()] = hostname
-    properties["${prefix}.agent.version".toString()] = config['org.linkedin.app.version']
+    config["${prefix}.agent.name".toString()] = _agentName
+    config["${prefix}.agent.hostnameFactory".toString()] = hf
+    config["${prefix}.agent.hostname".toString()] = hostnameFactory()
+    config["${prefix}.agent.version".toString()] = config['org.linkedin.app.version']
 
     log.info "Agent ZooKeeper name: ${_agentName}"
 
@@ -162,20 +184,20 @@ class AgentMain implements LifecycleListener
     _fabric = computeFabric(config)
 
     // makes the fabric available
-    properties["${prefix}.agent.fabric".toString()] = _fabric
+    config["${prefix}.agent.fabric".toString()] = _fabric
 
     log.info "Agent fabric: ${_fabric}"
 
     // read the config provided in configURL (most likely in zookeeper, this is why we
     // need to register the handler beforehand)
-    readConfig(Config.getOptionalString(config, "${prefix}.agent.configURL", null), properties)
+    readConfig(Config.getOptionalString(config, "${prefix}.agent.configURL", null), config)
 
     // dealing with optional properties
-    setOptionalProperty(properties, "${prefix}.agent.port", "12906")
-    setOptionalProperty(properties, "${prefix}.agent.sslEnabled", "true")
-    setOptionalProperty(properties, "${prefix}.agent.rest.server.defaultThreads", '3')
+    setOptionalProperty(config, "${prefix}.agent.port", "12906")
+    setOptionalProperty(config, "${prefix}.agent.sslEnabled", "true")
+    setOptionalProperty(config, "${prefix}.agent.rest.server.defaultThreads", '3')
 
-    _agentProperties.putAll(properties.groupBy { k,v ->
+    _agentProperties.putAll(config.groupBy { k,v ->
       k.toLowerCase().contains('password') ? 'passwordKeys' : 'nonPasswordKeys'
     }.nonPasswordKeys)
 
@@ -189,9 +211,90 @@ class AgentMain implements LifecycleListener
       _agentProperties["${prefix}.agent.pid".toString()] = _pid
     }
 
+    savePersistentProperties(config)
+
     log.info("Starting the agent with config: ${_agentProperties}")
 
-    _config = properties
+    _config = config
+  }
+
+  /**
+   * Use the <code>glu.agent.hostname</code> config value to determine how to compute
+   * hostname.
+   */
+  protected Closure computeHostnameFactory(Properties config)
+  {
+    Closure res
+
+    def hostname = Config.getOptionalString(config,
+                                          "${prefix}.agent.hostname",
+                                          ':ip')
+
+    switch(hostname)
+    {
+      case ':ip':
+        res = { InetAddress.getLocalHost().hostAddress }
+        break
+
+      case ':canonical':
+        res = { InetAddress.getLocalHost().canonicalHostName }
+        break
+
+      default:
+        res = { hostname }
+        break
+    }
+
+    return res
+  }
+
+  /**
+   * Loads the persistent properties which will serve as default values for whatever is not
+   * specified.
+   *
+   * @return the file they were loaded from (to write to it) or <code>null</code> if we should
+   * not store any persistent properties
+   */
+  File loadPersistentProperties(Properties config)
+  {
+    String persistentPropertiesFilename =
+      Config.getOptionalString(config, "${prefix}.agent.persistent.properties", null)
+    if(persistentPropertiesFilename == null)
+      return null
+
+    File ppf = new File(persistentPropertiesFilename)
+
+    if(ppf.exists())
+    {
+      Properties persistentProperties = new Properties()
+      ppf.withReader { Reader reader -> persistentProperties.load(reader) }
+      persistentProperties.each { k,v ->
+        // a persistent property is added to config iff it is not already there
+        if(!config.containsKey(k))
+          config[k] = v
+      }
+    }
+
+    return ppf
+  }
+
+  File savePersistentProperties(Properties config)
+  {
+    String persistentPropertiesFilename =
+      Config.getOptionalString(config, "${prefix}.agent.persistent.properties", null)
+
+    if(persistentPropertiesFilename == null)
+      return null
+
+    File ppf = new File(persistentPropertiesFilename)
+
+    GroovyIOUtils.safeOverwrite(ppf) { File file ->
+      file.withWriter { Writer writer ->
+        config.store(writer, null)
+      }
+    }
+
+    return ppf
   }
 
   /**
@@ -277,7 +380,9 @@ class AgentMain implements LifecycleListener
 
     if(zkClient)
     {
-      _agentProperties[IZKClientFactory.ZK_CONNECT_STRING] = factory.zkConnectString
+      setOptionalProperty(config,
+                          "${prefix}.${IZKClientFactory.ZK_CONNECT_STRING}",
+                          factory.zkConnectString)
       zkClient.start()
       zkClient.waitForStart(null)
     }
@@ -541,18 +646,27 @@ class AgentMain implements LifecycleListener
         // register an (ephemeral) entry in zookeeper: when the agent dies, it will automatically
         // be removed
         def enode = computeAgentEphemeralPath()
-        log.info("Registering zk ephemeral node ${enode}")
-        if(!_zkClient.exists(enode))
+
+        // we recompute the hostname
+        try
         {
-          // we filter out the properties
-          def props = _agentProperties.findAll { k, v ->
-            k.startsWith(prefix) || k.startsWith('java.vm')
-          }
-          _zkClient.createWithParents(enode,
-                                      JsonUtils.toJSON(props).toString(),
-                                      Ids.OPEN_ACL_UNSAFE,
-                                      CreateMode.EPHEMERAL)
+          _agentProperties["${prefix}.agent.hostname".toString()] = hostnameFactory()
         }
+        catch(Throwable th)
+        {
+          log.warn("could not recompute the hostname... ignored", th)
+        }
+
+        // we filter out the properties
+        def props = _agentProperties.findAll { k, v ->
+          k.startsWith(prefix) || k.startsWith('java.vm')
+        }
+
+        log.info("Registering zk ephemeral node ${enode}")
+        _zkClient.createOrSetWithParents(enode,
+                                         JsonUtils.toJSON(props).toString(),
+                                         Ids.OPEN_ACL_UNSAFE,
+                                         CreateMode.EPHEMERAL)
 
         log.info("Syncing filesystem <=> ZooKeeper")
         _dwStorage.sync()

@@ -18,7 +18,6 @@
 
 package test.agent.impl
 
-import org.linkedin.glu.agent.api.ScriptException
 import org.linkedin.glu.agent.impl.capabilities.ShellImpl
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.groovy.util.io.fs.FileSystem

@@ -2,6 +2,7 @@
 
 #
 # Copyright (c) 2010-2010 LinkedIn, Inc
+# Copyright (c) 2011 Yan Pujante
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -26,13 +27,14 @@
 usage() 
 {
   echo ""
-  echo "   Usage:  agentctl.sh [-fhdknr] [-z server:port] start|stop|status|pid"
+  echo "   Usage:  agentctl.sh [-hdkr] [-z server:port] [-f fabric] [-n agentName] [-c :ip|:canonical|<hostname>] start|stop|status|pid"
   echo ""    
   echo "     -h : usage help"
   echo "     -d : debugging options on"
   echo "     -f : the fabric to assign this agent to"
   echo "     -k : force kill the process (kill -9)"
   echo "     -n : the agent name (default to canonical host name)"
+  echo "     -c : how to compute the hostname either ':ip' or ':canonical'. Any other value is treated as the hostname to use (default to ':ip')."
   echo "     -r : run in foreground (Ctl-C to stop)"
   echo "     -z : Zookeeper server:port comma-delimited list"
   echo ""
@@ -247,7 +249,7 @@ fi
 GC_LOG=$LOG_DIR/gc.log
 
 # get script options
-while getopts "dhkprz:n:f:" opt ; do
+while getopts "dhkprz:n:f:c:" opt ; do
   case $opt in
     d  ) OPT_DEBUG=true
          ;;
@@ -263,6 +265,9 @@ while getopts "dhkprz:n:f:" opt ; do
          ;;
     n  )
          GLU_AGENT_NAME=$OPTARG
+         ;;
+    c  )
+         GLU_AGENT_HOSTNAME_FACTORY=$OPTARG
          ;;
     f  )
          GLU_AGENT_FABRIC=$OPTARG

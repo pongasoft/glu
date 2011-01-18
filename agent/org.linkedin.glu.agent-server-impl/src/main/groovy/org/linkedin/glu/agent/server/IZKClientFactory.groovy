@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -60,10 +61,6 @@ class IZKClientFactory implements Configurable
     {
       computeZkConnectString()
     }
-    else
-    {
-      saveToFile()
-    }
 
     if(zkConnectString)
     {
@@ -111,8 +108,6 @@ class IZKClientFactory implements Configurable
     {
       log.info "ZooKeeper connection string from rest: ${zkConnectString}"
     }
-
-    saveToFile()
   }
 
   def startRestServer()
@@ -147,6 +142,12 @@ class IZKClientFactory implements Configurable
     }
   }
 
+  /**
+   * Starting with 1.7.0 all properties are stored in <code>glu.agent.persistent.properties</code>
+   * file. There is no need to have a separate file anymore. We still read it for backward
+   * compatibility.
+   */
+  @Deprecated
   private void readFromFile()
   {
     def zkProperties = Config.getOptionalString(config, "${prefix}.${ZK_PROPERTIES}".toString(), null)
@@ -164,16 +165,6 @@ class IZKClientFactory implements Configurable
     {
       log.info "ZooKeeper connection string from file: ${zkConnectString}"
     }
-  }
-  
-  private void saveToFile()
-  {
-    def zkProperties = new File(Config.getRequiredString(config, "${prefix}.${ZK_PROPERTIES}".toString()))
-    GroovyIOUtils.mkdirs(zkProperties.parentFile)
-    Properties p = new Properties()
-    p.put("${prefix}.${ZK_CONNECT_STRING}".toString(), zkConnectString)
-    zkProperties.withWriter { Writer w -> p.store(w, null) }
-    log.info "ZooKeeper connection string stored in ${zkProperties.canonicalPath}"
   }
 }
  

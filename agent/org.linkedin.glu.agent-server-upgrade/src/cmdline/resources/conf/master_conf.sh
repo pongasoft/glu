@@ -2,6 +2,7 @@
 
 #
 # Copyright (c) 2010-2010 LinkedIn, Inc
+# Copyright (c) 2011 Yan Pujante
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -32,6 +33,13 @@ if [ -z "$GLU_AGENT_NAME" ]; then
   D_GLU_AGENT_NAME=""
 else
   D_GLU_AGENT_NAME="-D$GLU_CONFIG_PREFIX.agent.name=$GLU_AGENT_NAME"
+fi
+
+# handle GLU_AGENT_HOSTNAME_FACTORY
+if [ -z "$GLU_AGENT_HOSTNAME_FACTORY" ]; then
+  D_GLU_AGENT_HOSTNAME_FACTORY=""
+else
+  D_GLU_AGENT_HOSTNAME_FACTORY="-D$GLU_CONFIG_PREFIX.agent.hostnameFactory=$GLU_AGENT_HOSTNAME_FACTORY"
 fi
 
 # handle GLU_AGENT_PORT
@@ -117,7 +125,7 @@ fi
 
 # Any additional JVM arguments
 if [ -z "$JVM_XTRA_ARGS" ]; then
-  JVM_XTRA_ARGS="-Dsun.security.pkcs11.enable-solaris=false $D_GLU_ZOOKEEPER $D_GLU_AGENT_NAME $D_GLU_AGENT_PORT $D_GLU_AGENT_FABRIC -D$GLU_CONFIG_PREFIX.agent.homeDir=$GLU_AGENT_HOME -D$GLU_CONFIG_PREFIX.agent.apps=$GLU_AGENT_APPS -D$GLU_CONFIG_PREFIX.agent.zookeeper.root=$GLU_AGENT_ZOOKEEPER_ROOT"
+  JVM_XTRA_ARGS="-Dsun.security.pkcs11.enable-solaris=false $D_GLU_ZOOKEEPER $D_GLU_AGENT_NAME $D_GLU_AGENT_HOSTNAME_FACTORY $D_GLU_AGENT_PORT $D_GLU_AGENT_FABRIC -D$GLU_CONFIG_PREFIX.agent.homeDir=$GLU_AGENT_HOME -D$GLU_CONFIG_PREFIX.agent.apps=$GLU_AGENT_APPS -D$GLU_CONFIG_PREFIX.agent.zookeeper.root=$GLU_AGENT_ZOOKEEPER_ROOT"
 fi
 
 # Debug arguments to pass to the JVM (when starting with '-d' flag)

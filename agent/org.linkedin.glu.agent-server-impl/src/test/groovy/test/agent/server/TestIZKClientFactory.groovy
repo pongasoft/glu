@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -85,10 +86,7 @@ class TestIZKClientFactory extends GroovyTestCase
 
     assertEquals('localhost:1111', client.factory.connectString)
     assertEquals(Timespan.parse('11s'), client.factory.sessionTimeout)
-    def savedProperties = new Properties()
-    zkPropertiesFile.withReader { savedProperties.load(it) }
-    assertEquals(1, savedProperties.size())
-    assertEquals('localhost:1111', savedProperties['glu.agent.zkConnectString'])
+    assertFalse(zkPropertiesFile.exists())
   }
 
   /**
@@ -167,10 +165,7 @@ class TestIZKClientFactory extends GroovyTestCase
     assertNotNull('client is null', client)
     assertEquals('localhost:3333', client.factory.connectString)
     assertEquals(Timespan.parse('33s'), client.factory.sessionTimeout)
-    def savedProperties = new Properties()
-    zkPropertiesFile.withReader { savedProperties.load(it) }
-    assertEquals(1, savedProperties.size())
-    assertEquals('localhost:3333', savedProperties['glu.agent.zkConnectString'])
+    assertFalse(zkPropertiesFile.exists())
   }
 
   /**
