@@ -33,46 +33,46 @@ usage()
 setup()
 {
  echo "### Starting ZooKeeper..."
- cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh start
+ $BASEDIR/bin/zookeeper-server.sh start
  echo "### Setting up keys and agent configuration..."
- cd $BASEDIR/setup; ./bin/setup-zookeeper.sh -f $GLU_FABRIC
-  echo "### Setting $GLU_AGENT_NAME in $GLU_FABRIC..."
- cd $BASEDIR/setup; ./bin/setup-agent.sh -f $GLU_FABRIC -n $GLU_AGENT_NAME -d $BASEDIR/agent-server
+ $BASEDIR/bin/setup-zookeeper.sh -f $GLU_FABRIC
+ echo "### Setting $GLU_AGENT_NAME in $GLU_FABRIC..."
+ $BASEDIR/bin/setup-agent.sh -f $GLU_FABRIC -n $GLU_AGENT_NAME -d $BASEDIR/agent-server
  echo "### Stopping ZooKeeper..."
- cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh stop
+ $BASEDIR/bin/zookeeper-server.sh stop
  echo "### Done."
 }
 
 start()
 {
  echo "### Starting ZooKeeper..."
- cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; JVMFLAGS="-Dorg.linkedin.app.name=org.linkedin.zookeeper-server" ./bin/zkServer.sh start
+ JVMFLAGS="-Dorg.linkedin.app.name=org.linkedin.zookeeper-server" $BASEDIR/bin/zookeeper-server.sh start
  echo "### Starting Agent..."
- cd $BASEDIR/agent-server; ./bin/agentctl.sh start
+ $BASEDIR/bin/agent-server.sh start
  echo "### Starting Console..."
- cd $BASEDIR/console-server; ./bin/consolectl.sh start
+ $BASEDIR/bin/console-server.sh start
  echo "### Done."
 }
 
 stop()
 {
  echo "### Stopping Console..."
- cd $BASEDIR/console-server; ./bin/consolectl.sh stop
+ $BASEDIR/bin/console-server.sh stop
  echo "### Stopping Agent..."
- cd $BASEDIR/agent-server; ./bin/agentctl.sh stop
+ $BASEDIR/bin/agent-server.sh stop
  echo "### Stopping ZooKeeper..."
- cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh stop
+ $BASEDIR/bin/zookeeper-server.sh stop
  echo "### Done."
 }
 
 status()
 {
  echo "### ZooKeeper Status"
- cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@; ./bin/zkServer.sh status
+ $BASEDIR/bin/zookeeper-server.sh status
  echo "### Agent Status"
- cd $BASEDIR/agent-server; ./bin/agentctl.sh status
+ $BASEDIR/bin/agent-server.sh status
  echo "### Console Status"
- cd $BASEDIR/console-server; ./bin/consolectl.sh check
+ $BASEDIR/bin/console-server.sh check
 }
 
 tail()

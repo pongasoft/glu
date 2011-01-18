@@ -247,23 +247,23 @@ In the console, click on the `'Plans'` tab and make sure you leave this window v
 
 Now open a new shell terminal (if you have followed all the instructions so far, you should have a shell terminal window with the tail command in it, this is why we need to open a new one).
 
-Go to the console cli directory:
+Go to the root directory:
 
-    cd $GLU_TUTORIAL_ROOT/console-cli
+    cd $GLU_TUTORIAL_ROOT
 
 Now issue the following command (`-b` is to make it more readable):
 
-    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -b status
+    ./bin/console-cli.sh -f glu-dev-1 -u admin -x admin -b status
 
 which will display the model that is currently loaded in the console.
 
-    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -b -l status
+    ./bin/console-cli.sh -f glu-dev-1 -u admin -x admin -b -l status
 
 which will display the current live model (note that you get a `scriptState` section similar to the one you can see in the console when clicking on the `View Details` link for an entry).
 
 Now we are going to redeploy everything in parallel by issuing:
 
-    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -a -p redeploy
+    ./bin/console-cli.sh -f glu-dev-1 -u admin -x admin -a -p redeploy
 
 Please pay attention to the following:
 
@@ -279,7 +279,7 @@ unless you did not change the context path to `/cp4` (you may want to try revert
 
 Try a dry-run mode (`-n`):
 
-    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -a -n -p redeploy
+    ./bin/console-cli.sh -f glu-dev-1 -u admin -x admin -a -n -p redeploy
     
 which will display an xml representation of the plan that would be executed if you remove the `-n` option. You should see the 3 entries in the xml output:
 
@@ -321,7 +321,7 @@ which will display an xml representation of the plan that would be executed if y
 
 Now try with a filter:
 
-    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -n -p -s "metadata.cluster='c1'" redeploy
+    ./bin/console-cli.sh -f glu-dev-1 -u admin -x admin -n -p -s "metadata.cluster='c1'" redeploy
 
 You should now see only 2 entries because the first two have been tagged `c1` for the cluster and the last one is tagged `c2` and we are applying a filter which selects only the entries in cluster `c1`:
 
@@ -353,7 +353,7 @@ You should now see only 2 entries because the first two have been tagged `c1` fo
 
 Finally, issue the command:
 
-    ./bin/console-cli.py -f glu-dev-1 -u admin -x admin -a -p undeploy
+    ./bin/console-cli.sh -f glu-dev-1 -u admin -x admin -a -p undeploy
 
 which will undeploy all apps.
 
