@@ -78,6 +78,8 @@ project.clean << {
   fileTree(dir: 'lib').each { it.delete() }
 }
 
+workaroundDir = new File(buildDir, "distributions/lib")
+
 task lib(dependsOn: jar) << {
   fileTree(dir: 'lib').each { it.delete() }
   copy {
@@ -86,8 +88,8 @@ task lib(dependsOn: jar) << {
   }
   // workaround against /org/apache/tools/ant/antlib.xml:37: Problem: failed to create 
   // task or type componentdef
-  delete 'lib/ant-1.8.1.jar'
-  delete 'lib/ant-launcher-1.8.1.jar'
+  ant.move(file: file('lib/ant-1.8.1.jar'), todir: workaroundDir)
+  ant.move(file: file('lib/ant-launcher-1.8.1.jar'), todir: workaroundDir)
 
   def keysDir = new File(rootDir, 'dev-keys')
   def secretKeyStoreDir = new File(buildDir, 'conf')
@@ -128,6 +130,10 @@ def warFile = new File("${buildDir}/distributions/${project.name}-${project.vers
 task war(dependsOn: lib) << {
   ant.exec(dir: '.', executable: "grails") {
     arg(line: "-Dgrails.project.war.file=${warFile} war")
+  }
+
+  ant.war(destfile: warFile, update: true) {
+    lib(dir: workaroundDir, includes: '*.jar')
   }
 }
 

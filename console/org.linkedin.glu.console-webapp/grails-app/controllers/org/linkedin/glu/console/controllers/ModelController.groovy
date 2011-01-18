@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,6 +23,7 @@ import org.linkedin.glu.console.domain.DbSystemModel
 import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 import org.linkedin.groovy.util.net.GroovyNetUtils
+import org.linkedin.groovy.util.io.GroovyIOUtils
 
 /**
  * @author: ypujante@linkedin.com
@@ -114,7 +116,7 @@ public class ModelController extends ControllerBase
 
       if(params.modelUrl)
       {
-        model = GroovyNetUtils.toURI(params.modelUrl).toURL().text
+        model = GroovyIOUtils.cat(params.modelUrl)
       }
       else
       {

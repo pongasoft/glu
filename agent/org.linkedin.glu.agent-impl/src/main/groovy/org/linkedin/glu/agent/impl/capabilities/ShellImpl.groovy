@@ -330,21 +330,7 @@ def class ShellImpl implements Shell
       tempFile = tempFile.createRelative(filename)
     }
 
-    // See http://download.oracle.com/javase/1.4.2/docs/api/java/net/URI.html#getUserInfo()
-    // Extract the user:pass if it exists
-    String username = null
-    String password = null
-    def userInfo = uri.userInfo
-    if(userInfo)
-    {
-      userInfo = userInfo.split(":")
-      if(userInfo.length == 2)
-      {
-        username = userInfo[0]
-        password = userInfo[1]
-      }
-    }
-    ant { ant -> ant.get(src: uri, dest: tempFile.file, username: username, password: password) }
+    GroovyIOUtils.fetchContent(location, tempFile.file)
 
     return tempFile
   }
@@ -366,17 +352,14 @@ def class ShellImpl implements Shell
    */
   String cat(location)
   {
-    def uri = GroovyNetUtils.toURI(location)
-
     try
     {
-      return uri.toURL().text
+      return GroovyIOUtils.cat(location)
     }
     catch(Exception e)
     {
       if(log.isDebugEnabled())
         log.debug("[ignored] exception while catting content ${location}", e)
-
       return null
     }
   }
