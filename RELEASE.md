@@ -1,3 +1,11 @@
+1.7.0 (2011/01/17)
+------------------
+* Implemented [glu-12](https://github.com/linkedin/glu/issues#issue/12): better packaging
+* fixed [glu-1](https://github.com/linkedin/glu/issues#issue/1): Agent name and fabric are not preserved upon restart
+* fixed [glu-9](https://github.com/linkedin/glu/issues#issue/9): Using http://name:pass@host:port is broken when uploading a model to /system/model
+* Implemented [glu-16](https://github.com/linkedin/glu/issues#issue/16): Use ip address instead of canonical name for Console->Agent communication
+* Updated Copyright
+
 1.6.0 (2011/01/11)
 ------------------
 * changed the tutorial to deploy jetty and the sample webapps to better demonstrate the capabilities of glu
@@ -5,7 +13,7 @@
 * added sample webapp with built in monitoring capabilities
 * added `replaceTokens` and `httpHead` to `shell` (for use in glu script)
 * added `Help` tab in the console with embedded forum
-* fixed [glu-12](https://github.com/linkedin/glu/issues#issue/12): better packaging
+* Implemented [glu-12](https://github.com/linkedin/glu/issues#issue/12) (partially): better packaging
 * fixed [glu-13](https://github.com/linkedin/glu/issues#issue/13): missing connection string in setup-zookeeper.sh
 
 1.5.1 (2010/12/28)
