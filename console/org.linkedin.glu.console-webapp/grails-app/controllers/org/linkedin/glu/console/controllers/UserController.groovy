@@ -160,6 +160,7 @@ class UserController extends ControllerBase
     if(userInstance.save() && ucr.save())
     {
       flash.message = "User created."
+      audit('user.create', userInstance.username)
       redirect(action: 'show', id: userInstance.id)
     }
     else
