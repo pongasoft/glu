@@ -1,6 +1,6 @@
-
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -17,40 +17,41 @@
 
 <%@ page import="org.linkedin.glu.console.domain.User" %>
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-        <meta name="layout" content="main" />
-        <title>User List</title>
-    </head>
-    <body>
-        <div class="body">
-          <ul class="submenu">
-            <li><g:link controller="user" action="create">Create</g:link></li>
-          </ul>
-            <h1>User List</h1>
-            <div class="list">
-                <table>
-                    <thead>
-                        <tr>
-
-                   	        <g:sortableColumn property="username" title="Username" />
-                        
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <g:each in="${userInstanceList}" status="i" var="userInstance">
-                        <tr class="${(i % 2) == 0 ? 'odd' : 'even'}">
-                        
-                            <td><g:link action="show" id="${userInstance.id}">${fieldValue(bean:userInstance, field:'username')}</g:link></td>
-                        
-                        </tr>
-                    </g:each>
-                    </tbody>
-                </table>
-            </div>
-            <div class="paginateButtons">
-                <g:paginate total="${userInstanceTotal}" />
-            </div>
-        </div>
-    </body>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="layout" content="main"/>
+  <title>User List</title>
+</head>
+<body>
+<div class="body">
+  <ul class="submenu">
+    <li><g:link controller="user" action="create">Create</g:link></li>
+  </ul>
+  <h1>User List</h1>
+  <div class="paginateButtons">
+    <g:paginate total="${userInstanceTotal}" max="100"/>
+  </div>
+  <div class="list">
+    <table>
+      <thead>
+      <tr>
+        <g:sortableColumn property="username" title="Username"/>
+        <th>Roles</th>
+      </tr>
+      </thead>
+      <tbody>
+      <g:each in="${userInstanceList}" status="i" var="userInstance">
+        <tr class="${(i % 2) == 0 ? 'odd' : 'even'}">
+          <td><g:link action="show" id="${userInstance.id}">${fieldValue(bean: userInstance, field: 'username')}</g:link></td>
+          <td>${ConsoleUtils.sortByName(userInstance.roles)}</td>
+        </tr>
+      </g:each>
+      </tbody>
+    </table>
+  </div>
+  <div class="paginateButtons">
+    <g:paginate total="${userInstanceTotal}"/>
+  </div>
+</div>
+</body>
 </html>

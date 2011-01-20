@@ -20,9 +20,11 @@ class User
 {
   String username
 
-  static mapping = {
-    roles fetch:'join'
-  }
+  // commented out because of issue: http://jira.codehaus.org/browse/GRAILS-7175 as a workaround
+  // for https://github.com/linkedin/glu/issues#issue/19
+//  static mapping = {
+//    roles fetch:'join'
+//  }
 
   static hasMany = [ roles: Role, permissions: String ]
 
