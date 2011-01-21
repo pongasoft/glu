@@ -485,9 +485,6 @@ def class ScriptManagerImpl implements ScriptManager
   {
     GroovyConcurrentUtils.waitForShutdownMultiple(_agentContext.getClock(), timeout, _scripts.values())
   }
-  synchronized void waitForShutdown(long l)
-  {
-  }
 
   private def getScriptFactory(args)
   {

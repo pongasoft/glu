@@ -37,6 +37,7 @@ import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
+import java.util.concurrent.TimeoutException
 
 /**
  * Test for AgentImpl
@@ -526,6 +527,39 @@ def class TestAgentImpl extends GroovyTestCase
     }
   }
 
+  /**
+   * Testing proper agent shutdown (glu-20).
+   */
+  public void testAgentShutdown()
+  {
+    def tc = new ThreadControl(Timespan.parse('30s'))
+
+    // we install a script under /s
+    def scriptMountPoint = MountPoint.fromPath('/s')
+    agent.installScript(mountPoint: scriptMountPoint,
+                        scriptFactory: new FromClassNameScriptFactory(MyScriptTestShutdown))
+
+    def res = [:]
+    // then we run the 'install' action
+    agent.executeAction(mountPoint: scriptMountPoint,
+                        action: 'install',
+                        actionArgs: [res: res, tc: tc])
+
+    // we make sure that the script is currently executing
+    tc.waitForBlock('shutdown')
+
+    // we now shutdown the agent
+    agent.shutdown()
+    // the agent will not shutdown until the closure completes
+    shouldFail(TimeoutException) { agent.waitForShutdown('1s') }
+
+    // let the install closure complete
+    tc.unblock('shutdown')
+
+    // now it will shutdown
+    agent.waitForShutdown('5s')
+  }
+
   // we advance the clock and wake up the execution thread to make sure it processes the event
   private void advanceClock(timeout, node)
   {
@@ -679,3 +713,9 @@ private def class MyScriptTestTimer
   }
 }
 
+private def class MyScriptTestShutdown
+{
+  def install = { args ->
+    args.tc.block('shutdown')
+  }
+}

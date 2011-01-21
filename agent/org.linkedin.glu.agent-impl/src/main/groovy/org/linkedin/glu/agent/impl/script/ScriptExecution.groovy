@@ -72,7 +72,7 @@ class ScriptExecution implements Startable, Shutdownable
 
   private volatile boolean _shutdown = false
   private int _counter = 0
-  private Thread _thread
+  private volatile Thread _thread
 
   ScriptExecution(def source, String name, Logger log)
   {
@@ -112,6 +112,8 @@ class ScriptExecution implements Startable, Shutdownable
       if(!_shutdown)
       {
         _thread = Thread.start(_name, executeFutureTasks)
+        if(_log.isDebugEnabled())
+          _log.debug "Starting thread ${_thread}"
       }
     }
   }
@@ -133,7 +135,13 @@ class ScriptExecution implements Startable, Shutdownable
     if(!_shutdown)
       throw new IllegalStateException('call shutdown first')
 
+    if(_log.isDebugEnabled())
+      _log.debug "Waiting for thread ${_thread} to terminate..."
+
     _thread?.join()
+
+    if(_log.isDebugEnabled())
+      _log.debug "Thread ${_thread} terminated."
   }
 
   void waitForShutdown(Object timeout)
@@ -142,10 +150,28 @@ class ScriptExecution implements Startable, Shutdownable
       throw new IllegalStateException('call shutdown first')
 
     timeout = ClockUtils.toTimespan(timeout)
+
+    if(_log.isDebugEnabled())
+      _log.debug "Waiting for thread ${_thread} to terminate no longer than ${timeout}..."
+
     if(timeout == null)
       _thread?.join()
     else
+    {
       _thread?.join(timeout.durationInMilliseconds)
+
+      // if thread is still alive, then throws exception. Thread.join does not throw one!
+      if(_thread?.isAlive())
+      {
+        if(_log.isDebugEnabled())
+          _log.debug "Thread ${_thread} is still alive."
+
+        throw new TimeoutException()
+      }
+    }
+
+    if(_log.isDebugEnabled())
+      _log.debug "Thread ${_thread} terminated."
   }
 
    /**
