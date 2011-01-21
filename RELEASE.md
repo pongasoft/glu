@@ -1,3 +1,8 @@
+1.7.1 (2011/01/20)
+------------------
+* workaround for [glu-19](https://github.com/linkedin/glu/issues#issue/19): New users aren't displayed at /console/admin/user/list
+* fixed [glu-20](https://github.com/linkedin/glu/issues#issue/20): Race condition while upgrading the agent
+
 1.7.0 (2011/01/17)
 ------------------
 * Implemented [glu-12](https://github.com/linkedin/glu/issues#issue/12): better packaging
