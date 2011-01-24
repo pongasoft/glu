@@ -130,7 +130,6 @@ class JettyGluScript
     logsDir = serverRoot.'logs'
     serverLog = logsDir.'start.log'
     gcLog = logsDir.'gc.log'
-    serverCmd = "JETTY_RUN=${logsDir.file} ${serverRoot.'bin/jetty.sh'.file}"
 
     // the tar ball contains some default contexts and webapps that we don't want
     shell.rmdirs(serverRoot.'contexts')
@@ -178,23 +177,11 @@ class JettyGluScript
   def start = {
     log.info "Starting..."
 
-    pid = isProcessUp()
+    shell.exec("${serverCmd} start > /dev/null 2>&1 &")
 
-    if(pid)
-    {
-      log.info "Server already up."
-    }
-    else
-    {
-      // we execute the start command (return right away)
-      String cmd = "JAVA_OPTIONS=\"-Djetty.port=${port} -Xloggc:${gcLog.file} -XX:+PrintGCDateStamps -Dcom.sun.management.jmxremote\" ${serverCmd} start > /dev/null 2>&1 &"
-      shell.exec(cmd)
-      shell.saveContent(logsDir.'jetty.cmd', cmd)
-
-      // we wait for the process to be started (should be quick)
-      shell.waitFor(timeout: '5s', heartbeat: '250') {
-        pid = isProcessUp()
-      }
+    // we wait for the process to be started (should be quick)
+    shell.waitFor(timeout: '5s', heartbeat: '250') {
+      pid = isProcessUp()
     }
 
     // now that the process should be up, we wait for the server to be up
@@ -325,6 +312,17 @@ class JettyGluScript
     c << '--daemon'
     c << '\n' // forces an empty line
     shell.saveContent(serverRoot.'start.ini', c.join('\n'))
+
+    String javaOptions = "-Djetty.port=${port} -Xloggc:${gcLog.file} -XX:+PrintGCDateStamps -Dcom.sun.management.jmxremote"
+
+    serverCmd = shell.saveContent(serverRoot.'bin/jetty-ctl.sh',
+                                  DEFAULT_JETTY_CTL, [
+                                  'java.options': javaOptions,
+                                  'jetty.run': logsDir.file,
+                                  'jetty.sh': serverRoot.'bin/jetty.sh'.file
+                                  ])
+
+    shell.chmodPlusX(serverCmd)
   }
 
   private def configureWebapps = {
@@ -537,6 +535,10 @@ class JettyGluScript
       log.debug("Exception while running serverMonitor (ignored)", th)
     }
   }
+
+  static String DEFAULT_JETTY_CTL = """#!/bin/bash
+JAVA_OPTIONS="@java.options@" JETTY_RUN="@jetty.run@" @jetty.sh@ \$@
+"""
 
   static String DEFAULT_JETTY_CONFIG = """
 OPTIONS=Server,jsp,jmx,resources,websocket,ext
