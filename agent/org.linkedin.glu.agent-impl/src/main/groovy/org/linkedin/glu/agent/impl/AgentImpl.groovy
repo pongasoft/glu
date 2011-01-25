@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -35,6 +36,8 @@ import org.linkedin.util.clock.SystemClock
 import org.linkedin.util.io.resource.Resource
 import org.linkedin.util.clock.Timespan
 import org.linkedin.glu.agent.api.TimeOutException
+import org.linkedin.glu.utils.tags.Taggeable
+import org.linkedin.glu.utils.tags.TaggeableImpl
 
 /**
  * The main implementation of the agent
@@ -54,6 +57,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   private MOP _mop
   private def _stateMachineFactory
   private Closure _sync
+  private Taggeable _taggeable
 
   private volatile _shutdown = false
 
@@ -85,6 +89,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
       _scriptManager.installRootScript([:])
 
     _sync = args.sync
+    _taggeable = args.taggeable ?: new TaggeableImpl()
   }
 
   def getClock()
@@ -472,6 +477,90 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   public MOP getMop()
   {
     return _mop;
+  }
+
+  @Override
+  int getTagsCount()
+  {
+    handleException {
+      return _taggeable.size
+    }
+  }
+
+  @Override
+  boolean hasTags()
+  {
+    handleException {
+      return _taggeable.isEmpty()
+    }
+  }
+
+  @Override
+  Set<String> getTags()
+  {
+    handleException {
+      return _taggeable.tags
+    }
+  }
+
+  @Override
+  boolean hasTag(String tag)
+  {
+    handleException {
+      return _taggeable.hasTag(tag)
+    }
+  }
+
+  @Override
+  boolean hasAllTags(Collection<String> tags)
+  {
+    handleException {
+      return _taggeable.hasAllTags(tags)
+    }
+  }
+
+  @Override
+  boolean hasAnyTag(Collection<String> tags)
+  {
+    handleException {
+      return _taggeable.hasAnyTag(tags)
+    }
+  }
+
+  @Override
+  boolean addTag(String tag)
+  {
+    handleException {
+      log.info "adding tag: ${tag}"
+      return _taggeable.addTag(tag)
+    }
+  }
+
+  @Override
+  Set<String> addTags(Collection<String> tags)
+  {
+    handleException {
+      log.info "adding tags: ${tags}"
+      return _taggeable.addTags(tags)
+    }
+  }
+
+  @Override
+  boolean removeTag(String tag)
+  {
+    handleException {
+      log.info "removing tag: ${tag}"
+      return _taggeable.removeTag(tag)
+    }
+  }
+
+  @Override
+  Set<String> removeTags(Collection<String> tags)
+  {
+    handleException {
+      log.info "removing tags: ${tags}"
+      return _taggeable.removeTags(tags)
+    }
   }
 
   private def handleException(Closure closure)

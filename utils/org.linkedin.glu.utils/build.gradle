@@ -1,5 +1,4 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
  * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -19,27 +18,7 @@ apply plugin: 'groovy'
 apply plugin: 'org.linkedin.release'
 
 dependencies {
-  compile project(':agent:org.linkedin.glu.agent-api')
-  compile project(':utils:org.linkedin.glu.utils')
-  compile spec.external.linkedinUtilsGroovy
-  compile spec.external.linkedinZookeeperImpl
-  compile spec.external.sigar
-  compile spec.external.mimeUtil
-
   groovy spec.external.groovy
 
   testCompile spec.external.junit
-
-  runtime spec.external.ivy
-
-  testRuntime spec.external.ivy
-}
-
-ideaModule {
-  whenConfigured { module ->
-    // plugin wrongly add src/test/resources as source folder causing issue when running 
-    // compilation from within IDEA
-    def path = module.testSourceFolders.find { it.url == 'file://$MODULE_DIR$/src/test/resources'}
-    module.testSourceFolders.remove(path)
-  }
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -147,5 +148,73 @@ public class AgentMock implements Agent
     return null;
   }
 
+  @Override
+  int getTagsCount()
+  {
+    log << "getTagsCount()"
+    return 0
+  }
 
+  @Override
+  boolean hasTags()
+  {
+    log << "hasTags()"
+    return false
+  }
+
+  @Override
+  Set<String> getTags()
+  {
+    log << "getTags()"
+    return null
+  }
+
+  @Override
+  boolean hasTag(String tag)
+  {
+    log << "hasTag(${tag})"
+    return false
+  }
+
+  @Override
+  boolean hasAllTags(Collection<String> tags)
+  {
+    log << "hasAllTags(${tags})"
+    return false
+  }
+
+  @Override
+  boolean hasAnyTag(Collection<String> tags)
+  {
+    log << "hasAnyTag(${tags})"
+    return false
+  }
+
+  @Override
+  boolean addTag(String tag)
+  {
+    log << "addTag(${tag})"
+    return false
+  }
+
+  @Override
+  Set<String> addTags(Collection<String> tags)
+  {
+    log << "addTags(${tags})"
+    return null
+  }
+
+  @Override
+  boolean removeTag(String tag)
+  {
+    log << "removeTag(${tag})"
+    return false
+  }
+
+  @Override
+  Set<String> removeTags(Collection<String> tags)
+  {
+    log << "removeTag(${tags})"
+    return null
+  }
 }

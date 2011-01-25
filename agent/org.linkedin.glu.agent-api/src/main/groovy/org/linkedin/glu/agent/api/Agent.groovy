@@ -19,7 +19,6 @@ package org.linkedin.glu.agent.api
 
 /**
  * @author ypujante@linkedin.com
- *
  */
 public interface Agent
 {
@@ -235,4 +234,67 @@ public interface Agent
    * @params args.maxSize the maximum size to read
    */
   def getFileContent(args) throws AgentException
+  
+  /********************************************************************
+   * Software management
+   ********************************************************************/
+  /**
+   * @return the number of tags
+   */
+  int getTagsCount() throws AgentException
+
+  /**
+   * @return <code>true</code> if there are no tags
+   */
+  boolean hasTags() throws AgentException
+
+  /**
+   * @return the set of all tags
+   */
+  Set<String> getTags() throws AgentException
+
+  /**
+   * @return <code>true</code> if the given tag is present
+   */
+  boolean hasTag(String tag) throws AgentException
+
+  /**
+   * @return <code>true</code> if the given tags are present (all of them)
+   */
+  boolean hasAllTags(Collection<String> tags) throws AgentException
+
+  /**
+   * @return <code>true</code> if at least one of them is present
+   */
+  boolean hasAnyTag(Collection<String> tags) throws AgentException
+
+  /**
+   * Adds a tag.
+   *
+   * @return <code>true</code> if the tag which was added was a new tag, otherwise
+   * <code>false</code>
+   */
+  boolean addTag(String tag) throws AgentException
+
+  /**
+   * Adds all the tags.
+   *
+   * @return the set of tags that were added (empty set if they were all already present)
+   */
+  Set<String> addTags(Collection<String> tags) throws AgentException
+
+  /**
+   * Removes the provided tag.
+   *
+   * @return <code>true</code> if the tag was removed or <code>false</code> if the tag was not
+   * present in the first place
+   */
+  boolean removeTag(String tag) throws AgentException
+
+  /**
+   * Removes all the tags.
+   *
+   * @return the set of tags that were not present (empty set if they were all already present)
+   */
+  Set<String> removeTags(Collection<String> tags) throws AgentException
 }

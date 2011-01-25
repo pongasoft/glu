@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -43,6 +44,8 @@ import org.restlet.data.Protocol
 import org.restlet.routing.Router
 import org.restlet.Component
 import org.restlet.routing.Template
+import org.linkedin.glu.agent.rest.resources.TagsResource
+import org.linkedin.glu.agent.api.Agent
 
 /**
  * The code which is in {@link AgentRestClient} is essentially the code to use for calling the rest
@@ -50,7 +53,7 @@ import org.restlet.routing.Template
  *
  * @author ypujante@linkedin.com
  */
-class TestMountPointResource extends GroovyTestCase
+class TestAgentRestClient extends GroovyTestCase
 {
   // must be declared static because the script is created by another class
   static def ThreadControl TC = new ThreadControl()
@@ -516,32 +519,96 @@ gc: 1000
       }
     }
   }
+
+  /**
+   * Test for the tags api
+   */
+  void testTags()
+  {
+    router.attach("/tags", TagsResource).matchingMode = Template.MODE_STARTS_WITH
+    router.context.getAttributes().put(TagsResource.class.name, "/tags")
+
+    AgentFactoryImpl.create(tagsPath: "/tags",
+                            sslEnabled: false).withRemoteAgent(serverURI) { Agent arc ->
+
+      // empty
+      assertTrue(arc.hasTags())
+      assertEquals(0, arc.tagsCount)
+      assertFalse(arc.hasTag('fruit'))
+      assertFalse(arc.hasTag('vegetable'))
+      assertFalse(arc.hasTag('rock'))
+      assertFalse(arc.hasAllTags(['fruit', 'vegetable']))
+      assertFalse(arc.hasAnyTag(['fruit', 'vegetable']))
+
+      // + fruit
+      assertTrue(arc.addTag('fruit'))
+      assertFalse(arc.hasTags())
+      assertEquals(1, arc.tagsCount)
+      assertTrue(arc.hasTag('fruit'))
+      assertFalse(arc.hasTag('vegetable'))
+      assertFalse(arc.hasTag('rock'))
+      assertFalse(arc.hasAllTags(['fruit', 'vegetable']))
+      assertTrue(arc.hasAnyTag(['fruit', 'vegetable']))
+
+      // adding fruit again should not have any impact
+      assertFalse(arc.addTag('fruit'))
+      assertFalse(arc.hasTags())
+      assertEquals(1, arc.tagsCount)
+      assertTrue(arc.hasTag('fruit'))
+      assertFalse(arc.hasTag('vegetable'))
+      assertFalse(arc.hasTag('rock'))
+      assertFalse(arc.hasAllTags(['fruit', 'vegetable']))
+      assertTrue(arc.hasAnyTag(['fruit', 'vegetable']))
+
+      // + vegetable
+      assertEquals(['fruit'] as Set, arc.addTags(['vegetable', 'fruit']))
+      assertFalse(arc.hasTags())
+      assertEquals(2, arc.tagsCount)
+      assertTrue(arc.hasTag('fruit'))
+      assertTrue(arc.hasTag('vegetable'))
+      assertFalse(arc.hasTag('rock'))
+      assertTrue(arc.hasAllTags(['fruit', 'vegetable']))
+      assertFalse(arc.hasAllTags(['fruit', 'vegetable', 'rock']))
+      assertTrue(arc.hasAnyTag(['fruit', 'vegetable']))
+
+      // - fruit
+      assertEquals(['rock'] as Set, arc.removeTags(['fruit', 'rock']))
+      assertFalse(arc.hasTags())
+      assertEquals(1, arc.tagsCount)
+      assertFalse(arc.hasTag('fruit'))
+      assertTrue(arc.hasTag('vegetable'))
+      assertFalse(arc.hasTag('rock'))
+      assertFalse(arc.hasAllTags(['fruit', 'vegetable']))
+      assertFalse(arc.hasAllTags(['fruit', 'vegetable', 'rock']))
+      assertTrue(arc.hasAnyTag(['fruit', 'vegetable']))
+    }    
+  }
 }
 
 class MyScriptTestScriptResource
 {
   MyScriptTestScriptResource()
   {
-    TestMountPointResource.TC.block("MyScriptTestScriptResource()")
+    TestAgentRestClient.TC.block("MyScriptTestScriptResource()")
   }
 
   def install = { args ->
-    TestMountPointResource.TC.block("MyScriptTestScriptResource.install")
+    TestAgentRestClient.TC.block("MyScriptTestScriptResource.install")
     Assert.assertEquals('v1', params.p1)
     Assert.assertEquals('v2', args.p2)
   }
 
   def configure = {
-    TestMountPointResource.TC.blockWithException("MyScriptTestScriptResource.configure")
+    TestAgentRestClient.TC.blockWithException("MyScriptTestScriptResource.configure")
   }
 
   def start = { args ->
-    TestMountPointResource.TC.block("MyScriptTestScriptResource.start")
+    TestAgentRestClient.TC.block("MyScriptTestScriptResource.start")
     return new ByteArrayInputStream("this is a test ${params.p1}/${args.p2}".getBytes())
   }
 
   def getStream = { args ->
-    TestMountPointResource.TC.block("MyScriptTestScriptResource.getStream")
+    TestAgentRestClient.TC.block("MyScriptTestScriptResource.getStream")
     return new ByteArrayInputStream("this is a test ${params.p1}/${args.p2}".getBytes())
   }
 }

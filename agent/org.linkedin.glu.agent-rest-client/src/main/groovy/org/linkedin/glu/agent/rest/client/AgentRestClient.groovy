@@ -35,6 +35,7 @@ import org.restlet.ext.json.JsonRepresentation
 import org.restlet.representation.Representation
 import org.restlet.resource.ClientResource
 import org.restlet.resource.ResourceException
+import org.restlet.representation.EmptyRepresentation
 
 /**
  * This is the implementation of the {@link Agent} interface using a REST api under the cover
@@ -258,6 +259,79 @@ class AgentRestClient implements Agent
     return getRes(response)
   }
 
+  @Override
+  int getTagsCount()
+  {
+    return tags.size()
+  }
+
+  @Override
+  boolean hasTags()
+  {
+    return tags.isEmpty()
+  }
+
+  @Override
+  Set<String> getTags()
+  {
+    handleResponse(toTagsReference([])) { ClientResource client ->
+      client.get()
+    } as Set
+  }
+
+  @Override
+  boolean hasTag(String tag)
+  {
+    hasAnyTag([tag])
+  }
+
+  @Override
+  boolean hasAllTags(Collection<String> tags)
+  {
+    Reference ref = toTagsReference(tags)
+    ref.addQueryParameter('match', 'all')
+    handleResponse(ref) { ClientResource client ->
+      client.head()
+    } == Status.SUCCESS_OK
+  }
+
+  @Override
+  boolean hasAnyTag(Collection<String> tags)
+  {
+    handleResponse(toTagsReference(tags)) { ClientResource client ->
+      client.head()
+    } == Status.SUCCESS_OK
+  }
+
+  @Override
+  boolean addTag(String tag)
+  {
+    return addTags([tag]).size() == 0
+  }
+
+  @Override
+  Set<String> addTags(Collection<String> tags)
+  {
+    handleResponse(toTagsReference(tags)) { ClientResource client ->
+      client.put(new EmptyRepresentation())
+    } as Set
+  }
+
+  @Override
+  boolean removeTag(String tag)
+  {
+    return removeTags([tag]).size() == 0
+  }
+
+  @Override
+  Set<String> removeTags(Collection<String> tags)
+  {
+    handleResponse(toTagsReference(tags)) { ClientResource client ->
+      client.delete()
+    } as Set
+  }
+
+
   private Reference toMountPointReference(args)
   {
     String mountPoint = args.mountPoint?.toString()
@@ -272,15 +346,29 @@ class AgentRestClient implements Agent
     return addPath(_references.process, pid.toString())
   }
 
+  private Reference toTagsReference(tags)
+  {
+    String tagsPath
+
+    if(tags instanceof Collection)
+    {
+      tagsPath = tags.join(';')
+    }
+    else
+      tagsPath = tags.toString()
+
+    return addPath(_references.tags, tagsPath)
+  }
+
   private Reference addPath(Reference ref, String path)
   {
     if(path)
     {
       path = PathUtils.addPaths(ref.path, path)
-      ref = new Reference(ref, path).targetRef
+      ref = new Reference(ref, path)
     }
 
-    return ref
+    return ref.targetRef
   }
 
   private JsonRepresentation toArgs(args)
@@ -309,7 +397,7 @@ class AgentRestClient implements Agent
 
       if(clientResource.status.isSuccess())
       {
-        return extractRepresentation(representation)
+        return extractRepresentation(clientResource, representation)
       }
       else
       {
@@ -325,31 +413,30 @@ class AgentRestClient implements Agent
     return null
   }
 
-  private def extractRepresentation(Representation representation)
+  private def extractRepresentation(ClientResource clientResource, Representation representation)
   {
     switch(representation?.mediaType)
     {
       case MediaType.APPLICATION_JSON:
-        return JsonUtils.toValue(new JsonRepresentation(representation).toJsonObject())
+        return JsonUtils.fromJSON(representation.text)
 
       case MediaType.APPLICATION_OCTET_STREAM:
         return representation.stream
     }
 
-    return null
+    return clientResource.status
   }
 
   private void handleError(ClientResource clientResource)
   {
-    def status = clientResource.status
-    def representation = extractRepresentation(clientResource.responseEntity)
-    if(representation != null)
+    def representation = extractRepresentation(clientResource, clientResource.responseEntity)
+    if(representation instanceof Status)
     {
-      throwAgentException(status, RestException.fromJSON(representation))
+      throw new AgentException(representation.toString())
     }
     else
     {
-      throw new AgentException(status.toString())
+      throwAgentException(clientResource.status, RestException.fromJSON(representation))
     }
   }
 

@@ -63,6 +63,7 @@ import org.restlet.Component
 import org.restlet.data.Protocol
 import org.restlet.routing.Template
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
+import org.linkedin.glu.agent.rest.resources.TagsResource
 
 /**
  * This is the main class to start the agent.
@@ -486,7 +487,8 @@ class AgentMain implements LifecycleListener
       process: [clazz: ProcessResource, matchingMode: Template.MODE_STARTS_WITH],
       mountPoint: [clazz: MountPointResource, matchingMode: Template.MODE_STARTS_WITH],
       log: [clazz: LogResource, matchingMode: Template.MODE_STARTS_WITH],
-      file: [clazz: FileResource, matchingMode: Template.MODE_STARTS_WITH]
+      file: [clazz: FileResource, matchingMode: Template.MODE_STARTS_WITH],
+      tags: [clazz: TagsResource, matchingMode: Template.MODE_STARTS_WITH],
     ].each { name, map ->
       def path = "/${name}".toString()
       Class clazz = map.clazz

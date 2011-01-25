@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -122,7 +123,7 @@ class AgentFactoryImpl implements AgentFactory
 
     def references = [:]
 
-    ['agent', 'mountPoint', 'host', 'process', 'log', 'file'].each { name ->
+    ['agent', 'mountPoint', 'host', 'process', 'log', 'file', 'tags'].each { name ->
       references[name] =
         Config.getOptionalString(config, "${name}Path".toString(), "/${name}".toString())
     }
