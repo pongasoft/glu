@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,6 +22,8 @@ import org.linkedin.glu.agent.impl.storage.FileSystemStorage
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.api.NoSuchMountPointException
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
+import org.linkedin.groovy.util.io.fs.FileSystem
+import org.linkedin.glu.agent.impl.storage.AgentProperties
 
 /**
  * Tests for file system storage (actually writing to the disk)
@@ -29,20 +32,31 @@ import org.linkedin.groovy.util.io.fs.FileSystemImpl
  */
 class TestFileSystemStorage extends GroovyTestCase
 {
+  FileSystem stateFileSystem
+  FileSystem agentPropertiesFileSystem
   FileSystemStorage storage
+  AgentProperties agentProperties
   File rootFile
+  File agentPropertiesFile
 
   protected void setUp()
   {
     super.setUp();
 
-    storage = new FileSystemStorage(FileSystemImpl.createTempFileSystem())
-    rootFile = storage.fileSystem.root.file
+    stateFileSystem = FileSystemImpl.createTempFileSystem()
+    rootFile = stateFileSystem.root.file
+
+    agentPropertiesFileSystem = FileSystemImpl.createTempFileSystem()
+
+    agentPropertiesFile = agentPropertiesFileSystem.toResource('/config/agent.properties').file
+
+    storage = new FileSystemStorage(stateFileSystem, agentProperties, agentPropertiesFile)
   }
 
   protected void tearDown()
   {
-    storage.fileSystem.destroy()
+    stateFileSystem.destroy()
+    agentPropertiesFileSystem.destroy()
   }
 
   /**

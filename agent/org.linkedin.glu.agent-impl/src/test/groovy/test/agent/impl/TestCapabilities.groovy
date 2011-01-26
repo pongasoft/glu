@@ -28,6 +28,7 @@ import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.net.GroovyNetUtils
 import org.linkedin.glu.agent.api.ShellExecException
+import org.linkedin.glu.agent.impl.storage.AgentProperties
 
 /**
  * Test for various capabilities.
@@ -194,18 +195,21 @@ this is line 1000
   void testEnv()
   {
     FileSystemImpl.createTempFileSystem() { FileSystem fs ->
-      def env = [p1: 'v1', p2: 'v2']
-      def shell = new ShellImpl(fileSystem: fs, env: env)
+      AgentProperties agentProperties =
+       new AgentProperties([p1: 'v1', p2: 'v2', storePassword: 'abcd'])
+      def shell = new ShellImpl(fileSystem: fs, agentProperties: agentProperties)
 
       assertEquals('v1', shell.env.p1)
       assertEquals('v2', shell.env['p2'])
       assertNull(shell.env.p3)
+      assertNull(shell.env.storePassword) // should be filtered out
 
       shell = shell.newShell(fs.newFileSystem('/foo'))
 
       assertEquals('v1', shell.env.p1)
       assertEquals('v2', shell.env['p2'])
       assertNull(shell.env.p3)
+      assertNull(shell.env.storePassword) // should be filtered out
     }
   }
 

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -26,6 +27,8 @@ import org.linkedin.zookeeper.client.IZKClient
 import org.linkedin.zookeeper.client.ZKClient
 import org.linkedin.util.clock.Timespan
 import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.glu.agent.impl.storage.AgentProperties
+import org.linkedin.zookeeper.client.ZKData
 
 /**
  * This test will start a zookeeper server and shuts it down, so it is not relying on one currently
@@ -88,8 +91,11 @@ class TestZookeeperStorage extends GroovyTestCase
   void testWriteStorage()
   {
     IZKClient c = client.chroot('storage')
+    IZKClient p = client.chroot('agent.properties')
 
-    ZooKeeperStorage storage = new ZooKeeperStorage(c)
+    AgentProperties agentProperties = new AgentProperties('glu.p1': 'v1', 'p2': 'v2')
+
+    ZooKeeperStorage storage = new ZooKeeperStorage(c, p)
 
     def state = [scriptState: [stateMachine: [currentState: 'installed']]]
 
@@ -126,6 +132,13 @@ class TestZookeeperStorage extends GroovyTestCase
 
     assertEquals([abc], storage.getMountPoints())
 
+    storage.saveAgentProperties(agentProperties)
+
+    ZKData<String> data = p.getZKStringData('/')
+
+    assertEquals(['glu.p1': 'v1'], JsonUtils.fromJSON(data.data))
+    assertTrue(data.stat.ephemeralOwner > 0) // ephemeral node
+
     zkStop()
 
     // we make sure that zookeeper is disconnected
@@ -144,24 +157,28 @@ class TestZookeeperStorage extends GroovyTestCase
 
     // we make sure that ab was not added but abd was
     assertEquals([abc, abd], storage.getMountPoints())
-  }
 
-  void testReadStorage()
-  {
-    IZKClient c = client.chroot('storage')
+    // ephemeral node should survive stop/restart of zookeeper itself
+    data = p.getZKStringData('/')
+    assertEquals(['glu.p1': 'v1'], JsonUtils.fromJSON(data.data))
+    assertTrue(data.stat.ephemeralOwner > 0) // ephemeral node
 
-    ZooKeeperStorage storage = new ZooKeeperStorage(c)
+    client.destroy()
+    client = new ZKClient('localhost:2121',
+                          Timespan.parse('100'),
+                          null)
+    client.reconnectTimeout = Timespan.parse('500')
+    zkClientStart()
 
-    def state = [scriptState: [stateMachine: [currentState: 'installed']]]
+    c = client.chroot('storage')
+    p = client.chroot('agent.properties')
 
-    storage.storeState(MountPoint.create('/a/b'), state)
-    storage.storeState(MountPoint.ROOT, state)
-    storage.storeState(MountPoint.create('/d'), state)
-    storage.storeState(MountPoint.create('/a/b/c/d'), state)
+    storage = new ZooKeeperStorage(c, p)
 
-    assertEquals([MountPoint.ROOT, MountPoint.create('/d'), MountPoint.create('/a/b'), MountPoint.create('/a/b/c/d')],
-                 storage.getMountPoints().sort())
+    // the mountpoints should still be there
+    assertEquals([abc, abd], storage.getMountPoints())
 
-    assertEquals(state, storage.loadState(MountPoint.ROOT))
+    // on the other end the agent.properties are gone because it is an ephemeral node
+    shouldFail(KeeperException.NoNodeException) { p.getZKStringData('/') }
   }
 }

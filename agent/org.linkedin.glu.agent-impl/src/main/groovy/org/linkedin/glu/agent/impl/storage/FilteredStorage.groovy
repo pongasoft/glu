@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -62,5 +63,23 @@ class FilteredStorage implements Storage
   void storeState(MountPoint mountPoint, state)
   {
     storage.storeState(mountPoint, state)
+  }
+
+  @Override
+  AgentProperties loadAgentProperties()
+  {
+    storage.loadAgentProperties()
+  }
+
+  @Override
+  AgentProperties saveAgentProperties(AgentProperties agentProperties)
+  {
+    storage.saveAgentProperties(agentProperties)
+  }
+
+  @Override
+  AgentProperties updateAgentProperty(String name, String value)
+  {
+    storage.updateAgentProperty(name, value)
   }
 }

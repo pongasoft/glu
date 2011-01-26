@@ -43,6 +43,11 @@ public class TagsResource extends BaseResource
     return true
   }
 
+  public boolean allowPost()
+  {
+    return true
+  }
+
   public boolean allowDelete()
   {
     return true
@@ -55,10 +60,10 @@ public class TagsResource extends BaseResource
 
   /**
    * GET:  /tags => 200: json array of tags
+   * HEAD: /tags => 200 if has tags, 204 otherwise (only match=any makes sense here...)
    * HEAD: /tags/fruit;vegetable?match=all => 200 if matches, 204 if does not match
    * query string can contain: match=any (default if missing) or match=all for matching on all
-   * of them:
-   * HEAD: /tags => 200 if has tags, 204 otherwise (only match=any makes sense here...)
+   * of them
    */
   public Representation represent(Variant variant)
   {
@@ -109,9 +114,19 @@ public class TagsResource extends BaseResource
   }
 
   /**
-   * PUT add tags (ex: PUT /tags/fruit;vegetable)
+   * PUT set tags (ex: PUT /tags/fruit;vegetable)
    */
   public void storeRepresentation(Representation representation)
+  {
+    noException {
+      agent.setTags(tags)
+    }
+  }
+
+  /**
+   * POST add tags (ex: POST /tags/fruit;vegetable)
+   */
+  public void acceptRepresentation(Representation representation)
   {
     noException {
       response.setEntity(toRepresentation(agent.addTags(tags)))
@@ -131,6 +146,6 @@ public class TagsResource extends BaseResource
 
   private Collection<String> getTags()
   {
-    return STRING_SPLITTER.splitAsList(PathUtils.removeLeadingSlash(path))
+    return STRING_SPLITTER.splitAsList(PathUtils.removeLeadingSlash(path) ?: '')
   }
 }

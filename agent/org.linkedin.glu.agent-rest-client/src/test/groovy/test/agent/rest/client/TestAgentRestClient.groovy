@@ -46,6 +46,9 @@ import org.restlet.Component
 import org.restlet.routing.Template
 import org.linkedin.glu.agent.rest.resources.TagsResource
 import org.linkedin.glu.agent.api.Agent
+import org.linkedin.glu.agent.impl.storage.AgentProperties
+import org.linkedin.glu.agent.impl.storage.TagsStorage
+import org.linkedin.glu.agent.impl.storage.Storage
 
 /**
  * The code which is in {@link AgentRestClient} is essentially the code to use for calling the rest
@@ -57,6 +60,8 @@ class TestAgentRestClient extends GroovyTestCase
 {
   // must be declared static because the script is created by another class
   static def ThreadControl TC = new ThreadControl()
+
+  public static final String APTN = 'TestAgentRestClient.tags'
   
   Component component
   Router router
@@ -69,6 +74,7 @@ class TestAgentRestClient extends GroovyTestCase
   def logFileSystem
   def shell
   def ramStorage = [:]
+  AgentProperties agentProperties = new AgentProperties('org.linkedin.app.name': 'glu-agent')
   def sync = []
 
   protected void setUp()
@@ -101,13 +107,16 @@ class TestAgentRestClient extends GroovyTestCase
 
     logFileSystem = FileSystemImpl.createTempFileSystem()
 
+    Storage storage = new RAMStorage(ramStorage, agentProperties)
+
     agent = new AgentImpl()
     agent.boot(name: 'glu-agent',
                shellForScripts: shell,
                rootShell: new ShellImpl(fileSystem: new FileSystemImpl(new File('/')),
-                                        env: ['org.linkedin.app.name': 'glu-agent']),
+                                        agentProperties: agentProperties),
                agentLogDir: logFileSystem.root,
-               storage: new RAMStorage(ramStorage),
+               storage: storage,
+               taggeable: new TagsStorage(storage, APTN),
                sync: { sync << clock.currentTimeMillis() })
 
     component = new Component();
@@ -539,6 +548,7 @@ gc: 1000
       assertFalse(arc.hasTag('rock'))
       assertFalse(arc.hasAllTags(['fruit', 'vegetable']))
       assertFalse(arc.hasAnyTag(['fruit', 'vegetable']))
+      assertNull(agentProperties[APTN])
 
       // + fruit
       assertTrue(arc.addTag('fruit'))
@@ -549,6 +559,7 @@ gc: 1000
       assertFalse(arc.hasTag('rock'))
       assertFalse(arc.hasAllTags(['fruit', 'vegetable']))
       assertTrue(arc.hasAnyTag(['fruit', 'vegetable']))
+      assertEquals('fruit', agentProperties[APTN])
 
       // adding fruit again should not have any impact
       assertFalse(arc.addTag('fruit'))
@@ -559,6 +570,7 @@ gc: 1000
       assertFalse(arc.hasTag('rock'))
       assertFalse(arc.hasAllTags(['fruit', 'vegetable']))
       assertTrue(arc.hasAnyTag(['fruit', 'vegetable']))
+      assertEquals('fruit', agentProperties[APTN])
 
       // + vegetable
       assertEquals(['fruit'] as Set, arc.addTags(['vegetable', 'fruit']))
@@ -570,6 +582,7 @@ gc: 1000
       assertTrue(arc.hasAllTags(['fruit', 'vegetable']))
       assertFalse(arc.hasAllTags(['fruit', 'vegetable', 'rock']))
       assertTrue(arc.hasAnyTag(['fruit', 'vegetable']))
+      assertTrue(agentProperties[APTN] == 'fruit;vegetable' || agentProperties[APTN] == 'vegetable;fruit')
 
       // - fruit
       assertEquals(['rock'] as Set, arc.removeTags(['fruit', 'rock']))
@@ -581,7 +594,21 @@ gc: 1000
       assertFalse(arc.hasAllTags(['fruit', 'vegetable']))
       assertFalse(arc.hasAllTags(['fruit', 'vegetable', 'rock']))
       assertTrue(arc.hasAnyTag(['fruit', 'vegetable']))
-    }    
+      assertEquals('vegetable', agentProperties[APTN])
+
+      // set to rock & paper
+      arc.setTags(['rock', 'paper'])
+      assertFalse(arc.hasTags())
+      assertEquals(2, arc.tagsCount)
+      assertFalse(arc.hasTag('fruit'))
+      assertFalse(arc.hasTag('vegetable'))
+      assertTrue(arc.hasTag('rock'))
+      assertTrue(arc.hasTag('paper'))
+      assertFalse(arc.hasAllTags(['fruit', 'vegetable']))
+      assertFalse(arc.hasAllTags(['fruit', 'vegetable', 'rock']))
+      assertTrue(arc.hasAnyTag(['rock', 'vegetable']))
+      assertTrue(agentProperties[APTN] == 'rock;paper' || agentProperties[APTN] == 'paper;rock')
+    }
   }
 }
 

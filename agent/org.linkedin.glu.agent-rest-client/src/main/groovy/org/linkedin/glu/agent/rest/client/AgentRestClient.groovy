@@ -313,7 +313,7 @@ class AgentRestClient implements Agent
   Set<String> addTags(Collection<String> tags)
   {
     handleResponse(toTagsReference(tags)) { ClientResource client ->
-      client.put(new EmptyRepresentation())
+      client.post(new EmptyRepresentation())
     } as Set
   }
 
@@ -331,6 +331,13 @@ class AgentRestClient implements Agent
     } as Set
   }
 
+  @Override
+  void setTags(Collection<String> tags)
+  {
+    handleResponse(toTagsReference(tags)) { ClientResource client ->
+      client.put(new EmptyRepresentation())
+    }
+  }
 
   private Reference toMountPointReference(args)
   {

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -27,15 +28,18 @@ import org.linkedin.glu.agent.api.MountPoint
 class RAMStorage implements Storage
 {
   private final Map<MountPoint, Object> _storage
+  private final AgentProperties _agentProperties
 
   RAMStorage()
   {
-    this([:])
+    this([:], new AgentProperties())
   }
 
-  RAMStorage(Map<MountPoint, Object> storage)
+  RAMStorage(Map<MountPoint, Object> storage, AgentProperties agentProperties)
   {
+    super()
     _storage = storage
+    _agentProperties = agentProperties
   }
 
   Map<MountPoint, Object> getStorage()
@@ -66,5 +70,25 @@ class RAMStorage implements Storage
   public void clearAllStates()
   {
     _storage.clear()
+  }
+
+  @Override
+  AgentProperties loadAgentProperties()
+  {
+    return _agentProperties
+  }
+
+  @Override
+  AgentProperties saveAgentProperties(AgentProperties agentProperties)
+  {
+    _agentProperties.load(agentProperties)
+    return _agentProperties
+  }
+
+  @Override
+  AgentProperties updateAgentProperty(String name, String value)
+  {
+    _agentProperties.setAgentProperty(name, value)
+    return _agentProperties
   }
 }

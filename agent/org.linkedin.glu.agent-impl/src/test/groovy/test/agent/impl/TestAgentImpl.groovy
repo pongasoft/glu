@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -38,6 +39,8 @@ import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
 import java.util.concurrent.TimeoutException
+import org.linkedin.glu.agent.impl.storage.AgentProperties
+import org.linkedin.glu.agent.impl.storage.TagsStorage
 
 /**
  * Test for AgentImpl
@@ -50,11 +53,14 @@ def class TestAgentImpl extends GroovyTestCase
   // by the agent.. so there is no real way to recover one except making it static global...
   public static ThreadControl GLOBAL_TC = new ThreadControl(Timespan.parse('5s'))
 
+  public static final String APTN = 'TestAgentImpl.tags'
+
   def ram
   def fileSystem
   def logFileSystem
   def shell
   def ramStorage = [:]
+  AgentProperties agentProperties = new AgentProperties(['org.linkedin.app.name': 'glu-agent'])
   AgentImpl agent
   def clock = new SettableClock()
 
@@ -89,11 +95,13 @@ def class TestAgentImpl extends GroovyTestCase
     shell = new ShellImpl(fileSystem: fileSystem)
 
     agent = new AgentImpl(clock: clock)
+    Storage storage = createStorage()
     agent.boot(shellForScripts: shell,
                rootShell: new ShellImpl(fileSystem: logFileSystem,
-                                        env: ['org.linkedin.app.name': 'glu-agent']),
+                                        agentProperties: agentProperties),
                agentLogDir: logFileSystem.root,
-               storage: createStorage() as Storage)
+               taggeable: new TagsStorage(storage, APTN),
+               storage: storage)
   }
 
   protected void tearDown()
@@ -112,7 +120,7 @@ def class TestAgentImpl extends GroovyTestCase
 
   private def createStorage()
   {
-    return new RAMStorage(ramStorage)
+    return new RAMStorage(ramStorage, agentProperties)
   }
 
   /**
@@ -388,12 +396,23 @@ def class TestAgentImpl extends GroovyTestCase
       [currentState: 'stopped'] == agent.getState(mountPoint: timerMountPoint)
     }
 
+    // we set some tags before shutdown
+    assertFalse(agent.hasTags())
+    agent.setTags(['fruit', 'vegetable'])
+    assertEquals(['fruit', 'vegetable'] as Set, agent.getTags())
+
     // now we shutdown the current agent and we recreate a new one
     agent.shutdown()
     agent.waitForShutdown(0)
 
     agent = new AgentImpl(clock: clock)
-    agent.boot(shellForScripts: shell, storage: createStorage() as Storage)
+    Storage storage = createStorage()
+    agent.boot(shellForScripts: shell,
+               taggeable: new TagsStorage(storage, APTN),
+               storage: storage)
+
+    // we make sure that right after boot the tags are still there
+    assertEquals(['fruit', 'vegetable'] as Set, agent.getTags())
 
     // we verify that the scripts have been restored properly
     assertEquals([currentState: 'installed'],
@@ -437,8 +456,14 @@ def class TestAgentImpl extends GroovyTestCase
     agent.waitForShutdown(0)
 
     agent = new AgentImpl()
-    agent.boot(shellForScripts: shell, storage: createStorage() as Storage)
+    storage = createStorage()
+    agent.boot(shellForScripts: shell,
+               taggeable: new TagsStorage(storage, APTN),
+               storage: storage)
 
+    // we make sure that right after boot the tags are still there
+    assertEquals(['fruit', 'vegetable'] as Set, agent.getTags())
+    
     // we verify that the scripts have been restored properly
     assertEquals([currentState: 'installed', error: sex],
                  agent.getState(mountPoint: scriptMountPoint))

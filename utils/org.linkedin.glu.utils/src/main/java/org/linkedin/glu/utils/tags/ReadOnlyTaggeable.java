@@ -16,11 +16,43 @@
 
 package org.linkedin.glu.utils.tags;
 
+import java.util.Collection;
+import java.util.Set;
+
 /**
  * Defines an entity that is taggeable. A tag is just a string. A taggeable entity can have an
  * unlimited number of tags.
  *
  * @author yan@pongasoft.com */
-public interface Taggeable extends ReadOnlyTaggeable, WriteOnlyTaggeable
+public interface ReadOnlyTaggeable
 {
+  /**
+   * @return the number of tags
+   */
+  int getSize();
+
+  /**
+   * @return <code>true</code> if there are no tags
+   */
+  boolean isEmpty();
+
+  /**
+   * @return the set of all tags
+   */
+  Set<String> getTags();
+
+  /**
+   * @return <code>true</code> if the given tag is present
+   */
+  boolean hasTag(String tag);
+
+  /**
+   * @return <code>true</code> if the given tags are present (all of them)
+   */
+  boolean hasAllTags(Collection<String> tags);
+
+  /**
+   * @return <code>true</code> if at least one of them is present
+   */
+  boolean hasAnyTag(Collection<String> tags);
 }

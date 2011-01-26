@@ -163,4 +163,13 @@ public class TaggeableImpl implements Taggeable
 
     return res;
   }
+
+  @Override
+  public void setTags(Collection<String> tags)
+  {
+    synchronized(this)
+    {
+      _tags = new HashSet<String>(tags);
+    }
+  }
 }

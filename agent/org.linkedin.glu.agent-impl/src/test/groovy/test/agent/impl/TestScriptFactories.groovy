@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -24,6 +25,7 @@ import org.linkedin.glu.agent.api.Agent
 import org.linkedin.glu.agent.impl.storage.RAMStorage
 import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
+import org.linkedin.glu.agent.impl.storage.AgentProperties
 
 /**
  * Test for script factories.
@@ -35,6 +37,7 @@ class TestScriptFactories extends GroovyTestCase
   FileSystem fileSystem
   Agent agent
   def ramStorage = [:]
+  AgentProperties agentProperties = new AgentProperties()
 
   protected void setUp()
   {
@@ -43,7 +46,7 @@ class TestScriptFactories extends GroovyTestCase
     fileSystem = FileSystemImpl.createTempFileSystem()
     def shell = new ShellImpl(fileSystem: fileSystem)
     agent = new AgentImpl()
-    agent.boot(shellForScripts: shell, storage: new RAMStorage(ramStorage))
+    agent.boot(shellForScripts: shell, storage: new RAMStorage(ramStorage, agentProperties))
   }
 
   protected void tearDown()

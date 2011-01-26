@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,7 +20,10 @@ package org.linkedin.glu.agent.impl.storage
 
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.api.NoSuchMountPointException
+import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.io.fs.FileSystem
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Store in the filesystem
@@ -28,34 +32,43 @@ import org.linkedin.groovy.util.io.fs.FileSystem
  */
 class FileSystemStorage implements Storage
 {
-  private final FileSystem _fileSystem
+  public static final String MODULE = FileSystemStorage.class.getName();
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
 
-  FileSystemStorage(fileSystem)
+  private final FileSystem _fileSystem
+  private final AgentProperties _agentProperties
+  private final File _agentPropertiesFile
+
+  FileSystemStorage(FileSystem fileSystem,
+                    AgentProperties agentProperties,
+                    File agentPropertiesFile)
   {
-    _fileSystem = fileSystem;
+    _fileSystem = fileSystem
+    _agentProperties = agentProperties
+    _agentPropertiesFile = agentPropertiesFile
   }
 
-  public void clearState(MountPoint mountPoint)
+  public synchronized void clearState(MountPoint mountPoint)
   {
     def state = _fileSystem.toResource(toPath(mountPoint))
     _fileSystem.rm(state)
   }
 
-  public void clearAllStates()
+  public synchronized void clearAllStates()
   {
     _fileSystem.ls() { resource ->
       _fileSystem.rm(resource)
     }
   }
 
-  public getMountPoints()
+  public synchronized getMountPoints()
   {
     return _fileSystem.ls().collect { resource ->
       fromPath(resource.filename)
     }
   }
 
-  public loadState(MountPoint mountPoint)
+  public synchronized loadState(MountPoint mountPoint)
   {
     try
     {
@@ -67,7 +80,7 @@ class FileSystemStorage implements Storage
     }
   }
 
-  public void storeState(MountPoint mountPoint, state)
+  public synchronized void storeState(MountPoint mountPoint, state)
   {
     _fileSystem.serializeToFile(toPath(mountPoint), state)
   }
@@ -75,6 +88,35 @@ class FileSystemStorage implements Storage
   FileSystem getFileSystem()
   {
     return _fileSystem
+  }
+
+  @Override
+  synchronized AgentProperties loadAgentProperties()
+  {
+    _agentProperties.load(_agentPropertiesFile)
+
+    log.info "Loading agent properties from ${_agentPropertiesFile}: ${new TreeMap(_agentProperties.persistentProperties)}"
+
+    return _agentProperties
+  }
+
+  @Override
+  synchronized AgentProperties saveAgentProperties(AgentProperties agentProperties)
+  {
+    _agentProperties.load(agentProperties)
+    _agentProperties.save(_agentPropertiesFile)
+
+    log.info "Saving agent properties to ${_agentPropertiesFile}: ${new TreeMap(_agentProperties.persistentProperties)}"
+
+    return _agentProperties
+  }
+
+  @Override
+  synchronized AgentProperties updateAgentProperty(String name, String value)
+  {
+    AgentProperties agentProperties = loadAgentProperties()
+    agentProperties.setAgentProperty(name, value)
+    saveAgentProperties(agentProperties)
   }
 
   private String toPath(MountPoint mp)

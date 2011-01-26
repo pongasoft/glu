@@ -491,7 +491,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   boolean hasTags()
   {
     handleException {
-      return _taggeable.isEmpty()
+      return !_taggeable.isEmpty()
     }
   }
 
@@ -560,6 +560,15 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
     handleException {
       log.info "removing tags: ${tags}"
       return _taggeable.removeTags(tags)
+    }
+  }
+
+  @Override
+  void setTags(Collection<String> tags)
+  {
+    handleException {
+      log.info "setting tags: ${tags}"
+      return _taggeable.setTags(tags)
     }
   }
 

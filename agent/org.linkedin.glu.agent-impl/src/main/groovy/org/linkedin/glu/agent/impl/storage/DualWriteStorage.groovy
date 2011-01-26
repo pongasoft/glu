@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -58,6 +59,22 @@ class DualWriteStorage extends FilteredStorage
     writeOnlyStorage.clearAllStates()
   }
 
+  @Override
+  synchronized AgentProperties saveAgentProperties(AgentProperties agentProperties)
+  {
+    agentProperties = super.saveAgentProperties(agentProperties)
+    writeOnlyStorage.saveAgentProperties(agentProperties)
+    return agentProperties
+  }
+
+  @Override
+  AgentProperties updateAgentProperty(String name, String value)
+  {
+    AgentProperties agentProperties = super.updateAgentProperty(name, value)
+    writeOnlyStorage.saveAgentProperties(agentProperties)
+    return agentProperties
+  }
+
   /**
    * Synchronizes the 2 storages (the source of truth is supposed to be the readWriteStorage).
    */
@@ -68,5 +85,7 @@ class DualWriteStorage extends FilteredStorage
     mountPoints.each { mountPoint ->
       writeOnlyStorage.storeState(mountPoint, loadState(mountPoint))
     }
+
+    writeOnlyStorage.saveAgentProperties(loadAgentProperties())
   }
 }

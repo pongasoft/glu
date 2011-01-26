@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,52 +18,59 @@
 
 package org.linkedin.glu.agent.impl.zookeeper
 
-import org.linkedin.glu.agent.impl.storage.Storage
-import org.linkedin.glu.agent.api.MountPoint
-
 import org.apache.zookeeper.CreateMode
-import org.apache.zookeeper.ZooDefs.Ids
-import org.linkedin.glu.agent.api.NoSuchMountPointException
-import org.json.JSONObject
 import org.apache.zookeeper.KeeperException
-import org.linkedin.zookeeper.client.IZKClient
-import org.linkedin.util.lang.LangUtils
+import org.apache.zookeeper.ZooDefs.Ids
+import org.linkedin.glu.agent.api.MountPoint
+import org.linkedin.glu.agent.impl.storage.WriteOnlyStorage
 import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.util.lang.LangUtils
+import org.linkedin.zookeeper.client.IZKClient
+import org.linkedin.glu.agent.impl.storage.AgentProperties
 
 /**
  * Implementation of the storage using zookeeper.
  *
  * @author ypujante@linkedin.com
  */
-class ZooKeeperStorage implements Storage
+class ZooKeeperStorage implements WriteOnlyStorage
 {
   public static final String MODULE = ZooKeeperStorage.class.getName();
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
   private static def ACLs = Ids.OPEN_ACL_UNSAFE
 
-  private final IZKClient _zk
+  private final IZKClient _zkState
+  private final IZKClient _zkAgentProperties
 
-  ZooKeeperStorage(IZKClient zookeeper)
+  String prefix = 'glu'
+
+  ZooKeeperStorage(IZKClient zkState, IZKClient zkAgentProperties)
   {
-    _zk = zookeeper
+    _zkState = zkState
+    _zkAgentProperties = zkAgentProperties
   }
 
-  IZKClient getZooKeeperClient()
+  IZKClient getZkState()
   {
-    return _zk
+    return _zkState
+  }
+
+  IZKClient getZkAgentProperties()
+  {
+    return _zkAgentProperties
   }
 
   /**
    * Make sure that a call to ZooKeeper happens only when zookeeper is connected and if an exception
    * is thrown, it gets logged but ignored. 
    */
-  private def zkSafe(Closure closure)
+  private def zkSafe(IZKClient zk, Closure closure)
   {
     try
     {
-      if(_zk.isConnected())
-        return closure()
+      if(zk.isConnected())
+        return closure(zk)
     }
     catch(KeeperException.ConnectionLossException e)
     {
@@ -82,10 +90,10 @@ class ZooKeeperStorage implements Storage
 
   public void clearState(MountPoint mountPoint)
   {
-    zkSafe {
+    zkSafe(_zkState) { IZKClient zk ->
       try
       {
-        _zk.delete(toPath(mountPoint))
+        zk.delete(toPath(mountPoint))
       }
       catch (KeeperException.NoNodeException e)
       {
@@ -97,51 +105,37 @@ class ZooKeeperStorage implements Storage
     }
   }
 
-  private boolean hasState(mountPoint)
-  {
-    return _zk.exists(toPath(mountPoint)) != null
-  }
-
   public getMountPoints()
   {
-    def mountPoints = []
+    zkSafe(_zkState) {  IZKClient zk ->
+      def mountPoints = []
 
-    if(_zk.exists('/'))
-    {
-      _zk.getChildren('/').each { child ->
-        mountPoints << fromPath(child)
+      if(zk.exists('/'))
+      {
+        zk.getChildren('/').each { child ->
+          mountPoints << fromPath(child)
+        }
       }
-    }
 
-    return mountPoints
+      return mountPoints
+    }
   }
 
   public void clearAllStates()
   {
-    if(_zk.exists('/'))
-    {
-      _zk.getChildren('/').each { child ->
-        _zk.delete("/${child}") 
+    zkSafe(_zkState) {  IZKClient zk ->
+      if(zk.exists('/'))
+      {
+        zk.getChildren('/').each { child ->
+          zk.delete("/${child}")
+        }
       }
-    }
-  }
-
-  public loadState(MountPoint mountPoint)
-  {
-    try
-    {
-      def data = _zk.getStringData(toPath(mountPoint))
-      return JsonUtils.toMap(new JSONObject(data))
-    }
-    catch(KeeperException.NoNodeException e)
-    {
-      throw new NoSuchMountPointException(mountPoint)
     }
   }
 
   public void storeState(MountPoint mountPoint, state)
   {
-    zkSafe {
+    zkSafe(_zkState) {  IZKClient zk ->
       // modifying the state so making a copy
       state = LangUtils.deepClone(state)
 
@@ -155,11 +149,39 @@ class ZooKeeperStorage implements Storage
 
       state = JsonUtils.toJSON(state)
 
-      _zk.createOrSetWithParents(toPath(mountPoint),
-                                 state.toString(),
-                                 ACLs,
-                                 CreateMode.PERSISTENT)
+      zk.createOrSetWithParents(toPath(mountPoint),
+                                state.toString(),
+                                ACLs,
+                                CreateMode.PERSISTENT)
     }
+  }
+
+  @Override
+  AgentProperties saveAgentProperties(AgentProperties agentProperties)
+  {
+    Map<String, String> props = agentProperties.exposedProperties
+
+    // we filter out the properties
+    props = props.findAll { k, v ->
+      k.startsWith(prefix) || k.startsWith('java.vm')
+    }
+
+    log.info "Creating/Updating agent ephemeral node: ${new TreeMap(props)}"
+
+    zkSafe(_zkAgentProperties) { IZKClient zk ->
+      zk.createOrSetWithParents('/',
+                                JsonUtils.toJSON(props).toString(),
+                                Ids.OPEN_ACL_UNSAFE,
+                                CreateMode.EPHEMERAL)
+    }
+
+    return agentProperties
+  }
+
+  @Override
+  AgentProperties updateAgentProperty(String name, String value)
+  {
+    throw new UnsupportedOperationException("not supported in this class")
   }
 
   private def extractStackTrace(exception, out)

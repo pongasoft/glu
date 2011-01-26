@@ -217,4 +217,10 @@ public class AgentMock implements Agent
     log << "removeTag(${tags})"
     return null
   }
+
+  @Override
+  void setTags(Collection<String> tags)
+  {
+    log << "setTags(${tags})"
+  }
 }

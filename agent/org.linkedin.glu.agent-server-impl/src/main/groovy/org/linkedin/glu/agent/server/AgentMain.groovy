@@ -64,6 +64,8 @@ import org.restlet.data.Protocol
 import org.restlet.routing.Template
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.agent.rest.resources.TagsResource
+import org.linkedin.glu.agent.impl.storage.AgentProperties
+import org.linkedin.glu.agent.impl.storage.TagsStorage
 
 /**
  * This is the main class to start the agent.
@@ -101,7 +103,7 @@ class AgentMain implements LifecycleListener
   protected Closure hostnameFactory
 
   protected def _config
-  protected Map _agentProperties = Collections.synchronizedMap(new LinkedHashMap())
+  protected AgentProperties _agentProperties
 
   protected File _agentTempDir
   protected String _agentName
@@ -111,6 +113,7 @@ class AgentMain implements LifecycleListener
   protected AgentImpl _agent
   protected def _restServer
   protected DualWriteStorage _dwStorage = null
+  protected Storage _storage = null
 
   protected final Object _lock = new Object()
   protected volatile boolean _receivedShutdown = false
@@ -140,8 +143,8 @@ class AgentMain implements LifecycleListener
 
     // determine the host name of the agent
     def hf = Config.getOptionalString(config,
-                                          "${prefix}.agent.hostnameFactory",
-                                          ':ip')
+                                      "${prefix}.agent.hostnameFactory",
+                                      ':ip')
 
     switch(hf)
     {
@@ -198,11 +201,7 @@ class AgentMain implements LifecycleListener
     setOptionalProperty(config, "${prefix}.agent.sslEnabled", "true")
     setOptionalProperty(config, "${prefix}.agent.rest.server.defaultThreads", '3')
 
-    _agentProperties.putAll(config.groupBy { k,v ->
-      k.toLowerCase().contains('password') ? 'passwordKeys' : 'nonPasswordKeys'
-    }.nonPasswordKeys)
-
-    _agentProperties.remove('line.separator')
+    _agentProperties = new AgentProperties(config)
 
     _sigar = createSigar()
 
@@ -212,11 +211,11 @@ class AgentMain implements LifecycleListener
       _agentProperties["${prefix}.agent.pid".toString()] = _pid
     }
 
-    savePersistentProperties(config)
-
-    log.info("Starting the agent with config: ${_agentProperties}")
+    savePersistentProperties(config, _agentProperties)
 
     _config = config
+
+    log.info("Starting the agent with config: ${new TreeMap(_agentProperties.exposedProperties)}")
   }
 
   /**
@@ -263,23 +262,22 @@ class AgentMain implements LifecycleListener
     if(persistentPropertiesFilename == null)
       return null
 
+    AgentProperties agentProperties = new AgentProperties()
+
     File ppf = new File(persistentPropertiesFilename)
 
-    if(ppf.exists())
-    {
-      Properties persistentProperties = new Properties()
-      ppf.withReader { Reader reader -> persistentProperties.load(reader) }
-      persistentProperties.each { k,v ->
-        // a persistent property is added to config iff it is not already there
-        if(!config.containsKey(k))
-          config[k] = v
-      }
+    agentProperties.load(ppf)
+
+    agentProperties.persistentProperties.each { k,v ->
+      // a persistent property is added to config iff it is not already there
+      if(!config.containsKey(k))
+        config[k] = v
     }
 
     return ppf
   }
 
-  File savePersistentProperties(Properties config)
+  File savePersistentProperties(Properties config, AgentProperties agentProperties)
   {
     String persistentPropertiesFilename =
       Config.getOptionalString(config, "${prefix}.agent.persistent.properties", null)
@@ -289,11 +287,7 @@ class AgentMain implements LifecycleListener
 
     File ppf = new File(persistentPropertiesFilename)
 
-    GroovyIOUtils.safeOverwrite(ppf) { File file ->
-      file.withWriter { Writer writer ->
-        config.store(writer, null)
-      }
-    }
+    agentProperties.save(ppf)
 
     return ppf
   }
@@ -402,6 +396,9 @@ class AgentMain implements LifecycleListener
     _shutdown = new Shutdown()
     _agent = new AgentImpl()
     _agentTempDir = GroovyIOUtils.toFile(Config.getRequiredString(_config, "${prefix}.agent.tempDir"))
+    _storage =  createStorage()
+
+    TagsStorage tagsStorage = new TagsStorage(_storage, "${prefix}.agent.tags".toString())
 
     def rootShell = createRootShell()
 
@@ -410,9 +407,10 @@ class AgentMain implements LifecycleListener
       rootShell: rootShell,
       shellForScripts: createShell(rootShell, "${prefix}.agent.scriptRootDir"),
       agentLogDir: rootShell.toResource(Config.getRequiredString(_config, "${prefix}.agent.logDir")),
-      storage: createStorage(),
+      storage: _storage,
       sigar: _sigar,
-      sync: _zkSync
+      sync: _zkSync,
+      taggeable: tagsStorage
     ]
 
     _agent.boot(agentArgs)
@@ -575,7 +573,7 @@ class AgentMain implements LifecycleListener
 
     def fileSystem = new FileSystemImpl(new File('/'), _agentTempDir)
     return new ShellImpl(fileSystem: fileSystem,
-                         env: Collections.unmodifiableMap(_agentProperties))
+                         agentProperties: _agentProperties)
   }
 
   protected Storage createStorage()
@@ -585,7 +583,9 @@ class AgentMain implements LifecycleListener
                                                                        "${prefix}.agent.scriptStateDir")),
                          _agentTempDir)
     
-    Storage storage = new FileSystemStorage(fileSystem)
+    Storage storage = new FileSystemStorage(fileSystem,
+                                            _agentProperties,
+                                            _persistentPropertiesFile)
 
     Storage zkStorage = createZooKeeperStorage()
 
@@ -645,30 +645,15 @@ class AgentMain implements LifecycleListener
     {
       synchronized(_zkClient)
       {
-        // register an (ephemeral) entry in zookeeper: when the agent dies, it will automatically
-        // be removed
-        def enode = computeAgentEphemeralPath()
-
         // we recompute the hostname
         try
         {
-          _agentProperties["${prefix}.agent.hostname".toString()] = hostnameFactory()
+          _storage.updateAgentProperty("${prefix}.agent.hostname".toString(), hostnameFactory())
         }
         catch(Throwable th)
         {
           log.warn("could not recompute the hostname... ignored", th)
         }
-
-        // we filter out the properties
-        def props = _agentProperties.findAll { k, v ->
-          k.startsWith(prefix) || k.startsWith('java.vm')
-        }
-
-        log.info("Registering zk ephemeral node ${enode}")
-        _zkClient.createOrSetWithParents(enode,
-                                         JsonUtils.toJSON(props).toString(),
-                                         Ids.OPEN_ACL_UNSAFE,
-                                         CreateMode.EPHEMERAL)
 
         log.info("Syncing filesystem <=> ZooKeeper")
         _dwStorage.sync()
@@ -691,7 +676,11 @@ class AgentMain implements LifecycleListener
   {
     if(_zkClient)
     {
-      return new ZooKeeperStorage(_zkClient.chroot(computeZooKeeperStoragePath()))
+      ZooKeeperStorage storage = new ZooKeeperStorage(_zkClient.chroot(computeZooKeeperStoragePath()),
+                                                      _zkClient.chroot(computeAgentEphemeralPath()))
+      storage.prefix = prefix
+      
+      return storage
     }
 
     return null

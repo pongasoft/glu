@@ -41,6 +41,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 import org.apache.tools.ant.filters.ReplaceTokens.Token
 import org.linkedin.util.io.resource.Resource
 import javax.management.Attribute
+import org.linkedin.glu.agent.impl.storage.AgentProperties
 
 /**
  * contains the utility methods for the shell
@@ -64,8 +65,8 @@ def class ShellImpl implements Shell
   // will delegate all the calls to fileSystem
   @Delegate FileSystem fileSystem
 
-  // environment variables
-  def env = [:]
+  // agent properties
+  AgentProperties agentProperties
 
   /**
    * The charset to use for reading/writing files */
@@ -73,7 +74,15 @@ def class ShellImpl implements Shell
 
   Shell newShell(fileSystem)
   {
-    return new ShellImpl(fileSystem: fileSystem, env: env, charset: charset, clock: clock)
+    return new ShellImpl(fileSystem: fileSystem,
+                         agentProperties: agentProperties,
+                         charset: charset,
+                         clock: clock)
+  }
+
+  Map<String, String> getEnv()
+  {
+    return agentProperties?.exposedProperties ?: [:]
   }
 
   def getMimeTypes(file)

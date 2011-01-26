@@ -297,4 +297,15 @@ public interface Agent
    * @return the set of tags that were not present (empty set if they were all already present)
    */
   Set<String> removeTags(Collection<String> tags) throws AgentException
+
+
+  /**
+   * Allow you to set the exact set of tags you want. Equivalent to calling (in an atomic fashion)
+   * <pre>
+   * removeTags(getTags())
+   * addTags(tags)
+   * </pre>
+   * @param tags tags to set
+   */
+  void setTags(Collection<String> tags) throws AgentException;
 }
