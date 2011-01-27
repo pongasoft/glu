@@ -25,7 +25,7 @@ spec = [
       groovy: '1.7.5',
       jetty: '7.2.2.v20101205',
       linkedinUtils: '1.3.0',
-      linkedinZookeeper: '1.2.1',
+      linkedinZookeeper: '1.2.2',
       restlet: '2.0.1',
       sigar: '1.6.4',
       slf4j: '1.5.8' // to be compatible with grails 1.3.5
@@ -67,14 +67,14 @@ spec.external = [
     group: "org.linkedin",
     name: "org.linkedin.zookeeper-cli",
     version: spec.versions.linkedinZookeeper,
-    configuration: "package"
+    packaging: "tgz"
   ],
   linkedinZookeeperImpl: "org.linkedin:org.linkedin.zookeeper-impl:${spec.versions.linkedinZookeeper}",
   linkedinZookeeperServerPackage: [
     group: "org.linkedin",
     name: "org.linkedin.zookeeper-server",
     version: spec.versions.linkedinZookeeper,
-    configuration: "package"
+    packaging: "tgz"
   ],
   log4j: 'log4j:log4j:1.2.16',
   mimeUtil: 'eu.medsea.mimeutil:mime-util:2.1.3',
