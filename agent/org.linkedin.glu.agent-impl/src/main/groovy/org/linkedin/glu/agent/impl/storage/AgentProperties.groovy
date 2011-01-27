@@ -57,6 +57,7 @@ public class AgentProperties
       props.putAll(_persistentProperties.groupBy { k,v ->
         k.toLowerCase().contains('password') ? 'passwordKeys' : 'nonPasswordKeys'
       }.nonPasswordKeys)
+      props.remove('line.separator')
 
       _exposedProperties = Collections.unmodifiableMap(props)
     }

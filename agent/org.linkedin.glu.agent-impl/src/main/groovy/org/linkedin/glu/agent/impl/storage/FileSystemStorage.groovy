@@ -95,7 +95,8 @@ class FileSystemStorage implements Storage
   {
     _agentProperties.load(_agentPropertiesFile)
 
-    log.info "Loading agent properties from ${_agentPropertiesFile}: ${new TreeMap(_agentProperties.persistentProperties)}"
+    if(log.isDebugEnabled())
+      log.debug "Loading agent properties from ${_agentPropertiesFile}: ${new TreeMap(_agentProperties.persistentProperties)}"
 
     return _agentProperties
   }
@@ -106,7 +107,8 @@ class FileSystemStorage implements Storage
     _agentProperties.load(agentProperties)
     _agentProperties.save(_agentPropertiesFile)
 
-    log.info "Saving agent properties to ${_agentPropertiesFile}: ${new TreeMap(_agentProperties.persistentProperties)}"
+    if(log.isDebugEnabled())
+      log.debug"Saving agent properties to ${_agentPropertiesFile}: ${new TreeMap(_agentProperties.persistentProperties)}"
 
     return _agentProperties
   }

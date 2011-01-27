@@ -36,6 +36,7 @@ import org.restlet.representation.Representation
 import org.restlet.resource.ClientResource
 import org.restlet.resource.ResourceException
 import org.restlet.representation.EmptyRepresentation
+import org.json.JSONArray
 
 /**
  * This is the implementation of the {@link Agent} interface using a REST api under the cover
@@ -313,7 +314,7 @@ class AgentRestClient implements Agent
   Set<String> addTags(Collection<String> tags)
   {
     handleResponse(toTagsReference(tags)) { ClientResource client ->
-      client.post(new EmptyRepresentation())
+      client.post(new JsonRepresentation(new JSONArray(tags)))
     } as Set
   }
 
@@ -335,7 +336,7 @@ class AgentRestClient implements Agent
   void setTags(Collection<String> tags)
   {
     handleResponse(toTagsReference(tags)) { ClientResource client ->
-      client.put(new EmptyRepresentation())
+      client.put(new JsonRepresentation(new JSONArray(tags)))
     }
   }
 

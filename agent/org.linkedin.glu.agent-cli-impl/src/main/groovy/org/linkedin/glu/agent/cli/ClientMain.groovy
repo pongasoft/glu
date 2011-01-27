@@ -28,6 +28,7 @@ import org.linkedin.util.lifecycle.Startable
 import org.linkedin.glu.agent.api.AgentException
 import org.linkedin.groovy.util.config.MissingConfigParameterException
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
+import org.linkedin.util.text.StringSplitter
 
 /**
  * Command line to talk to the agent
@@ -38,6 +39,9 @@ class ClientMain implements Startable
 {
   public static final String MODULE = ClientMain.class.getName();
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
+
+  public static final String TAGS_SEPARATOR = ';'
+  public static final StringSplitter STRING_SPLITTER = new StringSplitter(TAGS_SEPARATOR as char)
 
   private final def config
   private final AgentFactory factory
@@ -62,13 +66,16 @@ class ClientMain implements Startable
     withAgent { agent ->
       def mountPoint = Config.getOptionalString(config, 'mountPoint', null)
 
-      def hostActions = ['hostInfo', 'ps', 'kill', 'sync', 'fileContent'].findAll {
+      def hostActions = [
+        'hostInfo', 'ps', 'kill', 'sync', 'fileContent',
+        'tags', 'tag-add', 'tag-set', 'tag-remove'].findAll {
         Config.getOptionalString(config, it, null)
       }
 
       if(hostActions)
       {
         hostActions.each { hostAction ->
+          hostAction = hostAction.replace('-', '_')
           properties."${hostAction}"(agent, config)
         }
 
@@ -95,6 +102,56 @@ class ClientMain implements Startable
       else
         getState(agent, mountPoint)
     }
+  }
+
+  /******************************
+   * tag related calls
+   ******************************/
+  // tags
+  def tags = { Agent agent, config ->
+    def agentTags = agent.getTags()
+    if(!agentTags)
+      println 'no tags'
+    else
+      println agentTags.sort().join(TAGS_SEPARATOR)
+  }
+
+  // tag-add
+  def tag_add = { Agent agent, config ->
+    String tagsToAdd = Config.getRequiredString(config, 'tag-add')
+
+    Set<String> tags =
+      agent.addTags(STRING_SPLITTER.splitAsList(tagsToAdd))
+
+    if(tags)
+    {
+      println "Added ${tagsToAdd} (${tags.sort().join(TAGS_SEPARATOR)} already present)."
+    }
+    else
+      println "Added ${tagsToAdd}"
+  }
+
+  // tag-set
+  def tag_set = { Agent agent, config ->
+    String tagsToSet = Config.getRequiredString(config, 'tag-set')
+
+    agent.setTags(STRING_SPLITTER.splitAsList(tagsToSet))
+
+    println "Set ${tagsToSet}"
+  }
+
+  // tag-remove
+  def tag_remove = { Agent agent, config ->
+    String tagsToRemove = Config.getRequiredString(config, 'tag-remove')
+
+    Set<String> tags = agent.removeTags(STRING_SPLITTER.splitAsList(tagsToRemove))
+
+    if(tags)
+    {
+      println "Removed ${tagsToRemove} (${tags.sort().join(TAGS_SEPARATOR)} already removed)."
+    }
+    else
+      println "Removed ${tagsToRemove}"
   }
 
   // hostInfo
@@ -279,6 +336,10 @@ class ClientMain implements Startable
     def cli = new CliBuilder(usage: './bin/agent-cli.sh [-h] [-f <agentConfigFile>] [-s url] ' +
                                     '[-i scriptLocation] [-c classname] [-x action] [-u] [-a args] ' +
                                     '[-w state] [-t timeout] [-p parentMountPoint] [-m mountPoint]')
+    cli._(longOpt: 'tags', 'list the agent tags', args: 0, required: false)
+    cli._(longOpt: 'tag-add', 'add the given tags', argName: 'tag1;tag2...', args: 1, required: false)
+    cli._(longOpt: 'tag-remove', 'remove the given tags', argName: 'tag1;tag2...', args: 1, required: false)
+    cli._(longOpt: 'tag-set', 'sets the given tags', argName: 'tag1;tag2...', args: 1, required: false)
     cli.a(longOpt: 'args', 'arguments of the script or action (ex: [a:\'12\'])', args:1, required: false)
     cli.c(longOpt: 'installScriptClassname', 'install the script given a class name)', args:1, required: false)
     cli.C(longOpt: 'fileContent', 'retrieves the file content', args:1, required: false)
@@ -365,9 +426,10 @@ class ClientMain implements Startable
     }
 
     cli.options.options.each { option ->
-      def value = options."${option.opt}"
-      if(value != false)
-        properties[option.longOpt] = value
+      if(options.hasOption(option.longOpt))
+      {
+        properties[option.longOpt] = options[option.longOpt]
+      }
     }
 
     if(new URI(properties.url).scheme == 'http')

@@ -66,6 +66,7 @@ import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.agent.rest.resources.TagsResource
 import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.glu.agent.impl.storage.TagsStorage
+import org.linkedin.glu.agent.impl.storage.WriteOnlyStorage
 
 /**
  * This is the main class to start the agent.
@@ -587,7 +588,7 @@ class AgentMain implements LifecycleListener
                                             _agentProperties,
                                             _persistentPropertiesFile)
 
-    Storage zkStorage = createZooKeeperStorage()
+    WriteOnlyStorage zkStorage = createZooKeeperStorage()
 
     if(zkStorage)
     {

@@ -166,7 +166,8 @@ class ZooKeeperStorage implements WriteOnlyStorage
       k.startsWith(prefix) || k.startsWith('java.vm')
     }
 
-    log.info "Creating/Updating agent ephemeral node: ${new TreeMap(props)}"
+    if(log.isDebugEnabled())
+      log.debug "Creating/Updating agent ephemeral node: ${new TreeMap(props)}"
 
     zkSafe(_zkAgentProperties) { IZKClient zk ->
       zk.createOrSetWithParents('/',

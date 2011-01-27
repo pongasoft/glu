@@ -27,13 +27,14 @@
 usage() 
 {
   echo ""
-  echo "   Usage:  agentctl.sh [-hdkr] [-z server:port] [-f fabric] [-n agentName] [-c :ip|:canonical|<hostname>] start|stop|status|pid"
+  echo "   Usage:  agentctl.sh [-hdkr] [-z server:port] [-f fabric] [-n agentName] [-c :ip|:canonical|<hostname>] [-t tag1;tag2;...] start|stop|status|pid"
   echo ""    
   echo "     -h : usage help"
   echo "     -d : debugging options on"
   echo "     -f : the fabric to assign this agent to"
   echo "     -k : force kill the process (kill -9)"
   echo "     -n : the agent name (default to canonical host name)"
+  echo "     -t : the agent tags"
   echo "     -c : how to compute the hostname either ':ip' or ':canonical'. Any other value is treated as the hostname to use (default to ':ip')."
   echo "     -r : run in foreground (Ctl-C to stop)"
   echo "     -z : Zookeeper server:port comma-delimited list"
@@ -249,7 +250,7 @@ fi
 GC_LOG=$LOG_DIR/gc.log
 
 # get script options
-while getopts "dhkprz:n:f:c:" opt ; do
+while getopts "dhkprz:n:t:f:c:" opt ; do
   case $opt in
     d  ) OPT_DEBUG=true
          ;;
@@ -265,6 +266,9 @@ while getopts "dhkprz:n:f:c:" opt ; do
          ;;
     n  )
          GLU_AGENT_NAME=$OPTARG
+         ;;
+    t  )
+         GLU_AGENT_TAGS=$OPTARG
          ;;
     c  )
          GLU_AGENT_HOSTNAME_FACTORY=$OPTARG
