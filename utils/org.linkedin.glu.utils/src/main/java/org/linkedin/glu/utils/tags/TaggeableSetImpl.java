@@ -17,35 +17,38 @@
 package org.linkedin.glu.utils.tags;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
  * @author yan@pongasoft.com
  */
-public class TaggeableImpl implements Taggeable
+public abstract class TaggeableSetImpl implements Taggeable
 {
   /**
    * YP implementation note: for fast access, this set will never be synchronized as
    * it will never be modified! It will be replaced when it changes, hence the volatile keyword
    */
-  private volatile Set<String> _tags = new HashSet<String>();
+  private volatile Set<String> _tags;
 
   /**
    * Constructor
    */
-  public TaggeableImpl()
+  public TaggeableSetImpl()
   {
+    _tags = createEmptySet();
   }
 
+  protected abstract Set<String> createEmptySet();
+  protected abstract Set<String> createSet(Collection<String> tags);
+
   @Override
-  public int getSize()
+  public int getTagsCount()
   {
     return _tags.size();
   }
 
   @Override
-  public boolean isEmpty()
+  public boolean hasTags()
   {
     return _tags.isEmpty();
   }
@@ -53,9 +56,9 @@ public class TaggeableImpl implements Taggeable
   /**
    * Constructor
    */
-  public TaggeableImpl(Collection<String> tags)
+  public TaggeableSetImpl(Collection<String> tags)
   {
-    _tags.addAll(tags);
+    _tags = createSet(tags);
   }
 
   @Override
@@ -98,7 +101,7 @@ public class TaggeableImpl implements Taggeable
       if(_tags.contains(tag))
         return false;
 
-      Set<String> newTags = new HashSet<String>(_tags);
+      Set<String> newTags = createSet(_tags);
       newTags.add(tag);
       _tags = newTags;
 
@@ -109,11 +112,11 @@ public class TaggeableImpl implements Taggeable
   @Override
   public Set<String> addTags(Collection<String> tags)
   {
-    Set<String> res = new HashSet<String>();
+    Set<String> res = createEmptySet();
 
     synchronized(this)
     {
-      Set<String> newTags = new HashSet<String>(_tags);
+      Set<String> newTags = createSet(_tags);
 
       for(String tag : tags)
       {
@@ -135,7 +138,7 @@ public class TaggeableImpl implements Taggeable
       if(!_tags.contains(tag))
         return false;
 
-      Set<String> newTags = new HashSet<String>(_tags);
+      Set<String> newTags = createSet(_tags);
       newTags.remove(tag);
       _tags = newTags;
 
@@ -146,11 +149,11 @@ public class TaggeableImpl implements Taggeable
   @Override
   public Set<String> removeTags(Collection<String> tags)
   {
-    Set<String> res = new HashSet<String>();
+    Set<String> res = createEmptySet();
 
     synchronized(this)
     {
-      Set<String> newTags = new HashSet<String>(_tags);
+      Set<String> newTags = createSet(_tags);
 
       for(String tag : tags)
       {
@@ -169,7 +172,26 @@ public class TaggeableImpl implements Taggeable
   {
     synchronized(this)
     {
-      _tags = new HashSet<String>(tags);
+      _tags = createSet(tags);
     }
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if(this == o) return true;
+    if(!(o instanceof TaggeableSetImpl)) return false;
+
+    TaggeableSetImpl taggeable = (TaggeableSetImpl) o;
+
+    if(!_tags.equals(taggeable._tags)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode()
+  {
+    return _tags.hashCode();
   }
 }

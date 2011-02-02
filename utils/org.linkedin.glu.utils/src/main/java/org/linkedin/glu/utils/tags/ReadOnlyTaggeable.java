@@ -26,15 +26,17 @@ import java.util.Set;
  * @author yan@pongasoft.com */
 public interface ReadOnlyTaggeable
 {
+  public static final ReadOnlyTaggeable EMPTY = new TaggeableHashSetImpl();
+  
   /**
    * @return the number of tags
    */
-  int getSize();
+  int getTagsCount();
 
   /**
    * @return <code>true</code> if there are no tags
    */
-  boolean isEmpty();
+  boolean hasTags();
 
   /**
    * @return the set of all tags

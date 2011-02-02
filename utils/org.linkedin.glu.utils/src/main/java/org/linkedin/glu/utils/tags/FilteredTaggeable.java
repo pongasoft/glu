@@ -40,15 +40,15 @@ public class FilteredTaggeable implements Taggeable
   }
 
   @Override
-  public int getSize()
+  public int getTagsCount()
   {
-    return _taggeable.getSize();
+    return _taggeable.getTagsCount();
   }
 
   @Override
-  public boolean isEmpty()
+  public boolean hasTags()
   {
-    return _taggeable.isEmpty();
+    return _taggeable.hasTags();
   }
 
   @Override

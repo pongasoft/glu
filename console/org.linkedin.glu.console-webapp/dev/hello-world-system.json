@@ -1,4 +1,7 @@
 {
+  "agentTags": {
+    "agent-1": ["a:tag1"]
+  },
   "entries": [
     {
       "agent": "agent-1",
@@ -10,7 +13,8 @@
         "version": "1.0.0"
       },
       "mountPoint": "/m1/i001",
-      "script": "@script.url@"
+      "script": "@script.url@",
+      "tags": ["e:tag1", "e:tag2"]
     },
     {
       "agent": "agent-1",
@@ -22,7 +26,8 @@
         "version": "2.0.0"
       },
       "mountPoint": "/m2/i001",
-      "script": "@script.url@"
+      "script": "@script.url@",
+      "tags": ["e:tag2", "e:tag3"]
     },
     {
       "agent": "agent-1",
@@ -34,7 +39,8 @@
         "version": "1.0.0"
       },
       "mountPoint": "/m3/i001",
-      "script": "@script.url@"
+      "script": "@script.url@",
+      "tags": ["e:tag3", "e:tag4"]
     },
     {
       "agent": "agent-1",
@@ -46,7 +52,8 @@
         "version": "2.0.0"
       },
       "mountPoint": "/m4/i001",
-      "script": "@script.url@"
+      "script": "@script.url@",
+      "tags": ["e:tag4", "e:tag1"]
     }
   ],
   "fabric": "glu-dev-1",

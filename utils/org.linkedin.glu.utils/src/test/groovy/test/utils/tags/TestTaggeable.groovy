@@ -17,7 +17,7 @@
 package test.utils.tags
 
 import org.linkedin.glu.utils.tags.Taggeable
-import org.linkedin.glu.utils.tags.TaggeableImpl
+import org.linkedin.glu.utils.tags.TaggeableHashSetImpl
 
 /**
  * @author yan@pongasoft.com */
@@ -25,11 +25,11 @@ public class TestTaggeable extends GroovyTestCase
 {
   public void testTaggeableImpl()
   {
-    Taggeable taggeable = new TaggeableImpl()
+    Taggeable taggeable = new TaggeableHashSetImpl()
 
     // empty
-    assertTrue(taggeable.isEmpty())
-    assertEquals(0, taggeable.size)
+    assertTrue(taggeable.hasTags())
+    assertEquals(0, taggeable.tagsCount)
     assertFalse(taggeable.hasTag('fruit'))
     assertFalse(taggeable.hasTag('vegetable'))
     assertFalse(taggeable.hasTag('rock'))
@@ -38,8 +38,8 @@ public class TestTaggeable extends GroovyTestCase
 
     // + fruit
     assertTrue(taggeable.addTag('fruit'))
-    assertFalse(taggeable.isEmpty())
-    assertEquals(1, taggeable.size)
+    assertFalse(taggeable.hasTags())
+    assertEquals(1, taggeable.tagsCount)
     assertTrue(taggeable.hasTag('fruit'))
     assertFalse(taggeable.hasTag('vegetable'))
     assertFalse(taggeable.hasTag('rock'))
@@ -48,8 +48,8 @@ public class TestTaggeable extends GroovyTestCase
 
     // adding fruit again should not have any impact
     assertFalse(taggeable.addTag('fruit'))
-    assertFalse(taggeable.isEmpty())
-    assertEquals(1, taggeable.size)
+    assertFalse(taggeable.hasTags())
+    assertEquals(1, taggeable.tagsCount)
     assertTrue(taggeable.hasTag('fruit'))
     assertFalse(taggeable.hasTag('vegetable'))
     assertFalse(taggeable.hasTag('rock'))
@@ -58,8 +58,8 @@ public class TestTaggeable extends GroovyTestCase
 
     // + vegetable
     assertEquals(['fruit'] as Set, taggeable.addTags(['vegetable', 'fruit']))
-    assertFalse(taggeable.isEmpty())
-    assertEquals(2, taggeable.size)
+    assertFalse(taggeable.hasTags())
+    assertEquals(2, taggeable.tagsCount)
     assertTrue(taggeable.hasTag('fruit'))
     assertTrue(taggeable.hasTag('vegetable'))
     assertFalse(taggeable.hasTag('rock'))
@@ -69,8 +69,8 @@ public class TestTaggeable extends GroovyTestCase
 
     // - fruit
     assertEquals(['rock'] as Set, taggeable.removeTags(['fruit', 'rock']))
-    assertFalse(taggeable.isEmpty())
-    assertEquals(1, taggeable.size)
+    assertFalse(taggeable.hasTags())
+    assertEquals(1, taggeable.tagsCount)
     assertFalse(taggeable.hasTag('fruit'))
     assertTrue(taggeable.hasTag('vegetable'))
     assertFalse(taggeable.hasTag('rock'))

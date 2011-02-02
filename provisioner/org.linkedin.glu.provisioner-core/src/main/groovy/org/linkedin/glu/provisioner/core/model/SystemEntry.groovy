@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,16 +19,19 @@ package org.linkedin.glu.provisioner.core.model
 
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
+import org.linkedin.glu.utils.tags.ReadOnlyTaggeable
 
 /**
  * @author ypujante@linkedin.com */
-class SystemEntry
+class SystemEntry implements ReadOnlyTaggeable
 {
   String agent
   String mountPoint
   def script
   def initParameters = [:]
   def metadata = [:]
+  ReadOnlyTaggeable entryTags = ReadOnlyTaggeable.EMPTY
 
   String getKey()
   {
@@ -41,8 +45,50 @@ class SystemEntry
         mountPoint: mountPoint,
         script: script,
         initParameters: initParameters,
-        metadata: metadata
+        metadata: metadata,
+        tags: tags
     ]
+  }
+
+  @Override
+  int getTagsCount()
+  {
+    return entryTags.tagsCount
+  }
+
+  @Override
+  boolean hasTags()
+  {
+    return entryTags.hasTags()
+  }
+
+  @Override
+  Set<String> getTags()
+  {
+    return entryTags.getTags()
+  }
+
+  @Override
+  boolean hasTag(String tag)
+  {
+    return entryTags.hasTag(tag)
+  }
+
+  @Override
+  boolean hasAllTags(Collection<String> tags)
+  {
+    return entryTags.hasAllTags(tags)
+  }
+
+  @Override
+  boolean hasAnyTag(Collection<String> tags)
+  {
+    return entryTags.hasAnyTag(tags)
+  }
+
+  void setTags(Collection<String> tags)
+  {
+    entryTags = new TaggeableTreeSetImpl(tags)
   }
 
   /**
@@ -59,7 +105,9 @@ class SystemEntry
    */
   Map flatten(Map destMap)
   {
-    GroovyCollectionsUtils.flatten(toExternalRepresentation(), destMap)
+    def er = toExternalRepresentation()
+    er.remove('tags')
+    GroovyCollectionsUtils.flatten(er, destMap)
     destMap.key = key
     return destMap
   }
@@ -82,6 +130,7 @@ class SystemEntry
     if(metadata != that.metadata) return false;
     if(mountPoint != that.mountPoint) return false;
     if(script != that.script) return false;
+    if(entryTags != that.entryTags) return false;
 
     return true;
   }
@@ -95,6 +144,7 @@ class SystemEntry
     result = 31 * result + (script != null ? script.hashCode() : 0);
     result = 31 * result + (initParameters != null ? initParameters.hashCode() : 0);
     result = 31 * result + (metadata != null ? metadata.hashCode() : 0);
+    result = 31 * result + (entryTags != null ? metadata.hashCode() : 0);
     return result;
   }
 

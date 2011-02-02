@@ -582,7 +582,7 @@ gc: 1000
       assertTrue(arc.hasAllTags(['fruit', 'vegetable']))
       assertFalse(arc.hasAllTags(['fruit', 'vegetable', 'rock']))
       assertTrue(arc.hasAnyTag(['fruit', 'vegetable']))
-      assertTrue(agentProperties[APTN] == 'fruit;vegetable' || agentProperties[APTN] == 'vegetable;fruit')
+      assertEquals('fruit;vegetable', agentProperties[APTN])
 
       // - fruit
       assertEquals(['rock'] as Set, arc.removeTags(['fruit', 'rock']))

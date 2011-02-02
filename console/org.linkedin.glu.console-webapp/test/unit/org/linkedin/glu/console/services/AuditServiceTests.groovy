@@ -21,6 +21,7 @@ import grails.test.GrailsUnitTestCase
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
+import org.linkedin.groovy.util.json.JsonUtils
 
 class AuditServiceTests extends GrailsUnitTestCase
 {
@@ -31,7 +32,7 @@ class AuditServiceTests extends GrailsUnitTestCase
     // empty
     def current = []
     def expected = []
-    assertEquals([], doAudit(current, expected, []))
+    assertEquals([], doAudit(current, expected))
 
     // notDeployed
     current = []
@@ -56,7 +57,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected, []))
+                           doAudit(current, expected))
 
     // notDeployed + cluster (GLU-393)
     current = []
@@ -82,7 +83,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected, []))
+                           doAudit(current, expected))
 
     // notRunning
     current = [
@@ -114,7 +115,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected, []))
+                           doAudit(current, expected))
 
     // versionMismatch (wars)
     current = [
@@ -147,7 +148,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w2'
                             ]
                            ],
-                           doAudit(current, expected, []))
+                           doAudit(current, expected))
 
     // versionMismatch (config)
     current = [
@@ -181,7 +182,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected, []))
+                           doAudit(current, expected))
 
     // unexpected
     current = [
@@ -226,7 +227,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected, []))
+                           doAudit(current, expected))
 
     // error
     current = [
@@ -260,7 +261,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected, []))
+                           doAudit(current, expected))
 
     // unknown
     current = [
@@ -286,21 +287,23 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected, []))
+                           doAudit(current, expected))
 
     // ok
     current = [
         [
             agent: 'a1', mountPoint: '/m1', script: 's1',
             initParameters: [wars: 'w1'],
-            metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'running']
+            metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'running'],
+            tags: ['ec:1', 'ec:2']
         ]
     ]
     expected = [
         [
             agent: 'a1', mountPoint: '/m1', script: 's1',
             initParameters: [wars: 'w1'],
-            metadata: [container: 'c1', product: 'p1', version: 'R2']
+            metadata: [container: 'c1', product: 'p1', version: 'R2'],
+            tags: ['ee:1']
         ]
     ]
     assertEqualsIgnoreType([
@@ -315,10 +318,11 @@ class AuditServiceTests extends GrailsUnitTestCase
                             state: 'RUNNING',
                             status: 'running',
                             'metadata.version': 'R2',
-                            'initParameters.wars': 'w1'
+                            'initParameters.wars': 'w1',
+                            tags: ['ec:1', 'ec:2', 'ee:1']
                             ]
                            ],
-                           doAudit(current, expected, []))
+                           doAudit(current, expected))
 
     // ok (with cluster)
     current = [
@@ -351,7 +355,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected, []))
+                           doAudit(current, expected))
 
     // ok (with cluster)
     current = [
@@ -384,7 +388,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected, []))
+                           doAudit(current, expected))
 
     // nothing deployed on the agent at all
     current = [
@@ -400,8 +404,134 @@ class AuditServiceTests extends GrailsUnitTestCase
                             status: 'NA'
                             ]
                            ],
-                           doAudit(current, expected, ['a1']))
+                           doAudit(current, expected) { SystemModel cs, SystemModel es ->
+                             cs.metadata.emptyAgents = ['a1']
+                           })
+
+    // (system) tags
+    current = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            initParameters: [wars: 'w1'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'running'],
+            tags: ['ec:1', 'ec:2']
+        ]
+    ]
+    expected = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            initParameters: [wars: 'w1'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2'],
+            tags: ['ee:1']
+        ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.container': 'c1',
+                            'metadata.currentState': 'running',
+                            key: 'a1:/m1',
+                            agent: 'a1',
+                            mountPoint: '/m1',
+                            'metadata.product': 'p1',
+                            script: 's1',
+                            state: 'RUNNING',
+                            status: 'running',
+                            'metadata.version': 'R2',
+                            'initParameters.wars': 'w1',
+                            tags: ['ec:1', 'ec:2', 'ee:1'],
+                            agentTags: ['a:1', 'a:2']
+                            ]
+                           ],
+                           doAudit(current, expected) { SystemModel cs, SystemModel es ->
+                             cs.addAgentTags('a1', ['a:1'])
+                             es.addAgentTags('a1', ['a:2'])
+                           })
+
+    current = [
+    ]
+    expected = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            initParameters: [wars: 'w1'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2'],
+            tags: ['ee:1']
+        ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.container': 'c1',
+                            key: 'a1:/m1',
+                            agent: 'a1',
+                            mountPoint: '/m1',
+                            'metadata.product': 'p1',
+                            script: 's1',
+                            state: 'ERROR',
+                            status: 'notDeployed',
+                            'metadata.version': 'R2',
+                            'initParameters.wars': 'w1',
+                            tags: ['ee:1'],
+                            agentTags: ['a:1', 'a:2']
+                            ]
+                           ],
+                           doAudit(current, expected) { SystemModel cs, SystemModel es ->
+                             cs.addAgentTags('a1', ['a:1'])
+                             es.addAgentTags('a1', ['a:2'])
+                           })
+
+    current = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            initParameters: [wars: 'w1'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'running'],
+            tags: ['ec:1', 'ec:2']
+        ]
+    ]
+    expected = [
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.container': 'c1',
+                            'metadata.currentState': 'running',
+                            key: 'a1:/m1',
+                            agent: 'a1',
+                            mountPoint: '/m1',
+                            'metadata.product': 'p1',
+                            script: 's1',
+                            state: 'ERROR',
+                            status: 'unexpected',
+                            'metadata.version': 'R2',
+                            'initParameters.wars': 'w1',
+                            tags: ['ec:1', 'ec:2'],
+                            agentTags: ['a:1', 'a:2']
+                            ]
+                           ],
+                           doAudit(current, expected) { SystemModel cs, SystemModel es ->
+                             cs.addAgentTags('a1', ['a:1'])
+                             es.addAgentTags('a1', ['a:2'])
+                           })
+
+    current = [
+    ]
+    expected = [
+    ]
+
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.currentState': 'NA',
+                            agent: 'a1',
+                            state: 'NA',
+                            status: 'NA',
+                            agentTags: ['a:1', 'a:2']
+                            ]
+                           ],
+                           doAudit(current, expected) { SystemModel cs, SystemModel es ->
+                             cs.addAgentTags('a1', ['a:1'])
+                             es.addAgentTags('a1', ['a:2'])
+                             cs.metadata.emptyAgents = ['a1']
+                           })
+
   }
+
 
   // Testing for use case where metadata changes (version in this case)
   // entry | current | expected
@@ -540,14 +670,20 @@ class AuditServiceTests extends GrailsUnitTestCase
     return toSystem(entries)
   }
   
-  private def doAudit(def current, def expected, def emptyAgents)
+  private def doAudit(def current, def expected)
+  {
+    doAudit(current, expected) { SystemModel cs, SystemModel es ->
+      // nothing to do
+    }
+  }
+
+  private def doAudit(def current, def expected, Closure closure)
   {
     SystemModel currentSystem = toSystem(current)
     SystemModel expectedSystem = toSystem(expected)
 
-    if(currentSystem)
-      currentSystem.metadata.emptyAgents = emptyAgents
-    
+    closure(currentSystem, expectedSystem)
+
     return auditService.audit(currentSystem, expectedSystem)
   }
 
@@ -565,6 +701,7 @@ class AuditServiceTests extends GrailsUnitTestCase
    */
   void assertEqualsIgnoreType(o1, o2)
   {
+    assertEquals(JsonUtils.toJSON(o1).toString(2), JsonUtils.toJSON(o2).toString(2))
     assertTrue("expected <${o1}> but was <${o2}>", GroovyCollectionsUtils.compareIgnoreType(o1, o2))
   }
 

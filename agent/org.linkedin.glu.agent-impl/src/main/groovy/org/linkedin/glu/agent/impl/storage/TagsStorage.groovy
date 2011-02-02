@@ -18,8 +18,8 @@ package org.linkedin.glu.agent.impl.storage
 
 import org.linkedin.glu.utils.tags.FilteredTaggeable
 import org.linkedin.glu.utils.tags.Taggeable
-import org.linkedin.glu.utils.tags.TaggeableImpl
 import org.linkedin.util.text.StringSplitter
+import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
 
 /**
  * @author yan@pongasoft.com */
@@ -87,7 +87,7 @@ public class TagsStorage extends FilteredTaggeable
   {
     AgentProperties agentProperties = storage.loadAgentProperties()
     String tags = agentProperties.getExposedProperty(tagsAgentPropertyName)?.toString() ?: ''
-    return new TaggeableImpl(STRING_SPLITTER.splitAsList(tags))
+    return new TaggeableTreeSetImpl(STRING_SPLITTER.splitAsList(tags))
   }
 
 }

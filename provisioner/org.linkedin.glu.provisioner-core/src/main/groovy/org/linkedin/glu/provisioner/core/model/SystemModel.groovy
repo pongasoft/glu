@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,6 +24,10 @@ import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.codec.HexaCodec
 import org.linkedin.util.lang.LangUtils
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
+import org.linkedin.glu.utils.tags.TagIndex
+import org.linkedin.glu.utils.tags.ReadOnlyTaggeable
+import org.linkedin.glu.utils.tags.Taggeable
+import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
 
 /**
  * @author ypujante@linkedin.com  */
@@ -35,6 +40,8 @@ class SystemModel
     new JSONSystemModelSerializer(prettyPrint: 2)
 
   private final Map<String, SystemEntry> _entries = new TreeMap()
+  
+  private Map<String, Taggeable> _agentTags = new TreeMap<String, Taggeable>()
 
   String id
   String fabric
@@ -132,6 +139,38 @@ class SystemModel
       else
         return v.size()
     }
+  }
+
+  /**
+   * Adds the agent tags
+   */
+  void addAgentTags(String agentName, Collection<String> tags)
+  {
+    Taggeable taggeable = _agentTags[agentName]
+    if(!taggeable)
+    {
+      taggeable = new TaggeableTreeSetImpl(tags)
+      _agentTags[agentName] = taggeable
+    }
+    else
+    {
+      taggeable.addTags(tags)
+    }
+  }
+
+  /**
+   * @return the tags of the given agent
+   */
+  ReadOnlyTaggeable getAgentTags(String agentName)
+  {
+    return _agentTags[agentName] ?: ReadOnlyTaggeable.EMPTY
+  }
+  /**
+   * @return all the agent tags
+   */
+  Map<String, ? extends ReadOnlyTaggeable> getAgentTags()
+  {
+    return _agentTags
   }
 
   /**
@@ -238,6 +277,7 @@ class SystemModel
                                         fabric: fabric,
                                         metadata: metadata,
                                         filters: newFilters,
+                                        _agentTags: _agentTags,
                                         _unfilteredModel: _unfilteredModel ?: this)
 
     _entries.values().each { SystemEntry se ->
@@ -309,10 +349,21 @@ class SystemModel
 
   def toExternalRepresentation()
   {
-    return [id: id,
-            fabric: fabric,
-            metadata: metadata,
-            entries: findEntries().collect { it.toExternalRepresentation() }]
+    def map = [
+      id: id,
+      fabric: fabric,
+      metadata: metadata,
+      entries: findEntries().collect { it.toExternalRepresentation() }
+    ]
+
+    if(!_agentTags.isEmpty())
+    {
+      map.agentTags = GroovyCollectionsUtils.collectKey(_agentTags, [:]) { k, v ->
+        v.tags
+      }
+    }
+
+    return map
   }
 
   public SystemModel clone()
@@ -328,6 +379,10 @@ class SystemModel
       return null
 
     SystemModel res = new SystemModel(id: er.id, fabric: er.fabric, metadata: er.metadata)
+
+    er.agentTags?.each { agent, tags ->
+      res.addAgentTags(agent, tags)
+    }
 
     er.entries?.each { res.addEntry(SystemEntry.fromExternalRepresentation(it)) }
 

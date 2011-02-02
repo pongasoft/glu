@@ -254,6 +254,11 @@ class AgentsService
 
     agents.values().each { agent ->
       def agentName = agent.info.agentName
+      def agentTags = agent.info.tags
+      
+      if(agentTags)
+        systemModel.addAgentTags(agentName, agentTags)
+
       if(agent.mountPoints)
       {
         agent.mountPoints.values().each { MountPointInfo mp ->
@@ -269,10 +274,20 @@ class AgentsService
           data?.scriptDefinition?.initParameters?.each { k,v ->
             if(v != null)
             {
-              if(k == 'metadata')
-                se.metadata = v
-              else
-                se.initParameters[k] = v
+              switch(k)
+              {
+                case 'metadata':
+                  se.metadata = v
+                  break
+
+                case 'tags':
+                  se.setTags(v)
+                  break
+
+                default:
+                 se.initParameters[k] = v
+                 break
+              }
             }
           }
 
@@ -384,6 +399,7 @@ class AgentsService
     metadata.remove('transitionState')
     metadata.remove('modifiedTime')
     args.props.metadata = metadata
+    args.props.tags = se.tags
 
     if(args.state == null || availableStates.contains(args.state))
       return new Installation(args)

@@ -37,7 +37,7 @@ import org.linkedin.util.io.resource.Resource
 import org.linkedin.util.clock.Timespan
 import org.linkedin.glu.agent.api.TimeOutException
 import org.linkedin.glu.utils.tags.Taggeable
-import org.linkedin.glu.utils.tags.TaggeableImpl
+import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
 
 /**
  * The main implementation of the agent
@@ -89,7 +89,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
       _scriptManager.installRootScript([:])
 
     _sync = args.sync
-    _taggeable = args.taggeable ?: new TaggeableImpl()
+    _taggeable = args.taggeable ?: new TaggeableTreeSetImpl()
   }
 
   def getClock()
@@ -483,7 +483,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   int getTagsCount()
   {
     handleException {
-      return _taggeable.size
+      return _taggeable.tagsCount
     }
   }
 
@@ -491,7 +491,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   boolean hasTags()
   {
     handleException {
-      return !_taggeable.isEmpty()
+      return !_taggeable.hasTags()
     }
   }
 

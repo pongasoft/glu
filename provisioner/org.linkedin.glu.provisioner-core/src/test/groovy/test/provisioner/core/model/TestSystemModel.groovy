@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -34,11 +35,17 @@ class TestSystemModel extends GroovyTestCase
                                   mountPoint: "/m${it}",
                                   script: 's1',
                                   initParameters: [ip1: 'iv1', ip2: ['c1'], ip3: [m1: 'mv1']],
-                                  metadata: [em1: 'ev1']))
+                                  metadata: [em1: 'ev1'],
+                                  tags: ['t1', 't2']))
     }
 
     def serializer = new JSONSystemModelSerializer(prettyPrint: 2)
-    assertEquals(sd, serializer.deserialize(serializer.serialize(sd)))
+    SystemModel computedSystem = serializer.deserialize(serializer.serialize(sd))
+    assertEquals(sd, computedSystem)
+
+    computedSystem.each {
+      assertEquals(['t1', 't2'] as TreeSet, it.tags)
+    }
   }
 
   public void testFilters()
@@ -114,19 +121,22 @@ class TestSystemModel extends GroovyTestCase
                                 mountPoint: "/m/1",
                                 script: 's1',
                                 initParameters: [ip1: 'iv1', ip2: ['c1'], ip3: [m1: 'mv1']],
-                                metadata: [em1: 'ev1']))
+                                metadata: [em1: 'ev1'],
+                                tags: ['t1', 't2']))
 
     sd.addEntry(new SystemEntry(agent: 'h1',
                                 mountPoint: "/m/2",
                                 script: 's2',
                                 initParameters: [ip1: 'iv2'],
-                                metadata: [em1: 'ev2', em2: [eem2: 'eev2']]))
+                                metadata: [em1: 'ev2', em2: [eem2: 'eev2']],
+                                tags: ['t1', 't3']))
 
     sd.addEntry(new SystemEntry(agent: 'h2',
                                 mountPoint: "/m/1",
                                 script: 's3',
                                 initParameters: [ip3: [m1: 'mv1']],
-                                metadata: [em1: 'ev2']))
+                                metadata: [em1: 'ev2'],
+                                tags: ['t3', 't2']))
 
     def expectedStats =
     [

@@ -1,5 +1,4 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
  * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -15,13 +14,35 @@
  * the License.
  */
 
-apply plugin: 'groovy'
-apply plugin: 'org.linkedin.release'
+package org.linkedin.glu.utils.tags;
 
-dependencies {
-  compile project(':utils:org.linkedin.glu.utils')
-  compile spec.external.linkedinUtilsGroovy
-  groovy spec.external.groovy
-  testCompile spec.external.junit
-  testRuntime spec.external.slf4jLog4j
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * @author yan@pongasoft.com
+ */
+public class TaggeableHashSetImpl extends TaggeableSetImpl
+{
+  public TaggeableHashSetImpl()
+  {
+  }
+
+  public TaggeableHashSetImpl(Collection<String> tags)
+  {
+    super(tags);
+  }
+
+  @Override
+  protected Set<String> createEmptySet()
+  {
+    return new HashSet<String>();
+  }
+
+  @Override
+  protected Set<String> createSet(Collection<String> tags)
+  {
+    return new HashSet<String>(tags);
+  }
 }
