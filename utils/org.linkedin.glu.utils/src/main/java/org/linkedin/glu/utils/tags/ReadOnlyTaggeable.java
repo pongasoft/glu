@@ -57,4 +57,16 @@ public interface ReadOnlyTaggeable
    * @return <code>true</code> if at least one of them is present
    */
   boolean hasAnyTag(Collection<String> tags);
+
+  /**
+   * @return a subset of the provided tags containing all the tags that are present in this object.
+   * (intersection)
+   */
+  Set<String> getCommonTags(Collection<String> tags);
+
+  /**
+   * @return a subset of the provided tags containing all the tags that are not present in
+   * this object. (difference)
+   */
+  Set<String> getMissingTags(Collection<String> tags);
 }

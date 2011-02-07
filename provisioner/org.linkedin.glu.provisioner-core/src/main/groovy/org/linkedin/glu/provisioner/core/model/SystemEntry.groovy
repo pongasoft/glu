@@ -86,6 +86,18 @@ class SystemEntry implements ReadOnlyTaggeable
     return entryTags.hasAnyTag(tags)
   }
 
+  @Override
+  Set<String> getCommonTags(Collection<String> tags)
+  {
+    return entryTags.getCommonTags(tags)
+  }
+
+  @Override
+  Set<String> getMissingTags(Collection<String> tags)
+  {
+    return entryTags.getMissingTags(tags)
+  }
+
   void setTags(Collection<String> tags)
   {
     entryTags = new TaggeableTreeSetImpl(tags)

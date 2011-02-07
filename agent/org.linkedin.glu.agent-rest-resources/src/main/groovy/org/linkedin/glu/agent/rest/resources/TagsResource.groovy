@@ -22,16 +22,16 @@ import org.restlet.Request
 import org.restlet.representation.Representation
 import org.restlet.representation.Variant
 import org.linkedin.util.io.PathUtils
-import org.linkedin.util.text.StringSplitter
 import org.restlet.data.Method
 import org.restlet.representation.EmptyRepresentation
 import org.restlet.data.Status
+import org.linkedin.glu.utils.tags.TagsSerializer
 
 /**
  * @author yan@pongasoft.com */
 public class TagsResource extends BaseResource
 {
-  public static final StringSplitter STRING_SPLITTER = new StringSplitter(';' as char)
+  public static final TagsSerializer TAGS_SERIALIZER = TagsSerializer.INSTANCE
 
   TagsResource(Context context, Request request, Response response)
   {
@@ -146,6 +146,6 @@ public class TagsResource extends BaseResource
 
   private Collection<String> getTags()
   {
-    return STRING_SPLITTER.splitAsList(PathUtils.removeLeadingSlash(path) ?: '')
+    return TAGS_SERIALIZER.deserialize(PathUtils.removeLeadingSlash(path) ?: '')
   }
 }

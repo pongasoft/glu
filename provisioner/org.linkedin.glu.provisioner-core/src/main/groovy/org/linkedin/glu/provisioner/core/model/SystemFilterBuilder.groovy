@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +17,8 @@
 
 package org.linkedin.glu.provisioner.core.model
 
+import org.linkedin.glu.utils.tags.TagsSerializer
+
 /**
  * DSL for {@link SystemFilter}.
  *
@@ -24,6 +27,7 @@ package org.linkedin.glu.provisioner.core.model
  * def filter = new SystemFilterBuilder().and {
  *   metadata.product = 'p1' // can use =
  *   initParameters.skeleton == 's1' // or ==
+ *   tags = 't1;t2' // same as tags.hasAny('t1;t2')
  *   not {
  *     or {
  *       agent = 'h1'
@@ -38,6 +42,7 @@ package org.linkedin.glu.provisioner.core.model
  * // as a String (call parse method)
  * """
  *   metadata.product = 'p1' // can use =
+ *   tags = 't1;t2' // same as tags.hasAny('t1;t2')
  *   initParameters.skeleton == 's1' // or ==
  *   not {
  *     or {
@@ -163,15 +168,23 @@ public class SystemFilterBuilder
 
   def propertyMissing(String name)
   {
-    new PropertySystemFilterBuilder(systemFilterBuilder: this, propertyName: name)
+    if(name == 'tags')
+      return new TagsSystemFilterBuilder(systemFilterBuilder: this)
+    else
+      return new PropertySystemFilterBuilder(systemFilterBuilder: this, propertyName: name)
   }
 
   void propertyMissing(String name, def value)
   {
-    addNewFilter(new PropertySystemFilter(name: name, value: value))
+    if(name == 'tags')
+    {
+      new TagsSystemFilterBuilder(systemFilterBuilder: this).hasAll(value)
+    }
+    else
+      addNewFilter(new PropertySystemFilter(name: name, value: value))
   }
 
-  private SystemFilter addNewFilter(SystemFilter newFilter)
+  SystemFilter addNewFilter(SystemFilter newFilter)
   {
     if(filter)
     {
@@ -252,6 +265,64 @@ private class PropertySystemFilterBuilder
   {
     systemFilterBuilder.propertyMissing("${propertyName}".toString(), value)
     return false;
+  }
+}
+
+private class TagsSystemFilterBuilder
+{
+  public static final TagsSerializer TAGS_SERIALIZER = TagsSerializer.INSTANCE
+
+  SystemFilterBuilder systemFilterBuilder
+
+  /**
+   * Handles hasAll(xxx)
+   */
+  void hasAll(def tags)
+  {
+    systemFilterBuilder.addNewFilter(new TagsSystemFilter(toCollection(tags), true))
+  }
+
+  /**
+   * Handles hasAny(xxx)
+   */
+  void hasAny(def tags)
+  {
+    systemFilterBuilder.addNewFilter(new TagsSystemFilter(toCollection(tags), false))
+  }
+
+  /**
+   * Handles notation tags == <tags>
+   */
+  def boolean equals(Object value)
+  {
+    hasAll(value)
+    return false;
+  }
+
+  /**
+   * Converts the tags into a collection: allowed types: <code>String</code>,
+   * <code>Collection</code> or anything that answer to <code>each</code>
+   */
+  Collection<String> toCollection(def tags)
+  {
+    if(tags instanceof Collection)
+      return new TreeSet(tags)
+
+    if(tags instanceof String || tags instanceof GString)
+    {
+      return TAGS_SERIALIZER.deserialize(tags)
+    }
+
+    if(tags.class.metaClass.respondsTo('each'))
+    {
+      Set<String> res = new TreeSet<String>()
+
+      tags.each { tag -> res << tag }
+
+      return res
+    }
+
+    throw new IllegalArgumentException("unsupported type for tags ${tags.class.name}")
   }
 }
 

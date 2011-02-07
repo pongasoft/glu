@@ -28,7 +28,7 @@ import org.linkedin.util.lifecycle.Startable
 import org.linkedin.glu.agent.api.AgentException
 import org.linkedin.groovy.util.config.MissingConfigParameterException
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
-import org.linkedin.util.text.StringSplitter
+import org.linkedin.glu.utils.tags.TagsSerializer
 
 /**
  * Command line to talk to the agent
@@ -40,8 +40,7 @@ class ClientMain implements Startable
   public static final String MODULE = ClientMain.class.getName();
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
-  public static final String TAGS_SEPARATOR = ';'
-  public static final StringSplitter STRING_SPLITTER = new StringSplitter(TAGS_SEPARATOR as char)
+  public static final TagsSerializer TAGS_SERIALIZER = TagsSerializer.INSTANCE
 
   private final def config
   private final AgentFactory factory
@@ -113,7 +112,7 @@ class ClientMain implements Startable
     if(!agentTags)
       println 'no tags'
     else
-      println agentTags.sort().join(TAGS_SEPARATOR)
+      println TAGS_SERIALIZER.serialize(agentTags.sort())
   }
 
   // tag-add
@@ -121,11 +120,11 @@ class ClientMain implements Startable
     String tagsToAdd = Config.getRequiredString(config, 'tag-add')
 
     Set<String> tags =
-      agent.addTags(STRING_SPLITTER.splitAsList(tagsToAdd))
+      agent.addTags(TAGS_SERIALIZER.deserialize(tagsToAdd))
 
     if(tags)
     {
-      println "Added ${tagsToAdd} (${tags.sort().join(TAGS_SEPARATOR)} already present)."
+      println "Added ${tagsToAdd} (${TAGS_SERIALIZER.serialize(tags.sort())} already present)."
     }
     else
       println "Added ${tagsToAdd}"
@@ -135,7 +134,7 @@ class ClientMain implements Startable
   def tag_set = { Agent agent, config ->
     String tagsToSet = Config.getRequiredString(config, 'tag-set')
 
-    agent.setTags(STRING_SPLITTER.splitAsList(tagsToSet))
+    agent.setTags(TAGS_SERIALIZER.deserialize(tagsToSet))
 
     println "Set ${tagsToSet}"
   }
@@ -144,11 +143,11 @@ class ClientMain implements Startable
   def tag_remove = { Agent agent, config ->
     String tagsToRemove = Config.getRequiredString(config, 'tag-remove')
 
-    Set<String> tags = agent.removeTags(STRING_SPLITTER.splitAsList(tagsToRemove))
+    Set<String> tags = agent.removeTags(TAGS_SERIALIZER.deserialize(tagsToRemove))
 
     if(tags)
     {
-      println "Removed ${tagsToRemove} (${tags.sort().join(TAGS_SEPARATOR)} already removed)."
+      println "Removed ${tagsToRemove} (${TAGS_SERIALIZER.serialize(tags.sort())} already removed)."
     }
     else
       println "Removed ${tagsToRemove}"

@@ -24,7 +24,7 @@ import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.codec.HexaCodec
 import org.linkedin.util.lang.LangUtils
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
-import org.linkedin.glu.utils.tags.TagIndex
+
 import org.linkedin.glu.utils.tags.ReadOnlyTaggeable
 import org.linkedin.glu.utils.tags.Taggeable
 import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
@@ -281,7 +281,7 @@ class SystemModel
                                         _unfilteredModel: _unfilteredModel ?: this)
 
     _entries.values().each { SystemEntry se ->
-      if(filter.filter(se))
+      if(filter.filter(this, se))
         model.addEntry(se)
     }
 

@@ -24,31 +24,40 @@ import org.linkedin.glu.provisioner.core.model.SystemFilterBuilder
  * @author ypujante@linkedin.com */
 class TestSystemFilters extends GroovyTestCase
 {
+  SystemModel model
   def entries = []
 
   protected void setUp()
   {
     super.setUp()
 
-    def sd = new SystemModel(fabric: 'f1', metadata: [m1: 'v1'])
+    model= new SystemModel(fabric: 'f1', metadata: [m1: 'v1'])
+
+    model.addAgentTags('h1', ['a:tag1', 'a:tag2'])
+    model.addAgentTags('h2', ['a:tag2', 'a:tag3'])
 
     entries << new SystemEntry(agent: 'h1',
                                mountPoint: "/m/1",
                                script: 's1',
                                initParameters: [ip1: 'iv1', ip2: ['c1'], ip3: [m1: 'mv1']],
-                               metadata: [em1: 'ev1'])
+                               metadata: [em1: 'ev1'],
+                               tags: ['e:tag1', 'e:tag2'])
 
     entries << new SystemEntry(agent: 'h1',
                                mountPoint: "/m/2",
                                script: 's2',
                                initParameters: [ip1: 'iv2'],
-                               metadata: [em1: 'ev2', em2: [eem2: 'eev2']])
+                               metadata: [em1: 'ev2', em2: [eem2: 'eev2']],
+                               tags: ['e:tag1', 'e:tag3'])
 
     entries << new SystemEntry(agent: 'h2',
                                mountPoint: "/m/1",
                                script: 's1',
                                initParameters: [ip3: [m1: 'mv1']],
-                               metadata: [em1: 'ev2'])
+                               metadata: [em1: 'ev2'],
+                               tags: ['e:tag3'])
+
+    entries.each { model.addEntry(it) }
   }
 
 
@@ -118,11 +127,28 @@ class TestSystemFilters extends GroovyTestCase
                  filter.toString())
   }
 
+  public void testTagsFiltering()
+  {
+    // tags testing
+    checkFiltering("tags='e:tag1'", "t(e:tag1)", ["h1:/m/1", "h1:/m/2"])
+
+    checkFiltering("tags='e:tag3;a:tag1'", "t(a:tag1;e:tag3)", ["h1:/m/2"])
+    checkFiltering("tags=='e:tag3;a:tag1'", "t(a:tag1;e:tag3)", ["h1:/m/2"])
+    checkFiltering("tags.hasAll('e:tag3;a:tag1')", "t(a:tag1;e:tag3)", ["h1:/m/2"])
+    checkFiltering("tags.hasAll(['e:tag3', 'a:tag1'])", "t(a:tag1;e:tag3)", ["h1:/m/2"])
+
+    checkFiltering("tags.hasAny('e:tag3;a:tag1')", "t[a:tag1;e:tag3]", ["h1:/m/1", "h1:/m/2", "h2:/m/1"])
+    checkFiltering("tags.hasAny(['e:tag3', 'a:tag1'])", "t[a:tag1;e:tag3]", ["h1:/m/1", "h1:/m/2", "h2:/m/1"])
+  }
+
   private checkFiltering(String filterString, String expectedToString, expectedEntries)
   {
     def filter = SystemFilterBuilder.parse(filterString)
     assertEquals(expectedToString, filter.toString())
-    assertEquals(expectedEntries, entries.findAll { filter.filter(it) }.key)
+
+    SystemModel newModel = model.filterBy(filter)
+    
+    assertEquals(expectedEntries, newModel.findEntries().key)
   }
 
 }

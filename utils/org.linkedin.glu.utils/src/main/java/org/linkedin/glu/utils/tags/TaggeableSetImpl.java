@@ -94,6 +94,38 @@ public abstract class TaggeableSetImpl implements Taggeable
   }
 
   @Override
+  public Set<String> getCommonTags(Collection<String> tags)
+  {
+    Set<String> localTags = _tags;
+
+    Set<String> res = createEmptySet();
+
+    for(String tag : tags)
+    {
+      if(localTags.contains(tag))
+        res.add(tag);
+    }
+
+    return res;
+  }
+
+  @Override
+  public Set<String> getMissingTags(Collection<String> tags)
+  {
+    Set<String> localTags = _tags;
+
+    Set<String> res = createEmptySet();
+
+    for(String tag : tags)
+    {
+      if(!localTags.contains(tag))
+        res.add(tag);
+    }
+
+    return res;
+  }
+
+  @Override
   public boolean addTag(String tag)
   {
     synchronized(this)

@@ -18,15 +18,14 @@ package org.linkedin.glu.agent.impl.storage
 
 import org.linkedin.glu.utils.tags.FilteredTaggeable
 import org.linkedin.glu.utils.tags.Taggeable
-import org.linkedin.util.text.StringSplitter
 import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
+import org.linkedin.glu.utils.tags.TagsSerializer
 
 /**
  * @author yan@pongasoft.com */
 public class TagsStorage extends FilteredTaggeable
 {
-  public static final String TAGS_SEPARATOR = ';'
-  public static final StringSplitter STRING_SPLITTER = new StringSplitter(TAGS_SEPARATOR as char)
+  public static final TagsSerializer TAGS_SERIALIZER = TagsSerializer.INSTANCE
 
   private final WriteOnlyStorage _storage
   private final String _tagsAgentPropertyName
@@ -80,14 +79,14 @@ public class TagsStorage extends FilteredTaggeable
 
   private void saveTags()
   {
-    _storage.updateAgentProperty(_tagsAgentPropertyName, tags.join(TAGS_SEPARATOR))
+    _storage.updateAgentProperty(_tagsAgentPropertyName, TAGS_SERIALIZER.serialize(tags))
   }
 
   private static Taggeable loadTags(Storage storage, String tagsAgentPropertyName)
   {
     AgentProperties agentProperties = storage.loadAgentProperties()
     String tags = agentProperties.getExposedProperty(tagsAgentPropertyName)?.toString() ?: ''
-    return new TaggeableTreeSetImpl(STRING_SPLITTER.splitAsList(tags))
+    return new TaggeableTreeSetImpl(TAGS_SERIALIZER.deserialize(tags))
   }
 
 }

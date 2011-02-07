@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,13 +23,13 @@ package org.linkedin.glu.provisioner.core.model
  * @author ypujante@linkedin.com */
 class LogicOrSystemFilterChain extends LogicSystemFilterChain
 {
-  def boolean filter(SystemEntry entry)
+  def boolean filter(SystemModel model, SystemEntry entry)
   {
     def res = false
 
     filters.each { filter ->
       if(!res)
-        res = filter.filter(entry)
+        res = filter.filter(model, entry)
     }
 
     return res

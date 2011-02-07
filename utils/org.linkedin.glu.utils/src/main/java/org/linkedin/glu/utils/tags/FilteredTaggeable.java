@@ -76,6 +76,18 @@ public class FilteredTaggeable implements Taggeable
   }
 
   @Override
+  public Set<String> getCommonTags(Collection<String> tags)
+  {
+    return _taggeable.getCommonTags(tags);
+  }
+
+  @Override
+  public Set<String> getMissingTags(Collection<String> tags)
+  {
+    return _taggeable.getMissingTags(tags);
+  }
+
+  @Override
   public boolean addTag(String tag)
   {
     return _taggeable.addTag(tag);

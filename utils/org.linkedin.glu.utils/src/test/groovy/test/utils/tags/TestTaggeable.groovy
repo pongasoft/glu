@@ -18,6 +18,9 @@ package test.utils.tags
 
 import org.linkedin.glu.utils.tags.Taggeable
 import org.linkedin.glu.utils.tags.TaggeableHashSetImpl
+import org.linkedin.glu.utils.tags.TagsSerializer
+import org.linkedin.glu.utils.tags.ReadOnlyTaggeable
+import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
 
 /**
  * @author yan@pongasoft.com */
@@ -35,6 +38,8 @@ public class TestTaggeable extends GroovyTestCase
     assertFalse(taggeable.hasTag('rock'))
     assertFalse(taggeable.hasAllTags(['fruit', 'vegetable']))
     assertFalse(taggeable.hasAnyTag(['fruit', 'vegetable']))
+    assertEquals(['fruit', 'vegetable'] as Set, taggeable.getMissingTags(['fruit', 'vegetable']))
+    assertEquals([] as Set, taggeable.getCommonTags(['fruit', 'vegetable']))
 
     // + fruit
     assertTrue(taggeable.addTag('fruit'))
@@ -45,6 +50,8 @@ public class TestTaggeable extends GroovyTestCase
     assertFalse(taggeable.hasTag('rock'))
     assertFalse(taggeable.hasAllTags(['fruit', 'vegetable']))
     assertTrue(taggeable.hasAnyTag(['fruit', 'vegetable']))
+    assertEquals(['vegetable'] as Set, taggeable.getMissingTags(['fruit', 'vegetable']))
+    assertEquals(['fruit'] as Set, taggeable.getCommonTags(['fruit', 'vegetable']))
 
     // adding fruit again should not have any impact
     assertFalse(taggeable.addTag('fruit'))
@@ -55,6 +62,8 @@ public class TestTaggeable extends GroovyTestCase
     assertFalse(taggeable.hasTag('rock'))
     assertFalse(taggeable.hasAllTags(['fruit', 'vegetable']))
     assertTrue(taggeable.hasAnyTag(['fruit', 'vegetable']))
+    assertEquals(['vegetable'] as Set, taggeable.getMissingTags(['fruit', 'vegetable']))
+    assertEquals(['fruit'] as Set, taggeable.getCommonTags(['fruit', 'vegetable']))
 
     // + vegetable
     assertEquals(['fruit'] as Set, taggeable.addTags(['vegetable', 'fruit']))
@@ -66,6 +75,10 @@ public class TestTaggeable extends GroovyTestCase
     assertTrue(taggeable.hasAllTags(['fruit', 'vegetable']))
     assertFalse(taggeable.hasAllTags(['fruit', 'vegetable', 'rock']))
     assertTrue(taggeable.hasAnyTag(['fruit', 'vegetable']))
+    assertEquals(['fruit', 'vegetable'] as Set, taggeable.getCommonTags(['fruit', 'vegetable']))
+    assertEquals(['fruit', 'vegetable'] as Set, taggeable.getCommonTags(['fruit', 'vegetable', 'rock']))
+    assertEquals([] as Set, taggeable.getMissingTags(['fruit', 'vegetable']))
+    assertEquals(['rock'] as Set, taggeable.getMissingTags(['fruit', 'vegetable', 'rock']))
 
     // - fruit
     assertEquals(['rock'] as Set, taggeable.removeTags(['fruit', 'rock']))
@@ -77,5 +90,36 @@ public class TestTaggeable extends GroovyTestCase
     assertFalse(taggeable.hasAllTags(['fruit', 'vegetable']))
     assertFalse(taggeable.hasAllTags(['fruit', 'vegetable', 'rock']))
     assertTrue(taggeable.hasAnyTag(['fruit', 'vegetable']))
+    assertEquals(['vegetable'] as Set, taggeable.getCommonTags(['fruit', 'vegetable']))
+    assertEquals(['vegetable'] as Set, taggeable.getCommonTags(['fruit', 'vegetable', 'rock']))
+    assertEquals(['fruit'] as Set, taggeable.getMissingTags(['fruit', 'vegetable']))
+    assertEquals(['fruit', 'rock'] as Set, taggeable.getMissingTags(['fruit', 'vegetable', 'rock']))
+  }
+
+  public void testSerialization()
+  {
+    TagsSerializer serializer = TagsSerializer.instance()
+
+    // null testing
+    assertNull(serializer.serialize((Collection<String>) null))
+    assertNull(serializer.serialize((ReadOnlyTaggeable) null))
+    assertNull(serializer.deserialize(null))
+
+    // 0 entries
+    assertEquals('', serializer.serialize([]))
+    assertEquals('', serializer.serialize(new TaggeableTreeSetImpl([])))
+    assertEquals([] as Set, serializer.deserialize(''))
+
+    // 1 entry
+    assertEquals('fruit', serializer.serialize(['fruit']))
+    assertEquals('fruit', serializer.serialize(new TaggeableTreeSetImpl(['fruit'])))
+    assertEquals(['fruit'] as Set, serializer.deserialize('fruit'))
+
+    // 2 entries
+    assertEquals('fruit;vegetable', serializer.serialize(['fruit', 'vegetable']))
+    assertEquals('fruit;vegetable', serializer.serialize(new TaggeableTreeSetImpl(['vegetable', 'fruit'])))
+    assertEquals(['fruit', 'vegetable'] as Set, serializer.deserialize('fruit;vegetable'))
+
+
   }
 }
