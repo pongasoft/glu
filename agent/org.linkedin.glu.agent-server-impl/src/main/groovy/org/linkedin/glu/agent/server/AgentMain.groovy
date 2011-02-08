@@ -397,7 +397,9 @@ class AgentMain implements LifecycleListener
     _shutdown = new Shutdown()
     _agent = new AgentImpl()
     _agentTempDir = GroovyIOUtils.toFile(Config.getRequiredString(_config, "${prefix}.agent.tempDir"))
-    _storage =  createStorage()
+    _storage = createStorage()
+
+    _zkClient?.registerListener(this)
 
     TagsStorage tagsStorage = new TagsStorage(_storage, "${prefix}.agent.tags".toString())
 
@@ -594,8 +596,6 @@ class AgentMain implements LifecycleListener
     {
       _dwStorage = new DualWriteStorage(storage, zkStorage)
       storage = _dwStorage
-
-      _zkClient.registerListener(this)
     }
 
     return storage
