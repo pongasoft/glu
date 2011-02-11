@@ -47,15 +47,14 @@ public class TagsSystemFilter implements SystemFilter
   }
 
   @Override
-  boolean filter(SystemModel model, SystemEntry entry)
+  boolean filter(SystemEntry entry)
   {
     if(allTags)
     {
-      Set<String> missingTags = entry.getMissingTags(tags)
-      return (missingTags.isEmpty() || model.getAgentTags(entry.agent).hasAllTags(missingTags))
+      return entry.hasAllTags(tags)
     }
     else
-      return (entry.hasAnyTag(tags) || model.getAgentTags(entry.agent).hasAnyTag(tags))
+      return entry.hasAnyTag(tags)
   }
 
   @Override

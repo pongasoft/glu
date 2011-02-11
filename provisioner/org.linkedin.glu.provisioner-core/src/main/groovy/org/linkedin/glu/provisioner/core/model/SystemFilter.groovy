@@ -32,7 +32,7 @@ interface SystemFilter
    * @return <code>true</code> if the entry should be part of the filter, <code>false</code>
    *         otherwise
    */
-  boolean filter(SystemModel model, SystemEntry entry)
+  boolean filter(SystemEntry entry)
 
   /**
    * @return kind of filter 

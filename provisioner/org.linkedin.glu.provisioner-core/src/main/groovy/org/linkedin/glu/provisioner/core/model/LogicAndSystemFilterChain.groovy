@@ -23,13 +23,13 @@ package org.linkedin.glu.provisioner.core.model
  * @author ypujante@linkedin.com */
 class LogicAndSystemFilterChain extends LogicSystemFilterChain
 {
-  def boolean filter(SystemModel model, SystemEntry entry)
+  def boolean filter(SystemEntry entry)
   {
     def res = true
 
     filters.each { filter ->
       if(res)
-        res = filter.filter(model, entry)
+        res = filter.filter(entry)
     }
 
     return res

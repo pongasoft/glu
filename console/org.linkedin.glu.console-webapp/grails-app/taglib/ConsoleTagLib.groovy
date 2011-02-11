@@ -127,17 +127,31 @@ public class ConsoleTagLib
 
     def value = detail[columnName]
 
-    if(value instanceof Collection)
+    switch(columnName)
     {
-      if(value.size() == 1)
-      {
-        value = value[0]
-      }
-      else
-      {
-        out << "<div class=\"count\">${value.size()}</div>"
+      case 'tags':
+        out << renderTags(tags: value,
+                          linkFilter: columns[columnName].linkFilter)
         return
-      }
+
+      case 'tag':
+        out << renderTags(tags: value,
+                          linkFilter: columns[columnName].linkFilter)
+        return
+
+      default:
+        if(value instanceof Collection)
+        {
+          if(value.size() == 1)
+          {
+            value = value.iterator().next()
+          }
+          else
+          {
+            out << "<div class=\"count\">${value.size()}</div>"
+            return
+          }
+        }
     }
 
     if(value == null)
@@ -199,6 +213,38 @@ public class ConsoleTagLib
   }
 
   /**
+   * Tag rendering.
+   */
+  def renderTags = { args ->
+    def tags = args.tags
+    def linkFilter = args.linkFilter
+
+    if(tags)
+    {
+      if(!(tags instanceof Collection))
+        tags = [tags]
+      
+      out << "<ul class=\"tags ${linkFilter ? 'with-links': 'no-links'}\">"
+      tags.each { String tag ->
+        out << "<li class=\"tag\" style=\"background: #ffee88;\">"
+        if(linkFilter)
+        {
+          out << cl.linkToSystemFilter(name: 'tags',
+                                       groupBy: 'tag',
+                                       value: tag,
+                                       displayName: 'tags') {
+            out << tag
+          }
+        }
+        else
+         out << tag
+        out << "</li>"
+      }
+      out << "</ul>"
+    }
+  }
+
+  /**
    * Create a link to the system filter page
    */
   def linkToSystemFilter = { args, body ->
@@ -212,7 +258,7 @@ public class ConsoleTagLib
                   params: [
                     systemFilter: "${name}='${value}'",
                     title: title,
-                    groupBy: name,
+                    groupBy: groupBy,
                     ]) {
       out << body()
     }

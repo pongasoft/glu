@@ -116,42 +116,52 @@ class TestSystemModel extends GroovyTestCase
   public void testStats()
   {
     def sd = new SystemModel(fabric: 'f1', metadata: [m1: 'v1'])
+    sd.addAgentTags('h1', ['a:t1', 'a:t2'])
+    sd.addAgentTags('h2', ['a:t3'])
 
     sd.addEntry(new SystemEntry(agent: 'h1',
                                 mountPoint: "/m/1",
                                 script: 's1',
                                 initParameters: [ip1: 'iv1', ip2: ['c1'], ip3: [m1: 'mv1']],
                                 metadata: [em1: 'ev1'],
-                                tags: ['t1', 't2']))
+                                tags: ['e:t1', 'e:t2']))
 
     sd.addEntry(new SystemEntry(agent: 'h1',
                                 mountPoint: "/m/2",
                                 script: 's2',
                                 initParameters: [ip1: 'iv2'],
                                 metadata: [em1: 'ev2', em2: [eem2: 'eev2']],
-                                tags: ['t1', 't3']))
+                                tags: ['e:t1', 'e:t3']))
 
     sd.addEntry(new SystemEntry(agent: 'h2',
                                 mountPoint: "/m/1",
                                 script: 's3',
                                 initParameters: [ip3: [m1: 'mv1']],
                                 metadata: [em1: 'ev2'],
-                                tags: ['t3', 't2']))
+                                tags: ['e:t3', 'e:t2']))
 
     def expectedStats =
     [
-        agent: 2,
-        mountPoint: 2,
-        script: 3,
-        key: 3,
-        'initParameters.ip1': 2,
-        'initParameters.ip2[0]': 'c1',
-        'initParameters.ip3.m1': 'mv1',
-        'metadata.em1': 2,
-        'metadata.em2.eem2': 'eev2',
+      agent: 2,
+      mountPoint: 2,
+      script: 3,
+      key: 3,
+      'initParameters.ip1': 2,
+      'initParameters.ip2[0]': 'c1',
+      'initParameters.ip3.m1': 'mv1',
+      'metadata.em1': 2,
+      'metadata.em2.eem2': 'eev2',
+      'tags.e:t1': 2,
+      'tags.e:t2': 2,
+      'tags.e:t3': 2,
+      'tags.a:t1': 2,
+      'tags.a:t2': 2,
+      'tags.a:t3': 'h2:/m/1'
     ]
 
-    assertTrue(GroovyCollectionsUtils.compareIgnoreType(expectedStats, sd.computeStats()))
+    def computedStats = sd.computeStats()
+    assertTrue("\n${expectedStats} != \n${computedStats}",
+               GroovyCollectionsUtils.compareIgnoreType(expectedStats, computedStats))
 
     expectedStats =
     [
@@ -160,10 +170,11 @@ class TestSystemModel extends GroovyTestCase
         'initParameters.ip2[0]': 'c1'
     ]
 
-    assertTrue(GroovyCollectionsUtils.compareIgnoreType(expectedStats,
-                                                  sd.computeStats(['agent',
-                                                                  'script',
-                                                                  'initParameters.ip2[0]'])))
+    computedStats = sd.computeStats(['agent',
+                                    'script',
+                                    'initParameters.ip2[0]'])
+    assertTrue("\n${expectedStats} != \n${computedStats}",
+               GroovyCollectionsUtils.compareIgnoreType(expectedStats, computedStats))
 
     assertTrue(GroovyCollectionsUtils.compareIgnoreType(['ev1', 'ev2'], sd.groupByEntryMetadata('em1')))
   }

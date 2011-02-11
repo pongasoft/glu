@@ -23,7 +23,6 @@
     <th>Id</th>
     <th>Fabric</th>
     <th>Date Created</th>
-    <th>Tags</th>
     <g:each in="${columns.values()}" var="column">
       <th>${column.name}</th>
     </g:each>
@@ -36,7 +35,6 @@
       <td class="systemId"><g:link controller="system" action="view" id="${system.systemId}">${system.systemId}</g:link></td>
       <td>${system.fabric}</td>
       <td><cl:formatDate date="${system.dateCreated}"/></td>
-      <td>${system.systemModel.tags.join('; ')}</td>
       <g:set var="stats" value="${system.systemModel.computeStats(columns.keySet())}"/>
       <g:each in="${columns.keySet()}" var="columnName">
         <td>${stats[columnName] ?: 0}</td>

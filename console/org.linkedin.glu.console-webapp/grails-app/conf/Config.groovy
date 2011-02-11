@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -68,6 +69,8 @@ console.dev.defaults =
       [
           mountPoint: [checked: true, name: 'mountPoint', groupBy: true, linkFilter: true],
           agent: [checked: true, name: 'agent', groupBy: true],
+          'tag': [checked: false, name: 'tag', groupBy: true, linkFilter: true],
+          'tags': [checked: true, name: 'tags', linkFilter: true],
           'metadata.container.name': [checked: true, name: 'container', groupBy: true, linkFilter: true],
           'metadata.version': [checked: true, name: 'version', groupBy: true],
           'metadata.product': [checked: true, name: 'product', groupBy: true, linkFilter: true],
@@ -80,11 +83,13 @@ console.dev.defaults =
 
       system:
       [
-          agent: [name: 'agent'],
-          'metadata.container.name': [name: 'container'],
-          'metadata.product': [name: 'product'],
-          'metadata.version': [name: 'version'],
-          'metadata.cluster': [name: 'cluster']
+        agent: [name: 'agent'],
+        'tags.a:tag1': [name: 'a:tag1'],
+        'tags.e:tag1': [name: 'e:tag1'],
+        'metadata.container.name': [name: 'container'],
+        'metadata.product': [name: 'product'],
+        'metadata.version': [name: 'version'],
+        'metadata.cluster': [name: 'cluster']
       ],
 
       model:

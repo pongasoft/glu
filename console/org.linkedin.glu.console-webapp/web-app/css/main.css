@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -46,7 +47,7 @@ table td {
 
 #header #fabric .zk-notConnected {
   color: red;
-  font-style: bold;
+  font-weight: bold;
 }
 
 #header ul li {
@@ -208,14 +209,14 @@ ul.submenu li.selected {
 
 ul.submenu a:link {
   text-decoration: none;
-  color: grey;
+  color: gray;
   border: solid 1px white;
 }
 
 ul.submenu a:visited {
   text-decoration: none;
   border: solid 1px white;
-  color: grey;
+  color: gray;
 }
 
 ul.submenu a:hover {
@@ -256,4 +257,40 @@ dl.plan .LEAF {
 
 .systemId {
   font-family: monospace;
+}
+
+ul.tags {
+  display: inline;
+  padding: 0;
+  margin: 0;
+}
+
+ul.tags.no-links li.tag {
+  border: solid black 1px;
+}
+
+ul.tags li.tag {
+  font-size: 0.5em;
+  margin: 1px;
+  padding: 1px;
+  list-style: none;
+  display: inline;
+}
+
+ul.tags.with-links a:link {
+  text-decoration: none;
+  border: solid black 1px;
+  color: black;
+}
+
+ul.tags.with-links a:visited {
+  text-decoration: none;
+  border: solid black 1px;
+  color: black;
+}
+
+ul.tags.with-links a:hover {
+  text-decoration: none;
+  border: solid white 1px;
+  color: black;
 }

@@ -319,9 +319,10 @@ class AuditServiceTests extends GrailsUnitTestCase
                             status: 'running',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1',
-                            tags: ['ec:1', 'ec:2', 'ee:1']
+                            'tags.ee:1': 'a1:/m1',
+                             tags: ['ee:1']
                             ]
-                           ],
+                            ],
                            doAudit(current, expected))
 
     // ok (with cluster)
@@ -438,8 +439,9 @@ class AuditServiceTests extends GrailsUnitTestCase
                             status: 'running',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1',
-                            tags: ['ec:1', 'ec:2', 'ee:1'],
-                            agentTags: ['a:1', 'a:2']
+                            'tags.ee:1': 'a1:/m1',
+                            'tags.a:2': 'a1:/m1',
+                             tags: ['a:2', 'ee:1']
                             ]
                            ],
                            doAudit(current, expected) { SystemModel cs, SystemModel es ->
@@ -469,8 +471,9 @@ class AuditServiceTests extends GrailsUnitTestCase
                             status: 'notDeployed',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1',
-                            tags: ['ee:1'],
-                            agentTags: ['a:1', 'a:2']
+                            'tags.ee:1': 'a1:/m1',
+                            'tags.a:2': 'a1:/m1',
+                             tags: ['a:2', 'ee:1']
                             ]
                            ],
                            doAudit(current, expected) { SystemModel cs, SystemModel es ->
@@ -500,9 +503,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             state: 'ERROR',
                             status: 'unexpected',
                             'metadata.version': 'R2',
-                            'initParameters.wars': 'w1',
-                            tags: ['ec:1', 'ec:2'],
-                            agentTags: ['a:1', 'a:2']
+                            'initParameters.wars': 'w1'
                             ]
                            ],
                            doAudit(current, expected) { SystemModel cs, SystemModel es ->
@@ -521,7 +522,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             agent: 'a1',
                             state: 'NA',
                             status: 'NA',
-                            agentTags: ['a:1', 'a:2']
+                             tags: ['a:2']
                             ]
                            ],
                            doAudit(current, expected) { SystemModel cs, SystemModel es ->
@@ -679,21 +680,34 @@ class AuditServiceTests extends GrailsUnitTestCase
 
   private def doAudit(def current, def expected, Closure closure)
   {
-    SystemModel currentSystem = toSystem(current)
-    SystemModel expectedSystem = toSystem(expected)
+    SystemModel currentSystem = createEmptySystem(current)
+    SystemModel expectedSystem = createEmptySystem(expected)
 
     closure(currentSystem, expectedSystem)
+
+    addEntries(currentSystem, current)
+    addEntries(expectedSystem, expected)
 
     return auditService.audit(currentSystem, expectedSystem)
   }
 
   private SystemModel toSystem(def system)
   {
-    SystemModel res = system != null ? new SystemModel(fabric: 'f1') : null
-    system?.each { e ->
-      res.addEntry(SystemEntry.fromExternalRepresentation(e))
-    }
+    SystemModel res = createEmptySystem(system)
+    addEntries(res, system)
     return res
+  }
+
+  private SystemModel createEmptySystem(def system)
+  {
+    system != null ? new SystemModel(fabric: 'f1') : null
+  }
+
+  private void addEntries(SystemModel model, def entries)
+  {
+    entries?.each { e ->
+      model.addEntry(SystemEntry.fromExternalRepresentation(e))
+    }
   }
   
   /**

@@ -50,6 +50,16 @@ class AgentInfo extends NodeInfo
     return agentInfoPropertyAccessor.getPropertyValue(this, 'agent.hostname') ?: agentName
   }
 
+  String getVersion()
+  {
+    return agentInfoPropertyAccessor.getPropertyValue(this, 'agent.version')
+  }
+
+  def getPropertyValue(String propertyName)
+  {
+    return agentInfoPropertyAccessor.getPropertyValue(this, propertyName)
+  }
+
   URI getURI()
   {
     URLBuilder url = new URLBuilder()

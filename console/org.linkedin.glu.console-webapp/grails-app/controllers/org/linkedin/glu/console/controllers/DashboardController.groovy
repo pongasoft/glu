@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,6 +19,9 @@ package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.console.services.AuditService
 import org.linkedin.glu.grails.utils.ConsoleConfig
+import org.linkedin.glu.provisioner.core.model.SystemModel
+import org.linkedin.glu.provisioner.core.model.SystemFilter
+import org.linkedin.glu.provisioner.core.model.TagsSystemFilter
 
 /**
  * @author ypujante@linkedin.com
@@ -89,6 +93,8 @@ class DashboardController extends ControllerBase
 
     def column0Name = columnNames[0]
 
+    def allTags = new HashSet()
+
     def counts = [errors: 0, instances: 0]
     def totals = [errors: 0, instances: 0]
     groupByColumns.each { column ->
@@ -96,16 +102,33 @@ class DashboardController extends ControllerBase
       totals[column] = new HashSet()
     }
 
-    // if a filter is provided, then use it
-    if(params.columnNameFilter && params.columnValueFilter)
+    if(column0Name == 'tag')
     {
-      current = current.findAll { it[params.columnNameFilter]  == params.columnValueFilter}
+      Set<String> filteredTags = extractFilteredTags(currentSystem) as Set
+
+      def newCurrent = []
+      current.each { row ->
+        if(row.tags?.size() > 1)
+        {
+          row.tags.each { tag ->
+            if(!filteredTags || filteredTags.contains(tag))
+            {
+              def newRow = [*:row]
+              newRow.tag = tag
+              newCurrent << newRow
+            }
+          }
+        }
+        else
+          newCurrent << row
+      }
+      current = newCurrent
     }
 
     current.each { row ->
       def column0Value = row[column0Name]
       groupByColumns.each { column ->
-        if(row[column])
+        if(column != 'tag' && row[column])
         {
           if(column0Value)
             counts[column] << row[column]
@@ -113,6 +136,9 @@ class DashboardController extends ControllerBase
           totals[column] << row[column]
         }
       }
+
+      if(row.tags)
+        allTags.addAll(row.tags)
 
       if(column0Value)
       {
@@ -129,6 +155,11 @@ class DashboardController extends ControllerBase
       counts[column] = counts[column].size()
       totals[column] = totals[column].size()
     }
+
+    counts.tag = allTags.size()
+    totals.tag = allTags.size()
+    counts.tags = allTags.size()
+    totals.tags = allTags.size()
 
     // removes rows where the first column is null or empty
     current = current.findAll { it[column0Name] }
@@ -150,6 +181,7 @@ class DashboardController extends ControllerBase
 
       def entries = isErrorsFilter ? errors : list
 
+
       if(entries)
       {
         if(isSummaryFilter)
@@ -159,8 +191,18 @@ class DashboardController extends ControllerBase
           {
             summary = [:]
             groupByColumns.each { column ->
-              summary[column] = entries."${column}".unique()
+              if(column != 'tags')
+                summary[column] = entries."${column}".unique()
             }
+
+            def tags = new TreeSet()
+            entries.each { entry ->
+              if(entry.tags)
+                tags.addAll(entry.tags)
+            }
+
+            if(tags)
+              summary.tags = tags
           }
           entries = [summary]
         }
@@ -172,11 +214,24 @@ class DashboardController extends ControllerBase
     return [
         audit: audit,
         accuracy: auditWithAccuracy.accuracy,
+        sortableColumnNames: columnNames - 'tags',
         columnNames: columnNames,
         groupByColumns: groupByColumns,
         counts: counts,
         totals: totals,
         currentSystem: currentSystem
     ]
+  }
+
+  private Collection<String> extractFilteredTags(SystemModel model)
+  {
+    SystemFilter filters = model?.filters
+
+    if(filters instanceof TagsSystemFilter)
+    {
+      return filters.tags
+    }
+    else
+     return []
   }
 }

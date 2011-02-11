@@ -45,9 +45,9 @@ class ClosureSystemFilter implements SystemFilter
     return [(kind): name]
   }
 
-  def boolean filter(SystemModel model, SystemEntry entry)
+  def boolean filter(SystemEntry entry)
   {
-    return closure(model, entry);
+    return closure(entry);
   }
 
   def String toString()

@@ -40,7 +40,6 @@ class SystemModel
     new JSONSystemModelSerializer(prettyPrint: 2)
 
   private final Map<String, SystemEntry> _entries = new TreeMap()
-  
   private Map<String, Taggeable> _agentTags = new TreeMap<String, Taggeable>()
 
   String id
@@ -72,6 +71,11 @@ class SystemModel
       throw new IllegalArgumentException("already defined entry ${entry.key}")
     }
     _entries[entry.key] = entry
+    def agentTags = getAgentTags(entry.agent)
+    if(!entry.entryTags.hasAllTags(agentTags.tags))
+    {
+      entry.tags = entry.entryTags.tags + agentTags.tags
+    }
   }
 
   void updateEntry(SystemEntry entry)
@@ -115,8 +119,12 @@ class SystemModel
   {
     def stats = [:]
 
-    _entries.values().each {
-      def map = it.flatten()
+    _entries.values().each { SystemEntry se ->
+      def map = se.flatten()
+
+      se.tags?.each { String tag ->
+        map["tags.${tag}".toString()] = se.key
+      }
 
       (keys ?: map.keySet()).each { k ->
         if(map.containsKey(k))
@@ -146,6 +154,11 @@ class SystemModel
    */
   void addAgentTags(String agentName, Collection<String> tags)
   {
+    if(_entries)
+    {
+      throw new IllegalStateException("currently unsupported operation: add the tags, then the entries")
+    }
+    
     Taggeable taggeable = _agentTags[agentName]
     if(!taggeable)
     {
@@ -165,6 +178,7 @@ class SystemModel
   {
     return _agentTags[agentName] ?: ReadOnlyTaggeable.EMPTY
   }
+  
   /**
    * @return all the agent tags
    */
@@ -281,7 +295,7 @@ class SystemModel
                                         _unfilteredModel: _unfilteredModel ?: this)
 
     _entries.values().each { SystemEntry se ->
-      if(filter.filter(this, se))
+      if(filter.filter(se))
         model.addEntry(se)
     }
 
@@ -347,6 +361,25 @@ class SystemModel
     return this
   }
 
+  /**
+   * In the canonical representation, the agent tags are removed from the entry tags
+   */
+  def toCanonicalRepresentation()
+  {
+    def ext = toExternalRepresentation()
+
+    if(!_agentTags.isEmpty())
+    {
+      ext = LangUtils.deepClone(ext)
+
+      ext.entries.each { e ->
+        e.tags?.removeAll(getAgentTags(e.agent).tags)
+      }
+    }
+    
+    return ext
+  }
+
   def toExternalRepresentation()
   {
     def map = [
@@ -399,6 +432,7 @@ class SystemModel
 
     if(id != that.id) return false;
     if(_entries != that._entries) return false;
+    if(_agentTags != that._agentTags) return false;
     if(fabric != that.fabric) return false;
     if(metadata != that.metadata) return false;
 
@@ -411,6 +445,7 @@ class SystemModel
 
     result = (id ? id.hashCode() : 0);
     result = 31 * result + (_entries ? _entries.hashCode() : 0);
+    result = 31 * result + (_agentTags ? _agentTags.hashCode() : 0);
     result = 31 * result + (fabric ? fabric.hashCode() : 0);
     result = 31 * result + (metadata ? metadata.hashCode() : 0);
     return result;

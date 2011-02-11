@@ -30,7 +30,7 @@ class SystemEntryKeyModelFilter implements SystemFilter
     return [k: keys];
   }
 
-  def boolean filter(SystemModel model, SystemEntry entry)
+  def boolean filter(SystemEntry entry)
   {
     return keys.contains(entry.key)
   }

@@ -29,9 +29,9 @@ class LogicNotSystemFilter implements SystemFilter
   }
 
 
-  def boolean filter(SystemModel model, SystemEntry entry)
+  def boolean filter(SystemEntry entry)
   {
-    return !filter.filter(model, entry);
+    return !filter.filter(entry);
   }
 
   def String getKind()

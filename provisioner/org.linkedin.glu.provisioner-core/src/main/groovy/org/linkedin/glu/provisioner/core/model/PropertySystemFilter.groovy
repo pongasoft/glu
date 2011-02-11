@@ -37,7 +37,7 @@ class PropertySystemFilter extends NameEqualsValueSystemFilter
     return 'p';
   }
 
-  def boolean filter(SystemModel model, SystemEntry entry)
+  def boolean filter(SystemEntry entry)
   {
     try
     {

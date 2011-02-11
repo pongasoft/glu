@@ -29,7 +29,7 @@ class FlattenSystemFilter extends NameEqualsValueSystemFilter
     return 'f';
   }
 
-  def boolean filter(SystemModel model, SystemEntry entry)
+  def boolean filter(SystemEntry entry)
   {
     return entry.flatten()."${name}" == value
   }

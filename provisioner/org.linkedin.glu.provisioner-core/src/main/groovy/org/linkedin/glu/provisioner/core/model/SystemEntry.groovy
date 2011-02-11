@@ -31,7 +31,7 @@ class SystemEntry implements ReadOnlyTaggeable
   def script
   def initParameters = [:]
   def metadata = [:]
-  ReadOnlyTaggeable entryTags = ReadOnlyTaggeable.EMPTY
+  volatile ReadOnlyTaggeable entryTags = ReadOnlyTaggeable.EMPTY
 
   String getKey()
   {
