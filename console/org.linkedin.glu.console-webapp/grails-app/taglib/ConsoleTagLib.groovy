@@ -26,6 +26,7 @@ import org.linkedin.util.clock.SystemClock
 import org.linkedin.util.clock.Timespan
 import org.linkedin.util.clock.Chronos
 import org.linkedin.util.io.PathUtils
+import org.linkedin.glu.console.services.TagsService
 
 /**
  * Tag library for the console.
@@ -34,6 +35,8 @@ import org.linkedin.util.io.PathUtils
 public class ConsoleTagLib
 {
   static namespace = 'cl'
+
+  TagsService tagsService
 
   Clock clock = SystemClock.instance()
 
@@ -226,7 +229,7 @@ public class ConsoleTagLib
       
       out << "<ul class=\"tags ${linkFilter ? 'with-links': 'no-links'}\">"
       tags.each { String tag ->
-        out << "<li class=\"tag\" style=\"background: #ffee88;\">"
+        out << "<li class=\"tag ${tagsService.getTagCssClass(tag) ?: ''}\">"
         if(linkFilter)
         {
           out << cl.linkToSystemFilter(name: 'tags',
@@ -242,6 +245,13 @@ public class ConsoleTagLib
       }
       out << "</ul>"
     }
+  }
+
+  /**
+   * Renders the ccs section for tags
+   */
+  def renderTagsCss = { args ->
+    out << tagsService.tagsCss
   }
 
   /**

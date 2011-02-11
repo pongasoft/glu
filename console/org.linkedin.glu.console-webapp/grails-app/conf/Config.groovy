@@ -81,6 +81,12 @@ console.dev.defaults =
           status: [checked: true, name: 'status', groupBy: true]
       ],
 
+    tags:
+    [
+      'a:tag1': [background: '#5a0087', color: '#ffffff'],
+      'e:tag1': [background: '#00875a', color: '#ffffff'],
+    ],
+
       system:
       [
         agent: [name: 'agent'],

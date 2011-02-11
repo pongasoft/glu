@@ -265,32 +265,24 @@ ul.tags {
   margin: 0;
 }
 
-ul.tags.no-links li.tag {
-  border: solid black 1px;
-}
-
 ul.tags li.tag {
   font-size: 0.5em;
-  margin: 1px;
-  padding: 1px;
   list-style: none;
   display: inline;
+  margin: 0 1px 0 1px;
 }
 
-ul.tags.with-links a:link {
-  text-decoration: none;
+ul.tags.with-links a {
   border: solid black 1px;
-  color: black;
+  padding: 1px;
+  margin: 0;
+  font-weight: bold;
 }
 
-ul.tags.with-links a:visited {
+ul.tags.with-links a:link, ul.tags.with-links a:visited {
   text-decoration: none;
-  border: solid black 1px;
-  color: black;
 }
 
 ul.tags.with-links a:hover {
   text-decoration: none;
-  border: solid white 1px;
-  color: black;
 }

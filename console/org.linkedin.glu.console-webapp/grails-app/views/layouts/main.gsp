@@ -46,6 +46,7 @@
   #footer-image {
     margin-top: 2px;
   }
+    <cl:renderTagsCss/>
   </style>
   <g:layoutHead/>
   <g:javascript library="prototype" />
