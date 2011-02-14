@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -86,6 +87,8 @@ console.defaults =
       [
           mountPoint: [checked: true, name: 'mountPoint', groupBy: true, linkFilter: true],
           agent: [checked: true, name: 'agent', groupBy: true],
+          'tag': [checked: false, name: 'tag', groupBy: true, linkFilter: true],
+          'tags': [checked: true, name: 'tags', linkFilter: true],
           'metadata.container.name': [checked: true, name: 'container', groupBy: true, linkFilter: true],
           'metadata.version': [checked: true, name: 'version', groupBy: true],
           'metadata.product': [checked: true, name: 'product', groupBy: true, linkFilter: true],
@@ -96,9 +99,17 @@ console.defaults =
           status: [checked: true, name: 'status', groupBy: true]
       ],
 
+    tags:
+    [
+      'webapp': [background: '#ec7000', color: '#fff0e1'],
+      'frontend': [background: '#006633', color: '#f1f5ec'],
+      'backend': [background: '#5229a3', color: '#e0d5f9'],
+    ],
+
       system:
       [
           agent: [name: 'agent'],
+        'tags.webapp': [name: 'webapp'],
           'metadata.container.name': [name: 'container'],
           'metadata.product': [name: 'product'],
           'metadata.version': [name: 'version'],

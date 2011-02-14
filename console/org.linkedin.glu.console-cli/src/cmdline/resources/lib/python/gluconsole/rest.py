@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2010-2010 LinkedIn, Inc
+# Copyright (c) 2011 Yan Pujante
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -85,13 +86,15 @@ class Client:
 
     return response
 
-  def generateSystemFilter(self, agent=None, instance=None):
+  def generateSystemFilter(self, agent=None, instance=None, allTags=None, anyTag=None):
     """
       Create a GLU systemFilter string
 
       :param action: Action to perform: start, stop, bounce, deploy, undeploy, redeploy
       :param agent: agent filter.
       :param instance: Instance filter.
+      :param allTags: all tags filter.
+      :param anyTag: any tag filter.
     """
 
     filter = None
@@ -101,6 +104,12 @@ class Client:
 
     elif instance:
       filter = "key='%s'" % instance
+
+    elif allTags:
+      filter = "tags='%s'" % allTags
+
+    elif anyTag:
+      filter = "tags.hasAny('%s')" % anyTag
 
     return filter
 

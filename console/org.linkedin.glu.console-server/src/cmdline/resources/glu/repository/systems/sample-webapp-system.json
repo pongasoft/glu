@@ -1,4 +1,7 @@
 {
+  "agentTags": {
+    "agent-1": ["osx"]
+  },
   "entries": [
     {
       "agent": "agent-1",
@@ -25,7 +28,11 @@
         "version": "1.0.0"
       },
       "mountPoint": "/sample/i001",
-      "script": "http://localhost:8080/glu/repository/scripts/org.linkedin.glu.script-jetty-@version@/JettyGluScript.groovy"
+      "script": "http://localhost:8080/glu/repository/scripts/org.linkedin.glu.script-jetty-@version@/JettyGluScript.groovy",
+      "tags": [
+        "frontend",
+        "webapp"
+      ]
     },
     {
       "agent": "agent-1",
@@ -47,7 +54,11 @@
         "version": "1.0.0"
       },
       "mountPoint": "/sample/i002",
-      "script": "http://localhost:8080/glu/repository/scripts/org.linkedin.glu.script-jetty-@version@/JettyGluScript.groovy"
+      "script": "http://localhost:8080/glu/repository/scripts/org.linkedin.glu.script-jetty-@version@/JettyGluScript.groovy",
+      "tags": [
+        "frontend",
+        "webapp"
+      ]
     },
     {
       "agent": "agent-1",
@@ -69,7 +80,11 @@
         "version": "1.0.0"
       },
       "mountPoint": "/sample/i003",
-      "script": "http://localhost:8080/glu/repository/scripts/org.linkedin.glu.script-jetty-@version@/JettyGluScript.groovy"
+      "script": "http://localhost:8080/glu/repository/scripts/org.linkedin.glu.script-jetty-@version@/JettyGluScript.groovy",
+      "tags": [
+        "backend",
+        "webapp"
+      ]
     }
   ],
   "fabric": "glu-dev-1",

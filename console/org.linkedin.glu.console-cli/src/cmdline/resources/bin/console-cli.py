@@ -2,6 +2,7 @@
 
 #
 # Copyright (c) 2010-2010 LinkedIn, Inc
+# Copyright (c) 2011 Yan Pujante
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -93,6 +94,14 @@ def main():
                     action="store",
                     help="Perform action on one or more agent(s)")
 
+  parser.add_option("-t", "--allTags", dest="allTags",
+                    action="store",
+                    help="Shortcut for querying by tags (all tags must be present): frontend;backend")
+
+  parser.add_option("-T", "--anyTag", dest="anyTag",
+                    action="store",
+                    help="Shortcut for querying by tags (any of the tags need to be present): frontend;backend")
+
   parser.add_option("-I", "--instance", dest="instance",
                     action="store",
                     help="Perform action on one or more instance(s)")
@@ -159,6 +168,12 @@ def main():
   if options.agent:
     exclusive_options['agent'] = True
 
+  if options.allTags:
+    exclusive_options['allTags'] = True
+
+  if options.anyTag:
+    exclusive_options['anyTag'] = True
+
   if options.instance:
     exclusive_options['instance'] = True
 
@@ -169,7 +184,7 @@ def main():
     exclusive_options['all'] = True
 
   if len(exclusive_options.keys()) > 1:
-    parser.error("Only one of: agent, instance, filter or all may be used.")
+    parser.error("Only one of: agent, allTags, anyTag, instance, filter or all may be used.")
 
   # get user's and password
   if options.password:
@@ -206,7 +221,7 @@ def main():
 
   if action in ("start", "stop", "bounce", "deploy", "undeploy", "redeploy"):
     if filter is None:
-      filter = client.generateSystemFilter(options.agent, options.instance)
+      filter = client.generateSystemFilter(options.agent, options.instance, options.allTags, options.anyTag)
 
     if (filter is None) and (not options.all):
       parser.error("you need to specify one of: agent, instance, filter or all!")
@@ -219,7 +234,7 @@ def main():
 
   elif action == "status":
     if filter is None:
-      filter = client.generateSystemFilter(options.agent, options.instance)
+      filter = client.generateSystemFilter(options.agent, options.instance, options.allTags, options.anyTag)
 
     result = client.status(options.live, options.beautify, filter)
 
