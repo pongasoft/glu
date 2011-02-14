@@ -1,3 +1,20 @@
+2.0.0 (2011/02/14)
+------------------
+* fixed [glu-22](https://github.com/linkedin/glu/issues#issue/22): jetty glu script (1.6.0) does not handle restart properly
+* Implemented [glu-25](https://github.com/linkedin/glu/issues#issue/25): add tagging capability
+
+    Dashboard View:
+
+    <img src="https://github.com/linkedin/linkedin.github.com/raw/master/images/glu/release_notes/v2.0.0/dashboard_tags.png" alt="Dashboard View" style="align: center">
+
+    Agent View:
+
+    <img src="https://github.com/linkedin/linkedin.github.com/raw/master/images/glu/release_notes/v2.0.0/agent_view_tags.png" alt="Agent View" style="align: center">
+
+    Configurable:  
+
+    <img src="https://github.com/linkedin/linkedin.github.com/raw/master/images/glu/release_notes/v2.0.0/configurable_tags.tiff" alt="Configurable tags" style="align: center">
+
 1.7.1 (2011/01/20)
 ------------------
 * workaround for [glu-19](https://github.com/linkedin/glu/issues#issue/19): New users aren't displayed at /console/admin/user/list
