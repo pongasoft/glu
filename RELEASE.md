@@ -13,7 +13,7 @@
 
     Configurable:  
 
-    <img src="https://github.com/linkedin/linkedin.github.com/raw/master/images/glu/release_notes/v2.0.0/configurable_tags.tiff" alt="Configurable tags" style="align: center">
+    <img src="https://github.com/linkedin/linkedin.github.com/raw/master/images/glu/release_notes/v2.0.0/configurable_tags.png" alt="Configurable tags" style="align: center">
 
 1.7.1 (2011/01/20)
 ------------------
