@@ -1,3 +1,10 @@
+2.1.0 (2011/03/01)
+------------------
+This version is highly recommended for glu-27 specifically which may prevent the agent to recover properly. It affects all previous versions of the agent.
+
+* fixed [glu-26](https://github.com/linkedin/glu/issues#issue/26): agent cli fails when using spaces
+* fixed [glu-27](https://github.com/linkedin/glu/issues#issue/27): Unexpected exception can disable the agent
+
 2.0.0 (2011/02/14)
 ------------------
 * fixed [glu-22](https://github.com/linkedin/glu/issues#issue/22): jetty glu script (1.6.0) does not handle restart properly
