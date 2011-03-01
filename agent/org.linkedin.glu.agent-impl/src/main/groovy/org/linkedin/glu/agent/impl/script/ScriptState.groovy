@@ -149,7 +149,7 @@ class ScriptState
             log.warn("Unexpected exception in listener (ignored)", th)
           }
         } as StateChangeListener
-        stateChangeListener.onStateChange(null, LangUtils.deepClone(internalFullState))
+        stateChangeListener.onStateChange(null, cloneState(internalFullState))
       }
     }
   }
@@ -169,8 +169,11 @@ class ScriptState
         {
           def newState = internalFullState
           if(oldState != newState)
-            stateChangeListener?.onStateChange(LangUtils.deepClone(oldState),
-                                               LangUtils.deepClone(newState))
+          {
+            oldState = cloneState(oldState)
+            newState = cloneState(newState)
+            stateChangeListener?.onStateChange(oldState, newState)
+          }
         }
       }
       else
@@ -182,6 +185,11 @@ class ScriptState
   {
     def state = internalFullState
     state.scriptDefinition = state.scriptDefinition.toExternalRepresentation()
+    return cloneState(state)
+  }
+
+  private def cloneState(state)
+  {
     return LangUtils.deepClone(state)
   }
 

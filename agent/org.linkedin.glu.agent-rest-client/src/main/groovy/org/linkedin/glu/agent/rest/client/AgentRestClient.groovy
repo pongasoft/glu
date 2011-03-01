@@ -455,7 +455,7 @@ class AgentRestClient implements Agent
    */
   private AgentException throwAgentException(Status status, RestException restException)
   {
-    Exception exception = doRebuildAgentException(restException)
+    Throwable exception = doRebuildAgentException(restException)
 
     if(exception instanceof AgentException)
     {
@@ -472,9 +472,9 @@ class AgentRestClient implements Agent
    * Handles the case when the client does not know about an exception
    * (or it simply cannot be created).
    */
-  private Exception doRebuildAgentException(RestException restException)
+  private Throwable doRebuildAgentException(RestException restException)
   {
-    def originalException = restException
+    Throwable originalException = restException
     try
     {
       def exceptionClass = ReflectUtils.forName(restException.originalClassName)

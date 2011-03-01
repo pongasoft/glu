@@ -55,7 +55,6 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   private Resource _agentLogDir
   private ScriptManager _scriptManager
   private MOP _mop
-  private def _stateMachineFactory
   private Closure _sync
   private Taggeable _taggeable
 
@@ -585,7 +584,9 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
     catch(TimeoutException e)
     {
       // adapting timeout exception...
-      throw new TimeOutException(e.message)
+      def toex = new TimeOutException(e.message)
+      toex.initCause(e)
+      throw toex
     }
     catch (AgentException e)
     {

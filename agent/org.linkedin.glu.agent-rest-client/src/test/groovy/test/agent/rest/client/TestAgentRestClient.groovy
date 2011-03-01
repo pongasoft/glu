@@ -49,6 +49,7 @@ import org.linkedin.glu.agent.api.Agent
 import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.glu.agent.impl.storage.TagsStorage
 import org.linkedin.glu.agent.impl.storage.Storage
+import org.linkedin.glu.agent.api.ScriptExecutionCauseException
 
 /**
  * The code which is in {@link AgentRestClient} is essentially the code to use for calling the rest
@@ -268,8 +269,9 @@ class TestAgentRestClient extends GroovyTestCase
       }
       catch(ScriptExecutionException e)
       {
-        assertTrue(e.cause.getClass() == Exception)
-        assertEquals('mine', e.cause.message)
+        assertTrue(e.cause.getClass() == ScriptExecutionCauseException)
+        assertEquals('java.lang.Exception', e.cause.originalClassname)
+        assertEquals('[java.lang.Exception]: mine', e.cause.message)
       }
 
       // we now clear the error
@@ -382,8 +384,11 @@ class TestAgentRestClient extends GroovyTestCase
       catch(ScriptExecutionException e)
       {
         // ThreadControl wraps the exception in a RuntimeException
-        assertTrue(e.cause instanceof RuntimeException)
-        assertTrue(e.cause.cause instanceof InterruptedException)
+        assertTrue(e.cause instanceof ScriptExecutionCauseException)
+        assertEquals('java.lang.RuntimeException', e.cause.originalClassname)
+
+        assertTrue(e.cause.cause instanceof ScriptExecutionCauseException)
+        assertEquals('java.lang.InterruptedException', e.cause.cause.originalClassname)
       }
 
       // now uninstall works

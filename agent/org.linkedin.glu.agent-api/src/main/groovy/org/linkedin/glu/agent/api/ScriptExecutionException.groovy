@@ -33,7 +33,8 @@ def class ScriptExecutionException extends ScriptException
   ScriptExecutionException(script, action, args, Throwable cause)
   {
     // dont use args in the message, as args may contain sensitive data
-    super("script=${script}, action=${action}".toString(), cause)
+    super("script=${script}, action=${action}".toString(),
+          ScriptExecutionCauseException.create(cause))
     this.script = script
     this.action = action
     this.args = args
@@ -41,7 +42,7 @@ def class ScriptExecutionException extends ScriptException
 
   ScriptExecutionException(String message, Throwable cause)
   {
-    super(message, cause)
+    super(message, ScriptExecutionCauseException.create(cause))
   }
 
   ScriptExecutionException(String message)

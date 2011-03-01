@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -102,7 +103,7 @@ abstract class FutureExecutionImpl implements RunnableFuture, FutureExecution, C
   Object get(timeout) throws InterruptedException, ExecutionException, TimeoutException
   {
     timeout = Timespan.parse(timeout?.toString())
-    if(!timeout)
+    if(!timeout?.durationInMilliseconds)
       get()
     else
       get(timeout.durationInMilliseconds, TimeUnit.MILLISECONDS)

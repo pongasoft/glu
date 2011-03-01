@@ -26,6 +26,8 @@ import org.linkedin.glu.agent.impl.storage.RAMStorage
 import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.glu.agent.impl.storage.AgentProperties
+import org.linkedin.glu.agent.api.AgentException
+import org.linkedin.glu.agent.api.ScriptExecutionCauseException
 
 /**
  * Test for script factories.
@@ -100,5 +102,35 @@ class TestScriptFactories extends GroovyTestCase
     assertTrue agent.waitForState(mountPoint: scriptMountPoint, state: 'NONE')
 
     assertFalse(fetchedFile.exists())
+  }
+
+  /**
+   * Test case for https://github.com/linkedin/glu/issues#issue/27
+   */
+  public void testFailingScript()
+  {
+    // we install a script under /s
+    def scriptMountPoint = MountPoint.fromPath('/s')
+    agent.installScript(mountPoint: scriptMountPoint,
+                        scriptLocation: new File('./src/test/resources/MyScriptTestFailure.groovy').canonicalFile.toURI())
+
+    // then we run the 'install' action
+    try
+    {
+      agent.executeActionAndWait(mountPoint: scriptMountPoint,
+                                 action: 'install')
+      fail("should throw exception")
+    }
+    catch(AgentException e)
+    {
+      Throwable th = e
+      while(th.cause != null)
+        th = th.cause
+
+      assertTrue(th instanceof ScriptExecutionCauseException)
+      assertEquals('groovy.lang.MissingPropertyException', th.originalClassname)
+      assertEquals('[groovy.lang.MissingPropertyException]: No such property: args for class: MyScriptTestFailure', th.message)
+    }
+
   }
 }
