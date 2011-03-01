@@ -18,4 +18,4 @@
 
 BASEDIR=`cd $(dirname $0)/.. ; pwd`
 cd $BASEDIR/agent-cli
-./bin/agent-cli.sh $@
+./bin/agent-cli.sh "$@"

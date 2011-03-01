@@ -18,4 +18,4 @@
 
 BASEDIR=`cd $(dirname $0)/.. ; pwd`
 cd $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@
-./bin/zkServer.sh $@
+./bin/zkServer.sh "$@"

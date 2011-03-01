@@ -18,4 +18,4 @@
 
 BASEDIR=`cd $(dirname $0)/.. ; pwd`
 cd $BASEDIR/setup
-./bin/setup-zookeeper.sh $@
+./bin/setup-zookeeper.sh "$@"

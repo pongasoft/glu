@@ -21,4 +21,4 @@ cd $BASEDIR
 
 LOG_DIR=$BASEDIR/data/logs
 
-$BASEDIR/bin/upgradectl.sh $@ > $LOG_DIR/glu-agent-upgrade.log 2>&1 &
+$BASEDIR/bin/upgradectl.sh "$@" > $LOG_DIR/glu-agent-upgrade.log 2>&1 &

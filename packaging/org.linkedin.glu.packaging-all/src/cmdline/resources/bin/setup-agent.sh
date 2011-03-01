@@ -18,4 +18,4 @@
 
 BASEDIR=`cd $(dirname $0)/.. ; pwd`
 cd $BASEDIR/setup
-./bin/setup-agent.sh $@
+./bin/setup-agent.sh "$@"

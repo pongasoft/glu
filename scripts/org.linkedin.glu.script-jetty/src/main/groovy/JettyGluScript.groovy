@@ -537,7 +537,7 @@ class JettyGluScript
   }
 
   static String DEFAULT_JETTY_CTL = """#!/bin/bash
-JAVA_OPTIONS="@java.options@" JETTY_RUN="@jetty.run@" @jetty.sh@ \$@
+JAVA_OPTIONS="@java.options@" JETTY_RUN="@jetty.run@" @jetty.sh@ "\$@"
 """
 
   static String DEFAULT_JETTY_CONFIG = """

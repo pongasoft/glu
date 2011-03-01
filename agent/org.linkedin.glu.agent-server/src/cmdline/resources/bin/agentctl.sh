@@ -21,4 +21,4 @@ cd $BASEDIR
 
 VERSION=`cat $BASEDIR/version.txt`
 
-$BASEDIR/$VERSION/bin/agentctl.sh $@
+$BASEDIR/$VERSION/bin/agentctl.sh "$@"

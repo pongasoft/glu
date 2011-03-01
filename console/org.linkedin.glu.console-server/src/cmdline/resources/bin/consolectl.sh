@@ -32,4 +32,4 @@ if [ ! -d $JETTY_DISTRIBUTION ]; then
 fi
 
 
-JAVA_OPTIONS="-Dorg.linkedin.app.name=org.linkedin.glu.console-webapp -Dorg.linkedin.glu.console.config.location=$BASEDIR/conf/glu-console-webapp.groovy -Dorg.linkedin.glu.console.keys.dir=$BASEDIR/keys -Dorg.linkedin.glu.console.root=$BASEDIR" $JETTY_DISTRIBUTION/bin/jetty.sh $@
+JAVA_OPTIONS="-Dorg.linkedin.app.name=org.linkedin.glu.console-webapp -Dorg.linkedin.glu.console.config.location=$BASEDIR/conf/glu-console-webapp.groovy -Dorg.linkedin.glu.console.keys.dir=$BASEDIR/keys -Dorg.linkedin.glu.console.root=$BASEDIR" $JETTY_DISTRIBUTION/bin/jetty.sh "$@"

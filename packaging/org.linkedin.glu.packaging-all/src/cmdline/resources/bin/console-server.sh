@@ -18,4 +18,4 @@
 
 BASEDIR=`cd $(dirname $0)/.. ; pwd`
 cd $BASEDIR/console-server
-./bin/consolectl.sh $@
+./bin/consolectl.sh "$@"

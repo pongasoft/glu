@@ -37,4 +37,4 @@ JVM_LOG4J=-Dlog4j.configuration=file:$BASEDIR/conf/log4j.xml
 JVM_DEBUG=
 #JVM_DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
 
-java $JVM_LOG4J $JVM_DEBUG $JVM_CLASSPATH org.linkedin.glu.agent.cli.ClientMain $OPTIONS $@
+java $JVM_LOG4J $JVM_DEBUG $JVM_CLASSPATH org.linkedin.glu.agent.cli.ClientMain $OPTIONS "$@"

@@ -18,4 +18,4 @@
 
 BASEDIR=`cd $(dirname $0)/.. ; pwd`
 cd $BASEDIR/console-cli
-./bin/console-cli.py $@
+./bin/console-cli.py "$@"
