@@ -1,6 +1,6 @@
 2.1.1 (2011/03/04)
 ------------------
-* fixed [glu-31](https://github.com/linkedin/glu/issues#issue/31): agent cli fails when using spaces
+* fixed [glu-31](https://github.com/linkedin/glu/issues#issue/31): Agent exception when no persistent properties files
 
 2.1.0 (2011/03/01)
 ------------------
