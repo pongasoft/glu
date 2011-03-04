@@ -56,7 +56,7 @@ public class AgentProperties
       Map<String, String> props = new HashMap<String, String>()
       props.putAll(_persistentProperties.groupBy { k,v ->
         k.toLowerCase().contains('password') ? 'passwordKeys' : 'nonPasswordKeys'
-      }.nonPasswordKeys)
+      }.nonPasswordKeys ?: [:])
       props.remove('line.separator')
 
       _exposedProperties = Collections.unmodifiableMap(props)
