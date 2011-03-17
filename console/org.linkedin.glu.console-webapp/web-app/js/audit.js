@@ -34,7 +34,7 @@ function computeRenderParams(groupBy, columns)
   p = p + '&summary=' + document.getElementById('summaryFilter').checked;
   p = p + '&errors=' + document.getElementById('errorsFilter').checked;
   
-  for(i = 0; i < columns.length; i++)
+  for(var i = 0; i < columns.length; i++)
   {
     var column = columns[i];
     if(column != groupBy)

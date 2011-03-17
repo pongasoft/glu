@@ -42,7 +42,7 @@ function toggleShowHideChildren(containerId, className) {
   }
 
   var children = container.getElementsByTagName('*');
-  for(i = 0; i < children.length; i++)
+  for(var i = 0; i < children.length; i++)
   {
     var child = children.item(i);
     if(YAHOO.util.Dom.hasClass(child, className))
@@ -124,7 +124,7 @@ function toggleClassChildren(containerId, selectionClass, toggle, clazz)
   }
 
   var children = container.getElementsByTagName('*');
-  for(i = 0; i < children.length; i++)
+  for(var i = 0; i < children.length; i++)
   {
     var child = children.item(i);
     if(YAHOO.util.Dom.hasClass(child, selectionClass))
@@ -152,7 +152,7 @@ function getAllChildrenWithClass(containerId, selectionClass, includeContainer)
   }
 
   var children = container.getElementsByTagName('*');
-  for(i = 0; i < children.length; i++)
+  for(var i = 0; i < children.length; i++)
   {
     var child = children.item(i);
     if(YAHOO.util.Dom.hasClass(child, selectionClass))

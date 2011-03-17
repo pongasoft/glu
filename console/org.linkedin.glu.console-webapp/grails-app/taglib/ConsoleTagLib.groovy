@@ -608,7 +608,6 @@ public class ConsoleTagLib
     if(throwable)
     {
       out << '<div class="throwable">'
-      int i = 0
       while(throwable)
       {
         out << '<div class="stackTrace">'
@@ -633,10 +632,10 @@ public class ConsoleTagLib
     def dlClass = args.dlClass ?: step.type
 
     // duration
-    def duration = cl.stepExecutionDuration(step: step, progress: progress).toString()
+    def duration = cl.stepExecutionDuration(step: step, progress: progress)?.toString()
 
     // status
-    def status = cl.stepExecutionStatus(step: step, progress: progress).toString()
+    def status = cl.stepExecutionStatus(step: step, progress: progress)?.toString()
 
     out << "<dl class=\"${dlClass}\">"
 
@@ -667,7 +666,7 @@ public class ConsoleTagLib
 
     if(step instanceof CompositeStep)
     {
-      step.steps.eachWithIndex { child, idx ->
+      step.steps.each { child ->
         out << "<dd>" << cl.renderStepExecution(deployment: deployment, step: child, progress: progress) << "</dd>"
       }
     }

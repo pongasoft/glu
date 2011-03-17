@@ -22,7 +22,7 @@ function quickSelect(containerId, className, percentage) {
   var container = document.getElementById(containerId);
   var inputs = container.getElementsByTagName('input');
   var filteredInputs = new Array();
-  for(i = 0; i < inputs.length; i++)
+  for(var i = 0; i < inputs.length; i++)
   {
     var input = inputs.item(i)
     if(input.className == className)
@@ -53,7 +53,7 @@ function selectOne(containerId, className)
 
   // unselect all except the first one
   var firstOneChecked = false
-  for(i = 0; i < inputs.length; i++)
+  for(var i = 0; i < inputs.length; i++)
   {
     var input = inputs.item(i)
     if(input.className == className)
@@ -83,7 +83,7 @@ function setSelectByValue(formName, defaultValue)
   var inputs = form.getElementsByTagName('select');
   var rv = false;
 
-  for(i = 0; i < inputs.length; i++)
+  for(var i = 0; i < inputs.length; i++)
   {
     var input = inputs.item(i)
     if(input.type == 'select-one')
