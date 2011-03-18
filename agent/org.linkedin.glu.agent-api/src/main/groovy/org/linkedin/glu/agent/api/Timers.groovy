@@ -27,9 +27,9 @@ package org.linkedin.glu.agent.api
  *   }
  *
  *   def install = {
- *     timers.scedule(timer: timer1, repeatFrequency: '1m') // property
- *     // timers.sceduleTimer(timer: 'timer1', repeatFrequency: '1m') // also valid (name of the property)
- *     // timers.sceduleTimer(timer: { println 'hello world'}, repeatFrequency: '1m') // invalid (anonymous closure)
+ *     timers.schedule(timer: timer1, repeatFrequency: '1m') // property
+ *     // timers.schedule(timer: 'timer1', repeatFrequency: '1m') // also valid (name of the property)
+ *     // timers.schedule(timer: { println 'hello world'}, repeatFrequency: '1m') // invalid (anonymous closure)
  *   }
  *
  *   def uninstall = {
