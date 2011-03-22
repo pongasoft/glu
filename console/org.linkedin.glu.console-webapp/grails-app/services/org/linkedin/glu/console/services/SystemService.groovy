@@ -32,7 +32,7 @@ import org.linkedin.glu.provisioner.plan.api.IPlanExecution
 import org.linkedin.glu.provisioner.plan.api.SequentialStep
 import org.linkedin.glu.console.domain.DbSystemModel
 import org.linkedin.glu.console.domain.DbCurrentSystem
-import org.linkedin.glu.console.domain.Fabric
+import org.linkedin.glu.provisioner.services.fabric.Fabric
 import org.linkedin.util.clock.Timespan
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock

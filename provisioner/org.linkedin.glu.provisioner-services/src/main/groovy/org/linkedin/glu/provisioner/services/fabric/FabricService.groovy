@@ -54,9 +54,15 @@ interface FabricService
   void resetCache()
 
   /**
-   * Saves the fabric
-   *
-   * @param fabric to save
+   * @return <code>true</code> if the fabric is connected
    */
-  boolean saveFabric(Fabric fabric)
+  boolean isConnected(String fabricName)
+
+  /**
+   * Executes the closure with the ZooKeeper connection (instance of
+   * {@link org.linkedin.zookeeper.client.IZKClient}) associated to the fabric
+   *
+   * @return whatever the closure returns
+   */
+  def withZkClient(String fabricName, Closure closure)
 }

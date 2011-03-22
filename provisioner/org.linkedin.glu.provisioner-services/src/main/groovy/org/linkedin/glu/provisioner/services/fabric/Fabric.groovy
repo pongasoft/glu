@@ -23,7 +23,8 @@ class Fabric
   String name
   String zkConnectString
   Timespan zkSessionTimeout
-
+  String color
+  
   public String toString()
   {
     return name

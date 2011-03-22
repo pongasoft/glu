@@ -14,15 +14,39 @@
  * the License.
  */
 
-package org.linkedin.glu.provisioner.services.fabric
+package org.linkedin.glu.console.provisioner.services.audit
+
+import org.linkedin.glu.provisioner.services.audit.AuditLogService
+import org.linkedin.glu.console.domain.AuditLog
 
 /**
- * Abstraction to the storage of a fabric
- * 
  * @author yan@pongasoft.com */
-public interface FabricStorage
+public class AuditLogServiceImpl implements AuditLogService
 {
-  /**
-   * @return the list of all fabrics */
-  Collection<Fabric> loadFabrics()
+  @Override
+  void audit(String type, String details, String info)
+  {
+    AuditLog.audit(type, details, info)
+  }
+
+  @Override
+  void audit(String type, String details)
+  {
+    AuditLog.audit(type, details)
+
+  }
+
+  @Override
+  void audit(String type)
+  {
+    AuditLog.audit(type)
+
+  }
+
+  @Override
+  void audit(Map params)
+  {
+    AuditLog.audit(params)
+  }
+
 }

@@ -21,11 +21,13 @@ import org.springframework.beans.factory.DisposableBean
 import org.linkedin.glu.agent.tracker.AgentsTrackerImpl
 import org.linkedin.glu.agent.tracker.TrackerEventsListener
 import org.apache.zookeeper.WatchedEvent
-import org.linkedin.glu.console.domain.Fabric
+import org.linkedin.glu.provisioner.services.fabric.Fabric
 import org.linkedin.zookeeper.tracker.NodeEventType
 import org.linkedin.zookeeper.tracker.ErrorListener
 import org.linkedin.util.clock.Chronos
 import java.util.concurrent.TimeoutException
+import org.linkedin.glu.provisioner.services.fabric.FabricService
+import org.linkedin.zookeeper.client.IZKClient
 
 /**
  * @author ypujante
@@ -34,6 +36,8 @@ class TrackerService implements DisposableBean
 {
   public static final String MODULE = TrackerService.class.getName();
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
+
+  FabricService fabricService
 
   boolean transactional = false
 
@@ -81,7 +85,10 @@ class TrackerService implements DisposableBean
     {
       if(fabric)
       {
-        tracker = new AgentsTrackerImpl(fabric.zkClient, "/org/glu/agents/fabrics/${fabricName}".toString())
+        fabricService.withZkClient(fabric.name) { IZKClient zkClient ->
+          tracker = new AgentsTrackerImpl(zkClient,
+                                          "/org/glu/agents/fabrics/${fabricName}".toString())
+        }
 
         _trackers[fabricName] = [tracker: tracker, fabric: fabric]
 

@@ -23,7 +23,7 @@ import org.linkedin.glu.console.services.AuditService
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.provisioner.plan.api.Plan
-import org.linkedin.glu.console.domain.Fabric
+import org.linkedin.glu.provisioner.services.fabric.Fabric
 
 /**
  * @author ypujante@linkedin.com

@@ -14,15 +14,17 @@
  * the License.
  */
 
-package org.linkedin.glu.provisioner.services.fabric
+package test.provisioner.services.fabric
+
+import org.linkedin.glu.provisioner.services.fabric.Fabric
 
 /**
- * Abstraction to the storage of a fabric
- * 
  * @author yan@pongasoft.com */
-public interface FabricStorage
+public class TestFabricService extends GroovyTestCase
 {
-  /**
-   * @return the list of all fabrics */
-  Collection<Fabric> loadFabrics()
+  public void testFabricService()
+  {
+    Fabric fabric = new Fabric(name: 'f1')
+    println fabric
+  }
 }

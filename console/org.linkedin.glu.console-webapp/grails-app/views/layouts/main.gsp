@@ -60,7 +60,7 @@
   <div id="header" class="env-${request.fabric ?: 'unknown'}">
     <shiro:hasRole name="ADMIN"><g:set var="isAdminUser" value="true"/></shiro:hasRole>
     <span id="header-info">
-    <g:link controller="fabric" action="select"><span id="header-info-fabric">${request.fabric ?: 'No Fabric'}</span></g:link><g:if test="${request.fabric != null && !request.fabric.zkClient?.isConnected()}"><span class="zk-notConnected"> (not connected!)</span></g:if>
+    <g:link controller="fabric" action="select"><span id="header-info-fabric">${request.fabric ?: 'No Fabric'}</span></g:link><cl:whenDisconnectedFabric><span class="zk-notConnected"> (not connected!)</span></cl:whenDisconnectedFabric>
     <g:each in="${ConsoleConfig.getInstance().defaults.model}" var="h">
       | <g:link controller="system" action="filter_values" id="${h.name}"><span id="header-info-${h.name}">${request[h.name]?.name ?: 'All [' + h.name + ']'}</span><g:each in="${h.header}" var="m"><g:if test="${request[h.name]?.getAt(m)}">:${request[h.name][m]}</g:if></g:each></g:link>
     </g:each>

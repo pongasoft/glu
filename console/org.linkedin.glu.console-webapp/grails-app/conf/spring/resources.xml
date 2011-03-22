@@ -100,4 +100,25 @@
 
   <bean id="consoleConfig" class="org.linkedin.glu.grails.utils.ConsoleConfig"/>
 
+  <!-- *********************** -->
+  <!-- auditLogService         -->
+  <!-- *********************** -->
+  <bean id="auditLogService"
+        class="org.linkedin.glu.console.provisioner.services.audit.AuditLogServiceImpl"/>
+
+  <!-- *********************** -->
+  <!-- fabricService         -->
+  <!-- *********************** -->
+  <bean id="_fabricServiceImpl" class="org.linkedin.glu.provisioner.services.fabric.FabricServiceImpl">
+    <property name="configurableFactory" ref="configurableFactory"/>
+    <property name="fabricStorage">
+      <bean class="org.linkedin.glu.console.provisioner.services.storage.FabricStorageImpl"/>
+    </property>
+  </bean>
+
+  <bean id="fabricService" class="org.linkedin.glu.provisioner.services.fabric.AuditedFabricService">
+    <property name="fabricService" ref="_fabricServiceImpl"/>
+    <property name="auditLogService" ref="auditLogService"/>
+  </bean>
+
 </beans>

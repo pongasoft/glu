@@ -27,6 +27,7 @@ import org.linkedin.util.clock.Timespan
 import org.linkedin.util.clock.Chronos
 import org.linkedin.util.io.PathUtils
 import org.linkedin.glu.console.services.TagsService
+import org.linkedin.glu.provisioner.services.fabric.FabricService
 
 /**
  * Tag library for the console.
@@ -37,6 +38,7 @@ public class ConsoleTagLib
   static namespace = 'cl'
 
   TagsService tagsService
+  FabricService fabricService
 
   Clock clock = SystemClock.instance()
 
@@ -721,6 +723,14 @@ public class ConsoleTagLib
     def var = args.var ?: 'system'
     def system = args.system ?: request.system
     out << body((var): system)
+  }
+
+  /**
+   * Body executed when the fabric is not connected  */
+  def whenDisconnectedFabric = { args, body ->
+    def fabric = args.fabric ?: request.fabric
+    if(!fabricService.isConnected(fabric.name))
+     out << body()
   }
 
   /**

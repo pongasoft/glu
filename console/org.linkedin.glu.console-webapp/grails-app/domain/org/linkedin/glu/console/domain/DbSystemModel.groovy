@@ -18,6 +18,7 @@ package org.linkedin.glu.console.domain
 
 import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 import org.linkedin.glu.provisioner.core.model.SystemModel
+import org.linkedin.glu.provisioner.services.fabric.Fabric
 
 class DbSystemModel
 {

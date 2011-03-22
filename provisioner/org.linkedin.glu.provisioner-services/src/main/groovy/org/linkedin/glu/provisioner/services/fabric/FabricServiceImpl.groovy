@@ -72,10 +72,8 @@ class FabricServiceImpl implements FabricService, Destroyable
   {
     def agents = [:]
 
-    def allFabrics = fabrics
-
-    allFabrics.each { FabricWithZkClient fabric ->
-      agents.putAll(getAgents(fabric.zkClient))
+    loadFabrics().values().zkClient.each {
+      agents.putAll(getAgents(it))
     }
 
     return agents
@@ -149,9 +147,17 @@ class FabricServiceImpl implements FabricService, Destroyable
    *
    * @return whatever the closure returns
    */
-  private def withZkClient(String fabricName, Closure closure)
+  def withZkClient(String fabricName, Closure closure)
   {
-    closure(findFabricWithZkClient(fabricName).zkClient)
+    closure(findFabricWithZkClient(fabricName)?.zkClient)
+  }
+
+  @Override
+  boolean isConnected(String fabricName)
+  {
+    withZkClient(fabricName) { IZKClient zkClient ->
+      zkClient?.isConnected()
+    }
   }
 
   /**
@@ -171,18 +177,6 @@ class FabricServiceImpl implements FabricService, Destroyable
       c.configure(["${prefix}.agent.zkConnectString": zkConnectString])
     }
 
-  }
-
-  @Override
-  boolean saveFabric(Fabric fabric)
-  {
-    if(fabricStorage.saveFabric(fabric))
-    {
-      resetCache()
-      return true
-    }
-    else
-      return false
   }
 
   /**

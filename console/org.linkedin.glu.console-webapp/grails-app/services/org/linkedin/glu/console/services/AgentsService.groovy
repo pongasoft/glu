@@ -29,7 +29,7 @@ import org.linkedin.glu.console.domain.AuditLog
 import org.apache.shiro.SecurityUtils
 import org.linkedin.glu.console.domain.RoleName
 import org.apache.shiro.authz.AuthorizationException
-import org.linkedin.glu.console.domain.Fabric
+import org.linkedin.glu.provisioner.services.fabric.Fabric
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.groovy.util.state.StateMachineImpl
 import org.linkedin.glu.agent.rest.client.AgentFactory

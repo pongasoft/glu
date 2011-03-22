@@ -44,11 +44,4 @@ public class AuditedFabricService implements FabricService
     auditLogService?.audit('fabric.resetCache')
     fabricService.resetCache()
   }
-
-  @Override
-  boolean saveFabric(Fabric fabric)
-  {
-    auditLogService?.audit('fabric.updated', fabric.name, fabric.toString())
-    fabricService.saveFabric(fabric)
-  }
 }

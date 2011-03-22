@@ -14,7 +14,6 @@
   - the License.
   --}%
 
-<%@ page import="org.linkedin.glu.console.domain.Fabric" %>
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>

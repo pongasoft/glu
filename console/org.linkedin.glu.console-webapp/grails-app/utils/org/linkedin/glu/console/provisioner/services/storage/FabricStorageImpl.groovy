@@ -14,15 +14,24 @@
  * the License.
  */
 
-package org.linkedin.glu.provisioner.services.fabric
+package org.linkedin.glu.console.provisioner.services.storage
+
+import org.linkedin.glu.provisioner.services.fabric.FabricStorage
+import org.linkedin.glu.provisioner.services.fabric.Fabric
+import org.linkedin.util.clock.Timespan
 
 /**
- * Abstraction to the storage of a fabric
- * 
  * @author yan@pongasoft.com */
-public interface FabricStorage
+public class FabricStorageImpl implements FabricStorage
 {
-  /**
-   * @return the list of all fabrics */
+  @Override
   Collection<Fabric> loadFabrics()
+  {
+    org.linkedin.glu.console.domain.Fabric.list().collect {
+      new Fabric(name: it.name,
+                 zkConnectString: it.zkConnectString,
+                 zkSessionTimeout: Timespan.parse(it.zkSessionTimeout),
+                 color: it.color)
+    }
+  }
 }
