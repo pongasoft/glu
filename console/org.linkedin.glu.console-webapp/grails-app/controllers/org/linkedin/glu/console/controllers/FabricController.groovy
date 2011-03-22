@@ -16,7 +16,7 @@
 
 package org.linkedin.glu.console.controllers
 
-import org.linkedin.glu.console.services.FabricService
+import org.linkedin.glu.provisioner.services.fabric.FabricService
 import org.linkedin.glu.console.domain.Fabric
 import org.linkedin.glu.console.services.SystemService
 import org.linkedin.util.lifecycle.CannotConfigureException
@@ -69,19 +69,19 @@ class FabricController extends ControllerBase
     def unassignedAgents = new TreeMap()
     def assignedAgents = new TreeMap()
 
-    agents.collect { name, env ->
+    agents.collect { name, fabricName ->
       if(missingAgents.contains(name))
       {
-        if(env)
+        if(fabricName)
           unassignedAgents[name] = 'missing-old'
         else
           unassignedAgents[name] = 'missing-new'
       }
       else
       {
-        if(env)
+        if(fabricName)
         {
-          assignedAgents[name] = env
+          assignedAgents[name] = fabricName
         }
         else
         {

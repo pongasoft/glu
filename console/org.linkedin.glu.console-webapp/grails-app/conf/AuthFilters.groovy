@@ -19,7 +19,7 @@ import org.apache.shiro.SecurityUtils
 import org.apache.shiro.authc.UsernamePasswordToken
 import org.linkedin.glu.grails.utils.ConsoleHelper
 import org.linkedin.glu.console.domain.DbSystemModel
-import org.linkedin.glu.console.services.FabricService
+import org.linkedin.glu.provisioner.services.fabric.FabricService
 import org.linkedin.glu.grails.utils.ConsoleConfig
 import javax.servlet.http.HttpServletResponse
 

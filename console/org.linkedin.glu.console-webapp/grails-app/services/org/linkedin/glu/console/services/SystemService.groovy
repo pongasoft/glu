@@ -39,6 +39,7 @@ import org.linkedin.util.clock.SystemClock
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.impl.agent.DefaultDescriptionProvider
+import org.linkedin.glu.provisioner.services.fabric.FabricService
 
 /**
  * System service.
