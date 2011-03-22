@@ -14,19 +14,17 @@
  * the License.
  */
 
-package org.linkedin.glu.console.services
+package test.provisioner.services.tags
 
-import grails.test.*
+import org.linkedin.glu.provisioner.services.tags.TagsService
 
 /**
  * @author yan@pongasoft.com */
-class TagsServiceTests extends GrailsUnitTestCase
+class TestTagsService extends GroovyTestCase
 {
-  def TagsService tagsService = new TagsService()
-
   public void testEmpty()
   {
-    tagsService.init([:])
+    TagsService tagsService = new TagsService([:])
 
     assertEquals('ul.tags.with-links a:link, ul.tags.with-links a:visited {background: #005a87;color: #ffffff;} ul.tags.with-links a:hover {color: #005a87;background: #ffffff;}', tagsService.tagsCss)
 
@@ -35,7 +33,7 @@ class TagsServiceTests extends GrailsUnitTestCase
 
   public void testDefinition()
   {
-    tagsService.init(['a:1': [background: 'red', color: 'black']])
+    TagsService tagsService = new TagsService(['a:1': [background: 'red', color: 'black']])
 
     assertEquals('ul.tags.with-links a:link, ul.tags.with-links a:visited {background: #005a87;color: #ffffff;} ul.tags.with-links a:hover {color: #005a87;background: #ffffff;} ul.tags.with-links li.tag-0 a:link, ul.tags.with-links li.tag-0 a:visited {background: red; color: black;} ul.tags.with-links li.tag-0 a:hover { color: red; background: black;}',
                  tagsService.tagsCss)
@@ -46,7 +44,8 @@ class TagsServiceTests extends GrailsUnitTestCase
 
   public void testDefinitionWithDefaults()
   {
-    tagsService.init(['__default__': [background: 'yellow', color: 'blue'], 'a:1': [background: 'red', color: 'black']])
+    TagsService tagsService = new TagsService(['__default__': [background: 'yellow', color: 'blue'],
+                                              'a:1': [background: 'red', color: 'black']])
 
     assertEquals('ul.tags.with-links a:link, ul.tags.with-links a:visited {background: yellow;color: blue;} ul.tags.with-links a:hover {color: yellow;background: blue;} ul.tags.with-links li.tag-0 a:link, ul.tags.with-links li.tag-0 a:visited {background: red; color: black;} ul.tags.with-links li.tag-0 a:hover { color: red; background: black;}',
                  tagsService.tagsCss)

@@ -109,7 +109,9 @@
   <!-- *********************** -->
   <!-- fabricService         -->
   <!-- *********************** -->
-  <bean id="_fabricServiceImpl" class="org.linkedin.glu.provisioner.services.fabric.FabricServiceImpl">
+  <bean id="_fabricServiceImpl"
+        class="org.linkedin.glu.provisioner.services.fabric.FabricServiceImpl"
+        destroy-method="destroy">
     <property name="configurableFactory" ref="configurableFactory"/>
     <property name="fabricStorage">
       <bean class="org.linkedin.glu.console.provisioner.services.storage.FabricStorageImpl"/>
@@ -121,4 +123,15 @@
     <property name="auditLogService" ref="auditLogService"/>
   </bean>
 
+  <!-- *********************** -->
+  <!-- tagsService             -->
+  <!-- *********************** -->
+  <bean id="tagsService" class="org.linkedin.glu.provisioner.services.tags.TagsService">
+    <constructor-arg>
+      <bean factory-bean="consoleConfig" factory-method="getDefault">
+        <constructor-arg value="tags"/>
+      </bean>
+    </constructor-arg>
+  </bean>
+  
 </beans>

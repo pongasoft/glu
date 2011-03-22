@@ -26,7 +26,7 @@ import org.linkedin.util.clock.SystemClock
 import org.linkedin.util.clock.Timespan
 import org.linkedin.util.clock.Chronos
 import org.linkedin.util.io.PathUtils
-import org.linkedin.glu.console.services.TagsService
+import org.linkedin.glu.provisioner.services.tags.TagsService
 import org.linkedin.glu.provisioner.services.fabric.FabricService
 
 /**

@@ -27,13 +27,11 @@ import org.linkedin.groovy.util.ivy.IvyURLHandler
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.console.domain.DbUserCredentials
-import org.linkedin.glu.console.services.TagsService
 
 class BootStrap {
 
   ConsoleConfig consoleConfig
   SystemService systemService
-  TagsService tagsService
 
   def init = { servletContext ->
     log.info "Starting up... [${Environment.current} mode]"
@@ -44,10 +42,6 @@ class BootStrap {
       throw new IllegalStateException("could not find console config defaults. Did you properly set console.defaults property ?")
 
     servletContext.consoleConfig = consoleConfig
-
-    // initializing tags service
-    if(consoleConfig.defaults.tags)
-      tagsService.init(consoleConfig.defaults.tags)
 
     // setup ivy url handler
     def ivySettings = ConfigurationHolder.config.console.ivySettingsURL

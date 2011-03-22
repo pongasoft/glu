@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.linkedin.glu.console.services
+package org.linkedin.glu.provisioner.services.tags
 
 import org.linkedin.util.lang.LangUtils
 
@@ -22,14 +22,15 @@ import org.linkedin.util.lang.LangUtils
  * @author yan@pongasoft.com */
 class TagsService
 {
-  static transactional = false
-
   private Map<String, Map> _tagsDefinition = [:]
 
   private String _tagsCss = ''
 
-  void init(Map<String, Map> tagsDefinition)
+  TagsService(Map<String, Map> tagsDefinition)
   {
+    if(!tagsDefinition)
+      tagsDefinition = [:]
+    
     _tagsDefinition = LangUtils.deepClone(tagsDefinition)
 
     Map defaultTagDefinition =

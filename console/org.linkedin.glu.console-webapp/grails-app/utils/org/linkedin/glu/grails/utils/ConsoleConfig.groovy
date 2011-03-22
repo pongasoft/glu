@@ -32,37 +32,14 @@ class ConsoleConfig
    * Map containing defaults for the console 
    */
   def defaults
-//      dashboard: [:],
-//          'metadata.container.name': [checked: true, name: 'container', groupBy: true, linkFilter: true],
-//          agent: [checked: true, name: 'agent', groupBy: true],
-//          'metadata.product': [checked: true, name: 'product', groupBy: true, linkFilter: true],
-//          'metadata.version': [checked: true, name: 'version', groupBy: true, linkFilter: true],
-//          'initParameters.wars': [checked: false, name: 'wars', groupBy: true],
-//          mountPoint: [checked: false, name: 'mountPoint', groupBy: true, linkFilter: true],
-//          'metadata.cluster': [checked: true, name: 'cluster', groupBy: true, linkFilter: true],
-//          'initParameters.skeleton': [checked: false, name: 'skeleton', groupBy: true],
-//          script: [checked: false, name: 'script', groupBy: true],
-//          'metadata.modifiedTime': [checked: false, name: 'Last Modified', groupBy: false],
-//          status: [checked: true, name: 'status', groupBy: true]
-
-//      system: [:],
-//          'metadata.container.name': [name: 'container'],
-//          agent: [name: 'agent'],
-//          'metadata.product': [name: 'product'],
-//          'metadata.version': [name: 'version'],
-//          'metadata.cluster': [name: 'cluster']
-
-//      model:
-//      [
-//          [
-//              name: 'product',
-//              header: ['version']
-//          ]
-//      ]
 
   ConsoleConfig()
   {
     defaults = ConfigurationHolder.config.console.defaults
   }
 
+  def getDefault(String name)
+  {
+    return defaults[name]
+  }
 }
