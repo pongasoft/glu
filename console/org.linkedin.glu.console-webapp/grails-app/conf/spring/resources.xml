@@ -124,6 +124,15 @@
   </bean>
 
   <!-- *********************** -->
+  <!-- trackerService         -->
+  <!-- *********************** -->
+  <bean id="trackerService"
+        class="org.linkedin.glu.provisioner.services.tracker.TrackerServiceImpl"
+        destroy-method="destroy">
+    <property name="fabricService" ref="fabricService"/>
+  </bean>
+
+  <!-- *********************** -->
   <!-- tagsService             -->
   <!-- *********************** -->
   <bean id="tagsService" class="org.linkedin.glu.provisioner.services.tags.TagsService">

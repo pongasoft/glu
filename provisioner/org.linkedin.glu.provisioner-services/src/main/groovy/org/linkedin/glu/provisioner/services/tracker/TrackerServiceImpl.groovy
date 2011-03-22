@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,41 +15,47 @@
  * the License.
  */
 
-package org.linkedin.glu.console.services
+package org.linkedin.glu.provisioner.services.tracker
 
+import java.util.concurrent.TimeoutException
+import org.apache.zookeeper.WatchedEvent
 import org.linkedin.glu.agent.tracker.AgentsTracker
-import org.springframework.beans.factory.DisposableBean
 import org.linkedin.glu.agent.tracker.AgentsTrackerImpl
 import org.linkedin.glu.agent.tracker.TrackerEventsListener
-import org.apache.zookeeper.WatchedEvent
 import org.linkedin.glu.provisioner.services.fabric.Fabric
-import org.linkedin.zookeeper.tracker.NodeEventType
-import org.linkedin.zookeeper.tracker.ErrorListener
-import org.linkedin.util.clock.Chronos
-import java.util.concurrent.TimeoutException
 import org.linkedin.glu.provisioner.services.fabric.FabricService
+import org.linkedin.util.clock.Chronos
+import org.linkedin.util.lifecycle.Destroyable
 import org.linkedin.zookeeper.client.IZKClient
+import org.linkedin.zookeeper.tracker.ErrorListener
+import org.linkedin.zookeeper.tracker.NodeEventType
+import org.linkedin.glu.agent.tracker.AgentInfo
+import org.linkedin.glu.agent.tracker.MountPointInfo
+import org.linkedin.glu.agent.api.MountPoint
+import org.linkedin.util.annotations.Initializable
 
 /**
  * @author ypujante
  */
-class TrackerService implements DisposableBean
+class TrackerServiceImpl implements TrackerService, Destroyable
 {
-  public static final String MODULE = TrackerService.class.getName();
+  public static final String MODULE = TrackerServiceImpl.class.getName();
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
+  @Initializable(required = true)
   FabricService fabricService
 
-  boolean transactional = false
+  @Initializable
+  String zookeeperRoot = "/org/glu"
 
   private final def _trackers = [:]
 
-  def getAgentInfos(Fabric fabric)
+  Map<String, AgentInfo> getAgentInfos(Fabric fabric)
   {
     return getAgentsTrackerByFabric(fabric).getAgentInfos()
   }
 
-  def getAgentInfo(Fabric fabric, String agentName)
+  AgentInfo getAgentInfo(Fabric fabric, String agentName)
   {
     return getAgentsTrackerByFabric(fabric).getAgentInfo(agentName)
   }
@@ -58,12 +65,12 @@ class TrackerService implements DisposableBean
     return getAgentsTrackerByFabric(fabric).getAllInfosWithAccuracy()
   }
 
-  def getMountPointInfos(Fabric fabric, String agentName)
+  Map<MountPoint, MountPointInfo> getMountPointInfos(Fabric fabric, String agentName)
   {
     return getAgentsTrackerByFabric(fabric).getMountPointInfos(agentName)
   }
 
-  def getMountPointInfo(Fabric fabric, String agentName, mountPoint)
+  MountPointInfo getMountPointInfo(Fabric fabric, String agentName, mountPoint)
   {
     return getAgentsTrackerByFabric(fabric).getMountPointInfo(agentName, mountPoint)
   }
@@ -87,7 +94,7 @@ class TrackerService implements DisposableBean
       {
         fabricService.withZkClient(fabric.name) { IZKClient zkClient ->
           tracker = new AgentsTrackerImpl(zkClient,
-                                          "/org/glu/agents/fabrics/${fabricName}".toString())
+                                          "${zookeeperRoot}/agents/fabrics/${fabricName}".toString())
         }
 
         _trackers[fabricName] = [tracker: tracker, fabric: fabric]
@@ -146,7 +153,7 @@ class TrackerService implements DisposableBean
   public synchronized void destroy()
   {
     _trackers.values().each { map ->
-      map.tracker.destory()
+      map.tracker.destroy()
     }
   }
 }

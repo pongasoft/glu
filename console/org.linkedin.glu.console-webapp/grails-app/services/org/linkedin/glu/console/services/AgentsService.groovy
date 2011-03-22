@@ -40,6 +40,7 @@ import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.groovy.util.io.DataMaskingInputStream
 import org.linkedin.glu.agent.tracker.AgentInfo
 import org.linkedin.glu.provisioner.impl.agent.DefaultDescriptionProvider
+import org.linkedin.glu.provisioner.services.tracker.TrackerService
 
 /**
  * @author ypujante

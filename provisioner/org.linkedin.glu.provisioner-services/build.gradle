@@ -20,6 +20,7 @@ apply plugin: 'org.linkedin.release'
 dependencies {
   compile project(':provisioner:org.linkedin.glu.provisioner-core')
   compile project(':agent:org.linkedin.glu.agent-rest-client')
+  compile project(':agent:org.linkedin.glu.agent-tracker')
   compile spec.external.linkedinZookeeperImpl
 
   groovy spec.external.groovy
