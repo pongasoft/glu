@@ -28,6 +28,9 @@ console.secretkeystorePath="${keysDir}/console.secretkeystore"
 console.truststorePath="${keysDir}/agent.truststore"
 console.truststorePassword = 'nacEn92x8-1'
 
+// path to the root of the unrestricted location (empty means no restriction)
+console.authorizationService.unrestrictedLocation = ''
+
 def dataSourceUrl =
   System.properties['org.linkedin.glu.console.dataSource.url'] ?:
   "jdbc:hsqldb:file:${System.properties['user.dir']}/database/prod;shutdown=true"

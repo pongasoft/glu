@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -27,7 +28,7 @@ import org.linkedin.glu.provisioner.plan.api.IPlanExecution
 import org.linkedin.glu.console.domain.DbDeployment
 import org.linkedin.glu.provisioner.core.action.ActionDescriptor
 import org.linkedin.glu.provisioner.plan.api.LeafStep
-import org.linkedin.glu.console.services.AgentsService
+import org.linkedin.glu.provisioner.services.agents.AgentsService
 import javax.servlet.http.HttpServletResponse
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -40,6 +41,7 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.impl.agent.DefaultDescriptionProvider
 import org.linkedin.glu.provisioner.services.fabric.FabricService
+import org.linkedin.glu.provisioner.services.agents.AgentsService
 
 /**
  * System service.

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2010 LinkedIn, Inc
+  ~ Portions Copyright (c) 2011 Yan Pujante
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not
   ~ use this file except in compliance with the License. You may obtain a copy of
@@ -107,6 +108,14 @@
         class="org.linkedin.glu.console.provisioner.services.audit.AuditLogServiceImpl"/>
 
   <!-- *********************** -->
+  <!-- authorizationService    -->
+  <!-- *********************** -->
+  <bean id="authorizationService"
+        class="org.linkedin.glu.console.authorization.ShiroAuthorizationService">
+    <property name="unrestrictedLocation" value="${console.authorizationService.unrestrictedLocation}"/>
+  </bean>
+
+  <!-- *********************** -->
   <!-- fabricService         -->
   <!-- *********************** -->
   <bean id="_fabricServiceImpl"
@@ -142,5 +151,21 @@
       </bean>
     </constructor-arg>
   </bean>
-  
+
+  <!-- *********************** -->
+  <!-- agentsService           -->
+  <!-- *********************** -->
+  <bean id="_agentsServiceImpl"
+        class="org.linkedin.glu.provisioner.services.agents.AgentsServiceImpl">
+    <property name="agentFactory" ref="agentFactory"/>
+    <property name="agentPlanner" ref="agentPlanner"/>
+    <property name="trackerService" ref="trackerService"/>
+    <property name="authorizationService" ref="authorizationService"/>
+  </bean>
+
+  <bean id="agentsService" class="org.linkedin.glu.provisioner.services.agents.AuditedAgentsService">
+    <property name="agentsService" ref="_agentsServiceImpl"/>
+    <property name="auditLogService" ref="auditLogService"/>
+  </bean>
+
 </beans>

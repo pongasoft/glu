@@ -15,71 +15,75 @@
  * the License.
  */
 
-package org.linkedin.glu.console.services
+package org.linkedin.glu.provisioner.services.agents
 
 import org.linkedin.glu.agent.api.Agent
-import org.linkedin.glu.provisioner.core.environment.Environment
 import org.linkedin.glu.agent.api.MountPoint
+import org.linkedin.glu.agent.rest.client.AgentFactory
+import org.linkedin.glu.agent.tracker.AgentInfo
+import org.linkedin.glu.agent.tracker.MountPointInfo
+import org.linkedin.glu.provisioner.api.planner.IAgentPlanner
+import org.linkedin.glu.provisioner.core.action.ActionDescriptor
+import org.linkedin.glu.provisioner.core.environment.Environment
 import org.linkedin.glu.provisioner.core.environment.Installation
 import org.linkedin.glu.provisioner.core.fabric.InstallationDefinition
-import org.linkedin.glu.provisioner.api.planner.IAgentPlanner
+import org.linkedin.glu.provisioner.core.model.SystemEntry
+import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.plan.api.Plan
-import org.linkedin.glu.provisioner.core.action.ActionDescriptor
-import org.linkedin.glu.console.domain.AuditLog
-import org.apache.shiro.SecurityUtils
-import org.linkedin.glu.console.domain.RoleName
-import org.apache.shiro.authz.AuthorizationException
 import org.linkedin.glu.provisioner.services.fabric.Fabric
+import org.linkedin.glu.provisioner.services.tracker.TrackerService
+import org.linkedin.groovy.util.io.DataMaskingInputStream
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.groovy.util.state.StateMachineImpl
-import org.linkedin.glu.agent.rest.client.AgentFactory
-import org.linkedin.glu.provisioner.core.model.SystemModel
-import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.util.lang.LangUtils
-import org.linkedin.glu.agent.tracker.MountPointInfo
-import org.linkedin.groovy.util.io.DataMaskingInputStream
-import org.linkedin.glu.agent.tracker.AgentInfo
+import org.linkedin.glu.provisioner.services.authorization.AuthorizationService
+import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.provisioner.impl.agent.DefaultDescriptionProvider
-import org.linkedin.glu.provisioner.services.tracker.TrackerService
 
 /**
  * @author ypujante
  */
-class AgentsService
+class AgentsServiceImpl implements AgentsService
 {
-  boolean transactional = false
-
   private final StateMachine stateMachine =
     new StateMachineImpl(transitions: Agent.DEFAULT_TRANSITIONS)
 
   private final def availableStates = stateMachine.availableStates as Set
 
   // will be dependency injected
+  @Initializable(required = true)
   AgentFactory agentFactory
+
+  @Initializable(required = true)
   TrackerService trackerService
+
+  @Initializable(required = true)
   IAgentPlanner agentPlanner
+
+  @Initializable
+  AuthorizationService authorizationService
 
   def getAllInfosWithAccuracy(Fabric fabric)
   {
     return trackerService.getAllInfosWithAccuracy(fabric)
   }
 
-  def getAgentInfos(Fabric fabric)
+  Map<String, AgentInfo> getAgentInfos(Fabric fabric)
   {
     return trackerService.getAgentInfos(fabric)
   }
 
-  def getAgentInfo(Fabric fabric, String agentName)
+  AgentInfo getAgentInfo(Fabric fabric, String agentName)
   {
     return trackerService.getAgentInfo(fabric, agentName)
   }
 
-  def getMountPointInfos(Fabric fabric, String agentName)
+  Map<MountPoint, MountPointInfo> getMountPointInfos(Fabric fabric, String agentName)
   {
     trackerService.getMountPointInfos(fabric, agentName)
   }
 
-  def getMountPointInfo(Fabric fabric, String agentName, mountPoint)
+  MountPointInfo getMountPointInfo(Fabric fabric, String agentName, mountPoint)
   {
     trackerService.getMountPointInfo(fabric, agentName, mountPoint)
   }
@@ -94,7 +98,6 @@ class AgentsService
   def clearError(args)
   {
     withRemoteAgent(args.fabric, args.id) { Agent agent ->
-      AuditLog.audit('agent.clearError', "${args}")
       agent.clearError(args)
     }
   }
@@ -102,7 +105,6 @@ class AgentsService
   def uninstallScript(args)
   {
     withRemoteAgent(args.fabric, args.id) { Agent agent ->
-      AuditLog.audit('agent.uninstallScript', "${args}")
       moveToState(agent, args.mountPoint, StateMachine.NONE, args.timeout)
       agent.uninstallScript(args)
     }
@@ -111,7 +113,6 @@ class AgentsService
   def forceUninstallScript(args)
   {
     withRemoteAgent(args.fabric, args.id) { Agent agent ->
-      AuditLog.audit('agent.forceUninstallScript', "${args}")
       agent.uninstallScript(*:args, force: true)
     }
   }
@@ -149,7 +150,6 @@ class AgentsService
   def interruptAction(args)
   {
     withRemoteAgent(args.fabric, args.id) { Agent agent ->
-      AuditLog.audit('agent.interruptAction', "${args}")
       agent.interruptAction(args)
       agent.waitForState(mountPoint: args.mountPoint,
                          state: args.state,
@@ -167,7 +167,6 @@ class AgentsService
   def sync(args)
   {
     withRemoteAgent(args.fabric, args.id) { Agent agent ->
-      AuditLog.audit('agent.sync')
       agent.sync()
     }
   }
@@ -175,7 +174,6 @@ class AgentsService
   def kill(args)
   {
     withRemoteAgent(args.fabric, args.id) { Agent agent ->
-      AuditLog.audit('agent.kill', "${args}")
       agent.kill(args.pid as long, args.signal as int)
     }
   }
@@ -183,30 +181,15 @@ class AgentsService
   void tailLog(args, Closure closure)
   {
     withRemoteAgent(args.fabric, args.id) { Agent agent ->
-      AuditLog.audit('agent.tailLog', "${args}")
       closure(agent.tailAgentLog(args))
     }
   }
 
   void streamFileContent(args, Closure closure)
   {
-    // do not allow non admin users to access files:
-    // -- outside of /export/content/glu area
-    // -- dir with conf or *Config as their name (as they may have sensitive data)
-    if(!args.location.startsWith('/export/content/glu'))
-    {
-      try
-      {
-        SecurityUtils.getSubject().checkRole(RoleName.ADMIN.name())
-      }
-      catch (AuthorizationException e)
-      {
-        AuditLog.audit('agent.getFileContent.notAuthorized', "${args}")
-        throw e
-      }
-    }
+    authorizationService?.checkStreamFileContent(args.location)
+
     withRemoteAgent(args.fabric, args.id) { Agent agent ->
-      AuditLog.audit('agent.getFileContent', "${args}")
       def res = agent.getFileContent(args)
       if(res instanceof InputStream) {
         res = new DataMaskingInputStream(res)
@@ -221,7 +204,7 @@ class AgentsService
     return agentPlanner.createUpgradePlan(extractAgentsMap(args), args.version, args.coordinates)
   }
 
-  private def extractAgentsMap(args)
+  protected def extractAgentsMap(args)
   {
     def agentInfos = getAgentInfos(args.fabric)
 
@@ -263,47 +246,7 @@ class AgentsService
       if(agent.mountPoints)
       {
         agent.mountPoints.values().each { MountPointInfo mp ->
-
-          SystemEntry se = new SystemEntry()
-
-          se.agent = agentName
-          se.mountPoint = mp.mountPoint.toString()
-          def data = LangUtils.deepClone(mp.data)
-          se.script = data?.scriptDefinition?.scriptFactory?.location
-
-          // all the necessary values are stored in the init parameters
-          data?.scriptDefinition?.initParameters?.each { k,v ->
-            if(v != null)
-            {
-              switch(k)
-              {
-                case 'metadata':
-                  se.metadata = v
-                  break
-
-                case 'tags':
-                  se.setTags(v)
-                  break
-
-                default:
-                 se.initParameters[k] = v
-                 break
-              }
-            }
-          }
-
-          se.metadata.currentState = mp.currentState
-          if(mp.transitionState)
-            se.metadata.transitionState = mp.transitionState
-          if(mp.error)
-            se.metadata.error = mp.error
-          se.metadata.modifiedTime = mp.modifiedTime
-          if(data?.scriptState)
-          {
-            se.metadata.scriptState = data.scriptState
-          }
-
-          systemModel.addEntry(se)
+          systemModel.addEntry(createSystemEntry(agentName, mp))
         }
       }
       else
@@ -316,6 +259,53 @@ class AgentsService
     systemModel.metadata.emptyAgents = emptyAgents
 
     return systemModel
+  }
+
+  /**
+   * Create the system entry for the given agent and mountpoint.
+   */
+  protected SystemEntry createSystemEntry(agentName, MountPointInfo mp)
+  {
+    SystemEntry se = new SystemEntry()
+
+    se.agent = agentName
+    se.mountPoint = mp.mountPoint.toString()
+    Map data = LangUtils.deepClone(mp.data)
+    se.script = data?.scriptDefinition?.scriptFactory?.location
+
+    // all the necessary values are stored in the init parameters
+    data?.scriptDefinition?.initParameters?.each { k, v ->
+      if(v != null)
+      {
+        switch(k)
+        {
+          case 'metadata':
+            se.metadata = v
+            break
+
+          case 'tags':
+            se.setTags(v)
+            break
+
+          default:
+            se.initParameters[k] = v
+            break
+        }
+      }
+    }
+
+    se.metadata.currentState = mp.currentState
+    if(mp.transitionState)
+      se.metadata.transitionState = mp.transitionState
+    if(mp.error)
+      se.metadata.error = mp.error
+    se.metadata.modifiedTime = mp.modifiedTime
+    if(data?.scriptState)
+    {
+      se.metadata.scriptState = data.scriptState
+    }
+    
+    return se
   }
 
   /**
@@ -367,7 +357,7 @@ class AgentsService
     }
   }
 
-  private Environment doGetAgentEnvironment(Fabric fabric, String agentName, Closure closure)
+  protected Environment doGetAgentEnvironment(Fabric fabric, String agentName, Closure closure)
   {
     def mountPoints = getMountPointInfos(fabric, agentName)?.values()
     if(mountPoints == null)
@@ -383,7 +373,7 @@ class AgentsService
     return new Environment(name: agentName, installations: installations)
   }
 
-  private Installation toInstallation(URI agentURI, SystemEntry se)
+  protected Installation toInstallation(URI agentURI, SystemEntry se)
   {
     def args = [:]
 
@@ -411,7 +401,7 @@ class AgentsService
     }
   }
 
-  private def toInstallations(Fabric fabric, mountPoints)
+  protected def toInstallations(Fabric fabric, mountPoints)
   {
     def agentInfos = getAgentInfos(fabric)
 
@@ -464,7 +454,7 @@ class AgentsService
     return installations.values().toList()
   }
 
-  private def moveToState(agent, mountPoint, toState, timeout)
+  protected def moveToState(agent, mountPoint, toState, timeout)
   {
     def state = agent.getState(mountPoint: mountPoint)
 
@@ -484,7 +474,7 @@ class AgentsService
     }
   }
 
-  private def withRemoteAgent(Fabric fabric, String agentName, Closure closure)
+  protected def withRemoteAgent(Fabric fabric, String agentName, Closure closure)
   {
     agentFactory.withRemoteAgent(getAgentInfo(fabric, agentName).getURI()) { Agent agent ->
       closure(agent)

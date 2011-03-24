@@ -138,6 +138,8 @@ environments {
 
     console.defaults = console.dev.defaults
 
+    console.authorizationService.unrestrictedLocation = '/export/content/glu'
+
     grails.serverURL = "http://${InetAddress.getLocalHost().canonicalHostName}:8080/${appName}"
 
     // log4j configuration
@@ -183,7 +185,9 @@ environments {
     console.truststorePassword = 'nacEn92x8-1'
 
     console.defaults = console.dev.defaults
-    
+
+    console.authorizationService.unrestrictedLocation = '/export/content/glu'
+
     grails.serverURL = "http://localhost:8080/${appName}"
 
     // log4j configuration

@@ -20,6 +20,7 @@ package org.linkedin.glu.console.services
 import org.linkedin.glu.provisioner.services.fabric.Fabric
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
+import org.linkedin.glu.provisioner.services.agents.AgentsService
 
 class AuditService
 {

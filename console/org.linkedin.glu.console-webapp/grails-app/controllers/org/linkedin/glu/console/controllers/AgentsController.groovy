@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,14 +17,14 @@
 
 package org.linkedin.glu.console.controllers
 
-import org.linkedin.glu.console.services.AgentsService
+import org.linkedin.glu.provisioner.services.agents.AgentsService
 import org.linkedin.glu.console.services.SystemService
-import org.apache.shiro.authz.UnauthorizedException
 import org.linkedin.glu.console.services.AuditService
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.provisioner.services.fabric.Fabric
+import java.security.AccessControlException
 
 /**
  * @author ypujante@linkedin.com
@@ -383,7 +384,7 @@ class AgentsController extends ControllerBase
         }
       }
     }
-    catch (UnauthorizedException e)
+    catch (AccessControlException e)
     {
       flash.error = "Not authorized to view ${params.location}"
       redirect(action: 'view', id: params.id)
