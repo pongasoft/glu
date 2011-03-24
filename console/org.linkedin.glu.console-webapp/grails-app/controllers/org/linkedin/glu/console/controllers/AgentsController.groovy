@@ -19,7 +19,6 @@ package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.provisioner.services.agents.AgentsService
 import org.linkedin.glu.console.services.SystemService
-import org.linkedin.glu.console.services.AuditService
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.provisioner.plan.api.Plan
@@ -33,7 +32,6 @@ class AgentsController extends ControllerBase
 {
   AgentsService agentsService
   SystemService systemService
-  AuditService auditService
 
   def beforeInterceptor = {
     // we make sure that the fabric is always set before executing any action

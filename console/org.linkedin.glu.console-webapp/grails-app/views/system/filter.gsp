@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -39,9 +40,9 @@
   }
   </style>
   <link rel="stylesheet" href="${resource(dir:'css',file:'audit.css')}"/>
-  <script type="text/javascript" src="${resource(dir:'js',file:'audit.js')}"></script>
+  <script type="text/javascript" src="${resource(dir:'js',file:'delta.js')}"></script>
   <g:javascript>
-<cl:renderAuditJS filter="${params.systemFilter}"/>
+<cl:renderDeltaJS filter="${params.systemFilter}"/>
   </g:javascript>
   <script type="text/javascript" src="${resource(dir:'js',file:'console_yui.js')}"></script>
 </head>
@@ -55,7 +56,7 @@
   <div id="systemModel">
     <g:render template="systemModel" model="[systems: [request.system]]"/>
   </div>
-  <g:include controller="dashboard" action="renderAudit" params="[groupBy: params.groupBy]"/>
+  <g:include controller="dashboard" action="renderDelta" params="[groupBy: params.groupBy]"/>
 
   <g:render template="/plan/selectDelta" model="[delta: delta, title: 'Deploy: ' + params.title]"/>
 

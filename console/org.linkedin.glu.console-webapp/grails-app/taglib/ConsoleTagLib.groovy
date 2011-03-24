@@ -121,11 +121,11 @@ public class ConsoleTagLib
   }
 
   /**
-   * Format an audit value
+   * Format an computeDelta value
    * @param args.colunmName
    * @param args.detail
    */
-  def formatAuditValue = { args ->
+  def formatDeltaValue = { args ->
     def columnName = args.columnName
     def detail = args.detail
     def columns = args.columns
@@ -198,7 +198,7 @@ public class ConsoleTagLib
       break;
 
       case 'status':
-        out << cl.formatAuditStatus(status: value, statusInfo: detail.statusInfo, row: args.row)
+        out << cl.formatDeltaStatus(status: value, statusInfo: detail.statusInfo, row: args.row)
         break;
 
       default:
@@ -277,9 +277,9 @@ public class ConsoleTagLib
   }
 
   /**
-   * Format audit status
+   * Format computeDelta status
    */
-  def formatAuditStatus = { args ->
+  def formatDeltaStatus = { args ->
     def status = args.status
 
     switch(status)
@@ -819,9 +819,9 @@ public class ConsoleTagLib
   }
 
   /**
-   * Render the audit javascript: since it uses g.remoteFunction it cannot be put in javascript itself... 
+   * Render the delta javascript: since it uses g.remoteFunction it cannot be put in javascript itself...
    */
-  def renderAuditJS = { args ->
+  def renderDeltaJS = { args ->
     def filter = args.filter
     def columns = args.columns ?: ConsoleConfig.getInstance().defaults.dashboard
     out << 'function render(groupBy) {\n'
@@ -831,7 +831,7 @@ public class ConsoleTagLib
       def encodedFilter = filter.encodeAsURL()
       out << "p = p + '&systemFilter=${encodedFilter}';\n"
     }
-    out << "${g.remoteFunction(controller: 'dashboard', action: 'renderAudit', params: "p", before: 'showSpinner()', update:[success: '__audit', failure: '__audit_content'])}\n"
+    out << "${g.remoteFunction(controller: 'dashboard', action: 'renderDelta', params: "p", before: 'showSpinner()', update:[success: '__delta', failure: '__delta_content'])}\n"
     out << "}\n"
 
     out << """function renderSame() {

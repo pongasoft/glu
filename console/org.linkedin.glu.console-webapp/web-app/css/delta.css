@@ -47,27 +47,27 @@ td.detail a:hover {
   text-decoration: underline;
   color: #0000ee;
 }
-#__audit_content td {
+#__delta_content td {
   white-space: nowrap;
 }
-#__audit_content td.column0 {
+#__delta_content td.column0 {
   vertical-align: top;
 }
-#__audit_content td.totalCount {
+#__delta_content td.totalCount {
   text-align: center;
   vertical-align: top;
 }
-#__audit_content td.errorsCount {
+#__delta_content td.errorsCount {
   text-align: center;
   vertical-align: top;
 }
-#__audit_content table {
+#__delta_content table {
   width: auto;
 }
-#__audit_content table th {
+#__delta_content table th {
   text-align: center;
 }
-#__audit_inaccurate td {
+#__delta_inaccurate td {
   color: red;
   font-size: 1.5em;
   font-weight: bold;

@@ -28,8 +28,8 @@ class UrlMappings
      * USER access
      */
     // dashboard
-    "/dashboard"(controller: 'dashboard', action: 'audit') { __nvbe = 'Dashboard' }
-    "/dashboard/renderAudit"(controller: 'dashboard', action: 'renderAudit') { __nvbe = 'Dashboard' }
+    "/dashboard"(controller: 'dashboard', action: 'delta') { __nvbe = 'Dashboard' }
+    "/dashboard/renderDelta"(controller: 'dashboard', action: 'renderDelta') { __nvbe = 'Dashboard' }
     "/dashboard/index"(controller: 'dashboard', action: 'index') { __nvbe = 'Dashboard' }
 
     // agents
@@ -81,7 +81,7 @@ class UrlMappings
     "/help/forum"(controller: 'help', action: "forum") { __nvbe = 'Help' }
 
     // /
-    "/"(controller: 'dashboard', action: 'audit') { __nvbe = 'Dashboard' }
+    "/"(controller: 'dashboard', action: 'delta') { __nvbe = 'Dashboard' }
 
     // home
     "/home"(controller: 'home', action: "index") { __nvbe = 'User' }

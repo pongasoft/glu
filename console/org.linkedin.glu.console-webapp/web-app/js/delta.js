@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,7 +20,7 @@
  */
 function showHideColumn(column)
 {
-  toggleClassChildren('__audit_content', column, !document.getElementById(column).checked, 'hidden');
+  toggleClassChildren('__delta_content', column, !document.getElementById(column).checked, 'hidden');
 }
 
 /**
@@ -55,6 +56,6 @@ function computeRenderParams(groupBy, columns)
  */
 function showSpinner()
 {
-  document.getElementById('__audit_content').innerHTML =
+  document.getElementById('__delta_content').innerHTML =
     '<img src="/console/images/spinner.gif" alt="Spinner" id="loadingSpinner"/>';
 }

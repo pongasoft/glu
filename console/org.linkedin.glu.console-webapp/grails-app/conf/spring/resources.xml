@@ -168,4 +168,10 @@
     <property name="auditLogService" ref="auditLogService"/>
   </bean>
 
+  <!-- *********************** -->
+  <!-- deltaService            -->
+  <!-- *********************** -->
+  <bean id="deltaService" class="org.linkedin.glu.provisioner.services.delta.DeltaServiceImpl">
+    <property name="agentsService" ref="agentsService"/>
+  </bean>
 </beans>

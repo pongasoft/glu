@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -19,10 +20,10 @@
 <head>
   <title>GLU Console - Dashboard</title>
   <meta name="layout" content="main"/>
-  <link rel="stylesheet" href="${resource(dir:'css',file:'audit.css')}"/>
-  <script type="text/javascript" src="${resource(dir:'js',file:'audit.js')}"></script>
+  <link rel="stylesheet" href="${resource(dir:'css',file:'delta.css')}"/>
+  <script type="text/javascript" src="${resource(dir:'js',file:'delta.js')}"></script>
   <g:javascript>
-<cl:renderAuditJS/>
+<cl:renderDeltaJS/>
   </g:javascript>
   <script type="text/javascript" src="${resource(dir:'js',file:'console_yui.js')}"></script>
 </head>
@@ -31,6 +32,6 @@
   <li class="selected">Dashboard</li>
   <li><g:link controller="system" action="list">System</g:link></li>
 </ul>
-<g:render template="audit"/>
+<g:render template="delta"/>
 </body>
 </html>

@@ -15,24 +15,24 @@
  * the License.
  */
 
-package org.linkedin.glu.console.services
+package test.provisioner.services.delta
 
-import grails.test.GrailsUnitTestCase
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.glu.provisioner.services.delta.DeltaServiceImpl
 
-class AuditServiceTests extends GrailsUnitTestCase
+class TestDeltaService extends GroovyTestCase
 {
-  def auditService = new AuditService()
+  def deltaService = new DeltaServiceImpl()
 
-  void testAuditService()
+  void testDeltaService()
   {
     // empty
     def current = []
     def expected = []
-    assertEquals([], doAudit(current, expected))
+    groovy.util.GroovyTestCase.assertEquals([], doComputeDelta(current, expected))
 
     // notDeployed
     current = []
@@ -57,7 +57,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected))
+                           doComputeDelta(current, expected))
 
     // notDeployed + cluster (GLU-393)
     current = []
@@ -83,7 +83,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected))
+                           doComputeDelta(current, expected))
 
     // notRunning
     current = [
@@ -115,7 +115,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected))
+                           doComputeDelta(current, expected))
 
     // versionMismatch (wars)
     current = [
@@ -148,7 +148,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w2'
                             ]
                            ],
-                           doAudit(current, expected))
+                           doComputeDelta(current, expected))
 
     // versionMismatch (config)
     current = [
@@ -182,7 +182,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected))
+                           doComputeDelta(current, expected))
 
     // unexpected
     current = [
@@ -227,7 +227,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected))
+                           doComputeDelta(current, expected))
 
     // error
     current = [
@@ -261,7 +261,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected))
+                           doComputeDelta(current, expected))
 
     // unknown
     current = [
@@ -287,7 +287,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected))
+                           doComputeDelta(current, expected))
 
     // ok
     current = [
@@ -323,7 +323,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                              tags: ['ee:1']
                             ]
                             ],
-                           doAudit(current, expected))
+                           doComputeDelta(current, expected))
 
     // ok (with cluster)
     current = [
@@ -356,7 +356,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected))
+                           doComputeDelta(current, expected))
 
     // ok (with cluster)
     current = [
@@ -389,7 +389,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected))
+                           doComputeDelta(current, expected))
 
     // nothing deployed on the agent at all
     current = [
@@ -405,7 +405,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             status: 'NA'
                             ]
                            ],
-                           doAudit(current, expected) { SystemModel cs, SystemModel es ->
+                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
                              cs.metadata.emptyAgents = ['a1']
                            })
 
@@ -444,7 +444,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                              tags: ['a:2', 'ee:1']
                             ]
                            ],
-                           doAudit(current, expected) { SystemModel cs, SystemModel es ->
+                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
                            })
@@ -476,7 +476,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                              tags: ['a:2', 'ee:1']
                             ]
                            ],
-                           doAudit(current, expected) { SystemModel cs, SystemModel es ->
+                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
                            })
@@ -506,7 +506,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doAudit(current, expected) { SystemModel cs, SystemModel es ->
+                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
                            })
@@ -525,7 +525,7 @@ class AuditServiceTests extends GrailsUnitTestCase
                              tags: ['a:2']
                             ]
                            ],
-                           doAudit(current, expected) { SystemModel cs, SystemModel es ->
+                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
                              cs.metadata.emptyAgents = ['a1']
@@ -573,14 +573,14 @@ class AuditServiceTests extends GrailsUnitTestCase
     // e8 | R1036 | R1016
     // e9 | R1036 | R1036
 
-    // full system audit (everything up and running)
+    // full system computeDelta (everything up and running)
     def currentSystem = toSystem(CURRENT, 'running')
     def expectedSystem = toSystem(EXPECTED, null)
-    doAuditAndCheck(currentSystem, expectedSystem, CURRENT.keySet(), 'running')
+    doDeltaAndCheck(currentSystem, expectedSystem, CURRENT.keySet(), 'running')
 
-    // full system audit (everything stopped)
+    // full system computeDelta (everything stopped)
     currentSystem = toSystem(CURRENT, 'stopped')
-    doAuditAndCheck(currentSystem, expectedSystem, CURRENT.keySet(), 'stopped')
+    doDeltaAndCheck(currentSystem, expectedSystem, CURRENT.keySet(), 'stopped')
 
     // expectedSystem filtered by R1036 (everything up and running)
     currentSystem = toSystem(CURRENT, 'running')
@@ -590,19 +590,19 @@ class AuditServiceTests extends GrailsUnitTestCase
     expectedMountPoints.addAll(CURRENT.findAll { k,v -> v == 'R1036'}.collect { k,v -> k })
     expectedMountPoints.addAll(EXPECTED.findAll { k,v -> v == 'R1036'}.collect { k,v -> k })
 
-    doAuditAndCheck(currentSystem, expectedSystem, expectedMountPoints, 'running')
+    doDeltaAndCheck(currentSystem, expectedSystem, expectedMountPoints, 'running')
 
     // expectedSystem filtered by R1036 (everything stopped)
     currentSystem = toSystem(CURRENT, 'stopped')
-    doAuditAndCheck(currentSystem, expectedSystem, expectedMountPoints, 'stopped')
+    doDeltaAndCheck(currentSystem, expectedSystem, expectedMountPoints, 'stopped')
   }
 
-  private void doAuditAndCheck(SystemModel currentSystem,
+  private void doDeltaAndCheck(SystemModel currentSystem,
                                SystemModel expectedSystem,
                                def expectedMountPoints,
                                String state)
   {
-    def expectedAudit = []
+    def expectedDelta = []
 
     expectedMountPoints.each { mountPoint ->
       def entry =
@@ -640,10 +640,10 @@ class AuditServiceTests extends GrailsUnitTestCase
         }
       }
 
-      expectedAudit << entry
+      expectedDelta << entry
     }
 
-    assertEqualsIgnoreType(expectedAudit, auditService.audit(currentSystem, expectedSystem))
+    assertEqualsIgnoreType(expectedDelta, deltaService.computeDelta(currentSystem, expectedSystem))
   }
 
   private SystemModel toSystem(Map system, String currentState)
@@ -671,14 +671,14 @@ class AuditServiceTests extends GrailsUnitTestCase
     return toSystem(entries)
   }
   
-  private def doAudit(def current, def expected)
+  private def doComputeDelta(def current, def expected)
   {
-    doAudit(current, expected) { SystemModel cs, SystemModel es ->
+    doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
       // nothing to do
     }
   }
 
-  private def doAudit(def current, def expected, Closure closure)
+  private def doComputeDelta(def current, def expected, Closure closure)
   {
     SystemModel currentSystem = createEmptySystem(current)
     SystemModel expectedSystem = createEmptySystem(expected)
@@ -688,7 +688,7 @@ class AuditServiceTests extends GrailsUnitTestCase
     addEntries(currentSystem, current)
     addEntries(expectedSystem, expected)
 
-    return auditService.audit(currentSystem, expectedSystem)
+    return deltaService.computeDelta(currentSystem, expectedSystem)
   }
 
   private SystemModel toSystem(def system)

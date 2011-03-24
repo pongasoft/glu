@@ -18,8 +18,8 @@
 <%@ page import="org.linkedin.glu.grails.utils.ConsoleConfig; org.linkedin.glu.agent.tracker.AgentsTracker.AccuracyLevel" %>
 <g:set var="columnsTail" value="${columnNames[1..-1]}"/>
 <g:set var="columns" value="${ConsoleConfig.getInstance().defaults.dashboard}"/>
-<div id="__audit">
-  <div id="__audit_menu">
+<div id="__delta">
+  <div id="__delta_menu">
     <ul class="submenu">
       <li>Group By:</li>
       <g:each in="${groupByColumns}" var="column" status="columnIdx">
@@ -41,7 +41,7 @@
       </g:each>
     </ul>
   </div>
-  <div id="__audit_content">
+  <div id="__delta_content">
     <table>
       <tr>
         <th>${columns[columnNames[0]].name}:${counts[columnNames[0]]}</th>
@@ -55,7 +55,7 @@
         </g:each>
       </tr>
       <g:if test="${accuracy == AccuracyLevel.INACCURATE}">
-        <tr id="__audit_inaccurate">
+        <tr id="__delta_inaccurate">
           <td colspan="${3 + columnsTail.size()}">
             <div class="warning">Warning!!! Warning!!! Warning!!!</div>
             The data you are seeing is not accurate as the console is in the process of loading it from ZooKeeper
@@ -64,17 +64,17 @@
         </tr>
       </g:if>
       <% /* Column 0 is sorted and we do the grouping on (span multiple rows) */ %>
-      <g:each in="${audit.keySet().sort()}" var="column0Value" status="line">
+      <g:each in="${delta.keySet().sort()}" var="column0Value" status="line">
         <tbody id="${column0Value}">
         <% /* Entries (grouped by column0) are sorted by column 1 */ %>
-        <g:set var="row" value="${audit[column0Value]}"/>
+        <g:set var="row" value="${delta[column0Value]}"/>
         <g:set var="entries" value="${ConsoleUtils.sortBy(row.entries, sortableColumnNames)}"/>
         <g:set var="rowState" value="${row.state + ' ' + row.na}"/>
         <g:each in="${entries}" var="entry" status="rowIdx">
           <tr class="${rowState}">
             <g:if test="${rowIdx == 0}">
               <td rowspan="${entries.size()}" class="${rowState} column0">
-                <cl:formatAuditValue columnName="${columnNames[0]}" detail="${entry}" columns="${columns}"/>
+                <cl:formatDeltaValue columnName="${columnNames[0]}" detail="${entry}" columns="${columns}"/>
               </td>
               <td rowspan="${entries.size()}" class="${rowState} totalCount">
                 ${row.instancesCount}
@@ -85,7 +85,7 @@
             </g:if>
             <g:each in="${columnsTail}" var="columnName" status="columnIdx">
               <td class="${entry.state} detail ${columnName}">
-                <cl:formatAuditValue columns="${columns}" columnName="${columnName}" detail="${entry}" row="d-${line}-${rowIdx}"/>
+                <cl:formatDeltaValue columns="${columns}" columnName="${columnName}" detail="${entry}" row="d-${line}-${rowIdx}"/>
               </td>
             </g:each>
           </tr>
