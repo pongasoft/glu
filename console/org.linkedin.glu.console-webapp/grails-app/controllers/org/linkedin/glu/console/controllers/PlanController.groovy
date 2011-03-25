@@ -18,7 +18,7 @@
 package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.provisioner.plan.api.IStepFilter
-import org.linkedin.glu.console.services.SystemService
+import org.linkedin.glu.provisioner.services.deployment.DeploymentService
 import org.linkedin.glu.provisioner.plan.api.IPlanExecutionProgressTracker
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
@@ -32,13 +32,14 @@ import org.linkedin.glu.provisioner.services.agents.AgentsService
 import javax.servlet.http.HttpServletResponse
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
+import org.linkedin.glu.provisioner.services.deployment.CurrentDeployment
 
 /**
  * @author ypujante@linkedin.com */
 public class PlanController extends ControllerBase
 {
   Clock clock = SystemClock.instance()
-  SystemService systemService
+  DeploymentService deploymentService
   AgentsService agentsService
 
   def beforeInterceptor = {
@@ -92,18 +93,19 @@ public class PlanController extends ControllerBase
    * Execute the plan
    */
   def execute = {
-    def plan = doFilterPlan(params)
+    Plan plan = doFilterPlan(params)
 
     if(plan)
     {
       session.delta = null
 
-      def id = systemService.executeDeploymentPlan(request.system,
-                                                   plan,
-                                                   plan.name,
-                                                   new ProgressTracker())
+      CurrentDeployment currentDeployment =
+        deploymentService.executeDeploymentPlan(request.system,
+                                                plan,
+                                                plan.name,
+                                                new ProgressTracker())
 
-      redirect(action: 'deployments', id: id)
+      redirect(action: 'deployments', id: currentDeployment.id)
     }
     else
     {
@@ -130,11 +132,11 @@ public class PlanController extends ControllerBase
   def deployments = {
     if(params.id)
     {
-      render(view: 'deploymentDetails', model: [deployment: systemService.getDeployment(params.id)])
+      render(view: 'deploymentDetails', model: [deployment: deploymentService.getDeployment(params.id)])
     }
     else
     {
-      def deployments = sortAndGroupDeployments(systemService.getDeployments(request.fabric.name))
+      def deployments = sortAndGroupDeployments(deploymentService.getDeployments(request.fabric.name))
 
       [groupBy: deployments]
     }
@@ -153,14 +155,14 @@ public class PlanController extends ControllerBase
   def renderDeploymentDetails = {
     if(params.id)
     {
-      render(template: 'deploymentDetails', model: [deployment: systemService.getDeployment(params.id)])
+      render(template: 'deploymentDetails', model: [deployment: deploymentService.getDeployment(params.id)])
     }
   }
 
   /**
    * Renders only the completed deployments */
   def renderDeployments = {
-    def deployments = sortAndGroupDeployments(systemService.getDeployments(request.fabric.name))
+    def deployments = sortAndGroupDeployments(deploymentService.getDeployments(request.fabric.name))
     render(template: 'deployments', model: [groupBy: deployments])
   }
 
@@ -188,14 +190,14 @@ public class PlanController extends ControllerBase
    * Remove the deployement
    */
   def archiveDeployment = {
-    systemService.archiveDeployment(params.id)
+    deploymentService.archiveDeployment(params.id)
     redirect(action: 'deployments')
   }
 
   /**
    * Archives all deployments */
   def archiveAllDeployments = {
-    def count = systemService.archiveAllDeployments(request.fabric.name)
+    def count = deploymentService.archiveAllDeployments(request.fabric.name)
     flash.message = "Successfully archived ${count} deployment(s)."
     redirect(action: 'deployments')
   }
@@ -205,7 +207,7 @@ public class PlanController extends ControllerBase
    */
   def resumeDeployment = {
     audit('plan.resume', params.id)
-    systemService.getDeployment(params.id)?.planExecution?.resume()
+    deploymentService.getDeployment(params.id)?.planExecution?.resume()
     redirect(action: 'deployments', id: params.id)
   }
 
@@ -214,7 +216,7 @@ public class PlanController extends ControllerBase
    */
   def pauseDeployment = {
     audit('plan.pause', params.id)
-    systemService.getDeployment(params.id)?.planExecution?.pause()
+    deploymentService.getDeployment(params.id)?.planExecution?.pause()
     redirect(action: 'deployments', id: params.id)
   }
 
@@ -223,7 +225,7 @@ public class PlanController extends ControllerBase
    */
   def abortDeployment = {
     audit('plan.abort', params.id)
-    systemService.getDeployment(params.id)?.planExecution?.cancel(true)
+    deploymentService.getDeployment(params.id)?.planExecution?.cancel(true)
     redirect(action: 'deployments', id: params.id)
   }
 
@@ -232,7 +234,7 @@ public class PlanController extends ControllerBase
    * Cancels a single step
    */
   def cancelStep = {
-    def stepExecutor = systemService.getDeployment(params.id)?.progressTracker?.steps?.getAt(params.stepId)
+    def stepExecutor = deploymentService.getDeployment(params.id)?.progressTracker?.steps?.getAt(params.stepId)
     if(stepExecutor)
     {
       audit('plan.cancelStep', "plan: ${params.id}, step: ${stepExecutor.step.name}")
@@ -244,9 +246,9 @@ public class PlanController extends ControllerBase
   /**
    * Filter the plans by the steps selected.
    */
-  private def doFilterPlan(params)
+  private Plan doFilterPlan(params)
   {
-    def plan = session.delta.find { it.id == params.id }
+    Plan plan = session.delta.find { it.id == params.id }
 
     if(plan)
     {
@@ -295,24 +297,24 @@ public class PlanController extends ControllerBase
     {
       case 'start':
       case 'deploy':
-        plan = systemService.computeDeploymentPlan(args)
+        plan = deploymentService.computeDeploymentPlan(args)
         break;
 
       case 'stop':
         args.state = ['stopped']
-        plan = systemService.computeTransitionPlan(args) { true }
+        plan = deploymentService.computeTransitionPlan(args) { true }
         break;
 
       case 'undeploy':
-        plan = systemService.computeUndeployPlan(args) { true }
+        plan = deploymentService.computeUndeployPlan(args) { true }
         break;
 
       case 'bounce':
-        plan = systemService.computeBouncePlan(args) { true }
+        plan = deploymentService.computeBouncePlan(args) { true }
         break;
 
       case 'redeploy':
-        plan = systemService.computeRedeployPlan(args) { true }
+        plan = deploymentService.computeRedeployPlan(args) { true }
         break;
 
       default:
@@ -336,9 +338,9 @@ public class PlanController extends ControllerBase
 
     plan?.name = null // force the generation of a new name
     plan =
-      systemService.groupByInstance(plan,
-                                    type,
-                                    [origin: 'rest', action: params.planAction, filter: args.name])
+      deploymentService.groupByInstance(plan,
+                                        type,
+                                        [origin: 'rest', action: params.planAction, filter: args.name])
 
     if(plan?.hasLeafSteps())
     {
@@ -350,7 +352,7 @@ public class PlanController extends ControllerBase
       }
       else
       {
-        systemService.savePlan(plan)
+        deploymentService.savePlan(plan)
         response.addHeader('Location', g.createLink(absolute: true,
                                                     mapping: 'restPlan',
                                                     id: plan.id, params: [fabric: request.fabric]).toString())
@@ -369,7 +371,7 @@ public class PlanController extends ControllerBase
    * View a plan
    */
   def rest_view_plan = {
-    def plan = systemService.getPlan(params.id)
+    def plan = deploymentService.getPlan(params.id)
     if(plan)
     {
       response.setContentType('text/xml')
@@ -385,19 +387,22 @@ public class PlanController extends ControllerBase
    *  Execute a plan
    */
   def rest_execute_plan = {
-    def plan = systemService.getPlan(params.id)
+    def plan = deploymentService.getPlan(params.id)
     if(plan)
     {
-      def executionId = systemService.executeDeploymentPlan(request.system,
-                                                            plan,
-                                                            plan.name,
-                                                            new ProgressTracker())
+      CurrentDeployment currentDeployment =
+        deploymentService.executeDeploymentPlan(request.system,
+                                                plan,
+                                                plan.name,
+                                                new ProgressTracker())
 
       response.addHeader('Location', g.createLink(absolute: true,
                                                   mapping: 'restExecution',
-                                                  id: executionId, params: [planId: plan.id, fabric: request.fabric.name]).toString())
+                                                  id: currentDeployment.id, params: [
+                                                  planId: plan.id,
+                                                  fabric: request.fabric.name]).toString())
       response.setStatus(HttpServletResponse.SC_CREATED)
-      render executionId
+      render currentDeployment.id
     }
     else
     {
@@ -409,7 +414,7 @@ public class PlanController extends ControllerBase
    * Get plan execution progression status (percentage)
    */
   def rest_execution_status = {
-    def deployment = systemService.getDeployment(params.id)
+    def deployment = deploymentService.getDeployment(params.id)
 
     if(deployment && deployment.planExecution.plan.id == params.planId)
     {
@@ -435,7 +440,7 @@ public class PlanController extends ControllerBase
    * Get a full plan execution (xml format)
    */
   def rest_view_execution = {
-    def deployment = systemService.getDeployment(params.id)
+    def deployment = deploymentService.getDeployment(params.id)
 
     if(deployment && deployment.planExecution.plan.id == plans[params.planId])
     {
@@ -453,13 +458,13 @@ public class PlanController extends ControllerBase
     def args = [:]
     args.system = request.system
     args.fabric = request.fabric
-    return systemService.computeDeploymentPlan(args)
+    return deploymentService.computeDeploymentPlan(args)
   }
 
   private Plan createStartAllPlan(IStep.Type type)
   {
     Plan plan = createStartAllPlan()
-    systemService.groupByInstance(plan, type, [instance: '*'])
+    deploymentService.groupByInstance(plan, type, [instance: '*'])
   }
 
   private Plan createStopAllPlan()
@@ -467,13 +472,13 @@ public class PlanController extends ControllerBase
     def args = [:]
     args.system = request.system
     args.fabric = request.fabric
-    return systemService.computeUndeployPlan(args) { true }
+    return deploymentService.computeUndeployPlan(args) { true }
   }
 
   private Plan createStopAllPlan(IStep.Type type)
   {
     Plan plan = createStopAllPlan()
-    systemService.groupByInstance(plan, type, [instance: '-*'])
+    deploymentService.groupByInstance(plan, type, [instance: '-*'])
   }
 
   private Plan createPlan(Plan startAllPlan, Plan stopAllPlan, String line)
@@ -539,7 +544,7 @@ public class PlanController extends ControllerBase
     }
 
     def plan = planBuilder.toPlan()
-    systemService.groupByInstance(plan, planType, [:])
+    deploymentService.groupByInstance(plan, planType, [:])
   }
 }
 

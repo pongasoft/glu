@@ -14,22 +14,20 @@
  * the License.
  */
 
-package org.linkedin.glu.provisioner.services.authorization
+package org.linkedin.glu.provisioner.services.system
 
-import java.security.AccessControlException
+import org.linkedin.glu.provisioner.core.model.SystemModel
+import org.linkedin.glu.provisioner.services.fabric.Fabric
 
 /**
- * @author yan@pongasoft.com  */
-public interface AuthorizationService
+ * @author yan@pongasoft.com */
+public interface SystemStorage
 {
-  /**
-   * @throws AccessControlException if the current user does not have the rights to stream the
-   * content of the file
-   */
-  void checkStreamFileContent(String location) throws AccessControlException
+  SystemModel findCurrentByFabric(String fabric)
 
-  /**
-   * @return the executing principal (who is executing the code)
-   */
-  String getExecutingPrincipal()
+  SystemModel findCurrentByFabric(Fabric fabric)
+
+  SystemModel findBySystemId(String systemId)
+
+  void saveCurrentSystem(SystemModel systemModel)
 }

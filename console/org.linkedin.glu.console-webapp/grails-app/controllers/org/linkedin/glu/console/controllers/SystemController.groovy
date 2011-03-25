@@ -18,15 +18,17 @@
 package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.provisioner.services.agents.AgentsService
-import org.linkedin.glu.console.services.SystemService
+import org.linkedin.glu.provisioner.services.deployment.DeploymentService
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.console.domain.DbSystemModel
 import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 import org.linkedin.glu.provisioner.core.model.SystemEntry
+import org.linkedin.glu.provisioner.services.system.SystemService
 
 class SystemController extends ControllerBase
 {
   AgentsService agentsService
+  DeploymentService deploymentService
   SystemService systemService
 
   def beforeInterceptor = {
@@ -63,7 +65,6 @@ class SystemController extends ControllerBase
    * Saving the current system
    */
   def save = {
-    def currentSystem = DbSystemModel.findCurrent(request.fabric)
     def system = DbSystemModel.findBySystemId(params.id)
 
     try
@@ -76,12 +77,11 @@ class SystemController extends ControllerBase
         return
       }
       systemModel.id = null
-      def newCurrentSystem = systemService.saveCurrentSystem(systemModel).systemModel
-      if(newCurrentSystem.id != currentSystem?.id)
-        flash.message = "New system properly saved [${newCurrentSystem.systemId}]"
+      if(systemService.saveCurrentSystem(systemModel))
+        flash.message = "New system properly saved [${systemModel.id}]"
       else
         flash.message = "Already current system"
-      redirect(action: 'view', id: newCurrentSystem.systemId)
+      redirect(action: 'view', id: systemModel.id)
     }
     catch(Throwable th)
     {
@@ -128,12 +128,12 @@ class SystemController extends ControllerBase
 
       def missingAgents = systemService.getMissingAgents(request.fabric, request.system)
 
-      Plan plan = systemService.computeDeploymentPlan(params) 
+      Plan plan = deploymentService.computeDeploymentPlan(params)
 
       def plans =
-        systemService.groupByInstance(plan,
-                                      [type: 'deploy',
-                                       fabric: request.fabric.name])
+        deploymentService.groupByInstance(plan,
+                                          [type: 'deploy',
+                                          fabric: request.fabric.name])
 
       session.delta = []
 
@@ -141,40 +141,40 @@ class SystemController extends ControllerBase
 
       def bouncePlans
 
-      def bouncePlan = systemService.computeBouncePlan(params) { true }
+      def bouncePlan = deploymentService.computeBouncePlan(params) { true }
       if(bouncePlan)
       {
         bouncePlan.name = "Bounce: ${title}"
         bouncePlans =
-          systemService.groupByInstance(bouncePlan,
-                                        [type: 'bounce',
-                                         fabric: request.fabric.name])
+          deploymentService.groupByInstance(bouncePlan,
+                                            [type: 'bounce',
+                                            fabric: request.fabric.name])
         session.delta.addAll(bouncePlans)
       }
 
       def redeployPlans
 
-      def redeployPlan = systemService.computeRedeployPlan(params) { true }
+      def redeployPlan = deploymentService.computeRedeployPlan(params) { true }
       if(redeployPlan)
       {
         redeployPlan.name = "Redeploy: ${title}"
         redeployPlans =
-          systemService.groupByInstance(redeployPlan,
-                                        [type: 'redeploy',
-                                         fabric: request.fabric.name])
+          deploymentService.groupByInstance(redeployPlan,
+                                            [type: 'redeploy',
+                                            fabric: request.fabric.name])
         session.delta.addAll(redeployPlans)
       }
 
       def undeployPlans
 
-      def undeployPlan = systemService.computeUndeployPlan(params) { true }
+      def undeployPlan = deploymentService.computeUndeployPlan(params) { true }
       if(undeployPlan)
       {
         undeployPlan.name = "Undeploy: ${title}"
         undeployPlans =
-          systemService.groupByInstance(undeployPlan,
-                                        [type: 'undeploy',
-                                         fabric: request.fabric.name])
+          deploymentService.groupByInstance(undeployPlan,
+                                            [type: 'undeploy',
+                                            fabric: request.fabric.name])
         session.delta.addAll(undeployPlans)
       }
 
@@ -184,7 +184,7 @@ class SystemController extends ControllerBase
           redeploy: redeployPlans,
           undeploy: undeployPlans,
           title: title,
-          executingDeploymentPlan: systemService.isExecutingDeploymentPlan(request.fabric.name),
+          executingDeploymentPlan: deploymentService.isExecutingDeploymentPlan(request.fabric.name),
           missingAgents: missingAgents
       ]
     }
@@ -205,32 +205,32 @@ class SystemController extends ControllerBase
       args.fabric = request.fabric
       args.name = params.title
 
-      Plan plan = systemService.computeDeploymentPlan(args)
+      Plan plan = deploymentService.computeDeploymentPlan(args)
 
       def plans =
-        systemService.groupByInstance(plan, [type: 'deploy', name: args.name])
+        deploymentService.groupByInstance(plan, [type: 'deploy', name: args.name])
 
       session.delta.addAll(plans)
 
       def bouncePlans
 
-      def bouncePlan = systemService.computeBouncePlan(args) { true }
+      def bouncePlan = deploymentService.computeBouncePlan(args) { true }
       if(bouncePlan)
       {
         bouncePlan.name = "Bounce ${params.title}"
         bouncePlans =
-          systemService.groupByInstance(bouncePlan, [type: 'bounce', name: args.name])
+          deploymentService.groupByInstance(bouncePlan, [type: 'bounce', name: args.name])
         session.delta.addAll(bouncePlans)
       }
 
       def redeployPlans
 
-      def redeployPlan = systemService.computeRedeployPlan(args) { true }
+      def redeployPlan = deploymentService.computeRedeployPlan(args) { true }
       if(redeployPlan)
       {
         redeployPlan.name = "Redeploy ${params.title}"
         redeployPlans =
-          systemService.groupByInstance(redeployPlan, [type: 'redeploy', name: args.name])
+          deploymentService.groupByInstance(redeployPlan, [type: 'redeploy', name: args.name])
         session.delta.addAll(redeployPlans)
       }
 

@@ -14,22 +14,26 @@
  * the License.
  */
 
-package org.linkedin.glu.provisioner.services.authorization
+package org.linkedin.glu.provisioner.services.deployment
 
-import java.security.AccessControlException
+import org.linkedin.util.clock.Timespan
 
 /**
- * @author yan@pongasoft.com  */
-public interface AuthorizationService
+ * @author yan@pongasoft.com */
+public class Deployment
 {
-  /**
-   * @throws AccessControlException if the current user does not have the rights to stream the
-   * content of the file
-   */
-  void checkStreamFileContent(String location) throws AccessControlException
+  String id
+  Date startDate = new Date()
+  Date endDate
+  String username
+  String fabric
+  String description
 
-  /**
-   * @return the executing principal (who is executing the code)
-   */
-  String getExecutingPrincipal()
+  public Timespan getDuration()
+  {
+    if(endDate)
+      return new Timespan(endDate.time - startDate.time)
+    else
+      return null
+  }
 }

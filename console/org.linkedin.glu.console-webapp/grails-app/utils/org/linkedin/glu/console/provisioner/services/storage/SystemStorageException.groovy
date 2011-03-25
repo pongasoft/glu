@@ -14,22 +14,19 @@
  * the License.
  */
 
-package org.linkedin.glu.provisioner.services.authorization
+package org.linkedin.glu.console.provisioner.services.storage
 
-import java.security.AccessControlException
+import org.springframework.validation.Errors
 
 /**
- * @author yan@pongasoft.com  */
-public interface AuthorizationService
+ * @author yan@pongasoft.com */
+public class SystemStorageException extends Exception
 {
-  /**
-   * @throws AccessControlException if the current user does not have the rights to stream the
-   * content of the file
-   */
-  void checkStreamFileContent(String location) throws AccessControlException
+  private static final long serialVersionUID = 1L;
 
-  /**
-   * @return the executing principal (who is executing the code)
-   */
-  String getExecutingPrincipal()
+  Errors errors
+
+  SystemStorageException()
+  {
+  }
 }

@@ -169,6 +169,41 @@
   </bean>
 
   <!-- *********************** -->
+  <!-- systemService           -->
+  <!-- *********************** -->
+  <bean id="_systemServiceImpl"
+        class="org.linkedin.glu.provisioner.services.system.SystemServiceImpl">
+    <property name="agentsService" ref="agentsService"/>
+    <property name="systemStorage">
+      <bean class="org.linkedin.glu.console.provisioner.services.storage.SystemStorageImpl"/>
+    </property>
+  </bean>
+
+  <bean id="systemService" class="org.linkedin.glu.provisioner.services.system.AuditedSystemService">
+    <property name="systemService" ref="_systemServiceImpl"/>
+    <property name="auditLogService" ref="auditLogService"/>
+  </bean>
+
+  <!-- *********************** -->
+  <!-- deploymentService           -->
+  <!-- *********************** -->
+  <bean id="_deploymentServiceImpl"
+        class="org.linkedin.glu.provisioner.services.deployment.DeploymentServiceImpl">
+    <property name="agentsService" ref="agentsService"/>
+    <property name="authorizationService" ref="authorizationService"/>
+    <property name="deploymentMgr" ref="deploymentMgr"/>
+    <property name="fabricService" ref="fabricService"/>
+    <property name="deploymentStorage">
+      <bean class="org.linkedin.glu.console.provisioner.services.storage.DeploymentStorageImpl"/>
+    </property>
+  </bean>
+
+  <bean id="deploymentService" class="org.linkedin.glu.provisioner.services.deployment.AuditedDeploymentService">
+    <property name="auditLogService" ref="auditLogService"/>
+    <property name="deploymentService" ref="_deploymentServiceImpl"/>
+  </bean>
+
+  <!-- *********************** -->
   <!-- deltaService            -->
   <!-- *********************** -->
   <bean id="deltaService" class="org.linkedin.glu.provisioner.services.delta.DeltaServiceImpl">

@@ -17,13 +17,14 @@
 
 package org.linkedin.glu.console.controllers
 
-import org.linkedin.glu.console.services.SystemService
 import javax.servlet.http.HttpServletResponse
-import org.linkedin.glu.console.domain.DbSystemModel
+
 import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
-import org.linkedin.groovy.util.net.GroovyNetUtils
+
 import org.linkedin.groovy.util.io.GroovyIOUtils
+import org.linkedin.glu.provisioner.services.system.SystemService
+import org.linkedin.glu.console.provisioner.services.storage.SystemStorageException
 
 /**
  * @author: ypujante@linkedin.com
@@ -45,24 +46,16 @@ public class ModelController extends ControllerBase
   def load = {
     try
     {
-      def res = loadSystemModel()
+      def res = saveCurrentSystem()
 
-      if(!res?.system?.hasErrors())
+      if(res.errors)
       {
-        if(res.errors)
-        {
-          render(view: 'model_errors', model: [errors: res.errors])
-        }
-        else
-        {
-          flash.message = "Model loaded succesfully"
-          redirect(controller: 'dashboard')
-        }
+        render(view: 'model_errors', model: [errors: res.errors])
       }
       else
       {
-        flash.errors = "${system.errors}"
-        render(view: 'choose')
+        flash.message = "Model loaded succesfully"
+        redirect(controller: 'dashboard')
       }
     }
     catch(Throwable th)
@@ -75,7 +68,7 @@ public class ModelController extends ControllerBase
 
   def upload = load
 
-  private def loadSystemModel()
+  private def saveCurrentSystem()
   {
     String model
 
@@ -88,10 +81,10 @@ public class ModelController extends ControllerBase
       model = request.getFile('jsonFile').inputStream.text
     }
 
-    return loadSystemModel(model)
+    return saveCurrentSystem(model)
   }
 
-  private def loadSystemModel(String model)
+  private def saveCurrentSystem(String model)
   {
     withLock('ModelController.saveCurrentSystem') {
       if(model)
@@ -99,8 +92,15 @@ public class ModelController extends ControllerBase
         def system = JSONSystemModelSerializer.INSTANCE.deserialize(model)
         if(system.fabric != request.fabric.name)
           throw new IllegalArgumentException("mismatch fabric ${request.fabric.name} != ${system.fabric}")
-        system = systemService.saveCurrentSystem(system)
-        return [system: system]
+        try
+        {
+          boolean saved = systemService.saveCurrentSystem(system)
+          return [system: system, saved: saved]
+        }
+        catch (SystemStorageException e)
+        {
+          return [system: system, errors: e.errors]
+        }
       }
       else
       {
@@ -123,22 +123,19 @@ public class ModelController extends ControllerBase
         model = request.inputStream.text
       }
 
-      def currentSystemId = request.system?.id
+      def res = saveCurrentSystem(model)
 
-      def res = loadSystemModel(model)
-
-      if(!res.system.hasErrors())
+      if(!res.errors)
       {
-        def newSystemId = res.system.systemModel.systemModel.id
-        if(newSystemId == currentSystemId)
+        if(res.saved)
         {
-          response.setStatus(HttpServletResponse.SC_NO_CONTENT)
-          render ''
+          response.setStatus(HttpServletResponse.SC_CREATED)
+          render "id=${res.system.id}"
         }
         else
         {
-          response.setStatus(HttpServletResponse.SC_CREATED)
-          render "id=${newSystemId}"
+          response.setStatus(HttpServletResponse.SC_NO_CONTENT)
+          render ''
         }
       }
       else

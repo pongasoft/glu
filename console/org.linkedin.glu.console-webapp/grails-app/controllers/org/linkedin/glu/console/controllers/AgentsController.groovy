@@ -18,7 +18,7 @@
 package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.provisioner.services.agents.AgentsService
-import org.linkedin.glu.console.services.SystemService
+import org.linkedin.glu.provisioner.services.deployment.DeploymentService
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.provisioner.plan.api.Plan
@@ -31,7 +31,7 @@ import java.security.AccessControlException
 class AgentsController extends ControllerBase
 {
   AgentsService agentsService
-  SystemService systemService
+  DeploymentService deploymentService
 
   def beforeInterceptor = {
     // we make sure that the fabric is always set before executing any action
@@ -48,7 +48,7 @@ class AgentsController extends ControllerBase
 
     def model = [:]
 
-    def hosts = systemService.getHostsWithDeltas(fabric: request.fabric.name)
+    def hosts = deploymentService.getHostsWithDeltas(fabric: request.fabric.name)
 
     agents.values().each { agent ->
       model[agent.agentName] = computeAgentModel(request.fabric, agent, null, hosts.contains(agent.agentName))
@@ -146,27 +146,27 @@ class AgentsController extends ControllerBase
       request.system = system
       params.system = system
 
-      Plan plan = systemService.computeDeploymentPlan(params) { true }
+      Plan plan = deploymentService.computeDeploymentPlan(params) { true }
 
       session.delta = []
 
-      plans = systemService.groupByInstance(plan, [type: 'deploy', agent: params.id])
+      plans = deploymentService.groupByInstance(plan, [type: 'deploy', agent: params.id])
 
       session.delta.addAll(plans)
 
-      def bouncePlan = systemService.computeBouncePlan(params)  { true }
+      def bouncePlan = deploymentService.computeBouncePlan(params)  { true }
       if(bouncePlan)
       {
         bouncePlan.name = "Bounce: ${title}"
-        bouncePlans = systemService.groupByInstance(bouncePlan, [type: 'bounce', agent: params.id])
+        bouncePlans = deploymentService.groupByInstance(bouncePlan, [type: 'bounce', agent: params.id])
         session.delta.addAll(bouncePlans)
       }
 
-      def redeployPlan = systemService.computeRedeployPlan(params) { true }
+      def redeployPlan = deploymentService.computeRedeployPlan(params) { true }
       if(redeployPlan)
       {
         redeployPlan.name = "Redeploy: ${title}"
-        redeployPlans = systemService.groupByInstance(redeployPlan, [type: 'redeploy', agent: params.id])
+        redeployPlans = deploymentService.groupByInstance(redeployPlan, [type: 'redeploy', agent: params.id])
         session.delta.addAll(redeployPlans)
       }
 
@@ -258,7 +258,7 @@ class AgentsController extends ControllerBase
     params.state = 'running'
     params.name = params.name ?: 'Start'
     redirectToActionPlan('start') { p ->
-      systemService.computeTransitionPlan(p) { true }
+      deploymentService.computeTransitionPlan(p) { true }
     }
   }
 
@@ -268,7 +268,7 @@ class AgentsController extends ControllerBase
     params.state = 'stopped'
     params.name = params.name ?: 'Stop'
     redirectToActionPlan('stop') { p ->
-      systemService.computeTransitionPlan(p) { true }
+      deploymentService.computeTransitionPlan(p) { true }
     }
   }
 
@@ -277,7 +277,7 @@ class AgentsController extends ControllerBase
   def bounce = {
     params.name = params.name ?: 'Bounce'
     redirectToActionPlan('bounce') { p ->
-      systemService.computeBouncePlan(p) { true }
+      deploymentService.computeBouncePlan(p) { true }
     }
   }
 
@@ -286,7 +286,7 @@ class AgentsController extends ControllerBase
   def undeploy = {
     params.name = params.name ?: 'Undeploy'
     redirectToActionPlan('undeploy') { p ->
-      systemService.computeUndeployPlan(p) { true }
+      deploymentService.computeUndeployPlan(p) { true }
     }
   }
 
@@ -295,7 +295,7 @@ class AgentsController extends ControllerBase
   def redeploy = {
     params.name = params.name ?: 'Redeploy'
     redirectToActionPlan('redeploy') { p ->
-      systemService.computeRedeployPlan(p) { true }
+      deploymentService.computeRedeployPlan(p) { true }
     }
   }
 
@@ -321,11 +321,11 @@ class AgentsController extends ControllerBase
       {
         plan.name = "${params.name} ${params.id}:${params.mountPoint}".toString()
       }
-      plan = systemService.groupByInstance(plan,
-                                           IStep.Type.SEQUENTIAL,
-                                           [action: action,
-                                            agent: params.id,
-                                            mountPoint: params.mountPoint])
+      plan = deploymentService.groupByInstance(plan,
+                                               IStep.Type.SEQUENTIAL,
+                                               [action: action,
+                                               agent: params.id,
+                                               mountPoint: params.mountPoint])
       session.delta = [plan]
       redirect(controller: 'plan', action: 'view', id: plan.id)
     }

@@ -188,9 +188,6 @@ class DeltaServiceImpl implements DeltaService
     def deltaWithAccuracy = computeDelta(fabric, expectedSystem)
     def current = deltaWithAccuracy.delta
 
-    println "D: ${groupByDefinition}"
-    println "S: ${groupBySelection}"
-
     def columnNames = groupByDefinition.collect { k, v -> k }
 
     def groupByColumns = groupByDefinition.findAll { k, v -> v.groupBy }.collect { k,v -> k}

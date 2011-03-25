@@ -20,13 +20,13 @@ import grails.util.Environment
 import org.linkedin.glu.console.domain.User
 import org.linkedin.glu.console.domain.RoleName
 import org.codehaus.groovy.grails.commons.ConfigurationHolder
-import org.linkedin.glu.console.services.SystemService
 import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.linkedin.groovy.util.net.SingletonURLStreamHandlerFactory
 import org.linkedin.groovy.util.ivy.IvyURLHandler
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.console.domain.DbUserCredentials
+import org.linkedin.glu.provisioner.services.system.SystemService
 
 class BootStrap {
 

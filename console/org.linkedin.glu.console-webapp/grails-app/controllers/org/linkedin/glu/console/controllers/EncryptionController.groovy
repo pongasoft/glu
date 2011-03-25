@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,7 +17,6 @@
 
 package org.linkedin.glu.console.controllers
 
-import org.linkedin.glu.console.services.SystemService
 import org.linkedin.glu.console.services.EncryptionService
 import org.linkedin.util.codec.Base64Codec
 
@@ -33,7 +33,6 @@ class EncryptionController extends ControllerBase
 
   // dependency injected
   EncryptionService encryptionService
-  SystemService systemService
 
   def list = {
     // list of available keys

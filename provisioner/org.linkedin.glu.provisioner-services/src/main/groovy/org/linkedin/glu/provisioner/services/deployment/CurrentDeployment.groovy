@@ -14,22 +14,16 @@
  * the License.
  */
 
-package org.linkedin.glu.provisioner.services.authorization
+package org.linkedin.glu.provisioner.services.deployment
 
-import java.security.AccessControlException
+import org.linkedin.glu.provisioner.plan.api.IPlanExecution
+import org.linkedin.glu.provisioner.plan.api.IPlanExecutionProgressTracker
 
 /**
- * @author yan@pongasoft.com  */
-public interface AuthorizationService
+ * @author yan@pongasoft.com */
+public class CurrentDeployment extends Deployment
 {
-  /**
-   * @throws AccessControlException if the current user does not have the rights to stream the
-   * content of the file
-   */
-  void checkStreamFileContent(String location) throws AccessControlException
-
-  /**
-   * @return the executing principal (who is executing the code)
-   */
-  String getExecutingPrincipal()
+  String systemId
+  IPlanExecution planExecution
+  IPlanExecutionProgressTracker progressTracker
 }

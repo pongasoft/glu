@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,137 +14,60 @@
  * the License.
  */
 
-package org.linkedin.glu.console.services
+package org.linkedin.glu.provisioner.services.deployment
 
 import org.linkedin.glu.provisioner.core.action.ActionDescriptor
 import org.linkedin.glu.provisioner.core.environment.Environment
+import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.deployment.api.IDeploymentManager
-import org.linkedin.glu.provisioner.plan.api.Plan
-import org.linkedin.glu.provisioner.plan.api.LeafStep
-import org.linkedin.glu.provisioner.plan.api.IStep
+import org.linkedin.glu.provisioner.impl.agent.DefaultDescriptionProvider
 import org.linkedin.glu.provisioner.plan.api.IPlanExecutionProgressTracker
-import org.linkedin.glu.console.domain.AuditLog
-import org.apache.shiro.SecurityUtils
-import org.linkedin.glu.console.domain.DbDeployment
-import org.linkedin.glu.provisioner.plan.api.FilteredPlanExecutionProgressTracker
-import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
-import org.linkedin.glu.provisioner.plan.api.IPlanExecution
+import org.linkedin.glu.provisioner.plan.api.IStep
+import org.linkedin.glu.provisioner.plan.api.LeafStep
+import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.provisioner.plan.api.SequentialStep
-import org.linkedin.glu.console.domain.DbSystemModel
-import org.linkedin.glu.console.domain.DbCurrentSystem
+import org.linkedin.glu.provisioner.services.agents.AgentsService
+import org.linkedin.glu.provisioner.services.authorization.AuthorizationService
 import org.linkedin.glu.provisioner.services.fabric.Fabric
-import org.linkedin.util.clock.Timespan
+import org.linkedin.glu.provisioner.services.fabric.FabricService
+import org.linkedin.util.annotations.Initializable
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
-import org.linkedin.glu.provisioner.core.model.SystemModel
-import org.linkedin.glu.provisioner.core.model.SystemEntry
-import org.linkedin.glu.provisioner.impl.agent.DefaultDescriptionProvider
-import org.linkedin.glu.provisioner.services.fabric.FabricService
-import org.linkedin.glu.provisioner.services.agents.AgentsService
+import org.linkedin.util.clock.Timespan
 
 /**
  * System service.
  *
  * @author ypujante@linkedin.com */
-class SystemService
+class DeploymentServiceImpl implements DeploymentService
 {
   // we keep entries in the plan cache no more than 5m
+  @Initializable
   Timespan planCacheTimeout = Timespan.parse('5m')
+
+  @Initializable
   Clock clock = SystemClock.INSTANCE
 
+  @Initializable(required = true)
   AgentsService agentsService
+
+  @Initializable(required = true)
   FabricService fabricService
+
+  @Initializable(required = true)
   IDeploymentManager deploymentMgr
 
-  private Map _deployments = [:]
+  @Initializable(required = true)
+  DeploymentStorage deploymentStorage
+
+  @Initializable
+  AuthorizationService authorizationService
+
+  private Map<String, CurrentDeployment> _deployments = [:]
   private Map<String, Plan> _plans = [:]
 
-  /**
-   * Given a fabric, returns the list of agents that are declared in the system
-   * but are not available through ZooKeeper
-   */
-  def getMissingAgents(Fabric fabric)
-  {
-    getMissingAgents(fabric, DbSystemModel.findCurrent(fabric)?.systemModel)
-  }
 
-  /**
-   * Given a system, returns the list of agents that are declared
-   * but are not available through ZooKeeper
-   */
-  def getMissingAgents(Fabric fabric, SystemModel system)
-  {
-    def availableAgents = agentsService.getAgentInfos(fabric)
-
-    def missingAgents = [] as Set
-
-    system?.each { SystemEntry se ->
-      if(!availableAgents.containsKey(se.agent))
-        missingAgents << se.agent
-    }
-
-    return missingAgents
-  }
-
-  /**
-   * Saves the new model as the current system.
-   * @return the new current system
-   */
-  DbCurrentSystem saveCurrentSystem(SystemModel newSystemModel)
-  {
-    if(newSystemModel.filters)
-      throw new IllegalStateException("cannot save a filtered model!")
-
-    def newSystemModelSha1 = newSystemModel.computeContentSha1()
-
-    if(!newSystemModel.id)
-      newSystemModel.id = newSystemModelSha1
-
-    def currentSystemModel = DbCurrentSystem.findByFabric(newSystemModel.fabric)
-
-    // when the new system and the current system match, there is no reason to
-    // change it
-    if(newSystemModelSha1 == currentSystemModel?.systemModel?.systemModel?.computeContentSha1())
-    {
-      return currentSystemModel
-    }
-
-    def previousSystemModel = DbSystemModel.findBySystemId(newSystemModel.id)
-
-    DbSystemModel newDbSystemModel
-
-    if(previousSystemModel)
-    {
-      if(newSystemModelSha1 != previousSystemModel?.systemModel?.computeContentSha1())
-      {
-        throw new IllegalArgumentException("same id ${newSystemModel.id} but different content!")
-      }
-      newDbSystemModel = previousSystemModel
-    }
-    else
-    {
-      newDbSystemModel = new DbSystemModel(systemModel: newSystemModel)
-      if(!newDbSystemModel.save())
-      {
-        throw new IllegalArgumentException("error while saving new system ${newDbSystemModel.errors}")
-      }
-    }
-
-    if(currentSystemModel)
-      currentSystemModel.systemModel = newDbSystemModel
-    else
-      currentSystemModel = new DbCurrentSystem(systemModel: newDbSystemModel,
-                                               fabric: newDbSystemModel.fabric)
-
-    currentSystemModel = currentSystemModel.save()
-
-    AuditLog.audit('system.change',
-                   "fabric: ${newSystemModel.fabric}, systemId: ${newSystemModel.id}")
-
-    return currentSystemModel
-  }
-
-  def getHostsWithDeltas(params)
+  Collection<String> getHostsWithDeltas(params)
   {
     def hosts = new HashSet()
 
@@ -476,7 +398,7 @@ class SystemService
     }
   }
 
-  def getPlan(id)
+  Plan getPlan(String id)
   {
     synchronized(_plans)
     {
@@ -484,7 +406,7 @@ class SystemService
     }
   }
 
-  def savePlan(Plan plan)
+  void savePlan(Plan plan)
   {
     synchronized(_plans)
     {
@@ -497,7 +419,7 @@ class SystemService
     }
   }
 
-  def getDeployments(String fabric)
+  Collection<CurrentDeployment> getDeployments(String fabric)
   {
     synchronized(_deployments)
     {
@@ -508,7 +430,7 @@ class SystemService
   /**
    * Returns all the deployments matching the closure
    */
-  def getDeployments(String fabric, Closure closure)
+  Collection<CurrentDeployment> getDeployments(String fabric, Closure closure)
   {
     synchronized(_deployments)
     {
@@ -516,8 +438,7 @@ class SystemService
     }
   }
 
-
-  def archiveDeployment(id)
+  boolean archiveDeployment(String id)
   {
     synchronized(_deployments)
     {
@@ -527,12 +448,16 @@ class SystemService
         if(deployment.planExecution.isCompleted())
         {
           _deployments.remove(id)
-          AuditLog.audit('plan.archive', "plan: ${id}")
+          return true
         }
         else
         {
           throw new IllegalStateException("cannot archive a running deployment")
         }
+      }
+      else
+      {
+        return false
       }
     }
   }
@@ -541,7 +466,7 @@ class SystemService
    * Archive all deployments (that are completed of course)
    * @return the number of archived deployments
    */
-  def archiveAllDeployments(String fabric)
+  int archiveAllDeployments(String fabric)
   {
     synchronized(_deployments)
     {
@@ -555,7 +480,7 @@ class SystemService
     }
   }
   
-  def getDeployment(id)
+  CurrentDeployment getDeployment(String id)
   {
     synchronized(_deployments)
     {
@@ -563,109 +488,59 @@ class SystemService
     }
   }
 
-  DbDeployment getArchivedDeployment(id)
+  ArchivedDeployment getArchivedDeployment(String id)
   {
-    DbDeployment.get(id)
+    deploymentStorage.getArchivedDeployment(id)
   }
 
   boolean isExecutingDeploymentPlan(String fabric)
   {
     synchronized(_deployments)
     {
-      return _deployments.values().find { it.fabric == fabric && !it.planExecution.isCompleted() }
+      return _deployments.values().any { it.fabric == fabric && !it.planExecution.isCompleted() }
     }
   }
 
-  def executeDeploymentPlan(SystemModel system, Plan plan)
+  CurrentDeployment executeDeploymentPlan(SystemModel system, Plan plan)
   {
     executeDeploymentPlan(system, plan, plan.name, null)
   }
 
-  def executeDeploymentPlan(SystemModel system,
-                            Plan plan,
-                            String description,
-                            IPlanExecutionProgressTracker progressTracker)
+  CurrentDeployment executeDeploymentPlan(SystemModel system,
+                                          Plan plan,
+                                          String description,
+                                          IPlanExecutionProgressTracker progressTracker)
   {
     synchronized(_deployments)
     {
-      String username = SecurityUtils.getSubject()?.principal?.toString()
+      String username = authorizationService.getExecutingPrincipal()
 
-      def deployment = new DbDeployment(description: description,
-                                        fabric: system.fabric,
-                                        username: username,
-                                        details: plan.toXml())
+      ArchivedDeployment deployment =
+        deploymentStorage.startDeployment(description,
+                                                   system.fabric,
+                                                   username,
+                                                   plan.toXml())
 
-      if(!deployment.save())
-        throw new Exception("cannot save deployment ${plan.name}: ${deployment.errors}")
+      def id = deployment.id
 
-      def id = deployment.id.toString()
-
-      def tracker = new ProgressTracker(progressTracker, id, system)
+      def tracker = new ProgressTracker(deploymentStorage,
+                                        progressTracker,
+                                        id,
+                                        system)
 
       def planExecution = deploymentMgr.executePlan(plan, tracker)
 
-      _deployments[id] = [
-        id: id,
-        username: username,
-        fabric: system.fabric,
-        systemId: system.id,
-        planExecution: planExecution,
-        description: description,
-        progressTracker: progressTracker
-      ]
+      CurrentDeployment currentDeployment = new CurrentDeployment(id: id,
+                                                                  username: username,
+                                                                  fabric: system.fabric,
+                                                                  systemId: system.id,
+                                                                  planExecution: planExecution,
+                                                                  description: description,
+                                                                  progressTracker: progressTracker)
+      _deployments[id] = currentDeployment
 
-      AuditLog.audit('plan.execute', "plan: ${id}, desc: ${description}, systemId: ${system.id}")
-
-      return id
+      return currentDeployment
     }
   }
 }
 
-class ProgressTracker<T> extends FilteredPlanExecutionProgressTracker<T>
-{
-  public static final String MODULE = ProgressTracker.class.getName();
-  public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
-
-  def final _deploymentId
-  private IPlanExecution _planExecution
-  private final SystemModel _system
-
-  def ProgressTracker(tracker, deploymentId, SystemModel system)
-  {
-    super(tracker)
-    _deploymentId = deploymentId
-    _system = system
-  }
-
-  public void onPlanStart(IPlanExecution<T> planExecution)
-  {
-    super.onPlanStart(planExecution)
-    _planExecution = planExecution
-  }
-
-
-  public void onPlanEnd(IStepCompletionStatus<T> status)
-  {
-    super.onPlanEnd(status)
-
-    DbDeployment.withTransaction { txStatus ->
-      DbDeployment deployment = DbDeployment.get(_deploymentId)
-      if(!deployment)
-      {
-        log.warn("could not find deployment ${_deploymentId}")
-      }
-      else
-      {
-        deployment.startDate = new Date(status.startTime)
-        deployment.endDate = new Date(status.endTime)
-        deployment.status = status.status.name()
-        deployment.details = _planExecution.toXml([fabric: _system.fabric, systemId: _system.id])
-
-        if(!deployment.save())
-        {
-          log.warn("could not save deployment ${_deploymentId}: ${deployment.errors}")
-        }
-      }
-    }
-  }
-}

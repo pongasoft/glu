@@ -49,4 +49,10 @@ public class ShiroAuthorizationService implements AuthorizationService
       }
     }
   }
+
+  @Override
+  String getExecutingPrincipal()
+  {
+    SecurityUtils.getSubject()?.principal?.toString()
+  }
 }
