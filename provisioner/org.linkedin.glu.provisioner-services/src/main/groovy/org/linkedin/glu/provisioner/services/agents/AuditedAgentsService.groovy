@@ -73,7 +73,7 @@ public class AuditedAgentsService implements AgentsService
   void tailLog(args, Closure closure)
   {
     auditLogService.audit('agent.tailLog', "${args}")
-    agentsService.tailLog(args)
+    agentsService.tailLog(args, closure)
   }
 
   void streamFileContent(args, Closure closure)

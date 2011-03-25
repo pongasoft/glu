@@ -729,7 +729,7 @@ public class ConsoleTagLib
    * Body executed when the fabric is not connected  */
   def whenDisconnectedFabric = { args, body ->
     def fabric = args.fabric ?: request.fabric
-    if(!fabricService.isConnected(fabric.name))
+    if(!fabricService.isConnected(fabric?.name))
      out << body()
   }
 

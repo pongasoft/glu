@@ -222,7 +222,8 @@ class FabricServiceImpl implements FabricService, Destroyable
 
       _fabrics = fabrics
 
-      log.info "Loaded fabrics: ${_fabrics.values().fabric.name}"
+      if(_fabrics)
+        log.info "Loaded fabrics: ${_fabrics.values().fabric.name}"
     }
 
     return _fabrics
