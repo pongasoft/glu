@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,10 +15,11 @@
  * the License.
  */
 
-package org.linkedin.glu.console.services
+package org.linkedin.glu.provisioner.services.encryption
 
 import org.linkedin.glu.agent.rest.client.EncryptionKeysProvider
 import org.linkedin.groovy.util.encryption.EncryptionUtils
+import org.linkedin.util.annotations.Initializable
 
 /**
  * Created by IntelliJ IDEA.
@@ -25,11 +27,10 @@ import org.linkedin.groovy.util.encryption.EncryptionUtils
  * Date: Jul 22, 2010
  * Time: 9:08:08 AM
  */
-class EncryptionService {
-  boolean transactional = false
-
-
+class EncryptionServiceImpl implements EncryptionService
+{
   // will be dependency injected
+  @Initializable(required = true)
   EncryptionKeysProvider encryptionKeysProvider
 
   def getEncryptionKeys()

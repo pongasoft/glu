@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -26,7 +27,7 @@ class EncryptionKeysProviderImpl implements EncryptionKeysProvider
   public static final String MODULE = EncryptionKeysProviderImpl.class.getName();
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
-  private Map _encryptionKeys
+  private volatile Map _encryptionKeys
   private final String _secretkeystorePath
   private final String _keystorePassword
   private final String _keyPassword
@@ -39,18 +40,27 @@ class EncryptionKeysProviderImpl implements EncryptionKeysProvider
     _keyPassword = keyPassword
 
     // _secretkeystorePath is defined as /dev/null by default (for backward compatibility)
-    if (_secretkeystorePath && _secretkeystorePath != '/dev/null') {
+    if(_secretkeystorePath && _secretkeystorePath != '/dev/null')
+    {
       _secretKeyStore = new File(_secretkeystorePath)
-      _encryptionKeys = EncryptionUtils.getSecretKeys(_secretKeyStore, _keystorePassword, _keyPassword)
-    } else {
+      _encryptionKeys =
+        Collections.unmodifiableMap(EncryptionUtils.getSecretKeys(_secretKeyStore,
+                                                                  _keystorePassword,
+                                                                  _keyPassword))
+    }
+    else
+    {
+      _encryptionKeys = Collections.unmodifiableMap([:])
       log.warn "secretkeystorePath config parameter not specified. EncryptionKeys not loaded."
     }
   }
 
   static EncryptionKeysProvider create(def config)
   {
-    Map params = getSecretKeyStoreParams(config)
-    return new EncryptionKeysProviderImpl(params['secretkeystorePath'], params['keystorePassword'], params['keyPassword'])
+    Map<String, String> params = getSecretKeyStoreParams(config)
+    return new EncryptionKeysProviderImpl(params['secretkeystorePath'],
+                                          params['keystorePassword'],
+                                          params['keyPassword'])
   }
 
   def Map getEncryptionKeys()
@@ -58,26 +68,25 @@ class EncryptionKeysProviderImpl implements EncryptionKeysProvider
     return _encryptionKeys;
   }
 
-  def createNewEncryptionKey(String name)
+  synchronized def createNewEncryptionKey(String name)
   {
-    if (_secretKeyStore) {
+    if(_secretKeyStore)
+    {
       EncryptionUtils.createSecretKey(_secretKeyStore, name, _keystorePassword, _keyPassword)
       // update cached list of encryption keys
-      _encryptionKeys = EncryptionUtils.getSecretKeys(_secretKeyStore, _keystorePassword, _keyPassword)
-    } else {
+      _encryptionKeys =
+        Collections.unmodifiableMap(EncryptionUtils.getSecretKeys(_secretKeyStore,
+                                                                  _keystorePassword,
+                                                                  _keyPassword))
+    }
+    else
+    {
       log.error "secretkeystorePath config parameter not specified. Cannot create new encryption key " + name
     }
   }
 
-  private static Map getSecretKeyStoreParams(def config)
+  private static Map<String, String> getSecretKeyStoreParams(def config)
   {
     return HttpsClientHelper.getKeyStoreParams(config, 'secretkeystorePath')
   }
-
-  private static Map getSecretKeys(def config)
-  {
-    Map params = getSecretKeyStoreParams(config)
-    return
-  }
-
 }

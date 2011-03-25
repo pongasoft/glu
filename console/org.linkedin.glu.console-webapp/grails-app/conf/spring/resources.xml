@@ -209,4 +209,11 @@
   <bean id="deltaService" class="org.linkedin.glu.provisioner.services.delta.DeltaServiceImpl">
     <property name="agentsService" ref="agentsService"/>
   </bean>
+
+  <!-- *********************** -->
+  <!-- encryptionService       -->
+  <!-- *********************** -->
+  <bean id="encryptionService" class="org.linkedin.glu.provisioner.services.encryption.EncryptionServiceImpl">
+    <property name="encryptionKeysProvider" ref="encryptionKeysProvider"/>
+  </bean>
 </beans>
