@@ -44,7 +44,7 @@ class FabricServiceImpl implements FabricService, Destroyable
   FabricStorage fabricStorage
 
   @Initializable
-  String zookeeperRoot = "/org/glu"
+  String zookeeperAgentsFabricRoot = "/org/glu/agents/names"
 
   @Initializable
   String prefix = "glu"
@@ -93,8 +93,8 @@ class FabricServiceImpl implements FabricService, Destroyable
     {
       try
       {
-        zkClient.getChildren("${zookeeperRoot}/agents/names").each { agent ->
-          def path = "${zookeeperRoot}/agents/names/${agent}/fabric"
+        zkClient.getChildren(zookeeperAgentsFabricRoot).each { agent ->
+          def path = computeZKAgentsFabricPath(agent)
 
           if(zkClient.exists(path))
           {
@@ -116,6 +116,11 @@ class FabricServiceImpl implements FabricService, Destroyable
     }
 
     return agents
+  }
+
+  protected String computeZKAgentsFabricPath(String agentName)
+  {
+    "${zookeeperAgentsFabricRoot}/${agentName}/fabric".toString()
   }
 
   /**
@@ -167,7 +172,7 @@ class FabricServiceImpl implements FabricService, Destroyable
   void setAgentFabric(String agentName, String fabricName)
   {
     withZkClient(fabricName) { zkClient ->
-      zkClient.createOrSetWithParents("${zookeeperRoot}/agents/hosts/${agentName}/fabric",
+      zkClient.createOrSetWithParents(computeZKAgentsFabricPath(agentName),
                                       fabricName,
                                       Ids.OPEN_ACL_UNSAFE,
                                       CreateMode.PERSISTENT)
