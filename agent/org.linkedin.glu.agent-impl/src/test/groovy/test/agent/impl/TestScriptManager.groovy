@@ -261,6 +261,33 @@ def class TestScriptManager extends GroovyTestCase
     assertEquals(0, parentNode.children.size())
   }
 
+  /**
+   * Test support of transient modifier for script fields
+   * @author Andras Kovi
+   */
+  void testTransientScript()
+  {
+      def rootMountPoint = MountPoint.fromPath('/')
+      assertEquals(rootMountPoint, sm.rootScript.rootPath)
+      assertEquals(new HashSet([rootMountPoint]), ram)
+
+      def scriptMountPoint = MountPoint.fromPath('/transient')
+      sm.installScript(mountPoint: scriptMountPoint,
+                       initParameters: [],
+                       scriptFactory: new FromClassNameScriptFactory(TransientFieldTestScript))
+      def node = sm.findScript(scriptMountPoint)
+      assertEquals([currentState: StateMachine.NONE], node.state)
+      assertTrue node.is(sm.findScript(scriptMountPoint))
+      assertTrue node.is(sm.findScript('/transient'))
+
+      node.install(transientValue: "transientv", normalValue: "normalv")
+
+      assertEquals([currentState: 'installed'], node.state)
+
+      assertEquals(node.getFullState().scriptState.script.normalField, "normalv")
+      assertNull(node.getFullState().scriptState.script.transientField)
+ }
+
 }
 
 private def class MyScriptTestScriptManager
@@ -290,4 +317,17 @@ private def class MyScriptTestScriptManager
     return "closure:${mountPoint}: ${args.p1}/${args.p2}".toString()
   }
 }
+/**
+ * "Script" class for testing transient modifier support for fields.
+ * @author Andras Kovi
+ */
+private def class TransientFieldTestScript
+{
+    def transient transientField
+    def normalField
 
+    def install = { args ->
+        transientField = args.transientValue
+        normalField = args.normalValue
+    }
+}
