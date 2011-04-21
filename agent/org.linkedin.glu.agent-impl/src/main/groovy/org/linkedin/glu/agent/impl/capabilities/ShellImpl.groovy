@@ -85,19 +85,19 @@ def class ShellImpl implements Shell
     return agentProperties?.exposedProperties ?: [:]
   }
 
-  def getMimeTypes(file)
+  Collection<String> getMimeTypes(file)
   {
-    withInputStream(file) {
-      MimeUtil.getMimeTypes(it).collect { it.toString() }
-    }
+    withInputStream(file) { InputStream is ->
+      MimeUtil.getMimeTypes(is).collect { it.toString() }
+    } as Collection<String>
   }
 
-  def unzip(file)
+  Resource unzip(file)
   {
     return unzip(file, createTempDir())
   }
 
-  def unzip(file, toDir)
+  Resource unzip(file, toDir)
   {
     file = toResource(file)
     toDir = toResource(toDir)
@@ -107,12 +107,12 @@ def class ShellImpl implements Shell
     return toDir
   }
 
-  def untar(file)
+  Resource untar(file)
   {
     return untar(file, createTempDir())
   }
 
-  def untar(file, toDir)
+  Resource untar(file, toDir)
   {
     file = toResource(file)
     toDir = toResource(toDir)
@@ -136,7 +136,7 @@ def class ShellImpl implements Shell
    * Uncompresses the provided file
    * @return the original file or the new one
    */
-  def gunzip(file)
+  Resource gunzip(file)
   {
     file = toResource(file)
 
@@ -170,7 +170,7 @@ def class ShellImpl implements Shell
   /**
    * Uncompresses the provided file (if compressed) into a new file
    */
-  def gunzip(file, toFile)
+  Resource gunzip(file, toFile)
   {
     file = toResource(file)
     toFile = toResource(toFile)
@@ -199,7 +199,7 @@ def class ShellImpl implements Shell
    *
    * @return the gziped file or the original file if not zipped
    */
-  def gzip(file)
+  Resource gzip(file)
   {
     file = toResource(file)
 
@@ -218,7 +218,7 @@ def class ShellImpl implements Shell
    *
    * @return the gziped file or the original file if not zipped
    */
-  def gzip(file, toFile)
+  Resource gzip(file, toFile)
   {
     file = toResource(file)
     toFile = toResource(toFile)
@@ -240,7 +240,7 @@ def class ShellImpl implements Shell
   /**
    * Compresses each file in a folder
    *
-   * @param fileOrFolder a file (behaves like {@link #gzip(Object, boolean)}) or a folder
+   * @param fileOrFolder a file (behaves like {@link #gzip(Object)}) or a folder
    * @param recurse if <code>true</code> then recursively process all folders
    * @return a map with key is resource and value is delta in size (original - new) (note that it
    * contains only the resources that are modified!)
@@ -278,7 +278,7 @@ def class ShellImpl implements Shell
     return res
   }
 
-  def untarAndDecrypt(file, toDir, encryptionKeys)
+  Resource untarAndDecrypt(file, toDir, encryptionKeys)
   {
 
     def tmpDir = createTempDir()
@@ -303,7 +303,7 @@ def class ShellImpl implements Shell
    * <code>http://locahost:8080/file.txt'</code>, <code>file:/tmp/file.txt</code>,
    * <code>ivy:/org.linkedin/util-core/1.0.0</code>.
    */
-  def fetch(location)
+  Resource fetch(location)
   {
     return fetch(location, null)
   }
@@ -315,7 +315,7 @@ def class ShellImpl implements Shell
    * <code>ivy:/org.linkedin/util-core/1.0.0</code>. The difference with the other fetch method
    * is that it fetches the file in the provided destination rather than in the tmp space.
    */
-  def fetch(location, destination)
+  Resource fetch(location, destination)
   {
     URI uri = GroovyNetUtils.toURI(location)
 
@@ -382,7 +382,7 @@ def class ShellImpl implements Shell
    * responseMessage: message {@link java.net.HttpURLConnection#getResponseMessage()}
    * headers: representing all the headers {@link java.net.URLConnection#getHeaderFields()}
    */
-  def httpHead(location)
+  Map httpHead(location)
   {
     Map res = [:]
 
@@ -418,9 +418,9 @@ def class ShellImpl implements Shell
    * Similarly to the unix grep command, checks the location one line at a time and returns
    * all the lines which matches the pattern.
    */
-  def grep(location, pattern)
+  Collection<String> grep(location, pattern)
   {
-    return grep(location, pattern, null)
+    return (Collection<String>) grep(location, pattern, null)
   }
 
   /**
@@ -518,7 +518,7 @@ def class ShellImpl implements Shell
   /**
    * Shortcut/More efficient implementation of the more generic {@link #chmod(Object, Object) call
    */
-  def chmodPlusX(file)
+  Resource chmodPlusX(file)
   {
     file = toResource(file)
     file.file.setExecutable(true)
@@ -528,14 +528,14 @@ def class ShellImpl implements Shell
   /**
    * Change the permission of the file  
    */
-  def chmod(file, perm)
+  Resource chmod(file, perm)
   {
     file = toResource(file)
     forkAndExec2(['chmod', perm, file.file])
     return file
   }
 
-  def chmodRecursive(dir, perm)
+  Resource chmodRecursive(dir, perm)
   {
     eachChildRecurse(dir) { file ->
       forkAndExec2(['chmod', perm, file.file])
@@ -949,7 +949,7 @@ def class ShellImpl implements Shell
   /**
    * Calling this method will force a script failure
    */
-  def fail(message)
+  void fail(message)
   {
     throw new ScriptFailedException(message?.toString())
   }

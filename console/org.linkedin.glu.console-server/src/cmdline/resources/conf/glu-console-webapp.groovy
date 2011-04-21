@@ -112,7 +112,7 @@ console.defaults =
       system:
       [
           agent: [name: 'agent'],
-        'tags.webapp': [name: 'webapp'],
+          'tags.webapp': [name: 'webapp'],
           'metadata.container.name': [name: 'container'],
           'metadata.product': [name: 'product'],
           'metadata.version': [name: 'version'],
@@ -130,11 +130,6 @@ console.defaults =
       header:
       [
           metadata: ['drMode']
-      ],
+      ]
 
-      fabrics:
-      [
-          'glu-dev-1': ['drMode': 'primary'],
-          'glu-dev-2': ['drMode': 'secondary']
-      ],
   ]
