@@ -17,7 +17,7 @@
 
 package org.linkedin.glu.console.controllers
 
-import org.linkedin.glu.provisioner.services.encryption.EncryptionService
+import org.linkedin.glu.orchestration.engine.encryption.EncryptionService
 import org.linkedin.util.codec.Base64Codec
 
 /**

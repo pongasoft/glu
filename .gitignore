@@ -3,6 +3,7 @@
 *.iml
 *.ipr
 *.iws
+.DS_Store
 build
 out
 console/org.linkedin.glu.console-webapp/target

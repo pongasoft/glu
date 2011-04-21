@@ -18,7 +18,7 @@
 package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.provisioner.plan.api.IStepFilter
-import org.linkedin.glu.provisioner.services.deployment.DeploymentService
+import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 import org.linkedin.glu.provisioner.plan.api.IPlanExecutionProgressTracker
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
@@ -28,11 +28,11 @@ import org.linkedin.glu.provisioner.plan.api.IPlanExecution
 import org.linkedin.glu.console.domain.DbDeployment
 import org.linkedin.glu.provisioner.core.action.ActionDescriptor
 import org.linkedin.glu.provisioner.plan.api.LeafStep
-import org.linkedin.glu.provisioner.services.agents.AgentsService
+import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import javax.servlet.http.HttpServletResponse
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
-import org.linkedin.glu.provisioner.services.deployment.CurrentDeployment
+import org.linkedin.glu.orchestration.engine.deployment.CurrentDeployment
 
 /**
  * @author ypujante@linkedin.com */

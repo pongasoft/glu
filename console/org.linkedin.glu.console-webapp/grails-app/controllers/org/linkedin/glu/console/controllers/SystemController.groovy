@@ -17,13 +17,13 @@
 
 package org.linkedin.glu.console.controllers
 
-import org.linkedin.glu.provisioner.services.agents.AgentsService
-import org.linkedin.glu.provisioner.services.deployment.DeploymentService
+import org.linkedin.glu.orchestration.engine.agents.AgentsService
+import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.console.domain.DbSystemModel
 import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 import org.linkedin.glu.provisioner.core.model.SystemEntry
-import org.linkedin.glu.provisioner.services.system.SystemService
+import org.linkedin.glu.orchestration.engine.system.SystemService
 
 class SystemController extends ControllerBase
 {

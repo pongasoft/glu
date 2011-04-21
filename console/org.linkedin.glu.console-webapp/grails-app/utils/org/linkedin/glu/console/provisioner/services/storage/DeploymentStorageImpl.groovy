@@ -16,8 +16,8 @@
 
 package org.linkedin.glu.console.provisioner.services.storage
 
-import org.linkedin.glu.provisioner.services.deployment.DeploymentStorage
-import org.linkedin.glu.provisioner.services.deployment.ArchivedDeployment
+import org.linkedin.glu.orchestration.engine.deployment.DeploymentStorage
+import org.linkedin.glu.orchestration.engine.deployment.ArchivedDeployment
 import org.linkedin.glu.console.domain.DbDeployment
 import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
 

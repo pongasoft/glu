@@ -16,7 +16,7 @@
 
 package org.linkedin.glu.console.provisioner.services.audit
 
-import org.linkedin.glu.provisioner.services.audit.AuditLogService
+import org.linkedin.glu.orchestration.engine.audit.AuditLogService
 import org.linkedin.glu.console.domain.AuditLog
 
 /**

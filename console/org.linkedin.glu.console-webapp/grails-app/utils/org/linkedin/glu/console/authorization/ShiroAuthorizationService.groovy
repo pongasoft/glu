@@ -16,7 +16,7 @@
 
 package org.linkedin.glu.console.authorization
 
-import org.linkedin.glu.provisioner.services.authorization.AuthorizationService
+import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
 import org.linkedin.util.annotations.Initializable
 import org.apache.shiro.SecurityUtils
 import org.linkedin.glu.console.domain.RoleName

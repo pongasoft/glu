@@ -21,8 +21,8 @@ import org.linkedin.glu.console.domain.DbSystemModel
 import org.linkedin.glu.console.domain.DbCurrentSystem
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
-import org.linkedin.glu.provisioner.services.deployment.DeploymentService
-import org.linkedin.glu.provisioner.services.system.SystemService
+
+import org.linkedin.glu.orchestration.engine.system.SystemService
 
 /**
  * @author ypujante@linkedin.com */

@@ -17,12 +17,12 @@
 
 package org.linkedin.glu.console.controllers
 
-import org.linkedin.glu.provisioner.services.agents.AgentsService
-import org.linkedin.glu.provisioner.services.deployment.DeploymentService
+import org.linkedin.glu.orchestration.engine.agents.AgentsService
+import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.provisioner.plan.api.Plan
-import org.linkedin.glu.provisioner.services.fabric.Fabric
+import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import java.security.AccessControlException
 
 /**

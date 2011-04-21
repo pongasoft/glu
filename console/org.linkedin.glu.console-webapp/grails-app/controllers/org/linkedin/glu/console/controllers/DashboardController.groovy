@@ -18,7 +18,7 @@
 package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.grails.utils.ConsoleConfig
-import org.linkedin.glu.provisioner.services.delta.DeltaService
+import org.linkedin.glu.orchestration.engine.delta.DeltaService
 
 /**
  * @author ypujante@linkedin.com

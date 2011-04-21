@@ -16,8 +16,8 @@
 
 package org.linkedin.glu.console.provisioner.services.storage
 
-import org.linkedin.glu.provisioner.services.fabric.FabricStorage
-import org.linkedin.glu.provisioner.services.fabric.Fabric
+import org.linkedin.glu.orchestration.engine.fabric.FabricStorage
+import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.util.clock.Timespan
 
 /**

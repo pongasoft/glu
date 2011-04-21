@@ -23,7 +23,7 @@ import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 
 import org.linkedin.groovy.util.io.GroovyIOUtils
-import org.linkedin.glu.provisioner.services.system.SystemService
+import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.console.provisioner.services.storage.SystemStorageException
 
 /**

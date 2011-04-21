@@ -16,9 +16,9 @@
 
 package org.linkedin.glu.console.provisioner.services.storage
 
-import org.linkedin.glu.provisioner.services.system.SystemStorage
+import org.linkedin.glu.orchestration.engine.system.SystemStorage
 import org.linkedin.glu.provisioner.core.model.SystemModel
-import org.linkedin.glu.provisioner.services.fabric.Fabric
+import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.console.domain.DbCurrentSystem
 import org.linkedin.glu.console.domain.DbSystemModel
 import org.springframework.transaction.TransactionStatus

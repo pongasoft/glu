@@ -17,12 +17,12 @@
 
 package org.linkedin.glu.console.controllers
 
-import org.linkedin.glu.provisioner.services.fabric.FabricService
+import org.linkedin.glu.orchestration.engine.fabric.FabricService
 import org.linkedin.glu.console.domain.Fabric
 import org.linkedin.util.lifecycle.CannotConfigureException
 import org.linkedin.glu.console.domain.RoleName
 import org.linkedin.glu.console.domain.User
-import org.linkedin.glu.provisioner.services.system.SystemService
+import org.linkedin.glu.orchestration.engine.system.SystemService
 
 class FabricController extends ControllerBase
 {

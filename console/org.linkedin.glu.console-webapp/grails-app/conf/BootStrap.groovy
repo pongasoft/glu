@@ -26,7 +26,7 @@ import org.linkedin.groovy.util.ivy.IvyURLHandler
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.console.domain.DbUserCredentials
-import org.linkedin.glu.provisioner.services.system.SystemService
+import org.linkedin.glu.orchestration.engine.system.SystemService
 
 class BootStrap {
 

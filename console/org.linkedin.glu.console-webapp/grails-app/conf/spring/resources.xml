@@ -119,7 +119,7 @@
   <!-- fabricService         -->
   <!-- *********************** -->
   <bean id="_fabricServiceImpl"
-        class="org.linkedin.glu.provisioner.services.fabric.FabricServiceImpl"
+        class="org.linkedin.glu.orchestration.engine.fabric.FabricServiceImpl"
         destroy-method="destroy">
     <property name="configurableFactory" ref="configurableFactory"/>
     <property name="fabricStorage">
@@ -127,7 +127,7 @@
     </property>
   </bean>
 
-  <bean id="fabricService" class="org.linkedin.glu.provisioner.services.fabric.AuditedFabricService">
+  <bean id="fabricService" class="org.linkedin.glu.orchestration.engine.fabric.AuditedFabricService">
     <property name="fabricService" ref="_fabricServiceImpl"/>
     <property name="auditLogService" ref="auditLogService"/>
   </bean>
@@ -136,7 +136,7 @@
   <!-- trackerService         -->
   <!-- *********************** -->
   <bean id="trackerService"
-        class="org.linkedin.glu.provisioner.services.tracker.TrackerServiceImpl"
+        class="org.linkedin.glu.orchestration.engine.tracker.TrackerServiceImpl"
         destroy-method="destroy">
     <property name="fabricService" ref="fabricService"/>
   </bean>
@@ -144,7 +144,7 @@
   <!-- *********************** -->
   <!-- tagsService             -->
   <!-- *********************** -->
-  <bean id="tagsService" class="org.linkedin.glu.provisioner.services.tags.TagsService">
+  <bean id="tagsService" class="org.linkedin.glu.orchestration.engine.tags.TagsService">
     <constructor-arg>
       <bean factory-bean="consoleConfig" factory-method="getDefault">
         <constructor-arg value="tags"/>
@@ -156,14 +156,14 @@
   <!-- agentsService           -->
   <!-- *********************** -->
   <bean id="_agentsServiceImpl"
-        class="org.linkedin.glu.provisioner.services.agents.AgentsServiceImpl">
+        class="org.linkedin.glu.orchestration.engine.agents.AgentsServiceImpl">
     <property name="agentFactory" ref="agentFactory"/>
     <property name="agentPlanner" ref="agentPlanner"/>
     <property name="trackerService" ref="trackerService"/>
     <property name="authorizationService" ref="authorizationService"/>
   </bean>
 
-  <bean id="agentsService" class="org.linkedin.glu.provisioner.services.agents.AuditedAgentsService">
+  <bean id="agentsService" class="org.linkedin.glu.orchestration.engine.agents.AuditedAgentsService">
     <property name="agentsService" ref="_agentsServiceImpl"/>
     <property name="auditLogService" ref="auditLogService"/>
   </bean>
@@ -172,14 +172,14 @@
   <!-- systemService           -->
   <!-- *********************** -->
   <bean id="_systemServiceImpl"
-        class="org.linkedin.glu.provisioner.services.system.SystemServiceImpl">
+        class="org.linkedin.glu.orchestration.engine.system.SystemServiceImpl">
     <property name="agentsService" ref="agentsService"/>
     <property name="systemStorage">
       <bean class="org.linkedin.glu.console.provisioner.services.storage.SystemStorageImpl"/>
     </property>
   </bean>
 
-  <bean id="systemService" class="org.linkedin.glu.provisioner.services.system.AuditedSystemService">
+  <bean id="systemService" class="org.linkedin.glu.orchestration.engine.system.AuditedSystemService">
     <property name="systemService" ref="_systemServiceImpl"/>
     <property name="auditLogService" ref="auditLogService"/>
   </bean>
@@ -188,7 +188,7 @@
   <!-- deploymentService           -->
   <!-- *********************** -->
   <bean id="_deploymentServiceImpl"
-        class="org.linkedin.glu.provisioner.services.deployment.DeploymentServiceImpl">
+        class="org.linkedin.glu.orchestration.engine.deployment.DeploymentServiceImpl">
     <property name="agentsService" ref="agentsService"/>
     <property name="authorizationService" ref="authorizationService"/>
     <property name="deploymentMgr" ref="deploymentMgr"/>
@@ -198,7 +198,7 @@
     </property>
   </bean>
 
-  <bean id="deploymentService" class="org.linkedin.glu.provisioner.services.deployment.AuditedDeploymentService">
+  <bean id="deploymentService" class="org.linkedin.glu.orchestration.engine.deployment.AuditedDeploymentService">
     <property name="auditLogService" ref="auditLogService"/>
     <property name="deploymentService" ref="_deploymentServiceImpl"/>
   </bean>
@@ -206,14 +206,14 @@
   <!-- *********************** -->
   <!-- deltaService            -->
   <!-- *********************** -->
-  <bean id="deltaService" class="org.linkedin.glu.provisioner.services.delta.DeltaServiceImpl">
+  <bean id="deltaService" class="org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl">
     <property name="agentsService" ref="agentsService"/>
   </bean>
 
   <!-- *********************** -->
   <!-- encryptionService       -->
   <!-- *********************** -->
-  <bean id="encryptionService" class="org.linkedin.glu.provisioner.services.encryption.EncryptionServiceImpl">
+  <bean id="encryptionService" class="org.linkedin.glu.orchestration.engine.encryption.EncryptionServiceImpl">
     <property name="encryptionKeysProvider" ref="encryptionKeysProvider"/>
   </bean>
 </beans>
