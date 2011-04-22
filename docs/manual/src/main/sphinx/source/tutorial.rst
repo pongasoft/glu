@@ -120,7 +120,7 @@ View the agent
      :align: center
      :alt: From the dashboard, click on agent-1
 
-5. Click on ``'View Details'`` which show/hide the details about the agent: this is information coming straight from agent-1 which was registered in ZooKeeper when the agent started.
+5. Click on ``'View Details'`` which show/hide the details about the agent: this information is coming straight from agent-1 which was registered in ZooKeeper when the agent started.
 
 6. You should see the properties ``glu.agent.port`` (``12906``) and ``glu.agent.pid`` representing the pid of the agent.
 
