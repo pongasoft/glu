@@ -11,9 +11,9 @@ Quick Links
 ===========
 
 1. [Download](https://github.com/linkedin/glu/downloads)
-2. [Documentation (latest)](http://linkedin.github.com/glu/manual//latest/html/index.html)
-3. [Tutorial (latest)](http://linkedin.github.com/glu/manual/latest/html/tutorial.html)
+2. [Documentation (latest)](http://linkedin.github.com/glu/docs/latest/html/index.html)
+3. [Tutorial (latest)](http://linkedin.github.com/glu/docs/latest/html/tutorial.html)
 4. [Source code](http://www.github.com/linkedin/glu)
 5. [Forum / Questions / Help](http://glu.977617.n3.nabble.com/)
 6. [Issues / Tasks](https://github.com/linkedin/glu/issues)
-6. [Latest Changes](http://linkedin.github.com/glu/manual/latest/html/RELEASE.html)
+6. [Latest Changes](http://linkedin.github.com/glu/docs/latest/html/RELEASE.html)

@@ -24,13 +24,16 @@ Download the binary called ``org.linkedin.glu.packaging-all-<version>.tgz`` from
   
 Untar/Unzip in a location of your choice::
 
-  drwxr-xr-x   5 ypujante  admin    170 Apr 11 10:20 agent-cli/
-  drwxr-xr-x   5 ypujante  admin    204 Apr 11 10:21 agent-server/
-  drwxr-xr-x   2 ypujante  admin    374 Apr 11 10:20 bin/
-  drwxr-xr-x   4 ypujante  admin    136 Apr 11 10:20 console-cli/
-  drwxr-xr-x   7 ypujante  admin    238 Apr 11 10:21 console-server/
-  drwxr-xr-x   7 ypujante  admin    374 Apr 11 10:20 org.linkedin.zookeeper-server-1.2.2/
-  drwxr-xr-x   5 ypujante  admin    170 Apr 11 10:20 setup/
+  agent-cli/
+  agent-server/
+  bin/
+  console-cli/
+  console-server/
+  org.linkedin.zookeeper-server-1.2.2/
+  setup/
+
+.. tip::
+   This documentation is available under ``console-server/glu/docs/html/index.html``
 
 .. _production-setup-zookeeper:
 
@@ -353,4 +356,8 @@ The console will output a log file called ``console.log`` under ``jetty-distribu
    .. note:: Option 2 is currently **not** configured to run under https, so is **not** recommended for production use (this will be addressed in an upcoming release)
 
 .. warning:: The first time you start the console, it will create an administrator user (``admin``/``admin``). It is **strongly** recommended to change the password immediately.
+
+.. tip::
+   If you use this option, the documentation is automatically available when you start the server, under ``http://<consolehost>:8080/glu/docs/html/index.html``
+
 

@@ -73,6 +73,9 @@ The second command tails the log for each component.
 .. note::
    Depending on the speed of your system, sometimes the console takes a little while to create its log file. In order to see it in the output of the tail command, you may have to reissue the command after waiting a little while.
 
+.. tip::
+   The console includes this documentation as well, available at http://localhost:8080/glu/docs/html/tutorial.html
+
 Login to the console
 --------------------
 Point your browser to http://localhost:8080/console

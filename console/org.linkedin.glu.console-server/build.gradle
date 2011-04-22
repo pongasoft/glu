@@ -33,6 +33,12 @@ def jettyArchive = configurations.jetty.resolve().toList()[0]
 
 def consoleWebappProject = evaluationDependsOn(':console:org.linkedin.glu.console-webapp')
 def sampleWebappProject = evaluationDependsOn(':samples:org.linkedin.glu.samples.sample-webapp')
+def gluDocumentationProject
+
+if(project.properties['no.documentation'] != 'true')
+{
+  gluDocumentationProject = evaluationDependsOn(':docs:manual')
+}
 
 File consoleWebapp = consoleWebappProject.tasks.getByPath('package-war').artifactFile
 File sampleWebapp = sampleWebappProject.tasks.getByPath('war').archivePath
@@ -48,6 +54,18 @@ cmdline {
     ':samples:org.linkedin.glu.samples.sample-webapp:war',
     *scriptProjects.collect { "${it.path}:scripts"}
   ]
+
+    // documentation
+  if(gluDocumentationProject)
+  {
+    dependsOn << ':docs:manual:doc'
+
+    resources << [
+      from: gluDocumentationProject.htmlDocDir,
+      into: new File(assemblePackageFile, 'glu/docs/html'),
+      replaceTokens: false
+    ]
+  }
 
   replacementTokens = [
     'version': version,
