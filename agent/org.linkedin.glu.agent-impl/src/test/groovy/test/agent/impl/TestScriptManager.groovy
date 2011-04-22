@@ -280,13 +280,12 @@ def class TestScriptManager extends GroovyTestCase
       assertTrue node.is(sm.findScript(scriptMountPoint))
       assertTrue node.is(sm.findScript('/transient'))
 
-      node.install(normalValue: "normalv", nonSerializableValue: new Object(), transientValue: "transientv")
+      node.install(transientValue: "transientv", normalValue: "normalv")
 
       assertEquals([currentState: 'installed'], node.state)
 
       assertEquals(node.getFullState().scriptState.script.normalField, "normalv")
-      assertNull(node.getFullState().scriptState.script.nonSerializableField)
-      assertNull("transient modifier not handled properly",node.getFullState().scriptState.script.transientField)
+      assertNull(node.getFullState().scriptState.script.transientField)
  }
 
 }
@@ -318,20 +317,17 @@ private def class MyScriptTestScriptManager
     return "closure:${mountPoint}: ${args.p1}/${args.p2}".toString()
   }
 }
-
 /**
  * "Script" class for testing transient modifier support for fields.
  * @author Andras Kovi
  */
 private def class TransientFieldTestScript
 {
-    def normalField
-    def nonSerializableField
     def transient transientField
+    def normalField
 
     def install = { args ->
-        normalField = args.normalValue
-        nonSerializableField = args.nonSerializableValue
         transientField = args.transientValue
+        normalField = args.normalValue
     }
 }
