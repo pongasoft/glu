@@ -1,21 +1,32 @@
 Latest changes
 ==============
 
+2.2.0 (2011/04/22)
+------------------
+* Implemented `glu-34 <https://github.com/linkedin/glu/issues/34>`_: `Refactor code out of the console`
+
+  The business logic layer of the console has been moved to the orchestration engine area so it is now more easily shareable.
+
+* Massive documentation rewrite which covers the tickets `glu-5 <https://github.com/linkedin/glu/issues/5>`_, `glu-36 <https://github.com/linkedin/glu/issues/36>`_ and `glu-14 <https://github.com/linkedin/glu/issues/14>`_
+
+  Check out the `new documentation <http://linkedin.github.com/glu/docs/latest/html/index.html>`_
+
+
 2.1.1 (2011/03/04)
 ------------------
-* fixed `glu-31 <https://github.com/linkedin/glu/issues#issue/31>`_: Agent exception when no persistent properties files
+* fixed `glu-31 <https://github.com/linkedin/glu/issues/31>`_: Agent exception when no persistent properties files
 
 2.1.0 (2011/03/01)
 ------------------
 This version is highly recommended for glu-27 specifically which may prevent the agent to recover properly. It affects all previous versions of the agent.
 
-* fixed `glu-26 <https://github.com/linkedin/glu/issues#issue/26>`_: agent cli fails when using spaces
-* fixed `glu-27 <https://github.com/linkedin/glu/issues#issue/27>`_: Unexpected exception can disable the agent
+* fixed `glu-26 <https://github.com/linkedin/glu/issues/26>`_: agent cli fails when using spaces
+* fixed `glu-27 <https://github.com/linkedin/glu/issues/27>`_: Unexpected exception can disable the agent
 
 2.0.0 (2011/02/14)
 ------------------
-* fixed `glu-22 <https://github.com/linkedin/glu/issues#issue/22>`_: jetty glu script (1.6.0) does not handle restart properly
-* Implemented `glu-25 <https://github.com/linkedin/glu/issues#issue/25>`_: add tagging capability
+* fixed `glu-22 <https://github.com/linkedin/glu/issues/22>`_: jetty glu script (1.6.0) does not handle restart properly
+* Implemented `glu-25 <https://github.com/linkedin/glu/issues/25>`_: add tagging capability
 
   Dashboard View:
 
@@ -37,15 +48,15 @@ This version is highly recommended for glu-27 specifically which may prevent the
 
 1.7.1 (2011/01/20)
 ------------------
-* workaround for `glu-19 <https://github.com/linkedin/glu/issues#issue/19>`_: New users aren't displayed at ``/console/admin/user/list``
-* fixed `glu-20 <https://github.com/linkedin/glu/issues#issue/20>`_: Race condition while upgrading the agent
+* workaround for `glu-19 <https://github.com/linkedin/glu/issues/19>`_: New users aren't displayed at ``/console/admin/user/list``
+* fixed `glu-20 <https://github.com/linkedin/glu/issues/20>`_: Race condition while upgrading the agent
 
 1.7.0 (2011/01/17)
 ------------------
-* Implemented `glu-12 <https://github.com/linkedin/glu/issues#issue/12>`_: better packaging
-* fixed `glu-1 <https://github.com/linkedin/glu/issues#issue/1>`_: Agent name and fabric are not preserved upon restart
-* fixed `glu-9 <https://github.com/linkedin/glu/issues#issue/9>`_: Using ``http://name:pass@host:port`` is broken when uploading a model to ``/system/model``
-* Implemented `glu-16 <https://github.com/linkedin/glu/issues#issue/16>`_: Use ip address instead of canonical name for Console->Agent communication
+* Implemented `glu-12 <https://github.com/linkedin/glu/issues/12>`_: better packaging
+* fixed `glu-1 <https://github.com/linkedin/glu/issues/1>`_: Agent name and fabric are not preserved upon restart
+* fixed `glu-9 <https://github.com/linkedin/glu/issues/9>`_: Using ``http://name:pass@host:port`` is broken when uploading a model to ``/system/model``
+* Implemented `glu-16 <https://github.com/linkedin/glu/issues/16>`_: Use ip address instead of canonical name for Console->Agent communication
 * Updated Copyright
 
 1.6.0 (2011/01/11)
@@ -55,17 +66,17 @@ This version is highly recommended for glu-27 specifically which may prevent the
 * added sample webapp with built in monitoring capabilities
 * added ``replaceTokens`` and ``httpHead`` to ``shell`` (for use in glu script)
 * added ``Help`` tab in the console with embedded forum
-* Implemented `glu-12 <https://github.com/linkedin/glu/issues#issue/12>`_ (partially): better packaging
-* fixed `glu-13 <https://github.com/linkedin/glu/issues#issue/13>`_: missing connection string in setup-zookeeper.sh
+* Implemented `glu-12 <https://github.com/linkedin/glu/issues/12>`_ (partially): better packaging
+* fixed `glu-13 <https://github.com/linkedin/glu/issues/13>`_: missing connection string in setup-zookeeper.sh
 
 1.5.1 (2010/12/28)
 ------------------
-* fixed `glu-10 <https://github.com/linkedin/glu/issues#issue/10>`_: missing -s $GLU_ZK_CONNECT_STRING in setup-agent.sh (thanks to Ran)
-* fixed `glu-11 <https://github.com/linkedin/glu/issues#issue/11>`_: missing glu.agent.port when not using default value
+* fixed `glu-10 <https://github.com/linkedin/glu/issues/10>`_: missing -s $GLU_ZK_CONNECT_STRING in setup-agent.sh (thanks to Ran)
+* fixed `glu-11 <https://github.com/linkedin/glu/issues/11>`_: missing glu.agent.port when not using default value
 
 1.5.0 (2010/12/24)
 ------------------
-* fixed `glu-8 <https://github.com/linkedin/glu/issues#issue/8>`_: added support for urls with basic authentication (thanks to Ran)
+* fixed `glu-8 <https://github.com/linkedin/glu/issues/8>`_: added support for urls with basic authentication (thanks to Ran)
 * added console cli (``org.linkedin.glu.console-cli``) which talks to the REST api of the console
 * changed tutorial to add a section which demonstrates the use of the new cli
 * added the glu logo (thanks to Markus for the logos)
