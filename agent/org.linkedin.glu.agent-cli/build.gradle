@@ -22,7 +22,7 @@ dependencies {
 }
 
 cmdline {
-  resources << fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html'])
+  resources << packageIncludes
   resources << [
     from: consoleKeys,
     into: new File(assemblePackageFile, 'conf/keys'),

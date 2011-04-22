@@ -30,7 +30,7 @@ cmdline {
     'zookeeper.version': spec.versions.linkedinZookeeper
   ]
   folders = []
-  resources << fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html'])
+  resources << packageIncludes
 
   // keys
   resources << [

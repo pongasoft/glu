@@ -57,6 +57,14 @@ consoleKeys = fileTree(dir: 'dev-keys',
 agentKeys = fileTree(dir: 'dev-keys',
                      includes: ['console.truststore', 'agent.keystore'])
 
+packageIncludesFiles = [
+  'LICENSE.txt',
+  'NOTICE.txt',
+  'README.md',
+  'RELEASE.rst'
+]
+packageIncludes = fileTree(dir: rootDir, includes: packageIncludesFiles)
+
 allprojects {
   apply plugin: 'idea'
   group = spec.group

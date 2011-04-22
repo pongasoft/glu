@@ -19,7 +19,7 @@ apply plugin: 'org.linkedin.release'
 apply plugin: 'org.linkedin.cmdline'
 
 cmdline {
-  resources << fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html'])
+  resources << packageIncludes
   replacementTokens = [
     'console.version': version,
     'console.name': project.name

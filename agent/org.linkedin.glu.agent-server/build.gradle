@@ -30,7 +30,7 @@ cmdline {
     'agent.name': 'org.linkedin.glu.agent-server'
   ]
   folders = ['data']
-  resources << fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html'])
+  resources << packageIncludes
 }
 
 def agentServerUpgradeProject = evaluationDependsOn(':agent:org.linkedin.glu.agent-server-upgrade')

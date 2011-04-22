@@ -26,7 +26,7 @@ cmdline {
     'agent.version': version,
     'agent.name': 'org.linkedin.glu.agent-server'
   ]
-  resources << fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html'])
+  resources << packageIncludes
 }
 
 /********************************************************

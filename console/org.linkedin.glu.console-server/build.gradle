@@ -58,7 +58,7 @@ cmdline {
   ]
 
   // licenses
-  resources << [ fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html']) ]
+  resources << [ packageIncludes ]
 
   // console.war
   resources << [

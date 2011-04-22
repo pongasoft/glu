@@ -37,7 +37,7 @@ def dependentClis = [
 cmdline {
   folders = []
   dependsOn = dependentClis.keySet().collect { "${it}:package-assemble" }
-  resources << fileTree(dir: rootDir, includes: ['*.txt', '*.md', '*.html'])
+  resources << packageIncludes
 
   replacementTokens = [
     'jetty.distribution': "jetty-distribution-${spec.versions.jetty}",
@@ -59,7 +59,7 @@ project.'package-assemble'.doFirst {
     }
     // this information is redundant because it is at the root already
     ant.delete {
-      fileset(dir: destDir, includes: '*.txt,*.md,*.html', excludes: 'version.txt')
+      fileset(dir: destDir, includes: packageIncludesFiles.join(','))
     }
   }
 

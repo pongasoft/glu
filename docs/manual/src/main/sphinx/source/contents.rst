@@ -26,6 +26,7 @@ All content
    filtering
    console
    production-setup
+   dev-setup
    RELEASE
 
    glossary
