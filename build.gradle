@@ -61,7 +61,9 @@ packageIncludesFiles = [
   'LICENSE.txt',
   'NOTICE.txt',
   'README.md',
-  'RELEASE.rst'
+  'RELEASE.rst',
+  'RESTLET-2.0.1-EPL-LICENSE.html',
+  'SIGAR-1.6.4-LICENSE.txt'
 ]
 packageIncludes = fileTree(dir: rootDir, includes: packageIncludesFiles)
 
