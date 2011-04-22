@@ -1,0 +1,54 @@
+{% extends "!layout.html" %}
+
+<!--
+~ Copyright (c) 2011 Yan Pujante
+~
+~ Licensed under the Apache License, Version 2.0 (the "License"); you may not
+~ use this file except in compliance with the License. You may obtain a copy of
+~ the License at
+~
+~ http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+~ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+~ License for the specific language governing permissions and limitations under
+~ the License.
+-->
+
+{%- block extrahead %}
+{{ super() }}
+<link rel="stylesheet" href="{{ pathto('_static/glu.css', 1) }}" type="text/css" />
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+<div class="content">
+<div class="document">
+  {%- block document %}
+  {{ super() }}
+  {%- endblock %}
+</div>
+<div class="sidebar">
+  {%- block sidebartoc %}
+  <div class="sidebar-entry">
+    <h3>{{ _('Table Of Contents') }}</h3>
+    {{ toctree() }}
+  </div>
+  {%- endblock %}
+<div class="sidebar-entry">
+  <h3>{{ _('Quick Links') }}</h3>
+  <ul class="quick-links">
+    <li><a href="https://github.com/linkedin/glu/downloads">Download</a>
+    <li><a href="{{ pathto('tutorial')}}">Tutorial</a>
+    <li><a href="http://www.github.com/linkedin/glu">Source Code</a>
+    <li><a href="http://glu.977617.n3.nabble.com/">Forum / Questions / Help</a>
+    <li><a href="https://github.com/linkedin/glu/issues">Issues / Tasks</a>
+    <li><a href="{{ pathto('RELEASE')}}">Latest Changes</a>
+  </ul>
+</div>
+</div>
+<div class="clearer"></div>
+</div>
+</div>
+{% endblock %}

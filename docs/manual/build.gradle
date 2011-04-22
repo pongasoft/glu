@@ -1,0 +1,54 @@
+/*
+ * Copyright (c) 2011 Yan Pujante
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+apply plugin: 'base'
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
+sphinxDir = new File(buildDir, "sphinx")
+
+htmlDocDir = new File(sphinxDir, "build/html")
+
+/**
+ * Copy the source in the sphinxDir because they need to be processed to inject the version
+ */
+task doc << {
+
+  copy {
+    from("src/main/sphinx") {
+      filter(tokens: ['version': version], ReplaceTokens)
+    }
+    into sphinxDir
+    exclude '**/*.png'
+    exclude '**/*.gif'
+  }
+
+  copy {
+    from("src/main/sphinx")
+    into sphinxDir
+    include '**/*.png'
+    include '**/*.gif'
+  }
+
+  copy {
+    from new File(rootDir, "RELEASE.rst")
+    into new File(sphinxDir, "source")
+  }
+
+  ant.exec(executable: 'make', dir: sphinxDir, failonerror: true) {
+    arg(line: 'html')
+  }
+}

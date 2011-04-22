@@ -475,3 +475,7 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
+
+     =========================================================================
+This product uses sphinx (http://sphinx.pocoo.org/) for the documentation generation (restructured
+text -> html) with the agogo theme (included with sphinx) both under a BSD License.

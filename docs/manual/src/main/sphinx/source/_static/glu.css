@@ -1,0 +1,177 @@
+/*
+ * Copyright (c) 2011 Yan Pujante
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+body, .header-wrapper, .content-wrapper, .footer-wrapper {
+  margin: 0 0.5em 0 0.5em;
+  padding: 0 0.5em 0 0.5em;
+}
+
+html {
+  min-width: 800px;
+}
+
+div.header, div.content, div.footer {
+  width: inherit;
+}
+
+div.header p.logo {
+    margin-top: -6px;
+}
+
+div.document {
+  width: 80%;
+}
+
+div.body {
+    padding-right: 1.5em;
+    margin-right: 0.5em;
+    border-right: solid 1px #3465A4;
+}
+
+/* The sidebar on the right hand side */
+div.content > div.sidebar {
+  width: 20%;
+}
+
+div.content > div.sidebar div.sidebar-entry {
+    margin-bottom: 1em;
+}
+
+div.content > div.sidebar ul.quick-links li {
+    margin-left: 1em;
+}
+
+div.content > div.sidebar ul.quick-links {
+    list-style-type: square;
+}
+
+/* The embedded sidebar  */
+div.body div.sidebar {
+  width: 30%;
+  border: solid 1px #bbbbbb;
+  margin: 1em;
+  padding: 1em;
+  background-color: #ffffdd;
+  -moz-box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  text-align: left;
+}
+
+div.body div.sidebar p.sidebar-title {
+  font-weight: bold;
+  border-bottom: solid 1px black;
+}
+
+div.document h3, div.document h4 {
+    border-bottom: dotted 1px #3465A4;
+}
+
+img {
+  padding: 0.2em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  border: solid 1px #eeeeee;
+}
+
+img.logo {
+  padding: 0;
+  margin: 0;
+}
+
+img.sidebar-logo {
+  padding: 0 0.2em 0 0.2em;
+  margin: 0;
+  border: none;
+  float: left;
+}
+
+img.header-logo {
+  padding: 0 0.2em 0 0.2em;
+  margin: 0;
+  border: none;
+  float: left;
+}
+
+div.document div.note {
+  background-color: #eeeeff;
+  border-top: solid 1px #ccccdd;
+  border-right: solid 1px #ccccdd;
+  border-bottom: solid 1px #ccccdd;
+}
+
+div.document div.tip {
+  background-color: #eeffee;
+  border-top: solid 1px #ccddcc;
+  border-right: solid 1px #ccddcc;
+  border-bottom: solid 1px #ccddcc;
+}
+
+div.document div.warning {
+    background-color: #ffeeee;
+    border-top: solid 1px #ddcccc;
+    border-right: solid 1px #ddcccc;
+    border-bottom: solid 1px #ddcccc;
+}
+
+div.document div.note tt span.pre {
+    background: #ccccdd;
+}
+
+div.document div.tip tt span.pre {
+    background: #ccddcc;
+}
+
+div.document div.warning tt span.pre {
+    background: #ddcccc;
+}
+
+div.document div.note > .admonition-title {
+  color: #000099;
+  display: inline-block;
+  border-bottom: solid 1px #000099;
+}
+
+div.document div.tip > .admonition-title {
+  color: #009900;
+  display: inline-block;
+  border-bottom: solid 1px #009900;
+}
+
+div.document div.warning  > .admonition-title {
+  color: #990000;
+  display: inline-block;
+  border-bottom: solid 1px #990000;
+}
+
+div.document table {
+    border: solid 1px #aaaaaa;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: .8em;
+}
+
+div.document table div.admonition {
+    margin: 0.2em;
+}
+
+
+div.document table thead {
+    border-bottom: solid 2px black;
+}
+pre {
+    overflow-x: auto;
+}
