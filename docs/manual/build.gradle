@@ -22,6 +22,8 @@ sphinxDir = new File(buildDir, "sphinx")
 
 htmlDocDir = new File(sphinxDir, "build/html")
 
+def syncDir = new File(userConfig.doc.sync.dir ?: "${rootDir}/../linkedin.github.com/docs/latest/html").canonicalFile
+
 /**
  * Copy the source in the sphinxDir because they need to be processed to inject the version
  */
@@ -50,5 +52,14 @@ task doc << {
 
   ant.exec(executable: 'make', dir: sphinxDir, failonerror: true) {
     arg(line: 'html')
+  }
+}
+
+/**
+ * Syncs the documentation to linkedin.github.com (does not push it!)
+ */
+task sync(dependsOn: doc) << {
+  ant.sync(todir: syncDir) {
+    fileset(dir: htmlDocDir)
   }
 }
