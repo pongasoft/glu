@@ -12,6 +12,8 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
+ *
+ * Portions Copyright (c) 2011 Andras Kovi
  */
 
 
@@ -263,7 +265,6 @@ def class TestScriptManager extends GroovyTestCase
 
   /**
    * Test support of transient modifier for script fields
-   * @author Andras Kovi
    */
   void testTransientScript()
   {
@@ -280,12 +281,13 @@ def class TestScriptManager extends GroovyTestCase
       assertTrue node.is(sm.findScript(scriptMountPoint))
       assertTrue node.is(sm.findScript('/transient'))
 
-      node.install(transientValue: "transientv", normalValue: "normalv")
+      node.install(normalValue: "normalv", nonSerializableValue: new Object(), transientValue: "transientv")
 
       assertEquals([currentState: 'installed'], node.state)
 
       assertEquals(node.getFullState().scriptState.script.normalField, "normalv")
-      assertNull(node.getFullState().scriptState.script.transientField)
+      assertNull(node.getFullState().scriptState.script.nonSerializableField)
+      assertNull("transient modifier not handled properly",node.getFullState().scriptState.script.transientField)
  }
 
 }
@@ -317,17 +319,19 @@ private def class MyScriptTestScriptManager
     return "closure:${mountPoint}: ${args.p1}/${args.p2}".toString()
   }
 }
+
 /**
  * "Script" class for testing transient modifier support for fields.
- * @author Andras Kovi
  */
 private def class TransientFieldTestScript
 {
-    def transient transientField
     def normalField
+    def nonSerializableField
+    def transient transientField
 
     def install = { args ->
-        transientField = args.transientValue
         normalField = args.normalValue
+        nonSerializableField = args.nonSerializableValue
+        transientField = args.transientValue
     }
 }
