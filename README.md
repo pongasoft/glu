@@ -1,11 +1,32 @@
-Introduction
+What is glu?
 ============
-GLU is a deployment automation platform. It has been built and deployed at LinkedIn in early 2010
-and then released as open source in November 2010. The goal is to be able to automate the
-deployment of any kind of applications accross many nodes. Although written in groovy/java, the
-type of applications that can be deployed through GLU is not limited to java applications. GLU is
-a platform and the way it was architected and designed allows you to pick and choose which part you 
-want to use... Check the docs folder (and soon the wiki) for more documentation on GLU.
+glu is a free/open source deployment and monitoring automation platform.
+
+What problems does glu solve?
+-----------------------------
+
+glu is solving the following problems:
+
+* deploy (and monitor) applications to an arbitrary large set of nodes: 
+
+ * efficiently
+ * with minimum/no human interaction
+ * securely
+ * in a reproducible manner
+
+* ensure consistency over time (prevent *drifting*)
+* detect and troubleshoot quickly when problems arise
+
+How does it work?
+-----------------
+
+glu takes a very **declarative** approach, in which you describe/model what you want, and glu can then:
+
+* compute the set of actions to deploy/upgrade your applications
+* ensure that it remains consistent over time
+* detect and alert you when there is a mismatch
+
+Check the rest of the [documentation](http://linkedin.github.com/glu/docs/latest/html/index.html) for more details (including  screenshots and diagrams).
 
 Quick Links
 ===========
