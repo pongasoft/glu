@@ -37,4 +37,4 @@ Quick Links
 4. [Source code](http://www.github.com/linkedin/glu)
 5. [Forum / Questions / Help](http://glu.977617.n3.nabble.com/)
 6. [Issues / Tasks](https://github.com/linkedin/glu/issues)
-6. [Latest Changes](http://linkedin.github.com/glu/docs/latest/html/RELEASE.html)
+7. [Latest Changes](http://linkedin.github.com/glu/docs/latest/html/RELEASE.html)
