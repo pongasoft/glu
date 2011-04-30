@@ -1,6 +1,13 @@
 Latest changes
 ==============
 
+2.2.1 (2011/04/30)
+------------------
+* Fixed `glu-49 <https://github.com/linkedin/glu/issues/49>`_: `shell.cat is leaking memory`
+* Fixed `glu-48 <https://github.com/linkedin/glu/issues/48>`_: `use -XX:+PrintGCDateStamps for gc log`
+
+Also tweaked a couple of parameters for the agent (starting VM now 128M).
+
 2.2.0 (2011/04/22)
 ------------------
 * Implemented `glu-34 <https://github.com/linkedin/glu/issues/34>`_: `Refactor code out of the console`
