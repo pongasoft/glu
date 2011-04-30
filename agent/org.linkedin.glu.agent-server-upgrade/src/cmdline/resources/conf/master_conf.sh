@@ -92,7 +92,7 @@ fi
 
 # Min, max, total JVM size (-Xms -Xmx)
 if [ -z "$JVM_SIZE" ]; then
-  JVM_SIZE=-Xmx256m
+  JVM_SIZE=-Xmx128m
 fi
 
 # New Generation Sizes (-XX:NewSize -XX:MaxNewSize)
@@ -117,7 +117,7 @@ fi
 
 # JVM GC activity logging settings ($LOG_DIR set in the ctl script)
 if [ -z "$JVM_GC_LOG" ]; then
-  JVM_GC_LOG="-XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -Xloggc:$GC_LOG"
+  JVM_GC_LOG="-XX:+PrintGCDateStamps -Xloggc:$GC_LOG"
 fi
 
 # Log4J configuration
@@ -132,7 +132,7 @@ fi
 
 # Any additional JVM arguments
 if [ -z "$JVM_XTRA_ARGS" ]; then
-  JVM_XTRA_ARGS="-Dsun.security.pkcs11.enable-solaris=false $D_GLU_ZOOKEEPER $D_GLU_AGENT_NAME $D_GLU_AGENT_TAGS $D_GLU_AGENT_HOSTNAME_FACTORY $D_GLU_AGENT_PORT $D_GLU_AGENT_FABRIC -D$GLU_CONFIG_PREFIX.agent.homeDir=$GLU_AGENT_HOME -D$GLU_CONFIG_PREFIX.agent.apps=$GLU_AGENT_APPS -D$GLU_CONFIG_PREFIX.agent.zookeeper.root=$GLU_AGENT_ZOOKEEPER_ROOT"
+  JVM_XTRA_ARGS="-Dsun.security.pkcs11.enable-solaris=false -Djava.awt.headless=true $D_GLU_ZOOKEEPER $D_GLU_AGENT_NAME $D_GLU_AGENT_TAGS $D_GLU_AGENT_HOSTNAME_FACTORY $D_GLU_AGENT_PORT $D_GLU_AGENT_FABRIC -D$GLU_CONFIG_PREFIX.agent.homeDir=$GLU_AGENT_HOME -D$GLU_CONFIG_PREFIX.agent.apps=$GLU_AGENT_APPS -D$GLU_CONFIG_PREFIX.agent.zookeeper.root=$GLU_AGENT_ZOOKEEPER_ROOT"
 fi
 
 # Debug arguments to pass to the JVM (when starting with '-d' flag)
