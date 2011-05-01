@@ -327,7 +327,9 @@ private def class TransientFieldTestScript
 {
     def normalField
     def nonSerializableField
-    def transient transientField
+    def transientField
+
+    static transients = ['transientField']
 
     def install = { args ->
         normalField = args.normalValue
