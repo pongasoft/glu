@@ -293,7 +293,6 @@ def class TestScriptManager extends GroovyTestCase
       assertNull(node.getFullState().scriptState.script.nonSerializableField)
       assertNull("transient modifier not handled properly",node.getFullState().scriptState.script.transientField)
 
-      assertNotNull("This failure happened because Groovy now supports the transient modifier! Great success! transients array is not needed any more in scripts.",node.getFullState().scriptState.script.transientButNotDeclaredToBeTransient)
  }
 
 }
@@ -338,9 +337,6 @@ private def class TransientFieldTestScript
     def boolean booleanField
     def int intField
     static staticField
-    def transient transientButNotDeclaredToBeTransient
-
-    static transients = ['transientField']
 
     def install = { args ->
         normalField = args.normalValue
@@ -352,7 +348,5 @@ private def class TransientFieldTestScript
         intField = args.intValue
 
         staticField = args.staticValue
-
-        transientButNotDeclaredToBeTransient = "this string should not appear once transient modifier is supported"
     }
 }
