@@ -205,16 +205,22 @@ class ScriptState
   }
 
     /**
-     * Determine whether a property is part of the script permanent state. For convenience and
-     * performance reasons, the field value is returned if the condition is true.
+     * Determine whether a property is part of the script permanent state.
      * @param field the field under evaluation
-     * @return the value of the field if part of the permanent state, false otherwise
+     * @return true if part of the permanent state, false otherwise
      */
   private def isPartOfScriptPermanentState(MetaProperty property)
   {
       def transients = null
-      // In fact, this property could be cached in this class, so it
-      // would not be necessary to check it every time.
+      /*
+        The transients property in the script should contain the names of
+        all fields that should not be saved in the permanent state. This
+        workaround is required because Groovy does not support the transient
+        modifier for properties. (This solution is similar to what is done in Grails)
+
+        As soon as Groovy starts to support the transient modifier, this property
+        can be removed and properties simply marked transient in the script code.
+       */
       if (script.hasProperty("transients"))
       {
           transients = script.getProperty("transients")
@@ -225,7 +231,7 @@ class ScriptState
         def value = property.getProperty(script)
         if(value instanceof Serializable && !(value instanceof Closure))
         {
-            return value
+            return true
         }
       }
       return false
@@ -236,10 +242,9 @@ class ScriptState
     def state = [:]
 
     script.metaClass.properties { property ->
-      def value = isPartOfScriptPermanentState(property)
-      if(value)
+      if(isPartOfScriptPermanentState(property))
       {
-          state[property.name] = value
+          state[property.name] = property.getProperty(script)
       }
     }
 

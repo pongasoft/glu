@@ -281,13 +281,19 @@ def class TestScriptManager extends GroovyTestCase
       assertTrue node.is(sm.findScript(scriptMountPoint))
       assertTrue node.is(sm.findScript('/transient'))
 
-      node.install(normalValue: "normalv", nonSerializableValue: new Object(), transientValue: "transientv")
+      node.install(normalValue: "normalv", nonSerializableValue: new Object(), transientValue: "transientv", booleanValue: false, intValue: 0, staticValue: "static info")
 
       assertEquals([currentState: 'installed'], node.state)
 
+      assertNull("null value fields should not be included in the state", node.getFullState().scriptState.script.nullField)
+      assertNotNull(node.getFullState().scriptState.script.booleanField)
+      assertNotNull(node.getFullState().scriptState.script.intField)
       assertEquals(node.getFullState().scriptState.script.normalField, "normalv")
+      assertNull(node.getFullState().scriptState.script.staticField)
       assertNull(node.getFullState().scriptState.script.nonSerializableField)
       assertNull("transient modifier not handled properly",node.getFullState().scriptState.script.transientField)
+
+      assertNotNull("This failure happened because Groovy now supports the transient modifier! Great success! transients array is not needed any more in scripts.",node.getFullState().scriptState.script.transientButNotDeclaredToBeTransient)
  }
 
 }
@@ -326,14 +332,27 @@ private def class MyScriptTestScriptManager
 private def class TransientFieldTestScript
 {
     def normalField
+    def nullField
     def nonSerializableField
-    def transientField
+    def transient transientField
+    def boolean booleanField
+    def int intField
+    static staticField
+    def transient transientButNotDeclaredToBeTransient
 
     static transients = ['transientField']
 
     def install = { args ->
         normalField = args.normalValue
+        nullField = null
         nonSerializableField = args.nonSerializableValue
         transientField = args.transientValue
+
+        booleanField = args.booleanValue
+        intField = args.intValue
+
+        staticField = args.staticValue
+
+        transientButNotDeclaredToBeTransient = "this string should not appear once transient modifier is supported"
     }
 }
