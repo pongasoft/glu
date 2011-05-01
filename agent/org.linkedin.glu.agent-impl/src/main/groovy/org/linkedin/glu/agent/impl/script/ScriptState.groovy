@@ -22,6 +22,7 @@ import java.lang.reflect.Modifier
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.groovy.util.state.StateChangeListener
 import org.linkedin.util.lang.LangUtils
+import java.lang.reflect.Field
 
 /**
  * Contains the state of the script (state machine + script itself)
@@ -63,7 +64,8 @@ class ScriptState
           def newState = [*:(_scriptState.script ?: [:])]
 
           metaProperty.setProperty(scriptDelegate, newValue)
-          if(newValue instanceof Serializable && !(newValue instanceof Closure))
+
+          if (isPartOfScriptPermanentState(metaProperty))
           {
             newState[name] = newValue
           }
@@ -201,19 +203,43 @@ class ScriptState
         scriptState: _scriptState
     ]
   }
-  
+
+    /**
+     * Determine whether a property is part of the script permanent state. For convenience and
+     * performance reasons, the field value is returned if the condition is true.
+     * @param field the field under evaluation
+     * @return the value of the field if part of the permanent state, false otherwise
+     */
+  private def isPartOfScriptPermanentState(MetaProperty property)
+  {
+      def transients = null
+      // In fact, this property could be cached in this class, so it
+      // would not be necessary to check it every time.
+      if (script.hasProperty("transients"))
+      {
+          transients = script.getProperty("transients")
+      }
+      if (!Modifier.isStatic(property.modifiers) && !Modifier.isTransient(property.modifiers)
+            && !transients?.contains(property.name))
+      {
+        def value = property.getProperty(script)
+        if(value instanceof Serializable && !(value instanceof Closure))
+        {
+            return value
+        }
+      }
+      return false
+  }
+
   private def collectScriptPermanentState()
   {
     def state = [:]
 
-    script.metaClass.javaClass.declaredFields.each { field ->
-      if(!Modifier.isStatic(field.modifiers))
+    script.metaClass.properties { property ->
+      def value = isPartOfScriptPermanentState(property)
+      if(value)
       {
-        def value = script."${field.name}"
-        if(value instanceof Serializable && !(value instanceof Closure))
-        {
-          state[field.name] = value
-        }
+          state[property.name] = value
       }
     }
 
