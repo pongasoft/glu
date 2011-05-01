@@ -211,23 +211,17 @@ class ScriptState
      */
   private def isPartOfScriptPermanentState(MetaProperty property)
   {
-      def transients = null
       /*
-        The transients property in the script should contain the names of
-        all fields that should not be saved in the permanent state. This
-        workaround is required because Groovy does not support the transient
-        modifier for properties. (This solution is similar to what is done in Grails)
-
-        As soon as Groovy starts to support the transient modifier, this property
-        can be removed and properties simply marked transient in the script code.
+        Here the field must be tested for transient and static modifiers
+        as Groovy does not support the transient modifier for properties.
        */
-      if (script.hasProperty("transients"))
+      def field = script.metaClass.javaClass.getDeclaredField(property.name)
+      if (!Modifier.isStatic(field.modifiers) && !Modifier.isTransient(field.modifiers))
       {
-          transients = script.getProperty("transients")
-      }
-      if (!Modifier.isStatic(property.modifiers) && !Modifier.isTransient(property.modifiers)
-            && !transients?.contains(property.name))
-      {
+        /*
+          The property value must be retrieved as private fields cannot be
+          accessed in this way in the Java world.
+         */
         def value = property.getProperty(script)
         if(value instanceof Serializable && !(value instanceof Closure))
         {
