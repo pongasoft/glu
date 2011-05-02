@@ -288,12 +288,44 @@ def class TestScriptManager extends GroovyTestCase
       assertNull("null value fields should not be included in the state", node.getFullState().scriptState.script.nullField)
       assertNotNull(node.getFullState().scriptState.script.booleanField)
       assertNotNull(node.getFullState().scriptState.script.intField)
-      assertEquals(node.getFullState().scriptState.script.normalField, "normalv")
+      assertEquals("normalv", node.getFullState().scriptState.script.normalField)
       assertNull(node.getFullState().scriptState.script.staticField)
       assertNull(node.getFullState().scriptState.script.nonSerializableField)
       assertNull("transient modifier not handled properly",node.getFullState().scriptState.script.transientField)
-
  }
+
+    /**
+     * Test support of transient modifier for script fields with
+     * alternating (serializable/non-serializable) content
+     */
+    void testTransientScript2()
+    {
+        def rootMountPoint = MountPoint.fromPath('/')
+        assertEquals(rootMountPoint, sm.rootScript.rootPath)
+        assertEquals(new HashSet([rootMountPoint]), ram)
+
+        def scriptMountPoint = MountPoint.fromPath('/transient2')
+        sm.installScript(mountPoint: scriptMountPoint,
+                         initParameters: [],
+                         scriptFactory: new FromClassNameScriptFactory(TransientFieldTestScript2))
+        def node = sm.findScript(scriptMountPoint)
+        assertEquals([currentState: StateMachine.NONE], node.state)
+        assertTrue node.is(sm.findScript(scriptMountPoint))
+        assertTrue node.is(sm.findScript('/transient2'))
+
+        node.install()
+        assertEquals([currentState: 'installed'], node.state)
+        assertNotNull(node.getFullState().scriptState.script.keepOnChanging)
+
+        node.configure()
+        assertEquals([currentState: 'stopped'], node.state)
+        assertNull(node.getFullState().scriptState.script.keepOnChanging)
+
+        node.start()
+        assertEquals([currentState: 'running'], node.state)
+        assertNotNull(node.getFullState().scriptState.script.keepOnChanging)
+   }
+
 
 }
 
@@ -349,4 +381,20 @@ private def class TransientFieldTestScript
 
         staticField = args.staticValue
     }
+}
+
+class TransientFieldTestScript2 {
+  def Object keepOnChanging;
+
+  def install = {
+    keepOnChanging = 3; // serializable... should be part of the state
+  }
+
+  def configure = {
+    keepOnChanging = new Object(); // non-serializable
+  }
+
+  def start = {
+    keepOnChanging = 3; // serializable again
+  }
 }

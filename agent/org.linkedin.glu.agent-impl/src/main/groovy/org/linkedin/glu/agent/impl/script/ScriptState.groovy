@@ -206,7 +206,7 @@ class ScriptState
 
     /**
      * Determine whether a property is part of the script permanent state.
-     * @param field the field under evaluation
+     * @param property the property under evaluation
      * @return true if part of the permanent state, false otherwise
      */
   private def isPartOfScriptPermanentState(MetaProperty property)
