@@ -1,6 +1,10 @@
 Latest changes
 ==============
 
+2.2.2 (2011/05/04)
+------------------
+* Fixed `glu-51 <https://github.com/linkedin/glu/issues/51>`_: `agent does not recover properly when safeOverwrite fails`
+
 2.2.1 (2011/04/30)
 ------------------
 * Fixed `glu-49 <https://github.com/linkedin/glu/issues/49>`_: `shell.cat is leaking memory`
