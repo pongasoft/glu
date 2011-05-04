@@ -17,8 +17,6 @@
 
 package org.linkedin.glu.agent.server
 
-import org.apache.zookeeper.CreateMode
-import org.apache.zookeeper.ZooDefs.Ids
 import org.hyperic.sigar.Sigar
 import org.hyperic.sigar.SigarException
 import org.linkedin.glu.agent.api.Agent
@@ -39,7 +37,6 @@ import org.linkedin.groovy.util.ant.AntUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.groovy.util.ivy.IvyURLHandler
-import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.groovy.util.net.GroovyNetUtils
 import org.linkedin.groovy.util.net.SingletonURLStreamHandlerFactory
 import org.linkedin.util.clock.Timespan
@@ -589,6 +586,11 @@ class AgentMain implements LifecycleListener
     Storage storage = new FileSystemStorage(fileSystem,
                                             _agentProperties,
                                             _persistentPropertiesFile)
+
+    // clean up on boot
+    def invalidStates = storage.deleteInvalidStates()
+    if(invalidStates)
+      log.warn("cleaned up invalid states [${invalidStates.size()}]")
 
     WriteOnlyStorage zkStorage = createZooKeeperStorage()
 

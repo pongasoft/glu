@@ -19,6 +19,7 @@
 package org.linkedin.glu.agent.impl.storage
 
 import org.linkedin.glu.agent.api.MountPoint
+import org.linkedin.groovy.util.lang.GroovyLangUtils
 
 /**
  * All the reads are delegated to the <code>readWriteStorage</code>, all the writes are dispatched
@@ -83,7 +84,9 @@ class DualWriteStorage extends FilteredStorage
     writeOnlyStorage.clearAllStates()
 
     mountPoints.each { mountPoint ->
-      writeOnlyStorage.storeState(mountPoint, loadState(mountPoint))
+      def state = GroovyLangUtils.noException(mountPoint, null) { loadState(mountPoint) }
+      if(state != null)
+        writeOnlyStorage.storeState(mountPoint, state)
     }
 
     writeOnlyStorage.saveAgentProperties(loadAgentProperties())

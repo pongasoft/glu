@@ -24,6 +24,8 @@ import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.io.fs.FileSystem
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.linkedin.groovy.util.lang.GroovyLangUtils
+import org.linkedin.util.io.resource.Resource
 
 /**
  * Store in the filesystem
@@ -63,26 +65,68 @@ class FileSystemStorage implements Storage
 
   public synchronized getMountPoints()
   {
-    return _fileSystem.ls().collect { resource ->
-      fromPath(resource.filename)
+    def pontentialMountpoints = _fileSystem.ls().collect { resource -> fromPath(resource.filename) }
+
+    pontentialMountpoints.findAll { MountPoint mp ->
+      GroovyLangUtils.noException(mp, null) { loadState(mp) }
+    }
+  }
+
+  public synchronized Collection<Resource> deleteInvalidStates()
+  {
+    _fileSystem.ls().findAll { Resource resource ->
+      GroovyLangUtils.noExceptionWithValueOnException(false) {
+        
+        def state = GroovyLangUtils.noException(resource, null) {
+          loadState(fromPath(resource.filename))
+        }
+
+        if(state == null)
+        {
+          Resource moved = _fileSystem.mv(resource, _fileSystem.createTempDir())
+          log.warn("Detected invalid state... moved to ${moved}")
+          return true
+        }
+
+        return false
+      }
     }
   }
 
   public synchronized loadState(MountPoint mountPoint)
   {
-    try
-    {
-      return _fileSystem.deserializeFromFile(toPath(mountPoint))
+    def state = GroovyLangUtils.noException(mountPoint, null) {
+      try
+      {
+        _fileSystem.deserializeFromFile(toPath(mountPoint))
+      }
+      catch (FileNotFoundException e)
+      {
+        return null
+      }
     }
-    catch (FileNotFoundException e)
+
+    if(extractMountPointFromState(state) != mountPoint)
     {
-      throw new NoSuchMountPointException(mountPoint?.path, e)
+      if(log.isDebugEnabled())
+        log.debug("mountPoint mismatch [ignored]: ${extractMountPointFromState(state)} != ${mountPoint}")
+      throw new NoSuchMountPointException(mountPoint?.path)
     }
+
+    return state
   }
 
   public synchronized void storeState(MountPoint mountPoint, state)
   {
+    if(extractMountPointFromState(state) != mountPoint)
+      throw new IllegalArgumentException("mismatch mountPoint: ${mountPoint} != ${extractMountPointFromState(state)}")
+
     _fileSystem.serializeToFile(toPath(mountPoint), state)
+  }
+
+  private MountPoint extractMountPointFromState(state)
+  {
+    state?.scriptDefinition?.mountPoint
   }
 
   FileSystem getFileSystem()
