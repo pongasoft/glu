@@ -29,13 +29,14 @@ import org.linkedin.glu.agent.api.NoSuchActionException
 import java.util.concurrent.ExecutionException
 import org.linkedin.util.lifecycle.Shutdownable
 import org.linkedin.groovy.util.state.StateMachine
+import org.linkedin.util.lifecycle.Startable
 
 /**
  * A script node (recursive structure)
  *
  * @author ypujante@linkedin.com
  */
-def class ScriptNode implements Shutdownable
+def class ScriptNode implements Shutdownable, Startable
 {
   private final ScriptState _scriptState
   private final ScriptExecution _scriptExecution
@@ -55,6 +56,11 @@ def class ScriptNode implements Shutdownable
                                            scriptDefinition.getMountPoint().toString(),
                                            _log)
     _scriptExecution.clock = agentContext.clock
+  }
+
+  @Override
+  void start()
+  {
     _scriptExecution.start()
   }
 

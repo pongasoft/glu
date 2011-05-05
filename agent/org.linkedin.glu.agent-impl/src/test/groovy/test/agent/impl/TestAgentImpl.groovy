@@ -585,6 +585,57 @@ def class TestAgentImpl extends GroovyTestCase
     agent.waitForShutdown('5s')
   }
 
+  /**
+   * Test for deadlock on shutdown (glu-52)
+   */
+  public void testDeadlockOnShutdown()
+  {
+    def tc = new ThreadControl(Timespan.parse('30s'))
+
+    // we install a script under /s
+    def scriptMountPoint = MountPoint.fromPath('/s')
+    agent.installScript(mountPoint: scriptMountPoint,
+                        scriptFactory: new FromClassNameScriptFactory(MyScriptTestDeadlockOnShutdown))
+
+    def res = [:]
+    // then we run the 'install' action
+    def id = agent.executeAction(mountPoint: scriptMountPoint,
+                                 action: 'install',
+                                 actionArgs: [res: res, tc: tc])
+
+    // we make sure that the script is currently executing
+    tc.waitForBlock('shutdown')
+
+    // we now shutdown the agent
+    agent.shutdown()
+
+    // the agent will not shutdown until the closure completes
+    shouldFail(TimeoutException) { agent.waitForShutdown('1s') }
+
+    Thread.start {
+      // now it will shutdown
+      agent.waitForShutdown('10s')
+
+      tc.block('shutdownComplete')
+    }
+
+    String transitionState
+
+    // let the install closure continue
+    tc.unblock('shutdown')
+
+    transitionState =
+      agent.waitForAction(mountPoint: scriptMountPoint,
+                          actionId: id,
+                          timeout: '5s').transitionState
+
+    // verify the transition state
+    assertEquals('NONE->installed', transitionState)
+
+    // make sure that the agent shutdown properly
+    tc.unblock('shutdownComplete')
+  }
+
   // we advance the clock and wake up the execution thread to make sure it processes the event
   private void advanceClock(timeout, node)
   {
@@ -742,5 +793,13 @@ private def class MyScriptTestShutdown
 {
   def install = { args ->
     args.tc.block('shutdown')
+  }
+}
+
+private def class MyScriptTestDeadlockOnShutdown
+{
+  def install = { args ->
+    args.tc.block('shutdown')
+    return stateManager.state // this causes a deadlock prior to fixing glu-52
   }
 }

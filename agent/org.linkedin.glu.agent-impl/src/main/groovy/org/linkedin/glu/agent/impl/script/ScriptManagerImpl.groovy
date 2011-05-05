@@ -35,6 +35,7 @@ import org.linkedin.groovy.util.state.StateMachine
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeoutException
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
+import org.linkedin.util.lifecycle.ShutdownRequestedException
 
 /**
  * Manager for scripts
@@ -49,6 +50,7 @@ def class ScriptManagerImpl implements ScriptManager
   final Map<MountPoint, ScriptNode> _scripts = new LinkedHashMap<MountPoint, ScriptNode>()
   final def _rootScriptFactory
   final AgentContext _agentContext
+  private volatile boolean _shutdown = false
   Timespan scriptGracePeriod1 = Timespan.parse('1s')
   Timespan scriptGracePeriod2 = Timespan.parse('1m')
 
@@ -76,8 +78,8 @@ def class ScriptManagerImpl implements ScriptManager
                                                [:])
 
     def rootNode = createNode(scriptConfig, sd, rootScript)
-    
-    _scripts[MountPoint.ROOT] = rootNode
+
+    addScriptNode(rootNode)
 
     rootNode.executeAction(action: 'install', actionArgs: actionArgs).get()
 
@@ -164,7 +166,7 @@ def class ScriptManagerImpl implements ScriptManager
       createNode(scriptConfig, sd, it)
     }
 
-    _scripts[mountPoint] = childNode
+    addScriptNode(childNode)
 
     childNode.log.info("installed")
 
@@ -323,7 +325,7 @@ def class ScriptManagerImpl implements ScriptManager
         // we clean up the temp space
         node.shell.rmdirs(node.shell.fileSystem.tmpRoot)
 
-        _scripts.remove(mountPoint)
+        removeScriptNode(mountPoint)
 
         node.log.info("uninstalled")
       }
@@ -472,19 +474,51 @@ def class ScriptManagerImpl implements ScriptManager
     }
   }
 
-  synchronized void shutdown()
+  void shutdown()
   {
-    _scripts.values().each { it.shutdown() }
+    synchronized(this)
+    {
+      if(_shutdown)
+        return
+
+      _shutdown = true
+    }
+    
+    scriptNodes.each { it.shutdown() }
   }
 
-  synchronized void waitForShutdown()
+  void waitForShutdown()
   {
-    _scripts.values().each { it.waitForShutdown() }
+    if(!_shutdown)
+      throw new IllegalStateException("call shutdown first")
+
+    scriptNodes.each { it.waitForShutdown() }
   }
 
-  synchronized void waitForShutdown(timeout)
+  void waitForShutdown(timeout)
   {
-    GroovyConcurrentUtils.waitForShutdownMultiple(_agentContext.getClock(), timeout, _scripts.values())
+    if(!_shutdown)
+      throw new IllegalStateException("call shutdown first")
+
+    GroovyConcurrentUtils.waitForShutdownMultiple(_agentContext.getClock(), timeout, scriptNodes)
+  }
+
+  synchronized Collection<ScriptNode> getScriptNodes()
+  {
+    _scripts.values()
+  }
+
+  synchronized void addScriptNode(ScriptNode node)
+  {
+    _scripts[node.mountPoint] = node
+    // start node when not in shutdown mode
+    if(!_shutdown)
+      node.start()
+  }
+
+  synchronized void removeScriptNode(MountPoint mountPoint)
+  {
+    _scripts.remove(mountPoint)
   }
 
   private def getScriptFactory(args)
