@@ -1,6 +1,10 @@
 Latest changes
 ==============
 
+2.2.3 (2011/05/05)
+------------------
+* Fixed `glu-52 <https://github.com/linkedin/glu/issues/52>`_: `deadlock on agent shutdown`
+
 2.2.2 (2011/05/04)
 ------------------
 * Fixed `glu-51 <https://github.com/linkedin/glu/issues/51>`_: `agent does not recover properly when safeOverwrite fails`
