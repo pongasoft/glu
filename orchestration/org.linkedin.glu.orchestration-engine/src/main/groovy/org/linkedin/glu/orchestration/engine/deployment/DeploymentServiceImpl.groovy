@@ -34,6 +34,7 @@ import org.linkedin.util.annotations.Initializable
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
 import org.linkedin.util.clock.Timespan
+import org.linkedin.glu.provisioner.core.action.IDescriptionProvider
 
 /**
  * System service.
@@ -62,6 +63,9 @@ class DeploymentServiceImpl implements DeploymentService
 
   @Initializable
   AuthorizationService authorizationService
+
+  @Initializable
+  IDescriptionProvider descriptionProvider = DefaultDescriptionProvider.INSTANCE
 
   private Map<String, CurrentDeployment> _deployments = [:]
   private Map<String, Plan> _plans = [:]
@@ -253,10 +257,10 @@ class DeploymentServiceImpl implements DeploymentService
                          Environment expectedEnvironment,
                          Closure closure)
   {
-    deploymentMgr.createPlan(name, 
+    deploymentMgr.createPlan(name,
                              currentEnvironment,
                              expectedEnvironment,
-                             DefaultDescriptionProvider.INSTANCE,
+                             descriptionProvider,
                              closure)
   }
 

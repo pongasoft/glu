@@ -33,6 +33,8 @@ import org.linkedin.glu.agent.tracker.AgentInfo
 import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.util.annotations.Initializable
+import org.linkedin.glu.agent.tracker.PrefixAgentInfoPropertyAccessor
+import org.linkedin.glu.agent.tracker.AgentInfoPropertyAccessor
 
 /**
  * @author ypujante
@@ -47,6 +49,9 @@ class TrackerServiceImpl implements TrackerService, Destroyable
 
   @Initializable
   String zookeeperRoot = "/org/glu"
+
+  @Initializable
+  AgentInfoPropertyAccessor agentInfoPropertyAccessor = PrefixAgentInfoPropertyAccessor.DEFAULT
 
   private final def _trackers = [:]
 
@@ -95,6 +100,7 @@ class TrackerServiceImpl implements TrackerService, Destroyable
         fabricService.withZkClient(fabric.name) { IZKClient zkClient ->
           tracker = new AgentsTrackerImpl(zkClient,
                                           "${zookeeperRoot}/agents/fabrics/${fabricName}".toString())
+          tracker.agentInfoPropertyAccessor = agentInfoPropertyAccessor
         }
 
         _trackers[fabricName] = [tracker: tracker, fabric: fabric]

@@ -39,6 +39,7 @@ import org.linkedin.util.lang.LangUtils
 import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.provisioner.impl.agent.DefaultDescriptionProvider
+import org.linkedin.glu.provisioner.core.action.IDescriptionProvider
 
 /**
  * @author ypujante
@@ -62,6 +63,9 @@ class AgentsServiceImpl implements AgentsService
 
   @Initializable
   AuthorizationService authorizationService
+
+  @Initializable
+  IDescriptionProvider descriptionProvider = DefaultDescriptionProvider.INSTANCE
 
   def getAllInfosWithAccuracy(Fabric fabric)
   {
@@ -140,7 +144,7 @@ class AgentsServiceImpl implements AgentsService
       state = state.toList()
       return agentPlanner.createTransitionPlan(installations,
                                                state,
-                                               DefaultDescriptionProvider.INSTANCE,
+                                               descriptionProvider,
                                                filter)
     }
 

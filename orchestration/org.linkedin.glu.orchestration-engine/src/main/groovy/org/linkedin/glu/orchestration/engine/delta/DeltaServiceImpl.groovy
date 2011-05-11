@@ -30,6 +30,12 @@ class DeltaServiceImpl implements DeltaService
   @Initializable
   AgentsService agentsService
 
+  @Initializable
+  Set<String> includedInVersionMismatch = null
+
+  @Initializable
+  Set<String> excludedInVersionMismatch = null
+
   def computeDelta(Fabric fabric, SystemModel expectedSystem)
   {
     if(expectedSystem && expectedSystem.fabric != fabric.name)
@@ -97,17 +103,11 @@ class DeltaServiceImpl implements DeltaService
         // here we have both currentEntry and expectedEntry...
         emptyAgents.remove(cef.agent)
 
-        def initParameters = eef.keySet().findAll { it.startsWith("initParameters.") } +
-            cef.keySet().findAll { it.startsWith("initParameters.") }
+        // processing version mismatch
+        processVersionMismatch(eef, cef)
 
-        initParameters.each { n ->
-          if(eef[n] != cef[n])
-          {
-            cef.status = 'versionMismatch'
-            cef.statusInfo = "${n}:${eef[n]} != ${n}:${cef[n]}".toString()
-            cef.state = 'ERROR'
-          }
-        }
+        // a chance to add custom processing
+        processCustomDelta(eef, cef)
 
         if(!cef.state)
         {
@@ -165,6 +165,48 @@ class DeltaServiceImpl implements DeltaService
     }
 
     return entries
+  }
+
+  /**
+   * By default the version mismatch is computed by comparing all initParameters (+ script). You
+   * can tweak which ones are taken into account by initializing:
+   * <code>includedInVersionMismatch</code> or <code>excludedInVersionMismatch</code>.
+   *
+   * @param eef expected entry (flattened)
+   * @param cef current entry (flattened)
+   */
+  protected void processVersionMismatch(Map eef, Map cef)
+  {
+    def initParameters = eef.keySet().findAll { it.startsWith("initParameters.") } +
+                         cef.keySet().findAll { it.startsWith("initParameters.") }
+
+    initParameters << 'script'
+
+    if(includedInVersionMismatch != null)
+      initParameters = initParameters.findAll { includedInVersionMismatch.contains(it) }
+
+    if(excludedInVersionMismatch != null)
+      initParameters = initParameters.findAll { !excludedInVersionMismatch.contains(it) }
+
+    initParameters.each { n ->
+      if(eef[n] != cef[n])
+      {
+        cef.status = 'versionMismatch'
+        cef.statusInfo = "${n}:${eef[n]} != ${n}:${cef[n]}".toString()
+        cef.state = 'ERROR'
+      }
+    }
+  }
+
+  /**
+   * Nothing to do here. Subclasses can tweak the delta.
+   * 
+   * @param eef expected entry (flattened)
+   * @param cef current entry (flattened)
+   */
+  protected void processCustomDelta(Map eef, Map cef)
+  {
+    // nothing to do in this implementation
   }
 
   private void setTags(def entry, Collection<String> entryTags)

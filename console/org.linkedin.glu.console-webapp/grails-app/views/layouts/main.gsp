@@ -27,7 +27,8 @@
   <cl:withFabric>
     div.env-${fabric.name} {
       background-color: ${fabric.color};
-      background: -webkit-gradient(linear, left top, right top, from(${fabric.color}), to(#ffffff));
+      background: -webkit-gradient(linear, left top, right top, color-stop(.2, ${fabric.color}),color-stop(1, #ffffff)) fixed no-repeat 0 100%;
+      background: -moz-linear-gradient(left,${fabric.color} 20%,#ffffff) fixed no-repeat 0 100%;
     }
   </cl:withFabric>
   div#footer {

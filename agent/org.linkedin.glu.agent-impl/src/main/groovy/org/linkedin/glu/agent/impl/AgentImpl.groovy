@@ -490,7 +490,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   boolean hasTags()
   {
     handleException {
-      return !_taggeable.hasTags()
+      return _taggeable.hasTags()
     }
   }
 

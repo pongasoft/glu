@@ -184,6 +184,186 @@ class TestDeltaService extends GroovyTestCase
                            ],
                            doComputeDelta(current, expected))
 
+    // versionMismatch (script)
+    current = [
+      [
+        agent: 'a1', mountPoint: '/m1', script: 's1',
+        initParameters: [wars: 'w1', config: 'cnf1'],
+        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      ]
+    ]
+    expected = [
+      [
+        agent: 'a1', mountPoint: '/m1', script: 's2',
+        initParameters: [wars: 'w1', config: 'cnf1'],
+        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.container': 'c1',
+                            'initParameters.config': 'cnf1',
+                            'metadata.currentState': 'stopped',
+                            key: 'a1:/m1',
+                            agent: 'a1',
+                            mountPoint: '/m1',
+                            'metadata.product': 'p1',
+                            script: 's2',
+                            state: 'ERROR',
+                            status: 'versionMismatch',
+                            statusInfo: 'script:s2 != script:s1',
+                            'metadata.version': 'R2',
+                            'initParameters.wars': 'w1'
+                            ]
+                           ],
+                           doComputeDelta(current, expected))
+
+    // versionMismatch (script) (with includedInVersionMismatch)
+    deltaService.includedInVersionMismatch = ['script'] as Set
+    deltaService.excludedInVersionMismatch = null
+    current = [
+      [
+        agent: 'a1', mountPoint: '/m1', script: 's1',
+        initParameters: [wars: 'w1', config: 'cnf1'],
+        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      ]
+    ]
+    expected = [
+      [
+        agent: 'a1', mountPoint: '/m1', script: 's2',
+        initParameters: [wars: 'w1', config: 'cnf1'],
+        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.container': 'c1',
+                            'initParameters.config': 'cnf1',
+                            'metadata.currentState': 'stopped',
+                            key: 'a1:/m1',
+                            agent: 'a1',
+                            mountPoint: '/m1',
+                            'metadata.product': 'p1',
+                            script: 's2',
+                            state: 'ERROR',
+                            status: 'versionMismatch',
+                            statusInfo: 'script:s2 != script:s1',
+                            'metadata.version': 'R2',
+                            'initParameters.wars': 'w1'
+                            ]
+                           ],
+                           doComputeDelta(current, expected))
+
+    // versionMismatch (script) (with includedInVersionMismatch)
+    deltaService.includedInVersionMismatch = ['initParameters.wars'] as Set
+    deltaService.excludedInVersionMismatch = null
+    current = [
+      [
+        agent: 'a1', mountPoint: '/m1', script: 's1',
+        initParameters: [wars: 'w1', config: 'cnf1'],
+        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      ]
+    ]
+    expected = [
+      [
+        agent: 'a1', mountPoint: '/m1', script: 's2',
+        initParameters: [wars: 'w1', config: 'cnf1'],
+        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.container': 'c1',
+                            'initParameters.config': 'cnf1',
+                            'metadata.currentState': 'stopped',
+                            key: 'a1:/m1',
+                            agent: 'a1',
+                            mountPoint: '/m1',
+                            'metadata.product': 'p1',
+                            script: 's2',
+                            state: 'ERROR',
+                            status: 'notRunning',
+                            'metadata.version': 'R2',
+                            'initParameters.wars': 'w1'
+                            ]
+                           ],
+                           doComputeDelta(current, expected))
+
+    // versionMismatch (script) (with excludedInVersionMismatch)
+    deltaService.includedInVersionMismatch = null
+    deltaService.excludedInVersionMismatch = ['initParameters.wars'] as Set
+    current = [
+      [
+        agent: 'a1', mountPoint: '/m1', script: 's1',
+        initParameters: [wars: 'w1', config: 'cnf1'],
+        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      ]
+    ]
+    expected = [
+      [
+        agent: 'a1', mountPoint: '/m1', script: 's2',
+        initParameters: [wars: 'w1', config: 'cnf1'],
+        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.container': 'c1',
+                            'initParameters.config': 'cnf1',
+                            'metadata.currentState': 'stopped',
+                            key: 'a1:/m1',
+                            agent: 'a1',
+                            mountPoint: '/m1',
+                            'metadata.product': 'p1',
+                            script: 's2',
+                            state: 'ERROR',
+                            status: 'versionMismatch',
+                            statusInfo: 'script:s2 != script:s1',
+                            'metadata.version': 'R2',
+                            'initParameters.wars': 'w1'
+                            ]
+                           ],
+                           doComputeDelta(current, expected))
+
+    // versionMismatch (script) (with includedInVersionMismatch)
+    deltaService.includedInVersionMismatch = null
+    deltaService.excludedInVersionMismatch = ['script'] as Set
+    current = [
+      [
+        agent: 'a1', mountPoint: '/m1', script: 's1',
+        initParameters: [wars: 'w1', config: 'cnf1'],
+        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      ]
+    ]
+    expected = [
+      [
+        agent: 'a1', mountPoint: '/m1', script: 's2',
+        initParameters: [wars: 'w1', config: 'cnf1'],
+        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.container': 'c1',
+                            'initParameters.config': 'cnf1',
+                            'metadata.currentState': 'stopped',
+                            key: 'a1:/m1',
+                            agent: 'a1',
+                            mountPoint: '/m1',
+                            'metadata.product': 'p1',
+                            script: 's2',
+                            state: 'ERROR',
+                            status: 'notRunning',
+                            'metadata.version': 'R2',
+                            'initParameters.wars': 'w1'
+                            ]
+                           ],
+                           doComputeDelta(current, expected))
+
+    // restoring
+    deltaService.includedInVersionMismatch = null
+    deltaService.excludedInVersionMismatch = null
+
     // unexpected
     current = [
         [

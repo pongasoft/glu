@@ -40,14 +40,23 @@ class SystemEntry implements ReadOnlyTaggeable
 
   def toExternalRepresentation()
   {
-    return [
-        agent: agent,
-        mountPoint: mountPoint,
-        script: script,
-        initParameters: initParameters,
-        metadata: metadata,
-        tags: tags
+    def res =
+    [
+      agent: agent,
+      mountPoint: mountPoint,
+      script: script
     ]
+
+    if(initParameters)
+      res.initParameters = initParameters
+
+    if(metadata)
+      res.metadata = metadata
+
+    if(hasTags())
+      res.tags = tags
+
+    return res
   }
 
   @Override

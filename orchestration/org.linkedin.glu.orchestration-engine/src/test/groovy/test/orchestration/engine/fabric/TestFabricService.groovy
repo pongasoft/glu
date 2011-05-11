@@ -16,15 +16,12 @@
 
 package test.orchestration.engine.fabric
 
-import org.linkedin.glu.orchestration.engine.fabric.Fabric
-
 /**
  * @author yan@pongasoft.com */
 public class TestFabricService extends GroovyTestCase
 {
   public void testFabricService()
   {
-    Fabric fabric = new Fabric(name: 'f1')
-    println fabric
+    // TODO HIGH YP:  add tests for fabric service
   }
 }

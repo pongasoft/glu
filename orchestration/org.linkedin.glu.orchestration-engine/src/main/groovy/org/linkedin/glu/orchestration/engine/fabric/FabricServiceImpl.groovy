@@ -180,9 +180,11 @@ class FabricServiceImpl implements FabricService, Destroyable
 
     def zkConnectString = findFabric(fabricName).zkConnectString
     configurableFactory?.withRemoteConfigurable(agentName) { Configurable c ->
-      c.configure(["${prefix}.agent.zkConnectString": zkConnectString])
+      // YP note: using GString as a key in a map is a recipe for disaster => using string!
+      def config = [:]
+      config["${prefix}.agent.zkConnectString".toString()] = zkConnectString
+      c.configure(config)
     }
-
   }
 
   /**

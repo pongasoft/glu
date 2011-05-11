@@ -109,7 +109,7 @@ class AgentRestClient implements Agent
     def response = handleResponse(toMountPointReference(args)) { ClientResource client ->
       client.post(toArgs([executeActionAndWaitForState: args]))
     }
-    return getRes(response)
+    return getRes(response) as boolean
   }
 
   public boolean interruptAction(Object args)
@@ -117,7 +117,7 @@ class AgentRestClient implements Agent
     def response = handleResponse(toMountPointReference(args)) { ClientResource client ->
       client.post(toArgs([interruptAction: args]))
     }
-    return getRes(response)
+    return getRes(response) as boolean
   }
 
   public getMountPoints()
@@ -388,10 +388,13 @@ class AgentRestClient implements Agent
 
   private def getRes(def response)
   {
+    if(response instanceof Status)
+      return null
+
     if(response instanceof InputStream)
       return response
-    else
-      return response?.res
+
+    return response?.res
   }
 
   private def handleResponse(Reference reference, Closure closure)

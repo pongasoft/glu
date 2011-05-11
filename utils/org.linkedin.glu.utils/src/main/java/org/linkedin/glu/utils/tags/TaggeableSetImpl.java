@@ -50,7 +50,7 @@ public abstract class TaggeableSetImpl implements Taggeable
   @Override
   public boolean hasTags()
   {
-    return _tags.isEmpty();
+    return !_tags.isEmpty();
   }
 
   /**

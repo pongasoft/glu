@@ -384,10 +384,14 @@ class SystemModel
   {
     def map = [
       id: id,
-      fabric: fabric,
-      metadata: metadata,
-      entries: findEntries().collect { it.toExternalRepresentation() }
+      fabric: fabric
     ]
+
+    if(metadata)
+      map.metadata = metadata
+
+    if(_entries)
+      map.entries = findEntries().collect { it.toExternalRepresentation() }
 
     if(!_agentTags.isEmpty())
     {
@@ -411,7 +415,7 @@ class SystemModel
     if(er == null)
       return null
 
-    SystemModel res = new SystemModel(id: er.id, fabric: er.fabric, metadata: er.metadata)
+    SystemModel res = new SystemModel(id: er.id, fabric: er.fabric, metadata: er.metadata ?: [:])
 
     er.agentTags?.each { agent, tags ->
       res.addAgentTags(agent, tags)

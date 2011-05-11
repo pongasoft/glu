@@ -31,7 +31,7 @@ public class TestTaggeable extends GroovyTestCase
     Taggeable taggeable = new TaggeableHashSetImpl()
 
     // empty
-    assertTrue(taggeable.hasTags())
+    assertFalse(taggeable.hasTags())
     assertEquals(0, taggeable.tagsCount)
     assertFalse(taggeable.hasTag('fruit'))
     assertFalse(taggeable.hasTag('vegetable'))
@@ -43,7 +43,7 @@ public class TestTaggeable extends GroovyTestCase
 
     // + fruit
     assertTrue(taggeable.addTag('fruit'))
-    assertFalse(taggeable.hasTags())
+    assertTrue(taggeable.hasTags())
     assertEquals(1, taggeable.tagsCount)
     assertTrue(taggeable.hasTag('fruit'))
     assertFalse(taggeable.hasTag('vegetable'))
@@ -55,7 +55,7 @@ public class TestTaggeable extends GroovyTestCase
 
     // adding fruit again should not have any impact
     assertFalse(taggeable.addTag('fruit'))
-    assertFalse(taggeable.hasTags())
+    assertTrue(taggeable.hasTags())
     assertEquals(1, taggeable.tagsCount)
     assertTrue(taggeable.hasTag('fruit'))
     assertFalse(taggeable.hasTag('vegetable'))
@@ -67,7 +67,7 @@ public class TestTaggeable extends GroovyTestCase
 
     // + vegetable
     assertEquals(['fruit'] as Set, taggeable.addTags(['vegetable', 'fruit']))
-    assertFalse(taggeable.hasTags())
+    assertTrue(taggeable.hasTags())
     assertEquals(2, taggeable.tagsCount)
     assertTrue(taggeable.hasTag('fruit'))
     assertTrue(taggeable.hasTag('vegetable'))
@@ -82,7 +82,7 @@ public class TestTaggeable extends GroovyTestCase
 
     // - fruit
     assertEquals(['rock'] as Set, taggeable.removeTags(['fruit', 'rock']))
-    assertFalse(taggeable.hasTags())
+    assertTrue(taggeable.hasTags())
     assertEquals(1, taggeable.tagsCount)
     assertFalse(taggeable.hasTag('fruit'))
     assertTrue(taggeable.hasTag('vegetable'))
