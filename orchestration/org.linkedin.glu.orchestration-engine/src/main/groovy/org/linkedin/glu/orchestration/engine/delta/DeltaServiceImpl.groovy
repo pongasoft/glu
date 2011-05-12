@@ -24,6 +24,7 @@ import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.provisioner.core.model.TagsSystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemFilter
+import org.linkedin.glu.provisioner.core.model.LogicSystemFilterChain
 
 class DeltaServiceImpl implements DeltaService
 {
@@ -275,7 +276,7 @@ class DeltaServiceImpl implements DeltaService
 
       def newCurrent = []
       current.each { row ->
-        if(row.tags?.size() > 1)
+        if(row.tags?.size() > 0)
         {
           row.tags.each { tag ->
             if(!filteredTags || filteredTags.contains(tag))
@@ -392,13 +393,30 @@ class DeltaServiceImpl implements DeltaService
 
   private Collection<String> extractFilteredTags(SystemModel model)
   {
-    SystemFilter filters = model?.filters
+    extractFilteredTags(model?.filters)
+  }
 
+  private Collection<String> extractFilteredTags(SystemFilter filters)
+  {
     if(filters instanceof TagsSystemFilter)
     {
       return filters.tags
     }
-    else
-     return []
+
+    if(filters instanceof LogicSystemFilterChain)
+    {
+      Set<String> tags = new HashSet<String>()
+      filters.filters?.each {
+        Collection<String> filteredTags = extractFilteredTags(it)
+        if(filteredTags)
+          tags.addAll(filteredTags)
+      }
+      if(tags)
+        return tags
+      else
+        return null
+    }
+    
+    return null
   }
 }

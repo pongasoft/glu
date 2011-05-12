@@ -82,9 +82,7 @@
       <set>
         <value>skeleton</value>
         <value>metadata</value>
-        <value>release</value>
-        <value>cluster</value>
-        <value>glu.installation.name</value>
+        <value>tags</value>
       </set>
     </property>
     <property name="fieldExcludes"><set><value>gluScript</value></set></property>
