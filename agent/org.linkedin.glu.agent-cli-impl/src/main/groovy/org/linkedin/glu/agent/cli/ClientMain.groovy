@@ -42,19 +42,19 @@ class ClientMain implements Startable
 
   public static final TagsSerializer TAGS_SERIALIZER = TagsSerializer.INSTANCE
 
-  private final def config
-  private final AgentFactory factory
+  protected def config
+  private AgentFactory factory
   private final StateMachine stateMachine =
     new StateMachineImpl(transitions: Agent.DEFAULT_TRANSITIONS)
 
-  ClientMain(def config)
+  ClientMain()
   {
-    this.config = config
-    factory = AgentFactoryImpl.create(config)
+    JulToSLF4jBridge.installBridge()
   }
 
   def withAgent(Closure closure)
   {
+
     factory.withRemoteAgent(new URI(Config.getRequiredString(config, 'url'))) { agent ->
       closure(agent)
     }
@@ -328,10 +328,32 @@ class ClientMain implements Startable
     println "${agent.getFullState(mountPoint: mountPoint)}"
   }
 
-  static void main(args)
+  protected def getConfig(cli, options)
   {
-    JulToSLF4jBridge.installBridge()
+    Properties properties = new Properties()
 
+    if(options.f)
+    {
+      new File(options.f).withInputStream {
+        properties.load(it)
+      }
+    }
+
+    cli.options.options.each { option ->
+      if(options.hasOption(option.longOpt))
+      {
+        properties[option.longOpt] = options[option.longOpt]
+      }
+    }
+
+    if(new URI(properties.url).scheme == 'http')
+      properties.sslEnabled = false
+
+    return properties
+  }
+
+  protected def init(args)
+  {
     def cli = new CliBuilder(usage: './bin/agent-cli.sh [-h] [-f <agentConfigFile>] [-s url] ' +
                                     '[-i scriptLocation] [-c classname] [-x action] [-u] [-a args] ' +
                                     '[-w state] [-t timeout] [-p parentMountPoint] [-m mountPoint]')
@@ -376,17 +398,24 @@ class ClientMain implements Startable
       cli.usage()
       return
     }
+    config = getConfig(cli, options)
+    factory = AgentFactoryImpl.create(config)
+    return options
+  }
 
-    def config = getConfig(cli, options)
+
+  static void main(args)
+  {
+    ClientMain clientMain = new ClientMain()
+    def options = clientMain.init(args)
 
     try
     {
-      new ClientMain(config).start()
+      clientMain.start()
     }
     catch (MissingConfigParameterException e)
     {
       println e
-      cli.usage()
     }
     catch(AgentException e)
     {
@@ -413,27 +442,4 @@ class ClientMain implements Startable
     return new GroovyShell().evaluate(args)
   }
 
-  private static def getConfig(cli, options)
-  {
-    Properties properties = new Properties()
-
-    if(options.f)
-    {
-      new File(options.f).withInputStream {
-        properties.load(it)
-      }
-    }
-
-    cli.options.options.each { option ->
-      if(options.hasOption(option.longOpt))
-      {
-        properties[option.longOpt] = options[option.longOpt]
-      }
-    }
-
-    if(new URI(properties.url).scheme == 'http')
-      properties.sslEnabled = false
-
-    return properties
-  }
 }
