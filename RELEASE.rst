@@ -1,6 +1,17 @@
 Latest changes
 ==============
 
+2.3.0 (2011/05/13)
+------------------
+* Implemented `glu-56 <https://github.com/linkedin/glu/issues/56>`_: `Finalize refactoring (#34)`
+
+  * fixed some issues with tagging
+  * fixed GString as a key in map issue
+  * made some classes more configurable
+  * when an entry had only 1 tag, it was being excluded
+  * console no longer generates a delta when tags are different!
+  * Refactor AgentCli to allow custom configuration
+
 2.2.3 (2011/05/05)
 ------------------
 * Fixed `glu-52 <https://github.com/linkedin/glu/issues/52>`_: `deadlock on agent shutdown`
