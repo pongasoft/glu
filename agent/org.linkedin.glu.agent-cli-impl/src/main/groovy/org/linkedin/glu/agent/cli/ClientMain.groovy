@@ -43,6 +43,7 @@ class ClientMain implements Startable
   public static final TagsSerializer TAGS_SERIALIZER = TagsSerializer.INSTANCE
 
   protected def config
+  protected CliBuilder cli
   private AgentFactory factory
   private final StateMachine stateMachine =
     new StateMachineImpl(transitions: Agent.DEFAULT_TRANSITIONS)
@@ -54,7 +55,6 @@ class ClientMain implements Startable
 
   def withAgent(Closure closure)
   {
-
     factory.withRemoteAgent(new URI(Config.getRequiredString(config, 'url'))) { agent ->
       closure(agent)
     }
@@ -328,35 +328,11 @@ class ClientMain implements Startable
     println "${agent.getFullState(mountPoint: mountPoint)}"
   }
 
-  protected def getConfig(cli, options)
-  {
-    Properties properties = new Properties()
-
-    if(options.f)
-    {
-      new File(options.f).withInputStream {
-        properties.load(it)
-      }
-    }
-
-    cli.options.options.each { option ->
-      if(options.hasOption(option.longOpt))
-      {
-        properties[option.longOpt] = options[option.longOpt]
-      }
-    }
-
-    if(new URI(properties.url).scheme == 'http')
-      properties.sslEnabled = false
-
-    return properties
-  }
-
   protected def init(args)
   {
-    def cli = new CliBuilder(usage: './bin/agent-cli.sh [-h] [-f <agentConfigFile>] [-s url] ' +
-                                    '[-i scriptLocation] [-c classname] [-x action] [-u] [-a args] ' +
-                                    '[-w state] [-t timeout] [-p parentMountPoint] [-m mountPoint]')
+    cli = new CliBuilder(usage: './bin/agent-cli.sh [-h] [-f <agentConfigFile>] [-s url] ' +
+                                '[-i scriptLocation] [-c classname] [-x action] [-u] [-a args] ' +
+                                '[-w state] [-t timeout] [-p parentMountPoint] [-m mountPoint]')
     cli._(longOpt: 'tags', 'list the agent tags', args: 0, required: false)
     cli._(longOpt: 'tag-add', 'add the given tags', argName: 'tag1;tag2...', args: 1, required: false)
     cli._(longOpt: 'tag-remove', 'remove the given tags', argName: 'tag1;tag2...', args: 1, required: false)
@@ -416,6 +392,7 @@ class ClientMain implements Startable
     catch (MissingConfigParameterException e)
     {
       println e
+      clientMain.cli.usage()
     }
     catch(AgentException e)
     {
@@ -442,4 +419,27 @@ class ClientMain implements Startable
     return new GroovyShell().evaluate(args)
   }
 
+  protected def getConfig(cli, options)
+  {
+    Properties properties = new Properties()
+
+    if(options.f)
+    {
+      new File(options.f).withInputStream {
+        properties.load(it)
+      }
+    }
+
+    cli.options.options.each { option ->
+      if(options.hasOption(option.longOpt))
+      {
+        properties[option.longOpt] = options[option.longOpt]
+      }
+    }
+
+    if(new URI(properties.url).scheme == 'http')
+      properties.sslEnabled = false
+
+    return properties
+  }
 }
