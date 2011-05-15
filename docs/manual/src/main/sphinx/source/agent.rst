@@ -192,6 +192,9 @@ Capabilities
 ^^^^^^^^^^^^
 One of the main design goals in building the agent was the ability to write simple glu scripts. This is achieved with the fact that the agent enhances the glu scripts with capabilities that make it easier to write them. Most of the capabilities are made available to the glu scripts by 'injecting' properties that the glu scripts can simply reference (under the hood it uses groovy MOP capabilities).
 
+.. tip:: 
+   Implicitely (at runtime), all glu scripts implement the `GluScript <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-impl/src/main/groovy/org/linkedin/glu/agent/impl/GluScript.groovy>`_ interface.
+
 ``log``
 """""""
 The ``log`` property allows you to log any information in the agent log file. It is an instance of ``org.slf4j.Logger``::

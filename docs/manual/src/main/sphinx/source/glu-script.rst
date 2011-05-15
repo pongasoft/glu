@@ -76,6 +76,14 @@ The minimum (usefull) state machine that you can define could look like::
 
 .. note:: If an action is empty you don't even have to define its equivalent action but you still need to call all prior actions to satisfy the state machine.
 
+Capabilities
+------------
+As described in the section :ref:`agent-capabitites`, a glu script can use all the capabilities provided by the agent.
+
+.. tip:: 
+   Implicitely (at runtime), all glu scripts implement the `GluScript <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-impl/src/main/groovy/org/linkedin/glu/agent/impl/GluScript.groovy>`_ interface.
+
+
 An example of glu script
 ------------------------
 
