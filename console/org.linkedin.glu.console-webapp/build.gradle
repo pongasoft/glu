@@ -130,7 +130,7 @@ def warFile = new File("${buildDir}/distributions/${project.name}-${project.vers
 
 task war(dependsOn: lib) << {
   ant.exec(dir: '.', executable: "grails") {
-    arg(line: "-Dgrails.project.war.file=${warFile} war")
+    arg(line: "-Dgrails.project.war.file=${warFile} -Dbuild.version=${project.version} war")
   }
 
   ant.war(destfile: warFile, update: true) {
