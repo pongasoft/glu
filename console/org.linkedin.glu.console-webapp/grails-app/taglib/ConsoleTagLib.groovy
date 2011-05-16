@@ -28,6 +28,7 @@ import org.linkedin.util.clock.Chronos
 import org.linkedin.util.io.PathUtils
 import org.linkedin.glu.orchestration.engine.tags.TagsService
 import org.linkedin.glu.orchestration.engine.fabric.FabricService
+import org.linkedin.groovy.util.lang.GroovyLangUtils
 
 /**
  * Tag library for the console.
@@ -628,59 +629,69 @@ public class ConsoleTagLib
   }
 
   def renderStepExecution = { args ->
-    def deployment = args.deployment
-    def step = args.step ?: deployment.planExecution.plan.step
-    def progress = args.progress
-    def dlClass = args.dlClass ?: step.type
-
-    // duration
-    def duration = cl.stepExecutionDuration(step: step, progress: progress)?.toString()
-
-    // status
-    def status = cl.stepExecutionStatus(step: step, progress: progress)?.toString()
-
-    out << "<dl class=\"${dlClass}\">"
-
-    out << "<dt class=\"${status}\">"
-
-    if(step.metadata.name)
+    try
     {
-      out << step.metadata.name.encodeAsHTML()
-    }
-    else
-    {
-      out << step.metadata.collect { k, v ->
-        switch(k)
-        {
-          case 'agent':
-            return g.link(action: 'view', controller: 'agents', id: v) { v }
+      def deployment = args.deployment
+      def step = args.step ?: deployment.planExecution.plan.step
+      def progress = args.progress
+      def dlClass = args.dlClass ?: step.type
 
-          case 'mountPoint':
-            return g.link(action: 'view', controller: 'agents', id: step.metadata.agent, fragment: v) { v.encodeAsHTML() }
+      // duration
+      def duration = cl.stepExecutionDuration(step: step, progress: progress)?.toString()
 
-          default:
-            return "${k.encodeAsHTML()}=${v.encodeAsHTML()}"
+      // status
+      def status = cl.stepExecutionStatus(step: step, progress: progress)?.toString()
+
+      out << "<dl class=\"${dlClass}\">"
+
+      out << "<dt class=\"${status}\">"
+
+      if(step.metadata.name)
+      {
+        out << step.metadata.name.encodeAsHTML()
+      }
+      else
+      {
+        out << step.metadata.collect { k, v ->
+          switch(k)
+          {
+            case 'agent':
+              return g.link(action: 'view', controller: 'agents', id: v) { v }
+
+            case 'mountPoint':
+              return g.link(action: 'view', controller: 'agents', id: step.metadata.agent, fragment: v) { v.encodeAsHTML() }
+
+            default:
+              return "${k.encodeAsHTML()}=${v.encodeAsHTML()}"
+          }
+        }.join(' - ')
+      }
+
+      out << " - ${duration}"
+
+      if(step instanceof CompositeStep)
+      {
+        step.steps.each { child ->
+          out << "<dd>" << cl.renderStepExecution(deployment: deployment, step: child, progress: progress) << "</dd>"
         }
-      }.join(' - ')
+      }
+      else
+      {
+        out << cl.stepExecutionActions(deployment: deployment, step: step, progress: progress)
+        out << cl.stepExecutionError(step: step, progress: progress)
+      }
+
+      out << "</dt>"
+
+      out << "</dl>"
     }
-
-    out << " - ${duration}"
-
-    if(step instanceof CompositeStep)
+    catch(Throwable th)
     {
-      step.steps.each { child ->
-        out << "<dd>" << cl.renderStepExecution(deployment: deployment, step: child, progress: progress) << "</dd>"
+      GroovyLangUtils.noException(args, null) {
+        log.warn("Unexpected exception in renderStepExecution [ignored]", th)
+        out << "<div class=\"FAILED\">Could not render step (check console log for errors)</div>"
       }
     }
-    else
-    {
-      out << cl.stepExecutionActions(deployment: deployment, step: step, progress: progress)
-      out << cl.stepExecutionError(step: step, progress: progress)
-    }
-
-    out << "</dt>"
-
-    out << "</dl>"
   }
 
   /**
