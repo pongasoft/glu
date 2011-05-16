@@ -37,6 +37,9 @@ class DeltaServiceImpl implements DeltaService
   @Initializable
   Set<String> excludedInVersionMismatch = null
 
+  @Initializable
+  boolean notRunningOverridesVersionMismatch = false
+
   def computeDelta(Fabric fabric, SystemModel expectedSystem)
   {
     if(expectedSystem && expectedSystem.fabric != fabric.name)
@@ -194,6 +197,17 @@ class DeltaServiceImpl implements DeltaService
       {
         cef.status = 'versionMismatch'
         cef.statusInfo = "${n}:${eef[n]} != ${n}:${cef[n]}".toString()
+        cef.state = 'ERROR'
+      }
+    }
+
+    // allow to override version mismatch in case not running
+    if(cef['metadata.currentState'] != 'running')
+    {
+      if(notRunningOverridesVersionMismatch)
+      {
+        cef.status = 'notRunning'
+        cef.remove('statusInfo')
         cef.state = 'ERROR'
       }
     }

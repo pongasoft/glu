@@ -18,7 +18,7 @@
 spec = [
     name: 'glu',
     group: 'org.linkedin',
-    version: '2.3.0',
+    version: '2.3.1',
 
     versions: [
       grails: '1.3.5',

@@ -117,6 +117,75 @@ class TestDeltaService extends GroovyTestCase
                            ],
                            doComputeDelta(current, expected))
 
+    // notRunning + versionMismatch => default is versionMismatch wins
+    current = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            initParameters: [wars: 'w1'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+        ]
+    ]
+    expected = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            initParameters: [wars: 'w2'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2']
+        ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.container': 'c1',
+                            'metadata.currentState': 'stopped',
+                            key: 'a1:/m1',
+                            agent: 'a1',
+                            mountPoint: '/m1',
+                            'metadata.product': 'p1',
+                            script: 's1',
+                            state: 'ERROR',
+                            status: 'versionMismatch',
+                            statusInfo: 'initParameters.wars:w2 != initParameters.wars:w1',
+                            'metadata.version': 'R2',
+                            'initParameters.wars': 'w2'
+                            ]
+                           ],
+                           doComputeDelta(current, expected))
+
+    // notRunning + versionMismatch => we force notRunning to win
+    deltaService.notRunningOverridesVersionMismatch = true
+    current = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            initParameters: [wars: 'w1'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+        ]
+    ]
+    expected = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            initParameters: [wars: 'w2'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2']
+        ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.container': 'c1',
+                            'metadata.currentState': 'stopped',
+                            key: 'a1:/m1',
+                            agent: 'a1',
+                            mountPoint: '/m1',
+                            'metadata.product': 'p1',
+                            script: 's1',
+                            state: 'ERROR',
+                            status: 'notRunning',
+                            'metadata.version': 'R2',
+                            'initParameters.wars': 'w2'
+                            ]
+                           ],
+                           doComputeDelta(current, expected))
+
+    // restoring defaults
+    deltaService.notRunningOverridesVersionMismatch = false
+
     // versionMismatch (wars)
     current = [
         [
