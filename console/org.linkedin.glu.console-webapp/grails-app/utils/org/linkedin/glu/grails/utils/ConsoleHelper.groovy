@@ -29,6 +29,9 @@ import org.linkedin.util.clock.Timespan
 import org.linkedin.util.io.PathUtils
 import org.linkedin.groovy.util.net.GroovyNetUtils
 import org.linkedin.util.io.resource.Resource
+import org.linkedin.util.codec.HexaCodec
+import org.linkedin.util.codec.OneWayMessageDigestCodec
+import org.linkedin.util.codec.OneWayCodec
 
 /**
  * @author ypujante@linkedin.com */
@@ -36,6 +39,9 @@ class ConsoleHelper
 {
   public static final String MODULE = ConsoleHelper.class.getName();
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
+
+  public static final OneWayCodec SHA1 =
+    OneWayMessageDigestCodec.createSHA1Instance('', HexaCodec.INSTANCE)
 
   // we use a codec because somehow the decoding of the cookies when json format is not working :(
   public final static Codec COOKIE_CODEC = new Base64Codec('console')
@@ -278,5 +284,19 @@ class ConsoleHelper
       return new File(uri.path)
     else
       return null
+  }
+
+  /**
+   * Computes the checksum of a string
+   *
+   * @param s <code>null</code> is ok
+   * @return (sha1 of the string as a hexadecimal string)
+   */
+  static String computeChecksum(String s)
+  {
+    if(s == null)
+      return null
+
+    CodecUtils.encodeString(SHA1, s)
   }
 }

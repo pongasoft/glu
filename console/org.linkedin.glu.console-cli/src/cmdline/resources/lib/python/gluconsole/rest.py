@@ -240,14 +240,14 @@ class Client:
       body = {
         'modelUrl': modelUrl
       }
-      response = self._doRequest("system/model", "POST", body)
+      response = self._doRequest("model/static", "POST", body)
       status = response.status_int
     else:
       with open(modelFile, 'r') as mf:
         headers = {
           'Content-Type': 'text/json'
         }
-        response = self._doRequest("system/model", "POST", mf, headers)
+        response = self._doRequest("model/static", "POST", mf, headers)
         status = response.status_int
 
     # XXX - Should exceptions be thrown here?
@@ -274,9 +274,9 @@ class Client:
     """
 
     if live:
-      uri = "system/live"
+      uri = "model/live"
     else:
-      uri = "system/model"
+      uri = "model/static"
 
     params = {}
 

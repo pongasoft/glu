@@ -21,7 +21,6 @@ import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.console.domain.DbSystemModel
-import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.orchestration.engine.system.SystemService
 
@@ -278,23 +277,5 @@ class SystemController extends ControllerBase
           values: system.metadata[params.id]
       ]
     }
-  }
-
-
-  /**
-   * Handle GET /system/live (live system as opposed to model)
-   */
-  def rest_get_live_system = {
-    def model = agentsService.getCurrentSystemModel(request.fabric)
-    model = model.filterBy(request.system.filters)
-
-    if(params.prettyPrint)
-      model = model.toString()
-    else
-      model = JSONSystemModelSerializer.INSTANCE.serialize(model)
-
-    response.setContentType('text/json')
-    render model
-
   }
 }

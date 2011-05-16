@@ -182,11 +182,21 @@ class UrlMappings
     name restExecution: "/rest/v1/$fabric/plan/$planId/execution/$id"(controller: 'plan') {
       action = [GET: 'rest_view_execution', HEAD: 'rest_execution_status']
     }
-    "/rest/v1/$fabric/system/model"(controller: 'model') {
-      action = [POST: 'rest_upload_model', GET: 'rest_get_current_model']
+    name restStaticModel: "/rest/v1/$fabric/model/static"(controller: 'model') {
+      action = [POST: 'rest_upload_model', GET: 'rest_get_static_model']
     }
-    "/rest/v1/$fabric/system/live"(controller: 'system') {
-      action = [GET: 'rest_get_live_system']
+    name restLiveModel: "/rest/v1/$fabric/model/live"(controller: 'model') {
+      action = [GET: 'rest_get_live_model']
+    }
+
+    /**
+     * DEPRECATED: kept for backward compatibility only
+     */
+    "/rest/v1/$fabric/system/model"(controller: 'model') {
+      action = [POST: 'rest_upload_model', GET: 'rest_get_static_model']
+    }
+    "/rest/v1/$fabric/system/live"(controller: 'model') {
+      action = [GET: 'rest_get_live_model']
     }
 
     "500"(view: '/error')

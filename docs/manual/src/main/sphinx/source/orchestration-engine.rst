@@ -420,7 +420,7 @@ Main URI: ``/console/rest/v1/<fabric>`` (all the URIs in the following tables st
 |``DELETE`` |``/plan/<planId>/execution/<executionId>`` |Aborts the execution|N/A                                                 |TBD                                                         |
 |           |                                           |                    |                                                    |                                                            |
 +-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``POST``   |``/system/model``                          |Loads the (desired) |Body can be of 2 types depending on the             |* ``201`` (``CREATED``) when loaded successfully            |
+|``POST``   |``/model/static``                          |Loads the (desired) |Body can be of 2 types depending on the             |* ``201`` (``CREATED``) when loaded successfully            |
 |           |                                           |model in the console|``Content-Type`` header:                            |                                                            |
 |           |                                           |                    |                                                    |* ``204`` (``NO_CONTENT``) if model was loaded successfully |
 |           |                                           |                    |``application/x-www-form-urlencoded`` then body     |  and is equal to the previous one                          |
@@ -432,14 +432,14 @@ Main URI: ``/console/rest/v1/<fabric>`` (all the URIs in the following tables st
 |           |                                           |                    |(`example <https://gist.github.com/755981>`_)       |  needs to be revisited)                                    |
 |           |                                           |                    |                                                    |                                                            |
 +-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``GET``    |``/system/model``                          |Retrieves the       |optional request parameters:                        |* ``200`` (``OK``) with a json representation of the model  |
+|``GET``    |``/model/static``                          |Retrieves the       |optional request parameters:                        |* ``200`` (``OK``) with a json representation of the model  |
 |           |                                           |current loaded model|                                                    |                                                            |
 |           |                                           |(aka 'desired'      |``prettyPrint=true`` for human readable output      |                                                            |
 |           |                                           |state)              |                                                    |                                                            |
 |           |                                           |                    |``systemFilter=...`` for filtering (see             |                                                            |
 |           |                                           |                    |:ref:`goe-filter-syntax` for the syntax)            |                                                            |
 +-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``GET``    |``/system/live``                           |Retrieves the       |optional request parameters:                        |* ``200`` (``OK``) with a json representation of the live   |
+|``GET``    |``/model/live``                            |Retrieves the       |optional request parameters:                        |* ``200`` (``OK``) with a json representation of the live   |
 |           |                                           |current live model  |                                                    |  model                                                     |
 |           |                                           |coming from         |``prettyPrint=true`` for human readable output      |                                                            |
 |           |                                           |ZooKeeper (aka      |                                                    |.. note:: the metadata contains information like            |

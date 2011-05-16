@@ -25,12 +25,16 @@ import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.console.provisioner.services.storage.SystemStorageException
+import org.linkedin.glu.grails.utils.ConsoleHelper
+import org.linkedin.glu.provisioner.core.model.SystemModel
+import org.linkedin.glu.orchestration.engine.agents.AgentsService
 
 /**
  * @author: ypujante@linkedin.com
  */
 public class ModelController extends ControllerBase
 {
+  AgentsService agentsService
   SystemService systemService
   ConsoleConfig consoleConfig
 
@@ -147,15 +151,52 @@ public class ModelController extends ControllerBase
     }
   }
 
-  def rest_get_current_model = {
+  /**
+   * Handle GET /model/static
+   */
+  def rest_get_static_model = {
+    renderModelWithETag(request.system)
+  }
 
-    def model
+  /**
+   * Handle GET /model/live
+   */
+  def rest_get_live_model = {
+    def model = agentsService.getCurrentSystemModel(request.fabric)
+    model = model.filterBy(request.system.filters)
+    renderModelWithETag(model)
+  }
+
+  /**
+   * Handle the rendering of the model taking into account etag
+   */
+  private void renderModelWithETag(SystemModel model)
+  {
+    // the etag is a combination of the model content + request uri (path + query string)
+    String etag = """
+${model.computeContentSha1()}
+${request['javax.servlet.forward.servlet_path']}
+${request['javax.servlet.forward.query_string']}
+"""
+    etag = ConsoleHelper.computeChecksum(etag)
+
+    // handling ETag
+    if(request.getHeader('If-None-Match') == etag)
+    {
+      response.setStatus(HttpServletResponse.SC_NOT_MODIFIED)
+      render ''
+      return
+    }
+
+    String modelString
+
     if(params.prettyPrint)
-      model = request.system.toString()
+      modelString = model.toString()
     else
-      model = JSONSystemModelSerializer.INSTANCE.serialize(request.system)
+      modelString = JSONSystemModelSerializer.INSTANCE.serialize(model)
 
+    response.setHeader('Etag', etag)
     response.setContentType('text/json')
-    render model
+    render modelString
   }
 }
