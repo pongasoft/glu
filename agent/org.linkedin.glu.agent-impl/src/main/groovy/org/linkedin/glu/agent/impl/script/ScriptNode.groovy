@@ -203,8 +203,7 @@ def class ScriptNode implements Shutdownable, Startable
   }
 
   /**
-   * Executes the call. Note that this method is a blocking call and will wait for the result
-   * of the call.
+   * Executes the call. Note that this method is *not* a blocking call
    *
    * @param args.call the call you want to execute
    * @param args.callArgs the arguments to provide the call

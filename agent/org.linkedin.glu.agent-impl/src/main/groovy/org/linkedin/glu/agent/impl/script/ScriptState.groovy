@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
  * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011 Andras Kovi
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -209,13 +210,15 @@ class ScriptState
      * @param property the property under evaluation
      * @return true if part of the permanent state, false otherwise
      */
-  private def isPartOfScriptPermanentState(MetaProperty property)
+  private boolean isPartOfScriptPermanentState(MetaProperty property)
   {
-      /*
-        Here the field must be tested for transient and static modifiers
-        as Groovy does not support the transient modifier for properties.
-       */
-      def field = script.metaClass.javaClass.getDeclaredField(property.name)
+    /*
+      Here the field must be tested for transient and static modifiers
+      as Groovy does not support the transient modifier for properties.
+     */
+    try
+    {
+      Field field = script.metaClass.javaClass.getDeclaredField(property.name)
       if (!Modifier.isStatic(field.modifiers) && !Modifier.isTransient(field.modifiers))
       {
         /*
@@ -225,21 +228,27 @@ class ScriptState
         def value = property.getProperty(script)
         if(value instanceof Serializable && !(value instanceof Closure))
         {
-            return true
+          return true
         }
       }
-      return false
+    }
+    catch(NoSuchFieldException e)
+    {
+      if(log.isDebugEnabled())
+        log.debug("no such field ${property.name} [ignored]")
+    }
+
+    return false
   }
 
   private def collectScriptPermanentState()
   {
     def state = [:]
 
-    script.metaClass.properties { property ->
+    script.metaClass.javaClass.declaredFields.each { Field field ->
+      MetaProperty property = script.metaClass.getMetaProperty(field.name)
       if(isPartOfScriptPermanentState(property))
-      {
-          state[property.name] = property.getProperty(script)
-      }
+        state[property.name] = property.getProperty(script)
     }
 
     return state

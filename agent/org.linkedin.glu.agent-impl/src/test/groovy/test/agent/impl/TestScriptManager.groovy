@@ -1,5 +1,7 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Andras Kovi
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -12,8 +14,6 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
- *
- * Portions Copyright (c) 2011 Andras Kovi
  */
 
 
@@ -281,17 +281,29 @@ def class TestScriptManager extends GroovyTestCase
       assertTrue node.is(sm.findScript(scriptMountPoint))
       assertTrue node.is(sm.findScript('/transient'))
 
-      node.install(normalValue: "normalv", nonSerializableValue: new Object(), transientValue: "transientv", booleanValue: false, intValue: 0, staticValue: "static info")
+      assertEquals(false, node.getFullState().scriptState.script.booleanField)
+      assertEquals(0, node.getFullState().scriptState.script.intField)
+
+      node.install(normalValue: "normalv",
+                   nonSerializableValue: new Object(),
+                   transientValue: "transientv",
+                   booleanValue: false,
+                   intValue: 0,
+                   staticValue: "static info")
 
       assertEquals([currentState: 'installed'], node.state)
 
-      assertNull("null value fields should not be included in the state", node.getFullState().scriptState.script.nullField)
+      assertFalse("null value fields should not be included in the state",
+                 node.getFullState().scriptState.script.containsKey("nullField"))
       assertNotNull(node.getFullState().scriptState.script.booleanField)
+      assertFalse(node.getFullState().scriptState.script.booleanField)
       assertNotNull(node.getFullState().scriptState.script.intField)
+      assertEquals(0, node.getFullState().scriptState.script.intField)
       assertEquals("normalv", node.getFullState().scriptState.script.normalField)
-      assertNull(node.getFullState().scriptState.script.staticField)
-      assertNull(node.getFullState().scriptState.script.nonSerializableField)
-      assertNull("transient modifier not handled properly",node.getFullState().scriptState.script.transientField)
+      assertFalse(node.getFullState().scriptState.script.containsKey("staticField"))
+      assertFalse(node.getFullState().scriptState.script.containsKey("nonSerializableField"))
+      assertFalse("transient modifier not handled properly",
+                 node.getFullState().scriptState.script.containsKey("transientField"))
  }
 
     /**
@@ -312,18 +324,22 @@ def class TestScriptManager extends GroovyTestCase
         assertEquals([currentState: StateMachine.NONE], node.state)
         assertTrue node.is(sm.findScript(scriptMountPoint))
         assertTrue node.is(sm.findScript('/transient2'))
+        assertEquals("initValue", node.getFullState().scriptState.script.keepOnChanging)
 
         node.install()
         assertEquals([currentState: 'installed'], node.state)
         assertNotNull(node.getFullState().scriptState.script.keepOnChanging)
+        assertEquals(3, node.getFullState().scriptState.script.keepOnChanging)
 
         node.configure()
         assertEquals([currentState: 'stopped'], node.state)
         assertNull(node.getFullState().scriptState.script.keepOnChanging)
+        assertFalse(node.getFullState().scriptState.script.containsKey("keepOnChanging"))
 
-        node.start()
+        node.executeAction(action: "start").get()
         assertEquals([currentState: 'running'], node.state)
         assertNotNull(node.getFullState().scriptState.script.keepOnChanging)
+        assertEquals(3, node.getFullState().scriptState.script.keepOnChanging)
    }
 
 
@@ -383,8 +399,8 @@ private def class TransientFieldTestScript
     }
 }
 
-class TransientFieldTestScript2 {
-  def Object keepOnChanging;
+private def class TransientFieldTestScript2 {
+  def Object keepOnChanging = "initValue";
 
   def install = {
     keepOnChanging = 3; // serializable... should be part of the state
