@@ -330,6 +330,39 @@ The previous system and ``header`` configuration produce the following output:
 
 .. tip:: Since every fabric has its own model, hence its own ``metadata`` section, this feature is a convenient way to display fabric specific information. In this example we can display which fabric represents the primary data center versus which one represents the secondary data center.
 
+
+.. _console-script-log-files:
+
+Log Files Display
+-----------------
+
+When looking at an agent (agents view page), for each entry, there may be a log section determined by the fields declared in the script:
+
+.. image:: /images/console-script-log-files.png
+   :align: center
+   :alt: Script log files
+
+In order to see an entry like this you can do the following in your script:
+
+* declare any field which ends in ``Log`` (ex: ``serverLog``)
+* declare a field called ``logsDir`` (pointing to a folder) which will display the ``more...`` link
+* declare a field called ``logs`` and of type ``Map`` where each entry will point to a log file
+
+Example of glu script::
+
+    class GluScriptWithLogs
+    {
+      def logsDir
+      def serverLog
+      def logs = [:]
+
+      def install = {
+        logsDir = shell.toResource("${mountPoint}/logs")
+        serverLog = logsDir."server.log" // using field with name ending in Log
+        logs.gc = logsDir."gc.log" // using logs map
+      }
+    }
+
 First bootstrap
 ---------------
 The very first time the console is started, it will create an admin user. Log in as this user::

@@ -858,12 +858,41 @@ public class ConsoleTagLib
     def agent = args.agent
     if(script)
     {
-      File gcLog = ConsoleHelper.toFileObject(script.gcLog)
-      File mainLog = ['containerLog', 'serverLog', 'applicationLog'].
-        collect { ConsoleHelper.toFileObject(script?.getAt(it))}.find { it }
+      Map<String, File> logs = [:]
+
+      script.each { k,v ->
+        if(k.endsWith("Log"))
+        {
+          logs[k - "Log"] = ConsoleHelper.toFileObject(v)
+        }
+      }
+
+      // if the script has a map called 'logs', then use it as well
+      if(script.logs instanceof Map)
+      {
+        script.logs.each { k, v -> logs[k] = ConsoleHelper.toFileObject(v) }
+      }
+
+      // determining mainLog
+      File mainLog =
+        ['container', 'server', 'application'].collect { logs[it] }.find { it }
+
+      if(mainLog == null && logs)
+      {
+        mainLog = logs.values().find { it }
+      }
+
+      // determining logsDir
       File logsDir = ConsoleHelper.toFileObject(script.logsDir) ?: mainLog?.parentFile
 
-      def logs = [main: mainLog, gc: gcLog, 'more...': logsDir]
+      logs = logs.sort()
+
+      if(logsDir)
+      {
+        // we make sure that 'more...' is the last entry!
+        logs = new LinkedHashMap(logs)
+        logs['more...'] = logsDir
+      }
 
       if(logs.any { k, v -> v})
       {

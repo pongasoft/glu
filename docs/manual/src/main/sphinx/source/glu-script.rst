@@ -83,6 +83,13 @@ As described in the section :ref:`agent-capabitites`, a glu script can use all t
 .. tip:: 
    Implicitely (at runtime), all glu scripts implement the `GluScript <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-impl/src/main/groovy/org/linkedin/glu/agent/impl/GluScript.groovy>`_ interface.
 
+Conventions
+-----------
+
+Logs
+^^^^
+In order to be able to see (in the console) log files produced by an application deployed by the glu script, you can follow the convention described in the :ref:`console-script-log-files` section.
+
 
 An example of glu script
 ------------------------
