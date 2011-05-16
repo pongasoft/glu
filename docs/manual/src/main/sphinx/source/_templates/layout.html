@@ -19,6 +19,7 @@
 {%- block extrahead %}
 {{ super() }}
 <link rel="stylesheet" href="{{ pathto('_static/glu.css', 1) }}" type="text/css" />
+<script type="text/javascript" src="http://widgets.twimg.com/j/2/widget.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -43,12 +44,47 @@
     <li><a href="{{ pathto('tutorial')}}">Tutorial</a>
     <li><a href="http://www.github.com/linkedin/glu">Source Code</a>
     <li><a href="http://glu.977617.n3.nabble.com/">Forum / Questions / Help</a>
+    <li><a href="http://twitter.com/glutweets">Twitter</a>
     <li><a href="https://github.com/linkedin/glu/issues">Issues / Tasks</a>
     <li><a href="{{ pathto('RELEASE')}}">Latest Changes</a>
   </ul>
 </div>
+  <div class="sidebar-entry">
+    <h3>{{ _('Twitter') }}</h3>
+    <script type="text/javascript">
+      new TWTR.Widget({
+                        version: 2,
+                        type: 'profile',
+                        rpp: 4,
+                        interval: 6000,
+                        width: 'auto',
+                        height: 300,
+                        theme: {
+                          shell: {
+                            background: '#dddddd',
+                            color: '#000000'
+                          },
+                          tweets: {
+                            background: '#ffffff',
+                            color: '#000000',
+                            links: '#ce5c00'
+                          }
+                        },
+                        features: {
+                          scrollbar: false,
+                          loop: false,
+                          live: false,
+                          hashtags: true,
+                          timestamp: true,
+                          avatars: true,
+                          behavior: 'all'
+                        }
+                      }).render().setUser('glutweets').start();
+    </script>
+  </div>
 </div>
 <div class="clearer"></div>
 </div>
+
 </div>
 {% endblock %}
