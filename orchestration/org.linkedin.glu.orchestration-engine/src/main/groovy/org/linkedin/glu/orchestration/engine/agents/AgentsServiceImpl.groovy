@@ -40,12 +40,17 @@ import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.provisioner.impl.agent.DefaultDescriptionProvider
 import org.linkedin.glu.provisioner.core.action.IDescriptionProvider
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * @author ypujante
  */
 class AgentsServiceImpl implements AgentsService
 {
+  public static final String MODULE = AgentsServiceImpl.class.getName ();
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
+
   private final StateMachine stateMachine =
     new StateMachineImpl(transitions: Agent.DEFAULT_TRANSITIONS)
 
