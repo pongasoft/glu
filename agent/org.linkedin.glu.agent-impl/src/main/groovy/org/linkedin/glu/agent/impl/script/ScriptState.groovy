@@ -24,6 +24,7 @@ import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.groovy.util.state.StateChangeListener
 import org.linkedin.util.lang.LangUtils
 import java.lang.reflect.Field
+import org.linkedin.groovy.util.lang.GroovyLangUtils
 
 /**
  * Contains the state of the script (state machine + script itself)
@@ -226,7 +227,7 @@ class ScriptState
           accessed in this way in the Java world.
          */
         def value = property.getProperty(script)
-        if(value instanceof Serializable && !(value instanceof Closure))
+        if(!(value instanceof Closure) && isSerializable(value))
         {
           return true
         }
@@ -238,6 +239,25 @@ class ScriptState
         log.debug("no such field ${property.name} [ignored]")
     }
 
+    return false
+  }
+
+  /**
+   * The fact that an object is declared serializable does not make it serializable (example of
+   * a collection containing non serializable objects).
+   *
+   * @param value
+   * @return <code>true</code> if the object is serializable
+   */
+  private boolean isSerializable(Object value)
+  {
+    if(value instanceof Serializable)
+    {
+      return GroovyLangUtils.noException(value, false) {
+        LangUtils.deepClone((Serializable) value)
+        return true
+      } as boolean
+    }
     return false
   }
 

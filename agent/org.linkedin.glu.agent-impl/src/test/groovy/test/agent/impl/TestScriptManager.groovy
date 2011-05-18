@@ -54,29 +54,29 @@ def class TestScriptManager extends GroovyTestCase
     RAMDirectory ramDirectory = new RAMDirectory()
     RAMResourceProvider rp = new RAMResourceProvider(ramDirectory)
     fileSystem = [
-            mkdirs: { dir ->
-              ram << dir
-              ramDirectory.mkdirhier(dir.toString())
-              return rp.createResource(dir.toString())
-            },
-            rmdirs: { dir ->
-              ram.remove(dir)
-              ramDirectory.rm(dir.toString())
-            },
+      mkdirs: { dir ->
+        ram << dir
+        ramDirectory.mkdirhier(dir.toString())
+        return rp.createResource(dir.toString())
+      },
+      rmdirs: { dir ->
+        ram.remove(dir)
+        ramDirectory.rm(dir.toString())
+      },
 
-            getRoot: { rp.createResource('/') },
+      getRoot: { rp.createResource('/') },
 
-            getTmpRoot: { rp.createResource('/tmp') },
+      getTmpRoot: { rp.createResource('/tmp') },
 
-            newFileSystem: { r,t -> fileSystem }
+      newFileSystem: { r, t -> fileSystem }
     ] as FileSystem
 
     shell = new ShellImpl(fileSystem: fileSystem)
 
     def agentContext = [
-        getShellForScripts: {shell},
-        getMop: {new MOPImpl()},
-        getClock: { SystemClock.instance() }
+      getShellForScripts: {shell},
+      getMop: {new MOPImpl()},
+      getClock: { SystemClock.instance() }
     ] as AgentContext
 
     sm = new ScriptManagerImpl(agentContext: agentContext)
@@ -211,7 +211,6 @@ def class TestScriptManager extends GroovyTestCase
                                     expectedMountPoint: parentMountPoint,
                                     expectedParentRootPath: MountPoint.ROOT))
 
-
     // we now create /a/b/c with a parent of /parent
     def scriptMountPoint = MountPoint.fromPath('/a/b/c')
     sm.installScript(mountPoint: scriptMountPoint,
@@ -240,7 +239,7 @@ def class TestScriptManager extends GroovyTestCase
                  node.install(value: 1,
                               expectedMountPoint: scriptMountPoint,
                               expectedParentRootPath: MountPoint.fromPath('/parent')))
-    
+
     shouldFail(ScriptIllegalStateException) {
       sm.uninstallScript(scriptMountPoint, false)
     }
@@ -268,79 +267,82 @@ def class TestScriptManager extends GroovyTestCase
    */
   void testTransientScript()
   {
-      def rootMountPoint = MountPoint.fromPath('/')
-      assertEquals(rootMountPoint, sm.rootScript.rootPath)
-      assertEquals(new HashSet([rootMountPoint]), ram)
+    def rootMountPoint = MountPoint.fromPath('/')
+    assertEquals(rootMountPoint, sm.rootScript.rootPath)
+    assertEquals(new HashSet([rootMountPoint]), ram)
 
-      def scriptMountPoint = MountPoint.fromPath('/transient')
-      sm.installScript(mountPoint: scriptMountPoint,
-                       initParameters: [],
-                       scriptFactory: new FromClassNameScriptFactory(TransientFieldTestScript))
-      def node = sm.findScript(scriptMountPoint)
-      assertEquals([currentState: StateMachine.NONE], node.state)
-      assertTrue node.is(sm.findScript(scriptMountPoint))
-      assertTrue node.is(sm.findScript('/transient'))
+    def scriptMountPoint = MountPoint.fromPath('/transient')
+    sm.installScript(mountPoint: scriptMountPoint,
+                     initParameters: [],
+                     scriptFactory: new FromClassNameScriptFactory(TransientFieldTestScript))
+    def node = sm.findScript(scriptMountPoint)
+    assertEquals([currentState: StateMachine.NONE], node.state)
+    assertTrue node.is(sm.findScript(scriptMountPoint))
+    assertTrue node.is(sm.findScript('/transient'))
 
-      assertEquals(false, node.getFullState().scriptState.script.booleanField)
-      assertEquals(0, node.getFullState().scriptState.script.intField)
+    assertEquals(false, node.getFullState().scriptState.script.booleanField)
+    assertEquals(0, node.getFullState().scriptState.script.intField)
 
-      node.install(normalValue: "normalv",
-                   nonSerializableValue: new Object(),
-                   transientValue: "transientv",
-                   booleanValue: false,
-                   intValue: 0,
-                   staticValue: "static info")
+    node.install(normalValue: "normalv",
+                 nonSerializableValue: new Object(),
+                 serializableWithNonSerializableContent: [new Object()],
+                 transientValue: "transientv",
+                 booleanValue: false,
+                 intValue: 0,
+                 staticValue: "static info")
 
-      assertEquals([currentState: 'installed'], node.state)
+    assertEquals([currentState: 'installed'], node.state)
 
-      assertFalse("null value fields should not be included in the state",
-                 node.getFullState().scriptState.script.containsKey("nullField"))
-      assertNotNull(node.getFullState().scriptState.script.booleanField)
-      assertFalse(node.getFullState().scriptState.script.booleanField)
-      assertNotNull(node.getFullState().scriptState.script.intField)
-      assertEquals(0, node.getFullState().scriptState.script.intField)
-      assertEquals("normalv", node.getFullState().scriptState.script.normalField)
-      assertFalse(node.getFullState().scriptState.script.containsKey("staticField"))
-      assertFalse(node.getFullState().scriptState.script.containsKey("nonSerializableField"))
-      assertFalse("transient modifier not handled properly",
-                 node.getFullState().scriptState.script.containsKey("transientField"))
- }
+    assertFalse("null value fields should not be included in the state",
+                node.getFullState().scriptState.script.containsKey("nullField"))
+    assertNotNull(node.getFullState().scriptState.script.booleanField)
+    assertFalse(node.getFullState().scriptState.script.booleanField)
+    assertNotNull(node.getFullState().scriptState.script.intField)
+    assertEquals(0, node.getFullState().scriptState.script.intField)
+    assertEquals("normalv", node.getFullState().scriptState.script.normalField)
+    assertFalse(node.getFullState().scriptState.script.containsKey("staticField"))
+    assertFalse(node.getFullState().scriptState.script.containsKey("nonSerializableField"))
+    assertFalse("serializable with non serializable content",
+                node.getFullState().scriptState.script.containsKey("serializableWithNonSerializableContent"))
+    assertFalse("transient modifier not handled properly",
+                node.getFullState().scriptState.script.containsKey("transientField"))
+  }
 
-    /**
-     * Test support of transient modifier for script fields with
-     * alternating (serializable/non-serializable) content
-     */
-    void testTransientScript2()
-    {
-        def rootMountPoint = MountPoint.fromPath('/')
-        assertEquals(rootMountPoint, sm.rootScript.rootPath)
-        assertEquals(new HashSet([rootMountPoint]), ram)
+  /**
+   * Test support of transient modifier for script fields with
+   * alternating (serializable/non-serializable) content
+   */
+  void testTransientScript2()
+  {
+    def rootMountPoint = MountPoint.fromPath('/')
+    assertEquals(rootMountPoint, sm.rootScript.rootPath)
+    assertEquals(new HashSet([rootMountPoint]), ram)
 
-        def scriptMountPoint = MountPoint.fromPath('/transient2')
-        sm.installScript(mountPoint: scriptMountPoint,
-                         initParameters: [],
-                         scriptFactory: new FromClassNameScriptFactory(TransientFieldTestScript2))
-        def node = sm.findScript(scriptMountPoint)
-        assertEquals([currentState: StateMachine.NONE], node.state)
-        assertTrue node.is(sm.findScript(scriptMountPoint))
-        assertTrue node.is(sm.findScript('/transient2'))
-        assertEquals("initValue", node.getFullState().scriptState.script.keepOnChanging)
+    def scriptMountPoint = MountPoint.fromPath('/transient2')
+    sm.installScript(mountPoint: scriptMountPoint,
+                     initParameters: [],
+                     scriptFactory: new FromClassNameScriptFactory(TransientFieldTestScript2))
+    def node = sm.findScript(scriptMountPoint)
+    assertEquals([currentState: StateMachine.NONE], node.state)
+    assertTrue node.is(sm.findScript(scriptMountPoint))
+    assertTrue node.is(sm.findScript('/transient2'))
+    assertEquals("initValue", node.getFullState().scriptState.script.keepOnChanging)
 
-        node.install()
-        assertEquals([currentState: 'installed'], node.state)
-        assertNotNull(node.getFullState().scriptState.script.keepOnChanging)
-        assertEquals(3, node.getFullState().scriptState.script.keepOnChanging)
+    node.install()
+    assertEquals([currentState: 'installed'], node.state)
+    assertNotNull(node.getFullState().scriptState.script.keepOnChanging)
+    assertEquals(3, node.getFullState().scriptState.script.keepOnChanging)
 
-        node.configure()
-        assertEquals([currentState: 'stopped'], node.state)
-        assertNull(node.getFullState().scriptState.script.keepOnChanging)
-        assertFalse(node.getFullState().scriptState.script.containsKey("keepOnChanging"))
+    node.configure()
+    assertEquals([currentState: 'stopped'], node.state)
+    assertNull(node.getFullState().scriptState.script.keepOnChanging)
+    assertFalse(node.getFullState().scriptState.script.containsKey("keepOnChanging"))
 
-        node.executeAction(action: "start").get()
-        assertEquals([currentState: 'running'], node.state)
-        assertNotNull(node.getFullState().scriptState.script.keepOnChanging)
-        assertEquals(3, node.getFullState().scriptState.script.keepOnChanging)
-   }
+    node.executeAction(action: "start").get()
+    assertEquals([currentState: 'running'], node.state)
+    assertNotNull(node.getFullState().scriptState.script.keepOnChanging)
+    assertEquals(3, node.getFullState().scriptState.script.keepOnChanging)
+  }
 
 
 }
@@ -358,7 +360,7 @@ private def class MyScriptTestScriptManager
   }
 
   def configure = { args ->
-    return "${parent.closure(p1: args.p1, p2:args.p2)}".toString()
+    return "${parent.closure(p1: args.p1, p2: args.p2)}".toString()
   }
 
   def createChild = { args ->
@@ -378,28 +380,31 @@ private def class MyScriptTestScriptManager
  */
 private def class TransientFieldTestScript
 {
-    def normalField
-    def nullField
-    def nonSerializableField
-    def transient transientField
-    def boolean booleanField
-    def int intField
-    static staticField
+  def normalField
+  def nullField
+  def nonSerializableField
+  def serializableWithNonSerializableContent
+  def transient transientField
+  def boolean booleanField
+  def int intField
+  static staticField
 
-    def install = { args ->
-        normalField = args.normalValue
-        nullField = null
-        nonSerializableField = args.nonSerializableValue
-        transientField = args.transientValue
+  def install = { args ->
+    normalField = args.normalValue
+    nullField = null
+    nonSerializableField = args.nonSerializableValue
+    serializableWithNonSerializableContent = args.serializableWithNonSerializableContent
+    transientField = args.transientValue
 
-        booleanField = args.booleanValue
-        intField = args.intValue
+    booleanField = args.booleanValue
+    intField = args.intValue
 
-        staticField = args.staticValue
-    }
+    staticField = args.staticValue
+  }
 }
 
-private def class TransientFieldTestScript2 {
+private def class TransientFieldTestScript2
+{
   def Object keepOnChanging = "initValue";
 
   def install = {
