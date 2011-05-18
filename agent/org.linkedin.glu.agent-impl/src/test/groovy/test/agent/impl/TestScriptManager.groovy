@@ -150,6 +150,32 @@ def class TestScriptManager extends GroovyTestCase
   }
 
   /**
+   * When state listener throws an exception it does not have any effect
+   */
+  public void testStateChangeListenerThrowsException()
+  {
+    def rootMountPoint = MountPoint.fromPath('/')
+
+    def scriptMountPoint = MountPoint.fromPath('/s')
+    def node = sm.installScript(mountPoint: scriptMountPoint,
+                                initParameters: [p1: 'v1'],
+                                scriptFactory: new FromClassNameScriptFactory(MyScriptTestScriptManager))
+    assertEquals([currentState: StateMachine.NONE], node.state)
+
+    node.scriptState.setStateChangeListener { oldState, newState ->
+      throw new Exception("mine")
+    }
+
+
+    assertEquals([install: '1/v1'],
+                 node.install(value: 1,
+                              expectedMountPoint: scriptMountPoint,
+                              expectedParentRootPath: rootMountPoint))
+
+    assertEquals([currentState: 'installed'], node.state)
+  }
+
+  /**
    * Test error scnearios
    */
   void testErrors()

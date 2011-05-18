@@ -145,14 +145,11 @@ class ScriptState
         stateChangeListener = { oldState, newState ->
           if(log.isDebugEnabled())
             log.debug("stateChanged: ${oldState} => ${newState}")
-          try
-          {
+
+          GroovyLangUtils.noException {
             listener.onStateChange(oldState, newState)
           }
-          catch(Throwable th)
-          {
-            log.warn("Unexpected exception in listener (ignored)", th)
-          }
+
         } as StateChangeListener
         stateChangeListener.onStateChange(null, cloneState(internalFullState))
       }
