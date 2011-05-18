@@ -224,13 +224,11 @@ To encrypt the passwords you use a little utility bundled with glu::
 
 To generate the checksum you use the same utility but you provide the file you want to compute the checksum for as an argument::
 
-  ./agent-cli/bin/password.sh $PWD/agent.keystore
+  ./agent-cli/bin/password.sh agent.keystore
 
   [SHA1 password:] gluos1way1
   [Encrypting key:] gluos2way
   zGt96nK2xNepHqx0OtefQf6m-3K
-
-.. note:: there is a `bug <https://github.com/linkedin/glu/issues/45>`_ at this time that requires to provide the absolute path 
 
 .. note:: the 2 values ``gluos1way1`` and ``gluos2way`` are defined in the code and the only way to change them at this point in time is to follow the steps about overriding the ``AgentMain`` class
 

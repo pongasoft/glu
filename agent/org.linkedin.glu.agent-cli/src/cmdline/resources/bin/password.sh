@@ -20,9 +20,7 @@
 CURRDIR=`pwd`
 BASEDIR=`cd $(dirname $0)/.. ; pwd`
 
-cd $BASEDIR
-
-LIB_DIR=lib
+LIB_DIR=$BASEDIR/lib
 
 for file in `ls -1 $LIB_DIR/*.jar `; do
   if [ -z "$JVM_CLASSPATH" ]; then
