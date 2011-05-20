@@ -288,6 +288,55 @@ An instance of ``org.linkedin.glu.agent.api.Timers`` (`Timers api <https://githu
           15s // 15 seconds
           1m10s // 1 minute 10 seconds
 
+.. _agent-integration-zookeeper:
+
+Integration with ZooKeeper
+""""""""""""""""""""""""""
+The agent will automatically *export* to ZooKeeper, any field declared in a glu script. Those fields will then be available from the console or the REST api. You can see it in action in the following screenshot (in the ``scriptState/script`` section):
+
+.. image:: /images/tutorial/tutorial-view-agent-3-600.png
+   :align: center
+   :alt: Entry details for ``/sample/i001``
+
+To produce this output, the glu script is defined this way::
+
+  class JettyGluScript
+  {
+    // the following fields represent the state of the script and will be exported to ZooKeeper
+    // automatically thus will be available in the console or any other program 'listening' to
+    // ZooKeeper
+
+    def version = '2.2.0'
+    def serverRoot
+    def serverCmd
+    def logsDir
+    def serverLog
+    def gcLog
+    def pid
+    def port
+    def webapps
+    ...
+
+In order for a field to be declared *exportable* it must follow the following rules:
+
+* it must be a ``Serializable`` field (so any primitive or collection / map will work)
+* it must be representable as a JSON object
+
+  .. note::
+     Not all java ``Serializable`` objects can be represented as a JSON object!
+
+* it must **not** be declared ``transient``
+
+.. tip:: 
+   If you do not want to export your field, simply mark it ``transient``::
+
+     class MyScript {
+       transient def nonExported // this field won't be exported
+     }
+
+.. note::
+   If you shutdown and restart the agent, the fields in your script will be restored to their last known value before shutdown if and only if the field was exportable, or in other words, if you declare your field ``transient`` its value won't be preserved accross restart!
+
 OS level functionalities
 ^^^^^^^^^^^^^^^^^^^^^^^^
 The agent also offers some OS level functionalities
