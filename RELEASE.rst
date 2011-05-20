@@ -1,6 +1,15 @@
 Latest changes
 ==============
 
+2.4.0 (2011/05/20)
+------------------
+* Added instrumentation for `glu-18 <https://github.com/linkedin/glu/issues/18>`_: `Grails Runtime Exception (500) when viewing a deployment status`
+* Implemented `glu-42 <https://github.com/linkedin/glu/issues/42>`_: `Support 'transient' declaration in glu script` (thanks to Andras!)
+* Implemented `glu-37 <https://github.com/linkedin/glu/issues/37>`_: `Console should support ETags`
+* Fixed `glu-43 <https://github.com/linkedin/glu/issues/43>`_: `IllegalMonitorException thrown by glu script`
+* Fixed `glu-45 <https://github.com/linkedin/glu/issues/45>`_: `password.sh requires absolute path`
+* Misc.: better handling of logs in the console, improved documentation
+
 2.3.0 (2011/05/13)
 ------------------
 * Implemented `glu-56 <https://github.com/linkedin/glu/issues/56>`_: `Finalize refactoring (#34)`
