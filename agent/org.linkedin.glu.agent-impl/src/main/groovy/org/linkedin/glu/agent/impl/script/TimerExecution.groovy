@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,6 +18,7 @@
 package org.linkedin.glu.agent.impl.script
 
 import org.linkedin.util.clock.Timespan
+import org.linkedin.groovy.util.lang.GroovyLangUtils
 
 /**
  * @author ypujante@linkedin.com */
@@ -29,7 +31,9 @@ class TimerExecution extends FutureExecutionImpl
   def execute()
   {
     def closure = script."${timer}"
-    closure()
+    GroovyLangUtils.noExceptionWithMessage("TimerExecution(${timer}): [${source.name}]") {
+      closure()
+    }
   }
 
   def getScript()

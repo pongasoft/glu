@@ -381,7 +381,8 @@ def class TestAgentImpl extends GroovyTestCase
     advanceClock('1s', timerNode)
 
     // should fire the timer
-    GLOBAL_TC.unblock('timer1')
+    GLOBAL_TC.unblock('timer1.start')
+    GLOBAL_TC.unblock('timer1.end')
 
     assertEquals([currentState: 'installed'], agent.getState(mountPoint: timerMountPoint))
 
@@ -389,10 +390,12 @@ def class TestAgentImpl extends GroovyTestCase
     advanceClock('1s', timerNode)
 
     // should fire the timer and force the state machine in a new state
-    GLOBAL_TC.unblock('timer1', [currentState: 'stopped', error: null])
+    GLOBAL_TC.unblock('timer1.start', [currentState: 'stopped', error: null])
+    GLOBAL_TC.unblock('timer1.end')
 
     // the timer is running in a separate thread.. so the condition will happen asynchronously
     GroovyConcurrentUtils.waitForCondition(clock, '5s', 10) {
+      clock.addDuration(Timespan.parse('10'))
       [currentState: 'stopped'] == agent.getState(mountPoint: timerMountPoint)
     }
 
@@ -524,7 +527,8 @@ def class TestAgentImpl extends GroovyTestCase
     advanceClock('1s', timerNode)
 
     // should fire the timer
-    GLOBAL_TC.unblock('timer1', [currentState: 'installed', error: null])
+    GLOBAL_TC.unblock('timer1.start', [currentState: 'installed', error: null])
+    GLOBAL_TC.unblock('timer1.end')
 
     // the timer is running in a separate thread.. so the condition will happen asynchronously
     GroovyConcurrentUtils.waitForCondition(clock, '5s', 10) {
@@ -535,16 +539,18 @@ def class TestAgentImpl extends GroovyTestCase
     advanceClock('1s', timerNode)
 
     // should fire the timer (which will raise an exception)
-    GLOBAL_TC.unblock('timer1', [currentState: 'invalid', error: null])
+    GLOBAL_TC.unblock('timer1.start', [currentState: 'invalid', error: null])
+    GLOBAL_TC.unblock('timer1.end')
 
     // we advance the clock by 1s: the timer should fire
     advanceClock('1s', timerNode)
 
     // make sure that exception did not cause the timer to not fire anymore and did not change the
     // state
-    GLOBAL_TC.waitForBlock('timer1')
+    GLOBAL_TC.waitForBlock('timer1.start')
     assertEquals([currentState: 'installed'], agent.getState(mountPoint: timerMountPoint))
-    GLOBAL_TC.unblock('timer1', [currentState: 'running', error: null])
+    GLOBAL_TC.unblock('timer1.start', [currentState: 'running', error: null])
+    GLOBAL_TC.unblock('timer1.end')
 
     // the timer is running in a separate thread.. so the condition will happen asynchronously
     GroovyConcurrentUtils.waitForCondition(clock, '5s', 10) {
@@ -634,6 +640,57 @@ def class TestAgentImpl extends GroovyTestCase
 
     // make sure that the agent shutdown properly
     tc.unblock('shutdownComplete')
+  }
+
+  public void testStateManager()
+  {
+    // we set a timer and we make sure it gets executed
+    def timerMountPoint = MountPoint.fromPath('/t')
+    agent.installScript(mountPoint: timerMountPoint,
+                        initParameters: [p1: 'v1'],
+                        scriptFactory: new FromClassNameScriptFactory(MyScriptTestTimer))
+    def id = agent.executeAction(mountPoint: timerMountPoint,
+                                 action: 'install',
+                                 actionArgs: [repeatFrequency: '1s'])
+    assertEquals('v1', agent.waitForAction(mountPoint: timerMountPoint, actionId: id))
+
+    def timerNode = agent.executeCall(mountPoint: timerMountPoint, call: 'getScriptNode')
+
+    // we advance the clock by 1s: the timer should fire
+    advanceClock('1s', timerNode)
+
+    // should fire the timer
+    GLOBAL_TC.unblock('timer1.start')
+    GLOBAL_TC.unblock('timer1.end')
+
+    assertEquals([currentState: 'installed'], agent.getState(mountPoint: timerMountPoint))
+
+    // we advance the clock by 1s: the timer should fire
+    advanceClock('1s', timerNode)
+
+    // should fire the timer and force the state machine in a new state
+    GLOBAL_TC.unblock('timer1.start', [currentState: 'stopped', error: 'this is the error'])
+
+    // state should now be changed
+    GLOBAL_TC.waitForBlock('timer1.end')
+
+    assertEquals("state machine in error: [this is the error]",
+                 shouldFail(IllegalStateException) { agent.waitForState(mountPoint: timerMountPoint,
+                                                                        state: 'stopped',
+                                                                        timeout: '1s') })
+
+    assertEquals([currentState: 'stopped', error: 'this is the error'],
+                 agent.getState(mountPoint: timerMountPoint))
+
+    GLOBAL_TC.unblock('timer1.end')
+
+    agent.clearError(mountPoint: timerMountPoint)
+    
+    agent.executeActionAndWait(mountPoint: timerMountPoint,
+                               action: 'unconfigure')
+
+    agent.executeActionAndWait(mountPoint: timerMountPoint,
+                               action: 'uninstall')
   }
 
   // we advance the clock and wake up the execution thread to make sure it processes the event
@@ -766,11 +823,17 @@ private def class MyScriptTestInterrupt
 private def class MyScriptTestTimer
 {
   def timer1 = {
-    def args = TestAgentImpl.GLOBAL_TC.block('timer1')
-
-    if(args)
+    def args = TestAgentImpl.GLOBAL_TC.block('timer1.start')
+    try
     {
-      stateManager.forceChangeState(args.currentState, args.error)
+      if(args)
+      {
+        stateManager.forceChangeState(args.currentState, args.error)
+      }
+    }
+    finally
+    {
+      TestAgentImpl.GLOBAL_TC.block('timer1.end')
     }
   }
 
