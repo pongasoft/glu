@@ -1,6 +1,11 @@
 Latest changes
 ==============
 
+2.4.1 (2011/05/24)
+------------------
+* Fixed `glu-61 <https://github.com/linkedin/glu/issues/61>`_: `ClassCastException when error is a String`
+* Fixed `glu-62 <https://github.com/linkedin/glu/issues/62>`_: `"View Full Stack Trace" fails if agent disappears`
+
 2.4.0 (2011/05/20)
 ------------------
 * Added instrumentation for `glu-18 <https://github.com/linkedin/glu/issues/18>`_: `Grails Runtime Exception (500) when viewing a deployment status`
