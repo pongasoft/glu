@@ -485,7 +485,12 @@ class AgentsServiceImpl implements AgentsService
 
   protected def withRemoteAgent(Fabric fabric, String agentName, Closure closure)
   {
-    agentFactory.withRemoteAgent(getAgentInfo(fabric, agentName).getURI()) { Agent agent ->
+    AgentInfo info = getAgentInfo(fabric, agentName)
+
+    if(!info)
+      throw new NoSuchAgentException(agentName)
+    
+    agentFactory.withRemoteAgent(info.getURI()) { Agent agent ->
       closure(agent)
     }
   }

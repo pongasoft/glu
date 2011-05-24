@@ -24,6 +24,7 @@ import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import java.security.AccessControlException
+import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException
 
 /**
  * @author ypujante@linkedin.com
@@ -192,62 +193,80 @@ class AgentsController extends ControllerBase
    * List all processes running on the agent 
    */
   def ps = {
-    return [ps: agentsService.ps(fabric: request.fabric, id: params.id)]
+    handleNoAgent {
+      return [ps: agentsService.ps(fabric: request.fabric, id: params.id)]
+    }
   }
 
   /**
    * Send a signal to a process
    */
   def kill = {
-    agentsService.kill(fabric: request.fabric, id: params.id, pid: params.pid, signal: params.signal)
-
-    redirect(action: 'ps', id: params.id)
+    handleNoAgent {
+      agentsService.kill(fabric: request.fabric, id: params.id, pid: params.pid, signal: params.signal)
+      redirect(action: 'ps', id: params.id)
+    }
   }
 
   /**
    * Runs a sync command on the agent
    */
   def sync = {
-    agentsService.sync(fabric: request.fabric, id: params.id)
-    redirect(action: 'view', id: params.id)
+    handleNoAgent {
+      agentsService.sync(fabric: request.fabric, id: params.id)
+      redirect(action: 'view', id: params.id)
+    }
   }
 
   /**
    * clear an error in a script
    */
   def clearError = {
-    agentsService.clearError(fabric: request.fabric, *:params)
-    redirect(action: 'view', id: params.id)
+    handleNoAgent {
+      agentsService.clearError(fabric: request.fabric, *:params)
+      redirect(action: 'view', id: params.id)
+    }
   }
 
   /**
    * uninstall the script
    */
   def uninstallScript = {
-    agentsService.uninstallScript(fabric: request.fabric, *:params)
-    redirect(action: 'view', id: params.id)
+    handleNoAgent {
+      agentsService.uninstallScript(fabric: request.fabric, *:params)
+      redirect(action: 'view', id: params.id)
+    }
   }
 
   /**
    * force uninstall the script
    */
   def forceUninstallScript = {
-    agentsService.forceUninstallScript(fabric: request.fabric, *:params)
-    redirect(action: 'view', id: params.id)
+    handleNoAgent {
+      agentsService.forceUninstallScript(fabric: request.fabric, *:params)
+      redirect(action: 'view', id: params.id)
+    }
   }
 
   /**
    * Renders the full stack trace
    */
   def fullStackTrace = {
-    def state = agentsService.getFullState(fabric: request.fabric, *:params)
-    if(state?.scriptState?.stateMachine?.error)
+    try
     {
-      render(template: 'fullStackTrace', model: [exception: state.scriptState.stateMachine.error])
+      def state = agentsService.getFullState(fabric: request.fabric, *:params)
+      if(state?.scriptState?.stateMachine?.error)
+      {
+        render(template: 'fullStackTrace', model: [exception: state.scriptState.stateMachine.error])
+      }
+      else
+      {
+        render ''
+      }
     }
-    else
+    catch(NoSuchAgentException e)
     {
-      render ''
+      render "missing agent [${e.message}]"
     }
   }
 
@@ -358,9 +377,11 @@ class AgentsController extends ControllerBase
    * Displays the log
    */
   def tailLog = {
-    agentsService.tailLog(fabric: request.fabric, *:params) {
-      response.contentType = "text/plain"
-      response.outputStream << it
+    handleNoAgent {
+      agentsService.tailLog(fabric: request.fabric, *:params) {
+        response.contentType = "text/plain"
+        response.outputStream << it
+      }
     }
   }
 
@@ -368,25 +389,40 @@ class AgentsController extends ControllerBase
    * getFileContent
    */
   def fileContent = {
-    try
-    {
-      agentsService.streamFileContent(fabric: request.fabric, *:params) { res ->
-        if(res instanceof InputStream)
-        {
-          response.contentType = "text/plain"
-          response.outputStream << res
-        }
-        else
-        {
-          render(view: 'directory', model: [dir: res])
+    handleNoAgent {
+      try
+      {
+        agentsService.streamFileContent(fabric: request.fabric, *:params) { res ->
+          if(res instanceof InputStream)
+          {
+            response.contentType = "text/plain"
+            response.outputStream << res
+          }
+          else
+          {
+            render(view: 'directory', model: [dir: res])
+          }
         }
       }
+      catch (AccessControlException e)
+      {
+        flash.error = "Not authorized to view ${params.location}"
+        redirect(action: 'view', id: params.id)
+        return
+      }
     }
-    catch (AccessControlException e)
+  }
+
+  private def handleNoAgent(Closure closure)
+  {
+    try
     {
-      flash.error = "Not authorized to view ${params.location}"
+      closure()
+    }
+    catch(NoSuchAgentException e)
+    {
+      flash.error = "Missing agent [${e.message}]"
       redirect(action: 'view', id: params.id)
-      return
     }
   }
 
