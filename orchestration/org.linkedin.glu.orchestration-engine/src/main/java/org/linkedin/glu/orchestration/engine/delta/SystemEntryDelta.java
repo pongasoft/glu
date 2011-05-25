@@ -17,6 +17,7 @@
 package org.linkedin.glu.orchestration.engine.delta;
 
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
+import org.linkedin.groovy.util.state.StateMachine;
 
 import java.util.Map;
 import java.util.Set;
@@ -28,20 +29,28 @@ public interface SystemEntryDelta
 {
   String getKey();
 
+  String getAgent();
+  String getMountPoint();
+
   SystemEntry getExpectedEntry();
   SystemEntry getCurrentEntry();
 
   Set<String> getValueDeltaKeys();
-  <T> ValueDelta<T> getValueDelta(String key);
+  <T> ValueDelta<T> findValueDelta(String key);
 
-  ValueDelta<String> getParentDelta();
-  ValueDelta<String> getEntryStateDelta();
+  ValueDelta<String> findParentDelta();
+  ValueDelta<String> findEntryStateDelta();
 
   Map<String, Object> getExpectedValues();
-  Object getExpectedValue(String key);
+  Object findExpectedValue(String key);
 
   Map<String, Object> getCurrentValues();
-  Object getCurrentValue(String key);
+  Object findCurrentValue(String key);
 
   boolean hasDelta();
+
+  /**
+   * @return the state machine associated to this delta
+   */
+  StateMachine getStateMachine();
 }

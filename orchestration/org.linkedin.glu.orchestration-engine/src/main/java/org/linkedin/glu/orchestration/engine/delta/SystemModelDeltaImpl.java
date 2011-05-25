@@ -51,4 +51,16 @@ public class SystemModelDeltaImpl implements SystemModelDelta
     if(delta != null)
       _deltas.put(delta.getKey(), delta);
   }
+
+  @Override
+  public boolean hasDelta()
+  {
+    for(SystemEntryDelta delta : _deltas.values())
+    {
+      if(delta.hasDelta())
+        return true;
+    }
+    
+    return false;
+  }
 }

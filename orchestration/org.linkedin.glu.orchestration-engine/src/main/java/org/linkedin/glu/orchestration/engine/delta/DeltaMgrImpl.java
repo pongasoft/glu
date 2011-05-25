@@ -127,8 +127,8 @@ public class DeltaMgrImpl implements DeltaMgr
 
     for(String valueKey : valueKeys)
     {
-      Object expectedValue = sed.getExpectedValue(valueKey);
-      Object currentValue = sed.getCurrentValue(valueKey);
+      Object expectedValue = sed.findExpectedValue(valueKey);
+      Object currentValue = sed.findCurrentValue(valueKey);
       if(!LangUtils.isEqual(expectedValue, currentValue))
       {
         sed.setValueDelta(new ValueDeltaImpl<Object>(valueKey, expectedValue, currentValue));

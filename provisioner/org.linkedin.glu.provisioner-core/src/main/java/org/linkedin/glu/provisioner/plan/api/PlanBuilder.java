@@ -29,7 +29,7 @@ public class PlanBuilder<T> extends AbstractStepBuilder<T> implements IPlanBuild
   /**
    * Constructor
    */
-  PlanBuilder()
+  public PlanBuilder()
   {
   }
 

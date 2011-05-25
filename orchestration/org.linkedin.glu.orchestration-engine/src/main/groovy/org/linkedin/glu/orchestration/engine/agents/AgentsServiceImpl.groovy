@@ -305,6 +305,7 @@ class AgentsServiceImpl implements AgentsService
     }
 
     se.metadata.currentState = mp.currentState
+    se.entryState = mp.currentState
     if(mp.transitionState)
       se.metadata.transitionState = mp.transitionState
     if(mp.error)

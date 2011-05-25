@@ -14,20 +14,31 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.delta;
+package org.linkedin.glu.orchestration.engine.planner;
 
-import java.util.Set;
+import java.net.URI;
+import java.util.Map;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface SystemModelDelta
+public class MountPointActionDescriptor extends AgentActionDescriptor
 {
-  Set<String> getKeys();
-  SystemEntryDelta findEntryDelta(String key);
+  private final String _mountPoint;
 
   /**
-   * @return <code>true</code> if any entry has a delta
+   * Constructor
    */
-  boolean hasDelta();
+  public MountPointActionDescriptor(URI agentURI,
+                                    String mountPoint,
+                                    String description)
+  {
+    super(agentURI, description);
+    _mountPoint = mountPoint;
+  }
+
+  public String getMountPoint()
+  {
+    return _mountPoint;
+  }
 }

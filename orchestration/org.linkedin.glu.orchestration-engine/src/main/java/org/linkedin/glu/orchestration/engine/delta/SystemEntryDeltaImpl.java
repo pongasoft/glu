@@ -16,7 +16,10 @@
 
 package org.linkedin.glu.orchestration.engine.delta;
 
+import org.linkedin.glu.agent.api.Agent;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
+import org.linkedin.groovy.util.state.StateMachine;
+import org.linkedin.groovy.util.state.StateMachineImpl;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +31,9 @@ import java.util.Set;
  */
 public class SystemEntryDeltaImpl implements SystemEntryDelta
 {
+  public static final StateMachine DEFAULT_STATE_MACHINE =
+    new StateMachineImpl(Agent.DEFAULT_TRANSITIONS);
+
   private final SystemEntry _expectedEntry;
   private final SystemEntry _currentEntry;
 
@@ -39,7 +45,6 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
   /**
    * Constructor
    */
-  @SuppressWarnings("unchecked")
   public SystemEntryDeltaImpl(SystemEntry expectedEntry, SystemEntry currentEntry)
   {
     if(expectedEntry == null && currentEntry == null)
@@ -47,23 +52,41 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
 
     if(expectedEntry != null &&
        currentEntry != null &&
-       expectedEntry.getKey().equals(currentEntry.getKey()))
+       !expectedEntry.getKey().equals(currentEntry.getKey()))
       throw new IllegalArgumentException("key mismatch");
 
     _expectedEntry = expectedEntry;
     _currentEntry = currentEntry;
 
-    _expectedValues =
-      _expectedEntry != null ? _expectedEntry.flatten() : Collections.<String, Object>emptyMap();
+    _expectedValues = computeValues(_expectedEntry);
+    _currentValues = computeValues(_currentEntry);
+  }
 
-    _currentValues =
-      _currentEntry != null ? _currentEntry.flatten() : Collections.<String, Object>emptyMap();
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> computeValues(SystemEntry entry)
+  {
+    if(entry == null)
+      return Collections.emptyMap();
+
+    return entry.flatten();
   }
 
   @Override
   public String getKey()
   {
     return _expectedEntry == null ? _currentEntry.getKey() : _expectedEntry.getKey();
+  }
+
+  @Override
+  public String getAgent()
+  {
+    return _expectedEntry == null ? _currentEntry.getAgent() : _expectedEntry.getAgent();
+  }
+
+  @Override
+  public String getMountPoint()
+  {
+    return _expectedEntry == null ? _currentEntry.getMountPoint() : _expectedEntry.getAgent();
   }
 
   @Override
@@ -91,21 +114,21 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T> ValueDelta<T> getValueDelta(String key)
+  public <T> ValueDelta<T> findValueDelta(String key)
   {
     return (ValueDelta<T>) _valueDeltas.get(key);
   }
 
   @Override
-  public ValueDelta<String> getParentDelta()
+  public ValueDelta<String> findParentDelta()
   {
-    return getValueDelta("parent");
+    return findValueDelta("parent");
   }
 
   @Override
-  public ValueDelta<String> getEntryStateDelta()
+  public ValueDelta<String> findEntryStateDelta()
   {
-    return getValueDelta("entryState");
+    return findValueDelta("entryState");
   }
 
   @Override
@@ -115,7 +138,7 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
   }
 
   @Override
-  public Object getExpectedValue(String key)
+  public Object findExpectedValue(String key)
   {
     return _expectedValues.get(key);
   }
@@ -127,7 +150,7 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
   }
 
   @Override
-  public Object getCurrentValue(String key)
+  public Object findCurrentValue(String key)
   {
     return _currentValues.get(key);
   }
@@ -136,5 +159,11 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
   public boolean hasDelta()
   {
     return !_valueDeltas.isEmpty();
+  }
+
+  @Override
+  public StateMachine getStateMachine()
+  {
+    return DEFAULT_STATE_MACHINE;
   }
 }

@@ -14,20 +14,13 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.delta;
+package org.linkedin.glu.orchestration.engine.core;
 
-import java.util.Set;
+import java.util.Map;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface SystemModelDelta
+public interface Metadata extends Map<String, Object>
 {
-  Set<String> getKeys();
-  SystemEntryDelta findEntryDelta(String key);
-
-  /**
-   * @return <code>true</code> if any entry has a delta
-   */
-  boolean hasDelta();
 }

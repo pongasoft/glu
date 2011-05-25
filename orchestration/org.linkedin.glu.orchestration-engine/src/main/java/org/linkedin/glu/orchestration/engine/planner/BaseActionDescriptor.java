@@ -14,20 +14,25 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.delta;
-
-import java.util.Set;
+package org.linkedin.glu.orchestration.engine.planner;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface SystemModelDelta
+public class BaseActionDescriptor implements ActionDescriptor
 {
-  Set<String> getKeys();
-  SystemEntryDelta findEntryDelta(String key);
+  private final String _description;
 
   /**
-   * @return <code>true</code> if any entry has a delta
+   * Constructor
    */
-  boolean hasDelta();
+  public BaseActionDescriptor(String description)
+  {
+    _description = description;
+  }
+
+  public String getDescription()
+  {
+    return _description;
+  }
 }

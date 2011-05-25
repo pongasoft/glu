@@ -26,12 +26,15 @@ import org.linkedin.glu.utils.tags.ReadOnlyTaggeable
  * @author ypujante@linkedin.com */
 class SystemEntry implements ReadOnlyTaggeable
 {
+  public static final String DEFAULT_ENTRY_STATE = "running";
+
   String agent
   String mountPoint
   def script
   String entryState
   String parent // optional
   def initParameters = [:] // optional
+  def actionArgs = [:] // optional
   def metadata = [:] // optional
   volatile ReadOnlyTaggeable entryTags = ReadOnlyTaggeable.EMPTY // optional
 
@@ -61,10 +64,21 @@ class SystemEntry implements ReadOnlyTaggeable
     if(metadata)
       res.metadata = metadata
 
+    if(actionArgs)
+      res.actionArgs = actionArgs
+
     if(hasTags())
       res.tags = tags
 
     return res
+  }
+
+  String getEntryState()
+  {
+    if(!entryState)
+      return DEFAULT_ENTRY_STATE
+    else
+      return entryState
   }
 
   @Override
@@ -138,6 +152,7 @@ class SystemEntry implements ReadOnlyTaggeable
     er.remove('tags')
     GroovyCollectionsUtils.flatten(er, destMap)
     destMap.key = key
+    destMap.entryState = getEntryState() // not part of er if <code>null</code>
     return destMap
   }
 

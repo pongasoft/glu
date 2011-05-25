@@ -14,20 +14,12 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.delta;
-
-import java.util.Set;
+package org.linkedin.glu.orchestration.engine.planner;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface SystemModelDelta
+public interface ActionDescriptor
 {
-  Set<String> getKeys();
-  SystemEntryDelta findEntryDelta(String key);
-
-  /**
-   * @return <code>true</code> if any entry has a delta
-   */
-  boolean hasDelta();
+  String getDescription();
 }

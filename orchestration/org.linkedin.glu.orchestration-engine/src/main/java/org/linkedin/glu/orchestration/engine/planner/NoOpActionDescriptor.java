@@ -14,15 +14,18 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.deployment;
-
-import org.linkedin.glu.provisioner.core.model.SystemModel;
-import org.linkedin.glu.provisioner.plan.api.Plan;
+package org.linkedin.glu.orchestration.engine.planner;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface DeploymentMgr
+public class NoOpActionDescriptor extends BaseActionDescriptor
 {
-  Plan computeDeploymentPlan(SystemModel expectedModel, SystemModel currentModel);
+  /**
+   * Constructor
+   */
+  public NoOpActionDescriptor(String description)
+  {
+    super(description);
+  }
 }

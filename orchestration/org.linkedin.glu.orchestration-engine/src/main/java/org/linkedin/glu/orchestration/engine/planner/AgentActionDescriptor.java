@@ -14,20 +14,29 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.delta;
+package org.linkedin.glu.orchestration.engine.planner;
 
-import java.util.Set;
+import java.net.URI;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface SystemModelDelta
+public class AgentActionDescriptor extends BaseActionDescriptor
 {
-  Set<String> getKeys();
-  SystemEntryDelta findEntryDelta(String key);
+  private final URI _agentURI;
 
   /**
-   * @return <code>true</code> if any entry has a delta
+   * Constructor
    */
-  boolean hasDelta();
+  public AgentActionDescriptor(URI agentURI,
+                               String description)
+  {
+    super(description);
+    _agentURI = agentURI;
+  }
+
+  public URI getAgentURI()
+  {
+    return _agentURI;
+  }
 }

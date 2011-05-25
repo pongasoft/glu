@@ -14,20 +14,18 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.delta;
+package org.linkedin.glu.orchestration.engine.planner;
 
-import java.util.Set;
+import org.linkedin.glu.provisioner.core.model.SystemModel;
+import org.linkedin.glu.provisioner.plan.api.IStep;
+import org.linkedin.glu.provisioner.plan.api.Plan;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface SystemModelDelta
+public interface Planner
 {
-  Set<String> getKeys();
-  SystemEntryDelta findEntryDelta(String key);
-
-  /**
-   * @return <code>true</code> if any entry has a delta
-   */
-  boolean hasDelta();
+  Plan<ActionDescriptor> computeDeploymentPlan(IStep.Type type,
+                                               SystemModel expectedModel,
+                                               SystemModel currentModel);
 }
