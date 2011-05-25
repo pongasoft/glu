@@ -279,6 +279,7 @@ class AgentsServiceImpl implements AgentsService
 
     se.agent = agentName
     se.mountPoint = mp.mountPoint.toString()
+    se.parent = mp.parent
     Map data = LangUtils.deepClone(mp.data)
     se.script = data?.scriptDefinition?.scriptFactory?.location
 
@@ -332,23 +333,34 @@ class AgentsServiceImpl implements AgentsService
   {
     def agentInfos = getAgentInfos(fabric)
 
-    def installations = []
+    def installations = [:]
 
-    system.each { SystemEntry se ->
+    def list = new LinkedList<SystemEntry>(system.findEntries())
 
-      AgentInfo agentInfo = agentInfos[se.agent]
+    while(!list.isEmpty())
+    {
+      SystemEntry se = list.removeFirst()
 
-      if(agentInfo)
+      if(se.parent && !installations.containsKey(se.parent))
       {
-        def installation = toInstallation(agentInfo.URI, se)
-        if(installation)
-          installations << installation
+        list.addLast(se)
+      }
+      else
+      {
+        AgentInfo agentInfo = agentInfos[se.agent]
+
+        if(agentInfo)
+        {
+          def installation = toInstallation(agentInfo.URI, se, installations[se.parent])
+          if(installation)
+            installations[se.mountPoint] = installation
+        }
       }
     }
 
     def args = [:]
     args.name = 'currentSystem'
-    args.installations = installations
+    args.installations = installations.values().toList()
 
     return new Environment(args)
   }
@@ -382,13 +394,14 @@ class AgentsServiceImpl implements AgentsService
     return new Environment(name: agentName, installations: installations)
   }
 
-  protected Installation toInstallation(URI agentURI, SystemEntry se)
+  protected Installation toInstallation(URI agentURI, SystemEntry se, Installation parent)
   {
     def args = [:]
 
     args.hostname = se.agent
     args.mount = se.mountPoint
     args.uri = agentURI
+    args.parent = parent
     args.name = se.key
     args.gluScript = se.script
     args.state = se.metadata.currentState
@@ -401,6 +414,12 @@ class AgentsServiceImpl implements AgentsService
     args.props.metadata = metadata
     args.props.tags = se.tags
 
+    if(se.parent && !parent)
+    {
+      log.warn("Ignoring ${se.key} because parent [${se.parent}] is not defined")
+      return null
+    }
+
     if(args.state == null || availableStates.contains(args.state))
       return new Installation(args)
     else
@@ -410,7 +429,7 @@ class AgentsServiceImpl implements AgentsService
     }
   }
 
-  protected def toInstallations(Fabric fabric, mountPoints)
+  protected def toInstallations(Fabric fabric, Collection<MountPointInfo> mountPoints)
   {
     def agentInfos = getAgentInfos(fabric)
 
@@ -420,7 +439,7 @@ class AgentsServiceImpl implements AgentsService
     {
       installations[MountPoint.ROOT] = null
 
-      def list = new LinkedList(mountPoints)
+      def list = new LinkedList<MountPointInfo>(mountPoints)
 
       while(!list.isEmpty())
       {

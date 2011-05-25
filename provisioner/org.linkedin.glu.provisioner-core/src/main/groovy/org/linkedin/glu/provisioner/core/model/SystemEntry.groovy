@@ -29,9 +29,11 @@ class SystemEntry implements ReadOnlyTaggeable
   String agent
   String mountPoint
   def script
-  def initParameters = [:]
-  def metadata = [:]
-  volatile ReadOnlyTaggeable entryTags = ReadOnlyTaggeable.EMPTY
+  String entryState
+  String parent // optional
+  def initParameters = [:] // optional
+  def metadata = [:] // optional
+  volatile ReadOnlyTaggeable entryTags = ReadOnlyTaggeable.EMPTY // optional
 
   String getKey()
   {
@@ -46,6 +48,12 @@ class SystemEntry implements ReadOnlyTaggeable
       mountPoint: mountPoint,
       script: script
     ]
+
+    if(entryState)
+      res.entryState = entryState
+
+    if(parent)
+      res.parent = parent
 
     if(initParameters)
       res.initParameters = initParameters
@@ -150,6 +158,8 @@ class SystemEntry implements ReadOnlyTaggeable
     if(initParameters != that.initParameters) return false;
     if(metadata != that.metadata) return false;
     if(mountPoint != that.mountPoint) return false;
+    if(entryState != that.entryState) return false;
+    if(parent != that.parent) return false;
     if(script != that.script) return false;
     if(entryTags != that.entryTags) return false;
 
@@ -162,6 +172,8 @@ class SystemEntry implements ReadOnlyTaggeable
 
     result = (agent != null ? agent.hashCode() : 0);
     result = 31 * result + (mountPoint != null ? mountPoint.hashCode() : 0);
+    result = 31 * result + (entryState != null ? entryState.hashCode() : 0);
+    result = 31 * result + (parent != null ? parent.hashCode() : 0);
     result = 31 * result + (script != null ? script.hashCode() : 0);
     result = 31 * result + (initParameters != null ? initParameters.hashCode() : 0);
     result = 31 * result + (metadata != null ? metadata.hashCode() : 0);
@@ -173,5 +185,4 @@ class SystemEntry implements ReadOnlyTaggeable
   {
     return JsonUtils.toJSON(toExternalRepresentation()).toString(2)
   }
-
 }

@@ -33,6 +33,13 @@ interface DeploymentService
 
   Plan computeDeploymentPlan(params)
 
+  /**
+   * @param params.system the 'expected' system (with filters)
+   * @param params.fabric the fabric (object)
+   * @param params.name name of the plan created
+   * @param closure to filter the plan
+   * @return the plan or <code>null</code> if no current or expected environments
+   */
   Plan computeDeploymentPlan(params, Closure closure)
 
   /**

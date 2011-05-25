@@ -239,7 +239,7 @@ class SystemModel
    *
    * @return <code>[system1, system2]</code>
    */
-  static def filter(SystemModel system1, SystemModel system2)
+  static List<SystemModel> filter(SystemModel system1, SystemModel system2)
   {
     if(system1 == null || system2 == null)
     {

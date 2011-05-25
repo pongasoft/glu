@@ -102,6 +102,9 @@ class DeploymentServiceImpl implements DeploymentService
     if(!system)
       return null
 
+    if(system.fabric != params.fabric?.name)
+      throw new IllegalArgumentException("mismatch fabric: ${system.fabric} != ${params.fabric?.name}")
+
     def expectedEnvironment = agentsService.computeEnvironment(params.fabric, system)
     def currentSystem = agentsService.getCurrentSystemModel(params.fabric)
     (system, currentSystem) = SystemModel.filter(system, currentSystem)
