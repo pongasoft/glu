@@ -1,6 +1,10 @@
 Latest changes
 ==============
 
+2.4.2 (2011/05/27)
+------------------
+* Fixed `glu-64 <https://github.com/linkedin/glu/issues/61>`_: `Concurrent deployment of ivy artifacts causes wrong artifact to be downloaded`
+
 2.4.1 (2011/05/24)
 ------------------
 * Fixed `glu-61 <https://github.com/linkedin/glu/issues/61>`_: `ClassCastException when error is a String`
