@@ -16,6 +16,8 @@
 
 package org.linkedin.glu.orchestration.engine.planner;
 
+import java.util.Map;
+
 /**
  * @author yan@pongasoft.com
  */
@@ -27,5 +29,18 @@ public class NoOpActionDescriptor extends BaseActionDescriptor
   public NoOpActionDescriptor(String description)
   {
     super(description);
+  }
+
+  @Override
+  public void toMetadata(Map<String, Object> metadata)
+  {
+    super.toMetadata(metadata);
+    metadata.put("action", "noop");
+  }
+
+  @Override
+  public String toString()
+  {
+    return "noop";
   }
 }

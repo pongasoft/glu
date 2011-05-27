@@ -16,6 +16,8 @@
 
 package org.linkedin.glu.orchestration.engine.delta;
 
+import org.linkedin.glu.provisioner.core.model.SystemModel;
+
 import java.util.Set;
 
 /**
@@ -23,6 +25,9 @@ import java.util.Set;
  */
 public interface SystemModelDelta
 {
+  SystemModel getExpectedSystemModel();
+  SystemModel getCurrentSystemModel();
+
   Set<String> getKeys();
   SystemEntryDelta findEntryDelta(String key);
 

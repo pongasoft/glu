@@ -16,27 +16,34 @@
 
 package org.linkedin.glu.orchestration.engine.planner;
 
-import java.net.URI;
+import java.util.Map;
 
 /**
  * @author yan@pongasoft.com
  */
 public class AgentActionDescriptor extends BaseActionDescriptor
 {
-  private final URI _agentURI;
+  private final String _agent;
 
   /**
    * Constructor
    */
-  public AgentActionDescriptor(URI agentURI,
+  public AgentActionDescriptor(String agent,
                                String description)
   {
     super(description);
-    _agentURI = agentURI;
+    _agent = agent;
   }
 
-  public URI getAgentURI()
+  public String getAgent()
   {
-    return _agentURI;
+    return _agent;
+  }
+
+  @Override
+  public void toMetadata(Map<String, Object> metadata)
+  {
+    super.toMetadata(metadata);
+    metadata.put("agent", _agent);
   }
 }

@@ -71,7 +71,7 @@ public class DeltaMgrImpl implements DeltaMgr
     if(expectedModel == null || currentModel == null)
       return null;
 
-    SystemModelDeltaImpl systemModelDelta = new SystemModelDeltaImpl();
+    SystemModelDeltaImpl systemModelDelta = new SystemModelDeltaImpl(expectedModel, currentModel);
 
     List<SystemModel> models = SystemModel.filter(expectedModel, currentModel);
 
@@ -105,9 +105,6 @@ public class DeltaMgrImpl implements DeltaMgr
                                                    SystemEntry currentEntry)
   {
     SystemEntryDeltaImpl sed = new SystemEntryDeltaImpl(expectedEntry, currentEntry);
-
-    if(expectedEntry == null || currentEntry == null)
-      return sed;
 
     // processing version mismatch
     processVersionMismatch(sed);
@@ -156,7 +153,7 @@ public class DeltaMgrImpl implements DeltaMgr
 
     res = res || key.startsWith("initParameters.");
 
-    res = res && !_excludedInVersionMismatch.contains(key);
+    res = res && (_excludedInVersionMismatch == null || !_excludedInVersionMismatch.contains(key));
 
     return res;
   }

@@ -31,8 +31,14 @@ import java.util.Set;
  */
 public class SystemEntryDeltaImpl implements SystemEntryDelta
 {
-  public static final StateMachine DEFAULT_STATE_MACHINE =
-    new StateMachineImpl(Agent.DEFAULT_TRANSITIONS);
+  public static final StateMachine DEFAULT_STATE_MACHINE;
+
+  static
+  {
+    Map<String, Object> args = new HashMap<String, Object>();
+    args.put("transitions", Agent.DEFAULT_TRANSITIONS);
+    DEFAULT_STATE_MACHINE = new StateMachineImpl(args);
+  }
 
   private final SystemEntry _expectedEntry;
   private final SystemEntry _currentEntry;

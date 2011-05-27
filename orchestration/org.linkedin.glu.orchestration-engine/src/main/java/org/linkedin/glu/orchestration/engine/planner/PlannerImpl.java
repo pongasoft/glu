@@ -16,17 +16,14 @@
 
 package org.linkedin.glu.orchestration.engine.planner;
 
-import org.linkedin.glu.orchestration.engine.delta.DeltaMgr;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
-import org.linkedin.glu.provisioner.core.model.SystemModel;
 import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
 import org.linkedin.glu.provisioner.plan.api.IStep;
 import org.linkedin.glu.provisioner.plan.api.LeafStep;
 import org.linkedin.glu.provisioner.plan.api.Plan;
 import org.linkedin.glu.provisioner.plan.api.PlanBuilder;
 import org.linkedin.groovy.util.state.StateMachine;
-import org.linkedin.util.annotations.Initializer;
 
 import java.net.URI;
 import java.util.Collection;
@@ -38,8 +35,6 @@ import java.util.Map;
  */
 public class PlannerImpl implements Planner
 {
-  private DeltaMgr _deltaMgr;
-
   /**
    * Constructor
    */
@@ -49,14 +44,11 @@ public class PlannerImpl implements Planner
 
   @Override
   public Plan<ActionDescriptor> computeDeploymentPlan(IStep.Type type,
-                                    SystemModel expectedModel,
-                                    SystemModel currentModel)
+                                                      SystemModelDelta systemModelDelta)
   {
-    SystemModelDelta systemModelDelta = _deltaMgr.computeDelta(expectedModel, currentModel);
-
-    if(systemModelDelta == null || !systemModelDelta.hasDelta())
+    if(systemModelDelta == null)
       return null;
-
+    
     PlanBuilder<ActionDescriptor> builder = new PlanBuilder<ActionDescriptor>();
 
     ICompositeStepBuilder<ActionDescriptor> stepBuilder = builder.addCompositeSteps(type);
@@ -67,17 +59,6 @@ public class PlannerImpl implements Planner
     }
 
     return builder.toPlan();
-  }
-
-  public DeltaMgr getDeltaMgr()
-  {
-    return _deltaMgr;
-  }
-
-  @Initializer(required = true)
-  public void setDeltaMgr(DeltaMgr deltaMgr)
-  {
-    _deltaMgr = deltaMgr;
   }
 
   protected void processEntryDelta(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
@@ -140,11 +121,11 @@ public class PlannerImpl implements Planner
     URI agentURI = null;
 
     ScriptLifecycleActionDescriptor actionDescriptor =
-      new ScriptLifecycleActionDescriptor(agentURI,
+      new ScriptLifecycleActionDescriptor(entryDelta.getAgent(),
                                           entryDelta.getMountPoint(),
                                           scriptLifecycle,
                                           scriptLifecycle == ScriptLifecycle.INSTALL_SCRIPT ?
-                                            (Map) entryDelta.getCurrentEntry().getInitParameters() : null,
+                                            (Map) entryDelta.getExpectedEntry().getInitParameters() : null,
                                           "TODO script lifecycle: " + scriptLifecycle);
 
     addLeafStep(stepBuilder, entryDelta, actionDescriptor);
@@ -177,7 +158,7 @@ public class PlannerImpl implements Planner
     URI agentURI = null;
 
     ScriptTransitionActionDescriptor actionDescriptor =
-      new ScriptTransitionActionDescriptor(agentURI,
+      new ScriptTransitionActionDescriptor(entryDelta.getAgent(),
                                            entryDelta.getMountPoint(),
                                            action,
                                            endState,
@@ -188,17 +169,11 @@ public class PlannerImpl implements Planner
   }
 
   protected void addLeafStep(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
-                             SystemEntryDelta entryDelta, ActionDescriptor actionDescriptor)
+                             SystemEntryDelta entryDelta,
+                             ActionDescriptor actionDescriptor)
   {
     stepBuilder.addLeafStep(new LeafStep<ActionDescriptor>(null,
-                                                           computeMetadata(entryDelta),
+                                                           actionDescriptor.toMetadata(),
                                                            actionDescriptor));
-  }
-
-  protected Map<String, Object> computeMetadata(SystemEntryDelta entryDelta)
-  {
-    Map<String, Object> metadata = new HashMap<String, Object>();
-    metadata.put("agent", entryDelta.getAgent());
-    return metadata;
   }
 }

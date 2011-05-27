@@ -16,6 +16,9 @@
 
 package org.linkedin.glu.orchestration.engine.planner;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * @author yan@pongasoft.com
  */
@@ -34,5 +37,19 @@ public class BaseActionDescriptor implements ActionDescriptor
   public String getDescription()
   {
     return _description;
+  }
+
+  @Override
+  public Map<String, Object> toMetadata()
+  {
+    LinkedHashMap<String, Object> metadata = new LinkedHashMap<String, Object>();
+    toMetadata(metadata);
+    return metadata;
+  }
+
+  @Override
+  public void toMetadata(Map<String, Object> metadata)
+  {
+    metadata.put("description", _description);
   }
 }

@@ -16,10 +16,16 @@
 
 package org.linkedin.glu.orchestration.engine.planner;
 
+import java.util.Map;
+
 /**
  * @author yan@pongasoft.com
  */
 public interface ActionDescriptor
 {
   String getDescription();
+
+  Map<String, Object> toMetadata();
+
+  void toMetadata(Map<String, Object> metadata);
 }

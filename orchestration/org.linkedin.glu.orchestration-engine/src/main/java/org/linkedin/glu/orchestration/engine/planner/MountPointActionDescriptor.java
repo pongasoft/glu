@@ -16,7 +16,6 @@
 
 package org.linkedin.glu.orchestration.engine.planner;
 
-import java.net.URI;
 import java.util.Map;
 
 /**
@@ -29,16 +28,23 @@ public class MountPointActionDescriptor extends AgentActionDescriptor
   /**
    * Constructor
    */
-  public MountPointActionDescriptor(URI agentURI,
+  public MountPointActionDescriptor(String agent,
                                     String mountPoint,
                                     String description)
   {
-    super(agentURI, description);
+    super(agent, description);
     _mountPoint = mountPoint;
   }
 
   public String getMountPoint()
   {
     return _mountPoint;
+  }
+
+  @Override
+  public void toMetadata(Map<String, Object> metadata)
+  {
+    super.toMetadata(metadata);
+    metadata.put("mountPoint", _mountPoint);
   }
 }

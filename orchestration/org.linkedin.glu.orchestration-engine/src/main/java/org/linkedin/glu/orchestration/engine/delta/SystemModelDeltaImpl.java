@@ -16,6 +16,8 @@
 
 package org.linkedin.glu.orchestration.engine.delta;
 
+import org.linkedin.glu.provisioner.core.model.SystemModel;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -27,11 +29,31 @@ public class SystemModelDeltaImpl implements SystemModelDelta
 {
   private final Map<String, SystemEntryDelta> _deltas = new HashMap<String, SystemEntryDelta>();
 
+  private final SystemModel _expectedSystemModel;
+  private final SystemModel _currentSystemModel;
+
   /**
    * Constructor
    */
-  public SystemModelDeltaImpl()
+  public SystemModelDeltaImpl(SystemModel expectedSystemModel, SystemModel currentSystemModel)
   {
+    _expectedSystemModel = expectedSystemModel;
+    _currentSystemModel = currentSystemModel;
+  }
+
+  public SystemModel getExpectedSystemModel()
+  {
+    return _expectedSystemModel;
+  }
+
+  public SystemModel getCurrentSystemModel()
+  {
+    return _currentSystemModel;
+  }
+
+  public Map<String, SystemEntryDelta> getDeltas()
+  {
+    return _deltas;
   }
 
   @Override

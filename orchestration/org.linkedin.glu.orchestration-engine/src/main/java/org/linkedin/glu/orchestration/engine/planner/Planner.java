@@ -16,6 +16,7 @@
 
 package org.linkedin.glu.orchestration.engine.planner;
 
+import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
 import org.linkedin.glu.provisioner.core.model.SystemModel;
 import org.linkedin.glu.provisioner.plan.api.IStep;
 import org.linkedin.glu.provisioner.plan.api.Plan;
@@ -25,7 +26,5 @@ import org.linkedin.glu.provisioner.plan.api.Plan;
  */
 public interface Planner
 {
-  Plan<ActionDescriptor> computeDeploymentPlan(IStep.Type type,
-                                               SystemModel expectedModel,
-                                               SystemModel currentModel);
+  Plan<ActionDescriptor> computeDeploymentPlan(IStep.Type type, SystemModelDelta systemModelDelta);
 }

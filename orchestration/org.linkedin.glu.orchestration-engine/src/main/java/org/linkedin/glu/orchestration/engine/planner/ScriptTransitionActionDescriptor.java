@@ -16,7 +16,6 @@
 
 package org.linkedin.glu.orchestration.engine.planner;
 
-import java.net.URI;
 import java.util.Map;
 
 /**
@@ -31,14 +30,14 @@ public class ScriptTransitionActionDescriptor extends MountPointActionDescriptor
   /**
    * Constructor
    */
-  public ScriptTransitionActionDescriptor(URI agentURI,
+  public ScriptTransitionActionDescriptor(String agent,
                                           String mountPoint,
                                           String action,
                                           String endState,
                                           Map actionArgs,
                                           String description)
   {
-    super(agentURI, mountPoint, description);
+    super(agent, mountPoint, description);
     _action = action;
     _endState = endState;
     _actionArgs = actionArgs;
@@ -58,4 +57,10 @@ public class ScriptTransitionActionDescriptor extends MountPointActionDescriptor
   {
     return _actionArgs;
   }
-}
+  @Override
+  public void toMetadata(Map<String, Object> metadata)
+  {
+    super.toMetadata(metadata);
+    metadata.put("scriptTransition", _action);
+  }
+ }
