@@ -37,11 +37,14 @@ public class TestPlannerImpl extends GroovyTestCase
   {
     assertNull(planner.computeDeploymentPlan(Type.SEQUENTIAL, null))
 
-    Plan<ActionDescriptor> plan = plan(Type.SEQUENTIAL,
-                                       delta(m([agent: 'a1', mountPoint: 'm1', script: 's1']),
-                                             m([agent: 'a1', mountPoint: 'm1', script: 's1'])))
+    [Type.SEQUENTIAL, Type.PARALLEL].each { Type type ->
+      Plan<ActionDescriptor> p = plan(type,
+                                      delta(m([agent: 'a1', mountPoint: 'm1', script: 's1']),
+                                            m([agent: 'a1', mountPoint: 'm1', script: 's1'])))
 
-    println plan.toXml()
+      assertEquals(type, p.step.type)
+      assertEquals(0, p.leafStepsCount)
+    }
   }
 
   /**
@@ -49,11 +52,25 @@ public class TestPlannerImpl extends GroovyTestCase
    */
   public void testDeploymentPlanDeploy()
   {
-    Plan<ActionDescriptor> plan = plan(Type.SEQUENTIAL,
-                                       delta(m([agent: 'a1', mountPoint: 'm1', script: 's1']),
-                                             m()))
+    Plan<ActionDescriptor> p = plan(Type.SEQUENTIAL,
+                                    delta(m([agent: 'a1', mountPoint: 'm1', script: 's1']),
+                                          m()))
 
-    println plan.toXml()
+    assertEquals(Type.SEQUENTIAL, p.step.type)
+    assertEquals(4, p.leafStepsCount)
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <sequential>
+    <sequential>
+      <leaf description="TODO script lifecycle: INSTALL_SCRIPT" agent="a1" mountPoint="a1" scriptLifecycle="install_script" />
+      <leaf description="TODO script action: install" agent="a1" mountPoint="a1" scriptTransition="install" />
+      <leaf description="TODO script action: configure" agent="a1" mountPoint="a1" scriptTransition="configure" />
+      <leaf description="TODO script action: start" agent="a1" mountPoint="a1" scriptTransition="start" />
+    </sequential>
+  </sequential>
+</plan>
+""", p.toXml())
+    // TODO HIGH YP:  add more tests
   }
 
   /**
@@ -61,11 +78,25 @@ public class TestPlannerImpl extends GroovyTestCase
    */
   public void testDeploymentPlanUnDeploy()
   {
-    Plan<ActionDescriptor> plan = plan(Type.SEQUENTIAL,
-                                       delta(m(),
-                                             m([agent: 'a1', mountPoint: 'm1', script: 's1'])))
+    Plan<ActionDescriptor> p = plan(Type.SEQUENTIAL,
+                                    delta(m(),
+                                          m([agent: 'a1', mountPoint: 'm1', script: 's1'])))
 
-    println plan.toXml()
+    assertEquals(Type.SEQUENTIAL, p.step.type)
+    assertEquals(4, p.leafStepsCount)
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <sequential>
+    <sequential>
+      <leaf description="TODO script action: stop" agent="a1" mountPoint="m1" scriptTransition="stop" />
+      <leaf description="TODO script action: unconfigure" agent="a1" mountPoint="m1" scriptTransition="unconfigure" />
+      <leaf description="TODO script action: uninstall" agent="a1" mountPoint="m1" scriptTransition="uninstall" />
+      <leaf description="TODO script lifecycle: UNINSTALL_SCRIPT" agent="a1" mountPoint="m1" scriptLifecycle="uninstall_script" />
+    </sequential>
+  </sequential>
+</plan>
+""", p.toXml())
+    // TODO HIGH YP:  add more tests
   }
 
   private SystemModel m(Map... entries)
