@@ -92,7 +92,7 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
   @Override
   public String getMountPoint()
   {
-    return _expectedEntry == null ? _currentEntry.getMountPoint() : _expectedEntry.getAgent();
+    return _expectedEntry == null ? _currentEntry.getMountPoint() : _expectedEntry.getMountPoint();
   }
 
   @Override

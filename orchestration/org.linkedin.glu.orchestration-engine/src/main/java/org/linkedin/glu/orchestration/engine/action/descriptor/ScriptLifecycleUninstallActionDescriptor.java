@@ -26,12 +26,12 @@ public class ScriptLifecycleUninstallActionDescriptor extends MountPointActionDe
   /**
    * Constructor
    */
-  public ScriptLifecycleUninstallActionDescriptor(String description,
+  public ScriptLifecycleUninstallActionDescriptor(String name,
                                                   String fabric,
                                                   String agent,
                                                   String mountPoint)
   {
-    super(description, fabric, agent, mountPoint);
+    super(name, fabric, agent, mountPoint);
   }
 
   @Override

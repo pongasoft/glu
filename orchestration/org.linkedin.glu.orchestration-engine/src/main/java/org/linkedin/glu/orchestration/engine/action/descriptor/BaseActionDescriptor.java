@@ -24,20 +24,20 @@ import java.util.TreeMap;
  */
 public class BaseActionDescriptor implements ActionDescriptor
 {
-  private final String _description;
+  private final String _name;
 
   /**
    * Constructor
    */
-  public BaseActionDescriptor(String description)
+  public BaseActionDescriptor(String name)
   {
-    _description = description;
+    _name = name;
   }
 
   @Override
-  public String getDescription()
+  public String getName()
   {
-    return _description;
+    return _name;
   }
 
   @Override
@@ -51,6 +51,6 @@ public class BaseActionDescriptor implements ActionDescriptor
   @Override
   public void toMetadata(Map<String, Object> metadata)
   {
-    metadata.put("description", _description);
+    metadata.put("name", _name);
   }
 }

@@ -93,7 +93,7 @@ class DeploymentServiceImpl implements DeploymentService
 
     SystemModelDelta delta = deltaMgr.computeDelta(expectedModel, currentModel)
 
-    if(!delta)
+    if(!delta.hasDelta())
       return []
 
     Collection<Type> types = []
@@ -110,6 +110,17 @@ class DeploymentServiceImpl implements DeploymentService
       plan.setMetadata('fabric', expectedModel.fabric)
       plan.setMetadata('systemId', expectedModel.id)
       plan.setMetadata(metadata)
+
+      plan.step?.metadata?.putAll(metadata)
+
+      def name = params.name ?: metadata.name
+      if(!name)
+      {
+        name = metadata.collect { k,v -> "${k}=$v"}.join(' - ')
+      }
+      name = "${name} - ${type}".toString()
+      plan.name = name
+
       return plan
     }
   }

@@ -152,7 +152,7 @@ public class ActionExecutionFactoryImpl implements ActionExecutionFactory
   @Override
   <V> ActionExecution<V> createAction(ActionDescriptor actionDescriptor)
   {
-    Closure actionClosure = this."${actionDescriptor.class.name}_execution"
+    Closure actionClosure = this."${actionDescriptor.class.simpleName}_execution"
 
     return new ClosureActionExecution<V>(actionDescriptor: actionDescriptor,
                                          actionClosure: actionClosure)

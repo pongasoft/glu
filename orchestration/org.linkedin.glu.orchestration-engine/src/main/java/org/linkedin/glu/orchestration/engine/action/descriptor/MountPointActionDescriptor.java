@@ -28,12 +28,12 @@ public class MountPointActionDescriptor extends AgentActionDescriptor
   /**
    * Constructor
    */
-  public MountPointActionDescriptor(String description,
+  public MountPointActionDescriptor(String name,
                                     String fabric,
                                     String agent,
                                     String mountPoint)
   {
-    super(description, fabric, agent);
+    super(name, fabric, agent);
     _mountPoint = mountPoint;
   }
 

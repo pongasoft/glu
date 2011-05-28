@@ -23,7 +23,7 @@ import java.util.Map;
  */
 public interface ActionDescriptor
 {
-  String getDescription();
+  String getName();
 
   Map<String, Object> toMetadata();
 

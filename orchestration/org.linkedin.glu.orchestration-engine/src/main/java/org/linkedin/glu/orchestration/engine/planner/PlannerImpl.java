@@ -118,7 +118,13 @@ public class PlannerImpl implements Planner
     // not deployed => need to deploy it or deployed but not expected => need to undeploy
     if(entryDelta.getCurrentEntry() == null || entryDelta.getExpectedEntry() == null)
     {
-      processEntryStateMismatch(stepBuilder.addCompositeSteps(IStep.Type.SEQUENTIAL),
+      ICompositeStepBuilder<ActionDescriptor> entryStepsBuilder =
+        stepBuilder.addCompositeSteps(IStep.Type.SEQUENTIAL);
+
+      entryStepsBuilder.setMetadata("agent", entryDelta.getAgent());
+      entryStepsBuilder.setMetadata("mountPoint", entryDelta.getMountPoint());
+
+      processEntryStateMismatch(entryStepsBuilder,
                                 systemModelDelta,
                                 entryDelta);
       return;
@@ -255,8 +261,7 @@ public class PlannerImpl implements Planner
                                            entryDelta.getMountPoint(),
                                            action,
                                            endState,
-                                           actionArgs
-      );
+                                           actionArgs);
 
     addLeafStep(stepBuilder, actionDescriptor);
   }

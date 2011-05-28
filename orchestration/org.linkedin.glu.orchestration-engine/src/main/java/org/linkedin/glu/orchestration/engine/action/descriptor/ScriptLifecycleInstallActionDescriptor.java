@@ -30,7 +30,7 @@ public class ScriptLifecycleInstallActionDescriptor extends MountPointActionDesc
   /**
    * Constructor
    */
-  public ScriptLifecycleInstallActionDescriptor(String description,
+  public ScriptLifecycleInstallActionDescriptor(String name,
                                                 String fabric,
                                                 String agent,
                                                 String mountPoint,
@@ -38,7 +38,7 @@ public class ScriptLifecycleInstallActionDescriptor extends MountPointActionDesc
                                                 Object script,
                                                 Map initParameters)
   {
-    super(description, fabric, agent, mountPoint);
+    super(name, fabric, agent, mountPoint);
     _parent = parent;
     _script = script;
     _initParameters = initParameters;

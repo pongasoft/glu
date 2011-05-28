@@ -202,34 +202,35 @@ class SystemController extends ControllerBase
       args.fabric = request.fabric
       args.name = params.title
 
-      Plan plan = deploymentService.computeDeploymentPlan(args)
-
       def plans =
-        deploymentService.groupByInstance(plan, [type: 'deploy', name: args.name])
+        deploymentService.computeDeploymentPlans(params,
+                                                 [type: 'deploy',
+                                                  name: args.name])
 
-      session.delta.addAll(plans)
+      if(plans)
+        session.delta.addAll(plans)
 
-      def bouncePlans
+      def bouncePlans = null
 
-      def bouncePlan = deploymentService.computeBouncePlan(args) { true }
-      if(bouncePlan)
-      {
-        bouncePlan.name = "Bounce ${params.title}"
-        bouncePlans =
-          deploymentService.groupByInstance(bouncePlan, [type: 'bounce', name: args.name])
-        session.delta.addAll(bouncePlans)
-      }
+//      def bouncePlan = deploymentService.computeBouncePlan(args) { true }
+//      if(bouncePlan)
+//      {
+//        bouncePlan.name = "Bounce ${params.title}"
+//        bouncePlans =
+//          deploymentService.groupByInstance(bouncePlan, [type: 'bounce', name: args.name])
+//        session.delta.addAll(bouncePlans)
+//      }
 
-      def redeployPlans
+      def redeployPlans = null
 
-      def redeployPlan = deploymentService.computeRedeployPlan(args) { true }
-      if(redeployPlan)
-      {
-        redeployPlan.name = "Redeploy ${params.title}"
-        redeployPlans =
-          deploymentService.groupByInstance(redeployPlan, [type: 'redeploy', name: args.name])
-        session.delta.addAll(redeployPlans)
-      }
+//      def redeployPlan = deploymentService.computeRedeployPlan(args) { true }
+//      if(redeployPlan)
+//      {
+//        redeployPlan.name = "Redeploy ${params.title}"
+//        redeployPlans =
+//          deploymentService.groupByInstance(redeployPlan, [type: 'redeploy', name: args.name])
+//        session.delta.addAll(redeployPlans)
+//      }
 
       [
           delta: plans,

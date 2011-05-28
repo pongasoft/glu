@@ -28,9 +28,9 @@ public class NoOpActionDescriptor extends BaseActionDescriptor
   /**
    * Constructor
    */
-  public NoOpActionDescriptor(String description, Map<String, Object> details)
+  public NoOpActionDescriptor(String name, Map<String, Object> details)
   {
-    super(description);
+    super(name);
     _details = details;
   }
 

@@ -30,7 +30,7 @@ public class ScriptTransitionActionDescriptor extends MountPointActionDescriptor
   /**
    * Constructor
    */
-  public ScriptTransitionActionDescriptor(String description,
+  public ScriptTransitionActionDescriptor(String name,
                                           String fabric,
                                           String agent,
                                           String mountPoint,
@@ -38,7 +38,7 @@ public class ScriptTransitionActionDescriptor extends MountPointActionDescriptor
                                           String endState,
                                           Map actionArgs)
   {
-    super(description, fabric, agent, mountPoint);
+    super(name, fabric, agent, mountPoint);
     _action = action;
     _endState = endState;
     _actionArgs = actionArgs;

@@ -29,9 +29,9 @@ public class AgentActionDescriptor extends BaseActionDescriptor
   /**
    * Constructor
    */
-  public AgentActionDescriptor(String description, String fabric, String agent)
+  public AgentActionDescriptor(String name, String fabric, String agent)
   {
-    super(description);
+    super(name);
     _fabric = fabric;
     _agent = agent;
   }
