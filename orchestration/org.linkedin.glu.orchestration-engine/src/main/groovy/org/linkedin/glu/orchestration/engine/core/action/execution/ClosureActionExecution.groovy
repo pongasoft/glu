@@ -14,17 +14,21 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.planner;
+package org.linkedin.glu.orchestration.engine.core.action.execution
 
-import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
-import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
-import org.linkedin.glu.provisioner.plan.api.IStep;
-import org.linkedin.glu.provisioner.plan.api.Plan;
+import org.linkedin.glu.orchestration.engine.action.execution.ActionExecution
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 
 /**
- * @author yan@pongasoft.com
- */
-public interface Planner
+ * @author yan@pongasoft.com */
+public class ClosureActionExecution<V> implements ActionExecution<V>
 {
-  Plan<ActionDescriptor> computeDeploymentPlan(IStep.Type type, SystemModelDelta systemModelDelta);
+  ActionDescriptor actionDescriptor
+  Closure actionClosure
+
+  @Override
+  V call()
+  {
+    return actionClosure(actionDescriptor)
+  }
 }

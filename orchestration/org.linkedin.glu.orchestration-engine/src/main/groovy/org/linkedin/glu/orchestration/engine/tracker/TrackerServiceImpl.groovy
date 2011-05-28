@@ -60,6 +60,11 @@ class TrackerServiceImpl implements TrackerService, Destroyable
     return getAgentsTrackerByFabric(fabric).getAgentInfos()
   }
 
+  AgentInfo getAgentInfo(String fabric, String agentName)
+  {
+    getAgentInfo(fabricService.findFabric(fabric), agentName)
+  }
+
   AgentInfo getAgentInfo(Fabric fabric, String agentName)
   {
     return getAgentsTrackerByFabric(fabric).getAgentInfo(agentName)

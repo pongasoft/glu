@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.planner;
+package org.linkedin.glu.orchestration.engine.action.descriptor;
 
 import java.util.Map;
 
@@ -28,11 +28,12 @@ public class MountPointActionDescriptor extends AgentActionDescriptor
   /**
    * Constructor
    */
-  public MountPointActionDescriptor(String agent,
-                                    String mountPoint,
-                                    String description)
+  public MountPointActionDescriptor(String description,
+                                    String fabric,
+                                    String agent,
+                                    String mountPoint)
   {
-    super(agent, description);
+    super(description, fabric, agent);
     _mountPoint = mountPoint;
   }
 

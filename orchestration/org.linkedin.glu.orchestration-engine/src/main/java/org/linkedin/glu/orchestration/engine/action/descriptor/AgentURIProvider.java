@@ -14,18 +14,20 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.planner;
+package org.linkedin.glu.orchestration.engine.action.descriptor;
 
-import java.util.Map;
+import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException;
+
+import java.net.URI;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface ActionDescriptor
+public interface AgentURIProvider
 {
-  String getDescription();
-
-  Map<String, Object> toMetadata();
-
-  void toMetadata(Map<String, Object> metadata);
+  /**
+   * @return the agent uri given the agent name
+   * @throws NoSuchAgentException if agent cannot be found
+   */
+  URI getAgentURI(String fabric, String agent) throws NoSuchAgentException;
 }

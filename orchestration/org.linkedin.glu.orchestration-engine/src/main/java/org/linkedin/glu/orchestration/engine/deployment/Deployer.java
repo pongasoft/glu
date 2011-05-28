@@ -14,17 +14,27 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.planner;
+package org.linkedin.glu.orchestration.engine.deployment;
 
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
-import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
-import org.linkedin.glu.provisioner.plan.api.IStep;
+import org.linkedin.glu.provisioner.plan.api.IPlanExecution;
+import org.linkedin.glu.provisioner.plan.api.IPlanExecutionProgressTracker;
 import org.linkedin.glu.provisioner.plan.api.Plan;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface Planner
+public interface Deployer
 {
-  Plan<ActionDescriptor> computeDeploymentPlan(IStep.Type type, SystemModelDelta systemModelDelta);
+  /**
+   * Execute the provided plan. Note that this call is non blocking and will return an execution
+   * object with which to interract.
+   *
+   * @param plan the plane to execute
+   * @param tracker to track the progress of the execution
+   * @return the execution
+   */
+  IPlanExecution<ActionDescriptor> executePlan(Plan<ActionDescriptor> plan,
+                                               IPlanExecutionProgressTracker<ActionDescriptor> tracker);
+
 }

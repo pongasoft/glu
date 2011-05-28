@@ -14,29 +14,16 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.agents
+package org.linkedin.glu.orchestration.engine.action.execution;
+
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
+
+import java.util.concurrent.Callable;
 
 /**
- * @author yan@pongasoft.com */
-public class NoSuchAgentException extends Exception
+ * @author yan@pongasoft.com
+ */
+public interface ActionExecution<V> extends Callable<V>
 {
-
-  NoSuchAgentException()
-  {
-  }
-
-  NoSuchAgentException(String s)
-  {
-    super(s)
-  }
-
-  NoSuchAgentException(String s, Throwable throwable)
-  {
-    super(s, throwable)
-  }
-
-  NoSuchAgentException(Throwable throwable)
-  {
-    super(throwable)
-  }
+  ActionDescriptor getActionDescriptor();
 }

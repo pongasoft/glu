@@ -14,17 +14,18 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.planner;
+package org.linkedin.glu.orchestration.engine.action.descriptor;
 
-import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
-import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
-import org.linkedin.glu.provisioner.plan.api.IStep;
-import org.linkedin.glu.provisioner.plan.api.Plan;
+import java.util.Map;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface Planner
+public interface ActionDescriptor
 {
-  Plan<ActionDescriptor> computeDeploymentPlan(IStep.Type type, SystemModelDelta systemModelDelta);
+  String getDescription();
+
+  Map<String, Object> toMetadata();
+
+  void toMetadata(Map<String, Object> metadata);
 }

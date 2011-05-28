@@ -16,6 +16,13 @@
 
 package org.linkedin.glu.orchestration.engine.planner;
 
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
+import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider;
+import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor;
+import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptLifecycleInstallActionDescriptor;
+import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptLifecycleUninstallActionDescriptor;
+import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptTransitionActionDescriptor;
+import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
 import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
@@ -24,9 +31,10 @@ import org.linkedin.glu.provisioner.plan.api.LeafStep;
 import org.linkedin.glu.provisioner.plan.api.Plan;
 import org.linkedin.glu.provisioner.plan.api.PlanBuilder;
 import org.linkedin.groovy.util.state.StateMachine;
+import org.linkedin.util.annotations.Initializer;
 
-import java.net.URI;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -34,11 +42,24 @@ import java.util.Map;
  */
 public class PlannerImpl implements Planner
 {
+  private AgentURIProvider _agentURIProvider;
+
   /**
    * Constructor
    */
   public PlannerImpl()
   {
+  }
+
+  public AgentURIProvider getAgentURIProvider()
+  {
+    return _agentURIProvider;
+  }
+
+  @Initializer(required = false)
+  public void setAgentURIProvider(AgentURIProvider agentURIProvider)
+  {
+    _agentURIProvider = agentURIProvider;
   }
 
   @Override
@@ -54,13 +75,17 @@ public class PlannerImpl implements Planner
 
     for(String key : systemModelDelta.getKeys())
     {
-      processEntryDelta(stepBuilder, systemModelDelta.findEntryDelta(key));
+      processEntryDelta(stepBuilder, systemModelDelta, systemModelDelta.findEntryDelta(key));
     }
 
     return builder.toPlan();
   }
 
+  /**
+   * Processes one entry delta (agent/mountPoint)
+   */
   protected void processEntryDelta(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
+                                   SystemModelDelta systemModelDelta,
                                    SystemEntryDelta entryDelta)
   {
     if(!entryDelta.hasDelta())
@@ -68,69 +93,131 @@ public class PlannerImpl implements Planner
 
     if(entryDelta.findCurrentValue("metadata.transitionState") != null)
     {
-      NoOpActionDescriptor actionDescriptor =
-        new NoOpActionDescriptor("already in transition: " +
-                                 entryDelta.findCurrentValue("metadata.transitionState"));
-
-      addLeafStep(stepBuilder, entryDelta, actionDescriptor);
-
+      addNoOpStep(stepBuilder,
+                  entryDelta,
+                  "already in transition: " +
+                  entryDelta.findCurrentValue("metadata.transitionState"));
       return;
+    }
+
+    if(_agentURIProvider != null)
+    {
+      try
+      {
+        _agentURIProvider.getAgentURI(systemModelDelta.getFabric(), entryDelta.getAgent());
+      }
+      catch(NoSuchAgentException e)
+      {
+        addNoOpStep(stepBuilder,
+                    entryDelta,
+                    "missing agent: " + entryDelta.getAgent());
+        return;
+      }
     }
 
     // not deployed => need to deploy it
     if(entryDelta.getCurrentEntry() == null)
     {
-      processDeploy(stepBuilder.addCompositeSteps(IStep.Type.SEQUENTIAL), entryDelta);
+      processDeploy(stepBuilder.addCompositeSteps(IStep.Type.SEQUENTIAL),
+                    systemModelDelta,
+                    entryDelta);
       return;
     }
 
     // deployed but not expected => need to undeploy
     if(entryDelta.getExpectedEntry() == null)
     {
-      processUndeploy(stepBuilder.addCompositeSteps(IStep.Type.SEQUENTIAL), entryDelta);
+      processUndeploy(stepBuilder.addCompositeSteps(IStep.Type.SEQUENTIAL),
+                      systemModelDelta,
+                      entryDelta);
       return;
     }
   }
 
+  /**
+   * Add a nooperation step
+   */
+  protected void addNoOpStep(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
+                             SystemEntryDelta entryDelta,
+                             String description)
+  {
+    Map<String, Object> details = new HashMap<String, Object>();
+    details.put("agent", entryDelta.getAgent());
+    details.put("mountPoint", entryDelta.getMountPoint());
+    NoOpActionDescriptor actionDescriptor = new NoOpActionDescriptor(description, details);
+    addLeafStep(stepBuilder, actionDescriptor);
+  }
+
+  /**
+   * Process deploy (from not uninstalled to expected state)
+   */
   protected void processDeploy(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
+                               SystemModelDelta systemModelDelta,
                                SystemEntryDelta entryDelta)
   {
-    addLifecycleStep(stepBuilder, entryDelta, ScriptLifecycle.INSTALL_SCRIPT);
+    addLifecycleInstallStep(stepBuilder, systemModelDelta, entryDelta);
     addTransitionSteps(stepBuilder,
+                       systemModelDelta,
                        entryDelta,
                        StateMachine.NONE,
                        entryDelta.getExpectedEntry().getEntryState());
   }
 
+  /**
+   * Process undeploy (from current state to uninstalled)
+   */
   protected void processUndeploy(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
+                                 SystemModelDelta systemModelDelta,
                                  SystemEntryDelta entryDelta)
   {
     addTransitionSteps(stepBuilder,
+                       systemModelDelta,
                        entryDelta,
                        entryDelta.getCurrentEntry().getEntryState(),
                        StateMachine.NONE);
-    addLifecycleStep(stepBuilder, entryDelta, ScriptLifecycle.UNINSTALL_SCRIPT);
+    addLifecycleUninstallStep(stepBuilder, systemModelDelta, entryDelta);
   }
 
-  protected void addLifecycleStep(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
-                                  SystemEntryDelta entryDelta,
-                                  ScriptLifecycle scriptLifecycle)
+  /**
+   * Add installScript step
+   */
+  protected void addLifecycleInstallStep(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
+                                         SystemModelDelta systemModelDelta,
+                                         SystemEntryDelta entryDelta)
   {
-    // TODO HIGH YP:  handle agentURI
-    URI agentURI = null;
+    ScriptLifecycleInstallActionDescriptor actionDescriptor =
+      new ScriptLifecycleInstallActionDescriptor("TODO script lifecycle: installScript",
+                                                 systemModelDelta.getFabric(),
+                                                 entryDelta.getAgent(),
+                                                 entryDelta.getMountPoint(),
+                                                 entryDelta.getExpectedEntry().getParent(),
+                                                 entryDelta.getExpectedEntry().getScript(),
+                                                 (Map) entryDelta.getExpectedEntry().getInitParameters());
 
-    ScriptLifecycleActionDescriptor actionDescriptor =
-      new ScriptLifecycleActionDescriptor(entryDelta.getAgent(),
-                                          entryDelta.getMountPoint(),
-                                          scriptLifecycle,
-                                          scriptLifecycle == ScriptLifecycle.INSTALL_SCRIPT ?
-                                            (Map) entryDelta.getExpectedEntry().getInitParameters() : null,
-                                          "TODO script lifecycle: " + scriptLifecycle);
-
-    addLeafStep(stepBuilder, entryDelta, actionDescriptor);
+    addLeafStep(stepBuilder, actionDescriptor);
   }
 
+  /**
+   * Add uninstallScript step
+   */
+  protected void addLifecycleUninstallStep(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
+                                           SystemModelDelta systemModelDelta,
+                                           SystemEntryDelta entryDelta)
+  {
+    ScriptLifecycleUninstallActionDescriptor actionDescriptor =
+      new ScriptLifecycleUninstallActionDescriptor("TODO script lifecycle: uninstallScript",
+                                                   systemModelDelta.getFabric(),
+                                                   entryDelta.getAgent(),
+                                                   entryDelta.getMountPoint());
+
+    addLeafStep(stepBuilder, actionDescriptor);
+  }
+
+  /**
+   * Add all transition steps from -> to
+   */
   protected void addTransitionSteps(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
+                                    SystemModelDelta systemModelDelta,
                                     SystemEntryDelta entryDelta,
                                     Object fromState,
                                     Object toState)
@@ -141,11 +228,15 @@ public class PlannerImpl implements Planner
                                                                                      toState);
     for(Map<String, String> p : path)
     {
-      addTransitionStep(stepBuilder, entryDelta, p.get("action"), p.get("to"));
+      addTransitionStep(stepBuilder, systemModelDelta, entryDelta, p.get("action"), p.get("to"));
     }
   }
 
+  /**
+   * Add 1 transition step corresponding to the action
+   */
   protected void addTransitionStep(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
+                                   SystemModelDelta systemModelDelta,
                                    SystemEntryDelta entryDelta,
                                    String action,
                                    String endState)
@@ -153,22 +244,23 @@ public class PlannerImpl implements Planner
     // TODO HIGH YP:  handle actionArgs
     Map actionArgs = null;
 
-    // TODO HIGH YP:  handle agentURI
-    URI agentURI = null;
-
     ScriptTransitionActionDescriptor actionDescriptor =
-      new ScriptTransitionActionDescriptor(entryDelta.getAgent(),
+      new ScriptTransitionActionDescriptor("TODO script action: " + action,
+                                           systemModelDelta.getFabric(),
+                                           entryDelta.getAgent(),
                                            entryDelta.getMountPoint(),
                                            action,
                                            endState,
-                                           actionArgs,
-                                           "TODO script action: " + action);
+                                           actionArgs
+      );
 
-    addLeafStep(stepBuilder, entryDelta, actionDescriptor);
+    addLeafStep(stepBuilder, actionDescriptor);
   }
 
+  /**
+   * Add a leaf step with the metadata coming from the action descriptor
+   */
   protected void addLeafStep(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
-                             SystemEntryDelta entryDelta,
                              ActionDescriptor actionDescriptor)
   {
     stepBuilder.addLeafStep(new LeafStep<ActionDescriptor>(null,

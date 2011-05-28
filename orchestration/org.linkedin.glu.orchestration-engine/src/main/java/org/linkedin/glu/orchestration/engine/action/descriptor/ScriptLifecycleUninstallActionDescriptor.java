@@ -14,42 +14,30 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.planner;
+package org.linkedin.glu.orchestration.engine.action.descriptor;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * @author yan@pongasoft.com
  */
-public class BaseActionDescriptor implements ActionDescriptor
+public class ScriptLifecycleUninstallActionDescriptor extends MountPointActionDescriptor
 {
-  private final String _description;
-
   /**
    * Constructor
    */
-  public BaseActionDescriptor(String description)
+  public ScriptLifecycleUninstallActionDescriptor(String description,
+                                                  String fabric,
+                                                  String agent,
+                                                  String mountPoint)
   {
-    _description = description;
-  }
-
-  public String getDescription()
-  {
-    return _description;
-  }
-
-  @Override
-  public Map<String, Object> toMetadata()
-  {
-    LinkedHashMap<String, Object> metadata = new LinkedHashMap<String, Object>();
-    toMetadata(metadata);
-    return metadata;
+    super(description, fabric, agent, mountPoint);
   }
 
   @Override
   public void toMetadata(Map<String, Object> metadata)
   {
-    metadata.put("description", _description);
+    super.toMetadata(metadata);
+    metadata.put("scriptLifecycle", "uninstallScript");
   }
 }

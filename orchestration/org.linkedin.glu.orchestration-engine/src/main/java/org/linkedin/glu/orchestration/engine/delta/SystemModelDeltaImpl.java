@@ -37,8 +37,17 @@ public class SystemModelDeltaImpl implements SystemModelDelta
    */
   public SystemModelDeltaImpl(SystemModel expectedSystemModel, SystemModel currentSystemModel)
   {
+    if(!expectedSystemModel.getFabric().equals(currentSystemModel.getFabric()))
+      throw new IllegalArgumentException("mismatch fabric");
+
     _expectedSystemModel = expectedSystemModel;
     _currentSystemModel = currentSystemModel;
+  }
+
+  @Override
+  public String getFabric()
+  {
+    return _expectedSystemModel.getFabric();
   }
 
   public SystemModel getExpectedSystemModel()

@@ -14,12 +14,29 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.planner;
+package org.linkedin.glu.orchestration.engine.agents;
 
 /**
-* @author yan@pongasoft.com
-*/
-enum ScriptLifecycle
+ * @author yan@pongasoft.com */
+public class NoSuchAgentException extends Exception
 {
-  INSTALL_SCRIPT, UNINSTALL_SCRIPT
+
+  public NoSuchAgentException()
+  {
+  }
+
+  public NoSuchAgentException(String s)
+  {
+    super(s);
+  }
+
+  public NoSuchAgentException(String s, Throwable throwable)
+  {
+    super(s, throwable);
+  }
+
+  public NoSuchAgentException(Throwable throwable)
+  {
+    super(throwable);
+  }
 }

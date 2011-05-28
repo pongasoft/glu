@@ -25,6 +25,8 @@ import java.util.Set;
  */
 public interface SystemModelDelta
 {
+  String getFabric();
+
   SystemModel getExpectedSystemModel();
   SystemModel getCurrentSystemModel();
 

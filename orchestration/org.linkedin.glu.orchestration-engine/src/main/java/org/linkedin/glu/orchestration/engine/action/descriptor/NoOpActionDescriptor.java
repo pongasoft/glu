@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.planner;
+package org.linkedin.glu.orchestration.engine.action.descriptor;
 
 import java.util.Map;
 
@@ -23,18 +23,28 @@ import java.util.Map;
  */
 public class NoOpActionDescriptor extends BaseActionDescriptor
 {
+  private final Map<String, Object> _details;
+
   /**
    * Constructor
    */
-  public NoOpActionDescriptor(String description)
+  public NoOpActionDescriptor(String description, Map<String, Object> details)
   {
     super(description);
+    _details = details;
+  }
+
+  public Map<String, Object> getDetails()
+  {
+    return _details;
   }
 
   @Override
   public void toMetadata(Map<String, Object> metadata)
   {
     super.toMetadata(metadata);
+    if(_details != null)
+      metadata.putAll(_details);
     metadata.put("action", "noop");
   }
 

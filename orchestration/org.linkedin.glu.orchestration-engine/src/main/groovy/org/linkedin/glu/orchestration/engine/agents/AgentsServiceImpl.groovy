@@ -42,11 +42,12 @@ import org.linkedin.glu.provisioner.impl.agent.DefaultDescriptionProvider
 import org.linkedin.glu.provisioner.core.action.IDescriptionProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider
 
 /**
  * @author ypujante
  */
-class AgentsServiceImpl implements AgentsService
+class AgentsServiceImpl implements AgentsService, AgentURIProvider
 {
   public static final String MODULE = AgentsServiceImpl.class.getName ();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
@@ -71,6 +72,15 @@ class AgentsServiceImpl implements AgentsService
 
   @Initializable
   IDescriptionProvider descriptionProvider = DefaultDescriptionProvider.INSTANCE
+
+  @Override
+  URI getAgentURI(String fabric, String agent) throws NoSuchAgentException
+  {
+    AgentInfo info = trackerService.getAgentInfo(fabric, agent)
+    if(!info)
+      throw new NoSuchAgentException(agent)
+    return info.getURI()
+  }
 
   def getAllInfosWithAccuracy(Fabric fabric)
   {

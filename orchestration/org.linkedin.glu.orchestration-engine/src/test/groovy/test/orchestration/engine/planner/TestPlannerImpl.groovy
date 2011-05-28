@@ -21,7 +21,7 @@ import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.plan.api.Plan
-import org.linkedin.glu.orchestration.engine.planner.ActionDescriptor
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta
 import org.linkedin.glu.orchestration.engine.delta.DeltaMgr
 import org.linkedin.glu.orchestration.engine.delta.DeltaMgrImpl
@@ -62,10 +62,10 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <sequential>
-      <leaf description="TODO script lifecycle: INSTALL_SCRIPT" agent="a1" mountPoint="a1" scriptLifecycle="install_script" />
-      <leaf description="TODO script action: install" agent="a1" mountPoint="a1" scriptTransition="install" />
-      <leaf description="TODO script action: configure" agent="a1" mountPoint="a1" scriptTransition="configure" />
-      <leaf description="TODO script action: start" agent="a1" mountPoint="a1" scriptTransition="start" />
+      <leaf agent="a1" description="TODO script lifecycle: installScript" fabric="f1" mountPoint="a1" scriptLifecycle="installScript" />
+      <leaf agent="a1" description="TODO script action: install" fabric="f1" mountPoint="a1" scriptTransition="install" />
+      <leaf agent="a1" description="TODO script action: configure" fabric="f1" mountPoint="a1" scriptTransition="configure" />
+      <leaf agent="a1" description="TODO script action: start" fabric="f1" mountPoint="a1" scriptTransition="start" />
     </sequential>
   </sequential>
 </plan>
@@ -88,10 +88,10 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <sequential>
-      <leaf description="TODO script action: stop" agent="a1" mountPoint="m1" scriptTransition="stop" />
-      <leaf description="TODO script action: unconfigure" agent="a1" mountPoint="m1" scriptTransition="unconfigure" />
-      <leaf description="TODO script action: uninstall" agent="a1" mountPoint="m1" scriptTransition="uninstall" />
-      <leaf description="TODO script lifecycle: UNINSTALL_SCRIPT" agent="a1" mountPoint="m1" scriptLifecycle="uninstall_script" />
+      <leaf agent="a1" description="TODO script action: stop" fabric="f1" mountPoint="m1" scriptTransition="stop" />
+      <leaf agent="a1" description="TODO script action: unconfigure" fabric="f1" mountPoint="m1" scriptTransition="unconfigure" />
+      <leaf agent="a1" description="TODO script action: uninstall" fabric="f1" mountPoint="m1" scriptTransition="uninstall" />
+      <leaf agent="a1" description="TODO script lifecycle: uninstallScript" fabric="f1" mountPoint="m1" scriptLifecycle="uninstallScript" />
     </sequential>
   </sequential>
 </plan>

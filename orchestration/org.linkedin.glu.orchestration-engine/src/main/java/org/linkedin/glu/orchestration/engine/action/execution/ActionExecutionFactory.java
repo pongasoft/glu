@@ -14,36 +14,14 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.planner;
+package org.linkedin.glu.orchestration.engine.action.execution;
 
-import java.util.Map;
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
 
 /**
  * @author yan@pongasoft.com
  */
-public class AgentActionDescriptor extends BaseActionDescriptor
+public interface ActionExecutionFactory
 {
-  private final String _agent;
-
-  /**
-   * Constructor
-   */
-  public AgentActionDescriptor(String agent,
-                               String description)
-  {
-    super(description);
-    _agent = agent;
-  }
-
-  public String getAgent()
-  {
-    return _agent;
-  }
-
-  @Override
-  public void toMetadata(Map<String, Object> metadata)
-  {
-    super.toMetadata(metadata);
-    metadata.put("agent", _agent);
-  }
+  <V> ActionExecution<V> createAction(ActionDescriptor actionDescriptor);
 }
