@@ -22,6 +22,7 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.plan.api.IPlanExecutionProgressTracker
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.provisioner.plan.api.Plan
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 
 /**
  * System service.
@@ -29,18 +30,15 @@ import org.linkedin.glu.provisioner.plan.api.Plan
  * @author ypujante@linkedin.com */
 interface DeploymentService
 {
-  Collection<String> getHostsWithDeltas(params)
-
-  Plan computeDeploymentPlan(params)
-
   /**
    * @param params.system the 'expected' system (with filters)
    * @param params.fabric the fabric (object)
    * @param params.name name of the plan created
-   * @param closure to filter the plan
-   * @return the plan or <code>null</code> if no current or expected environments
+   * @param params.type plan types (<code>null</code> means both types, otherwise the type you want)
+   * @param metadata any metadata to add to the plan(s)
+   * @return the plans (0, 1 or 2) depending on whether there is a plan at all or if more than 1 type
    */
-  Plan computeDeploymentPlan(params, Closure closure)
+  Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params, def metadata)
 
   /**
    * Computes a transition plan. The closure is meant to
@@ -74,18 +72,6 @@ interface DeploymentService
                   Environment currentEnvironment,
                   Environment expectedEnvironment,
                   Closure closure)
-
-  /**
-   * Shortcut to group the plan by hostname first, then mountpoint in both sequential and parallel
-   * types.
-   */
-  Map<IStep.Type, Plan> groupByHostnameAndMountPoint(Plan plan)
-
-  /**
-   * Create a new plan of the given type where the entries are grouped by hostname first, then
-   * mountpoint and call the closure to filter all leaves.
-   */
-  Plan groupByHostnameAndMountPoint(Plan plan, IStep.Type type)
 
   /**
    * Shortcut to group the plan by instance in both sequential and parallel types.

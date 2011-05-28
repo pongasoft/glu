@@ -40,25 +40,6 @@ class AgentsController extends ControllerBase
   }
 
   /**
-   * List all the agents (in the current fabric)
-   */
-  def list = {
-    def agents = new TreeMap(agentsService.getAgentInfos(request.fabric))
-
-    def mountPoints = [:]
-
-    def model = [:]
-
-    def hosts = deploymentService.getHostsWithDeltas(fabric: request.fabric.name)
-
-    agents.values().each { agent ->
-      model[agent.agentName] = computeAgentModel(request.fabric, agent, null, hosts.contains(agent.agentName))
-    }
-
-    return [model: model, count: model.size(), instances: model.values().sum { it.mountPoints?.size() }]
-  }
-
-  /**
    * List all the agents (in the current fabric) with their version (in preparation to upgrade)
    */
   def listVersions = {
@@ -147,29 +128,28 @@ class AgentsController extends ControllerBase
       request.system = system
       params.system = system
 
-      Plan plan = deploymentService.computeDeploymentPlan(params) { true }
-
       session.delta = []
 
-      plans = deploymentService.groupByInstance(plan, [type: 'deploy', agent: params.id])
+      plans = deploymentService.computeDeploymentPlans(params, [type: 'deploy', agent: params.id])
 
       session.delta.addAll(plans)
 
-      def bouncePlan = deploymentService.computeBouncePlan(params)  { true }
-      if(bouncePlan)
-      {
-        bouncePlan.name = "Bounce: ${title}"
-        bouncePlans = deploymentService.groupByInstance(bouncePlan, [type: 'bounce', agent: params.id])
-        session.delta.addAll(bouncePlans)
-      }
-
-      def redeployPlan = deploymentService.computeRedeployPlan(params) { true }
-      if(redeployPlan)
-      {
-        redeployPlan.name = "Redeploy: ${title}"
-        redeployPlans = deploymentService.groupByInstance(redeployPlan, [type: 'redeploy', agent: params.id])
-        session.delta.addAll(redeployPlans)
-      }
+      // TODO HIGH YP: add this back
+//      def bouncePlan = deploymentService.computeBouncePlan(params)  { true }
+//      if(bouncePlan)
+//      {
+//        bouncePlan.name = "Bounce: ${title}"
+//        bouncePlans = deploymentService.groupByInstance(bouncePlan, [type: 'bounce', agent: params.id])
+//        session.delta.addAll(bouncePlans)
+//      }
+//
+//      def redeployPlan = deploymentService.computeRedeployPlan(params) { true }
+//      if(redeployPlan)
+//      {
+//        redeployPlan.name = "Redeploy: ${title}"
+//        redeployPlans = deploymentService.groupByInstance(redeployPlan, [type: 'redeploy', agent: params.id])
+//        session.delta.addAll(redeployPlans)
+//      }
 
       def mountPoints = [] as Set
       system.each { mountPoints << it.mountPoint }
@@ -177,7 +157,7 @@ class AgentsController extends ControllerBase
       model = computeAgentModel(request.fabric,
                                 agent,
                                 mountPoints,
-                                plan?.hasLeafSteps())
+                                plans && plans[0]?.hasLeafSteps())
     }
 
     return [

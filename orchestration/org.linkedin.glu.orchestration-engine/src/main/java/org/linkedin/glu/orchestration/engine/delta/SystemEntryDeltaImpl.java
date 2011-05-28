@@ -108,6 +108,24 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
   }
 
   @Override
+  public String getExpectedEntryState()
+  {
+    if(_expectedEntry != null)
+      return _expectedEntry.getEntryState();
+    else
+      return null;
+  }
+
+  @Override
+  public String getCurrentEntryState()
+  {
+    if(_currentEntry != null)
+      return _currentEntry.getEntryState();
+    else
+      return null;
+  }
+
+  @Override
   public Set<String> getValueDeltaKeys()
   {
     return _valueDeltas.keySet();

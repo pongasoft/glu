@@ -29,3 +29,6 @@ dependencies {
   testCompile spec.external.junit
   testRuntime spec.external.slf4jLog4j
 }
+
+sourceSets.main.java.srcDirs = []
+sourceSets.main.groovy.srcDir 'src/main/java'

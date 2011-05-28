@@ -35,6 +35,9 @@ public interface SystemEntryDelta
   SystemEntry getExpectedEntry();
   SystemEntry getCurrentEntry();
 
+  String getExpectedEntryState();
+  String getCurrentEntryState();
+
   Set<String> getValueDeltaKeys();
   <T> ValueDelta<T> findValueDelta(String key);
 

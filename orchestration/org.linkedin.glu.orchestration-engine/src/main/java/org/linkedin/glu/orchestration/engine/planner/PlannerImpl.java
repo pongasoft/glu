@@ -115,21 +115,12 @@ public class PlannerImpl implements Planner
       }
     }
 
-    // not deployed => need to deploy it
-    if(entryDelta.getCurrentEntry() == null)
+    // not deployed => need to deploy it or deployed but not expected => need to undeploy
+    if(entryDelta.getCurrentEntry() == null || entryDelta.getExpectedEntry() == null)
     {
-      processDeploy(stepBuilder.addCompositeSteps(IStep.Type.SEQUENTIAL),
-                    systemModelDelta,
-                    entryDelta);
-      return;
-    }
-
-    // deployed but not expected => need to undeploy
-    if(entryDelta.getExpectedEntry() == null)
-    {
-      processUndeploy(stepBuilder.addCompositeSteps(IStep.Type.SEQUENTIAL),
-                      systemModelDelta,
-                      entryDelta);
+      processEntryStateMismatch(stepBuilder.addCompositeSteps(IStep.Type.SEQUENTIAL),
+                                systemModelDelta,
+                                entryDelta);
       return;
     }
   }
@@ -149,34 +140,41 @@ public class PlannerImpl implements Planner
   }
 
   /**
-   * Process deploy (from not uninstalled to expected state)
+   * Process entry state mismatch
    */
-  protected void processDeploy(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
-                               SystemModelDelta systemModelDelta,
-                               SystemEntryDelta entryDelta)
+  protected void processEntryStateMismatch(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
+                                           SystemModelDelta systemModelDelta,
+                                           SystemEntryDelta entryDelta)
   {
-    addLifecycleInstallStep(stepBuilder, systemModelDelta, entryDelta);
-    addTransitionSteps(stepBuilder,
-                       systemModelDelta,
-                       entryDelta,
-                       StateMachine.NONE,
-                       entryDelta.getExpectedEntry().getEntryState());
+    processEntryStateMismatch(stepBuilder,
+                              systemModelDelta,
+                              entryDelta,
+                              entryDelta.getCurrentEntryState(),
+                              entryDelta.getExpectedEntryState());
   }
 
   /**
-   * Process undeploy (from current state to uninstalled)
+   * Process entry state mismatch
    */
-  protected void processUndeploy(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
-                                 SystemModelDelta systemModelDelta,
-                                 SystemEntryDelta entryDelta)
+  protected void processEntryStateMismatch(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
+                                           SystemModelDelta systemModelDelta,
+                                           SystemEntryDelta entryDelta,
+                                           Object fromState,
+                                           Object toState)
   {
+    if(fromState == null)
+      addLifecycleInstallStep(stepBuilder, systemModelDelta, entryDelta);
+
     addTransitionSteps(stepBuilder,
                        systemModelDelta,
                        entryDelta,
-                       entryDelta.getCurrentEntry().getEntryState(),
-                       StateMachine.NONE);
-    addLifecycleUninstallStep(stepBuilder, systemModelDelta, entryDelta);
+                       fromState,
+                       toState);
+
+    if(toState == null)
+      addLifecycleUninstallStep(stepBuilder, systemModelDelta, entryDelta);
   }
+
 
   /**
    * Add installScript step
@@ -222,6 +220,12 @@ public class PlannerImpl implements Planner
                                     Object fromState,
                                     Object toState)
   {
+    if(fromState == null)
+      fromState = StateMachine.NONE;
+
+    if(toState == null)
+      toState = StateMachine.NONE;
+
     @SuppressWarnings("unchecked")
     Collection<Map<String,String>> path =
       (Collection<Map<String,String>>) entryDelta.getStateMachine().findShortestPath(fromState,

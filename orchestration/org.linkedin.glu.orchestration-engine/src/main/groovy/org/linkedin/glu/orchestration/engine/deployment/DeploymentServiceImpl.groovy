@@ -16,10 +16,8 @@
 
 package org.linkedin.glu.orchestration.engine.deployment
 
-import org.linkedin.glu.provisioner.core.action.ActionDescriptor
 import org.linkedin.glu.provisioner.core.environment.Environment
 import org.linkedin.glu.provisioner.core.model.SystemModel
-import org.linkedin.glu.provisioner.deployment.api.IDeploymentManager
 import org.linkedin.glu.provisioner.impl.agent.DefaultDescriptionProvider
 import org.linkedin.glu.provisioner.plan.api.IPlanExecutionProgressTracker
 import org.linkedin.glu.provisioner.plan.api.IStep
@@ -35,6 +33,11 @@ import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
 import org.linkedin.util.clock.Timespan
 import org.linkedin.glu.provisioner.core.action.IDescriptionProvider
+import org.linkedin.glu.orchestration.engine.delta.DeltaMgr
+import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta
+import org.linkedin.glu.orchestration.engine.planner.Planner
+import org.linkedin.glu.provisioner.plan.api.IStep.Type
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 
 /**
  * System service.
@@ -56,7 +59,13 @@ class DeploymentServiceImpl implements DeploymentService
   FabricService fabricService
 
   @Initializable(required = true)
-  IDeploymentManager deploymentMgr
+  DeltaMgr deltaMgr
+
+  @Initializable(required = true)
+  Planner planner
+
+  @Initializable(required = true)
+  Deployer deployer
 
   @Initializable(required = true)
   DeploymentStorage deploymentStorage
@@ -70,59 +79,38 @@ class DeploymentServiceImpl implements DeploymentService
   private Map<String, CurrentDeployment> _deployments = [:]
   private Map<String, Plan> _plans = [:]
 
-
-  Collection<String> getHostsWithDeltas(params)
+  Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params, def metadata)
   {
-    def hosts = new HashSet()
+    SystemModel expectedModel = params.system
 
-    def plan = computeDeploymentPlan(params)
-
-    plan?.leafSteps?.each { LeafStep step ->
-      if(step.action instanceof ActionDescriptor)
-      {
-        ActionDescriptor ad = (ActionDescriptor) step.action
-        hosts << ad.descriptorProperties.hostname
-      }
-    }
-
-    return hosts
-  }
-
-  Plan computeDeploymentPlan(params)
-  {
-    computeDeploymentPlan(params) {
-      return true
-    }
-  }
-
-  Plan computeDeploymentPlan(params, Closure closure)
-  {
-    SystemModel system = params.system
-
-    if(!system)
+    if(!expectedModel)
       return null
 
-    if(system.fabric != params.fabric?.name)
-      throw new IllegalArgumentException("mismatch fabric: ${system.fabric} != ${params.fabric?.name}")
+    if(expectedModel.fabric != params.fabric?.name)
+      throw new IllegalArgumentException("mismatch fabric: ${expectedModel.fabric} != ${params.fabric?.name}")
 
-    def expectedEnvironment = agentsService.computeEnvironment(params.fabric, system)
-    def currentSystem = agentsService.getCurrentSystemModel(params.fabric)
-    (system, currentSystem) = SystemModel.filter(system, currentSystem)
-    def currentEnvironment = agentsService.computeEnvironment(params.fabric, currentSystem)
+    SystemModel currentModel = agentsService.getCurrentSystemModel(params.fabric)
 
-    if(expectedEnvironment && currentEnvironment)
-    {
-      def plan = createPlan(params.name,
-                            currentEnvironment,
-                            expectedEnvironment,
-                            closure)
-      plan.setMetadata('fabric', system.fabric)
-      plan.setMetadata('systemId', system.id)
-      return plan
-    }
+    SystemModelDelta delta = deltaMgr.computeDelta(expectedModel, currentModel)
+
+    if(!delta)
+      return []
+
+    Collection<Type> types = []
+    if(params.type)
+      types << params.type
     else
-    {
-      return null
+      types = [Type.SEQUENTIAL, Type.PARALLEL]
+
+    if(metadata == null)
+      metadata = [:]
+
+    types.collect { Type type ->
+      Plan<ActionDescriptor> plan = planner.computeDeploymentPlan(type, delta)
+      plan.setMetadata('fabric', expectedModel.fabric)
+      plan.setMetadata('systemId', expectedModel.id)
+      plan.setMetadata(metadata)
+      return plan
     }
   }
 
@@ -265,76 +253,6 @@ class DeploymentServiceImpl implements DeploymentService
                              expectedEnvironment,
                              descriptionProvider,
                              closure)
-  }
-
-  /**
-   * Shortcut to group the plan by hostname first, then mountpoint in both sequential and parallel
-   * types.
-   */
-  Map<IStep.Type, Plan> groupByHostnameAndMountPoint(Plan plan)
-  {
-    def Map<IStep.Type, Plan> plans = [:]
-
-    [IStep.Type.SEQUENTIAL, IStep.Type.PARALLEL].each { IStep.Type stepType ->
-      def newPlan = groupByHostnameAndMountPoint(plan, stepType)
-      if(newPlan)
-        plans[stepType] = newPlan
-    }
-
-    return plans
-  }
-
-  /**
-   * Create a new plan of the given type where the entries are grouped by hostname first, then
-   * mountpoint and call the closure to filter all leaves.
-   */
-  Plan groupByHostnameAndMountPoint(Plan plan, IStep.Type type)
-  {
-    def leafSteps = plan?.leafSteps
-
-    if(leafSteps)
-    {
-      // first we group the steps by hostname
-      def hosts = leafSteps.groupBy { LeafStep<ActionDescriptor> step ->
-        return step.action.descriptorProperties.hostname
-      }
-
-      // then we group them by mountPoint
-      hosts.keySet().each { hostname ->
-        hosts[hostname] = hosts[hostname].groupBy { LeafStep<ActionDescriptor> step ->
-          step.action.descriptorProperties.mountPoint
-        }
-      }
-
-      def planBuilder = plan.createEmptyPlanBuilder()
-      def compositeStepsBuilder = planBuilder.addCompositeSteps(type)
-      planBuilder.name = "${plan.name} - ${type}".toString()
-
-      hosts.keySet().sort().each { hostname ->
-        def stepsByMountPoint = hosts[hostname]
-        def hostStepsBuilder = compositeStepsBuilder.addCompositeSteps(type)
-        hostStepsBuilder.name = hostname
-
-        // we split the plan by mountPoint
-        stepsByMountPoint.keySet().sort().each { mountPoint ->
-          def steps = stepsByMountPoint[mountPoint]
-
-          // for a given mount point it has to be sequential!
-          def mountPointStepsBuilder = hostStepsBuilder.addSequentialSteps()
-          mountPointStepsBuilder.name = mountPoint
-
-          steps?.each { step ->
-            mountPointStepsBuilder.each { it.addLeafStep(step) }
-          }
-        }
-      }
-
-      plan = planBuilder.toPlan()
-    }
-    else
-    {
-      return null
-    }
   }
 
   /**
@@ -535,7 +453,7 @@ class DeploymentServiceImpl implements DeploymentService
                                         id,
                                         system)
 
-      def planExecution = deploymentMgr.executePlan(plan, tracker)
+      def planExecution = deployer.executePlan(plan, tracker)
 
       CurrentDeployment currentDeployment = new CurrentDeployment(id: id,
                                                                   username: username,

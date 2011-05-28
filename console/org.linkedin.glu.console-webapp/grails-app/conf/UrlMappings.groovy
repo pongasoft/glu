@@ -34,7 +34,6 @@ class UrlMappings
 
     // agents
     "/agents"(controller: 'agents', action: 'list') { __nvbe = 'Dashboard' }
-    "/agents/list"(controller: 'agents', action: 'list') { __nvbe = 'Dashboard' }
     "/agents/view/$id"(controller: 'agents', action: 'view') { __nvbe = 'System' }
     "/agents/ps/$id"(controller: 'agents', action: 'ps') { __nvbe = 'System' }
     "/agents/fullStackTrace/$id"(controller: 'agents', action: 'fullStackTrace') { __nvbe = 'System' }

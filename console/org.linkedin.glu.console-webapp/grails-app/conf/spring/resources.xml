@@ -50,25 +50,18 @@
     </constructor-arg>
   </bean>
 
-  <bean id="actionFactory" class="org.linkedin.glu.provisioner.core.touchpoint.TouchpointActionFactory">
-    <constructor-arg>
-      <list>
-        <bean class="org.linkedin.glu.provisioner.impl.agent.AgentTouchpoint">
-          <constructor-arg ref="agentFactory"/>
-          <constructor-arg ref="encryptionKeysProvider"/>
-        </bean>
-        <bean class="org.linkedin.glu.provisioner.impl.agent.AgentUpgradeTouchpoint">
-          <constructor-arg ref="agentFactory"/>
-          <constructor-arg ref="encryptionKeysProvider"/>
-        </bean>
-      </list>
-    </constructor-arg>
+  <bean id="actionExecutionFactory"
+        class="org.linkedin.glu.orchestration.engine.core.action.execution.ActionExecutionFactoryImpl">
+    <property name="agentFactory" ref="agentFactory"/>
+    <property name="agentURIProvider" ref="_agentsServiceImpl"/>
+    <property name="encryptionKeysProvider" ref="encryptionKeysProvider"/>
   </bean>
 
   <bean id="executor" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool"/>
 
-  <bean id="leafExecutor" class="org.linkedin.glu.provisioner.deployment.impl.ActionDescriptorStepExecutor">
-    <property name="actionFactory" ref="actionFactory"/>
+  <bean id="leafExecutor"
+        class="org.linkedin.glu.orchestration.engine.action.execution.ActionDescriptorStepExecutor">
+    <property name="actionExecutionFactory" ref="actionExecutionFactory"/>
   </bean>
 
   <bean id="planExecutor" class="org.linkedin.glu.provisioner.plan.impl.PlanExecutor">
@@ -77,20 +70,14 @@
     <property name="leafStepExecutor" ref="leafExecutor"/>
   </bean>
 
-  <bean id="simplePlanner" class="org.linkedin.glu.provisioner.impl.planner.SimplePlanner">
-    <property name="propsExcludes">
-      <set>
-        <value>skeleton</value>
-        <value>metadata</value>
-        <value>tags</value>
-      </set>
-    </property>
-    <property name="fieldExcludes"><set><value>gluScript</value></set></property>
+  <bean id="deployer" class="org.linkedin.glu.orchestration.engine.deployment.DeployerImpl">
+    <property name="planExecutor" ref="planExecutor"/>
   </bean>
 
-  <bean id="deploymentMgr" class="org.linkedin.glu.provisioner.deployment.impl.DeploymentManager">
-    <property name="planExecutor" ref="planExecutor"/>
-    <property name="planner" ref="simplePlanner"/>
+  <bean id="deltaMgr" class="org.linkedin.glu.orchestration.engine.delta.DeltaMgrImpl"/>
+
+  <bean id="planner" class="org.linkedin.glu.orchestration.engine.planner.PlannerImpl">
+    <property name="agentURIProvider" ref="_agentsServiceImpl"/>
   </bean>
 
   <bean id="agentPlanner" class="org.linkedin.glu.provisioner.impl.planner.AgentPlanner"/>
@@ -189,7 +176,9 @@
         class="org.linkedin.glu.orchestration.engine.deployment.DeploymentServiceImpl">
     <property name="agentsService" ref="agentsService"/>
     <property name="authorizationService" ref="authorizationService"/>
-    <property name="deploymentMgr" ref="deploymentMgr"/>
+    <property name="deployer" ref="deployer"/>
+    <property name="deltaMgr" ref="deltaMgr"/>
+    <property name="planner" ref="planner"/>
     <property name="fabricService" ref="fabricService"/>
     <property name="deploymentStorage">
       <bean class="org.linkedin.glu.console.provisioner.services.storage.DeploymentStorageImpl"/>

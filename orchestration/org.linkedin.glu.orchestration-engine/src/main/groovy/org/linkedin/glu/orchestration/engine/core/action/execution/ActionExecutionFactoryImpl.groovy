@@ -44,7 +44,7 @@ public class ActionExecutionFactoryImpl implements ActionExecutionFactory
   public static final String ENCRYPTION_KEYS = 'encryptionKeys'
 
   @Initializable(required = true)
-  AgentFactory factory
+  AgentFactory agentFactory
 
   @Initializable(required = true)
   AgentURIProvider agentURIProvider
@@ -146,7 +146,7 @@ public class ActionExecutionFactoryImpl implements ActionExecutionFactory
    */
   private def withAgent(AgentActionDescriptor ad, Closure closure)
   {
-    factory.withRemoteAgent(agentURIProvider.getAgentURI(ad.fabric, ad.agent), closure)
+    agentFactory.withRemoteAgent(agentURIProvider.getAgentURI(ad.fabric, ad.agent), closure)
   }
 
   @Override
