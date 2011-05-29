@@ -123,63 +123,31 @@ class SystemController extends ControllerBase
 
       params.system = request.system
       params.fabric = request.fabric
-      params.name = "Deploy: ${title}".toString()
 
       def missingAgents = systemService.getMissingAgents(request.fabric, request.system)
 
-      def plans =
-        deploymentService.computeDeploymentPlans(params,
-                                                 [type: 'deploy',
-                                                 fabric: request.fabric.name])
+      def allPlans = [:]
 
       session.delta = []
 
-      session.delta.addAll(plans)
+      ['deploy', 'bounce', 'redeploy', 'undeploy'].each { type ->
+        params.name = "${type.capitalize()}: ${title}".toString()
 
-      def bouncePlans = null
+        def plans =
+          deploymentService."compute${type.capitalize()}Plans"(params,
+                                                               [type: type,
+                                                               fabric: request.fabric.name])
+        if(plans)
+          session.delta.addAll(plans)
 
-//      def bouncePlan = deploymentService.computeBouncePlan(params) { true }
-//      if(bouncePlan)
-//      {
-//        bouncePlan.name = "Bounce: ${title}"
-//        bouncePlans =
-//          deploymentService.groupByInstance(bouncePlan,
-//                                            [type: 'bounce',
-//                                            fabric: request.fabric.name])
-//        session.delta.addAll(bouncePlans)
-//      }
-
-      def redeployPlans = null
-
-//      def redeployPlan = deploymentService.computeRedeployPlan(params) { true }
-//      if(redeployPlan)
-//      {
-//        redeployPlan.name = "Redeploy: ${title}"
-//        redeployPlans =
-//          deploymentService.groupByInstance(redeployPlan,
-//                                            [type: 'redeploy',
-//                                            fabric: request.fabric.name])
-//        session.delta.addAll(redeployPlans)
-//      }
-
-      def undeployPlans = null
-
-//      def undeployPlan = deploymentService.computeUndeployPlan(params) { true }
-//      if(undeployPlan)
-//      {
-//        undeployPlan.name = "Undeploy: ${title}"
-//        undeployPlans =
-//          deploymentService.groupByInstance(undeployPlan,
-//                                            [type: 'undeploy',
-//                                            fabric: request.fabric.name])
-//        session.delta.addAll(undeployPlans)
-//      }
+        allPlans[type] = plans
+      }
 
       [
-          delta: plans,
-          bounce: bouncePlans,
-          redeploy: redeployPlans,
-          undeploy: undeployPlans,
+          delta: allPlans.deploy,
+          bounce: allPlans.bounce,
+          redeploy: allPlans.redeploy,
+          undeploy: allPlans.undeploy,
           title: title,
           executingDeploymentPlan: deploymentService.isExecutingDeploymentPlan(request.fabric.name),
           missingAgents: missingAgents
@@ -202,41 +170,29 @@ class SystemController extends ControllerBase
       args.fabric = request.fabric
       args.name = params.title
 
-      def plans =
-        deploymentService.computeDeploymentPlans(params,
-                                                 [type: 'deploy',
-                                                  name: args.name])
+      def allPlans = [:]
 
-      if(plans)
-        session.delta.addAll(plans)
+      session.delta = []
 
-      def bouncePlans = null
+      ['deploy', 'bounce', 'redeploy', 'undeploy'].each { type ->
+        params.name = "${type.capitalize()}: ${params.title}".toString()
 
-//      def bouncePlan = deploymentService.computeBouncePlan(args) { true }
-//      if(bouncePlan)
-//      {
-//        bouncePlan.name = "Bounce ${params.title}"
-//        bouncePlans =
-//          deploymentService.groupByInstance(bouncePlan, [type: 'bounce', name: args.name])
-//        session.delta.addAll(bouncePlans)
-//      }
+        def plans =
+          deploymentService."compute${type.capitalize()}Plans"(args,
+                                                               [type: type,
+                                                               name: args.name])
+        if(plans)
+          session.delta.addAll(plans)
 
-      def redeployPlans = null
-
-//      def redeployPlan = deploymentService.computeRedeployPlan(args) { true }
-//      if(redeployPlan)
-//      {
-//        redeployPlan.name = "Redeploy ${params.title}"
-//        redeployPlans =
-//          deploymentService.groupByInstance(redeployPlan, [type: 'redeploy', name: args.name])
-//        session.delta.addAll(redeployPlans)
-//      }
+        allPlans[type] = plans
+      }
 
       [
-          delta: plans,
-          bounce: bouncePlans,
-          redeploy: redeployPlans,
-          missingAgents: missingAgents
+        delta: allPlans.deploy,
+        bounce: allPlans.bounce,
+        redeploy: allPlans.redeploy,
+        undeploy: allPlans.undeploy,
+        missingAgents: missingAgents
       ]
     }
   }

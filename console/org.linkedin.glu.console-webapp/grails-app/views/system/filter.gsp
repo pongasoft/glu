@@ -64,6 +64,8 @@
 
   <g:render template="/plan/selectDelta" model="[delta: redeploy, title: 'Redeploy: ' + params.title]"/>
 
+  <g:render template="/plan/selectDelta" model="[delta: undeploy, title: 'Undeploy: ' + params.title]"/>
+
   <g:if test="${missingAgents}">
     <h2>Missing agents [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h2>
     <ul>

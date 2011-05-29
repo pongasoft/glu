@@ -23,7 +23,6 @@ import org.linkedin.glu.provisioner.plan.api.IPlanExecutionProgressTracker
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.provisioner.plan.api.LeafStep
 import org.linkedin.glu.provisioner.plan.api.Plan
-import org.linkedin.glu.provisioner.plan.api.SequentialStep
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
@@ -79,7 +78,20 @@ class DeploymentServiceImpl implements DeploymentService
   private Map<String, CurrentDeployment> _deployments = [:]
   private Map<String, Plan> _plans = [:]
 
-  Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params, def metadata)
+  /**
+   * Compute deployment plans between the system provided (params.system) and the current
+   * system.
+   */
+  Collection<Plan<ActionDescriptor>> computeDeployPlans(params, def metadata)
+  {
+    computeDeploymentPlans(params, metadata) { Type type, SystemModelDelta delta ->
+      planner.computeDeploymentPlan(type, delta)
+    }
+  }
+
+  private Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params,
+                                                                    def metadata,
+                                                                    Closure closure)
   {
     SystemModel expectedModel = params.system
 
@@ -91,6 +103,7 @@ class DeploymentServiceImpl implements DeploymentService
 
     SystemModel currentModel = agentsService.getCurrentSystemModel(params.fabric)
 
+    // 1. compute delta between expectedModel and currentModel
     SystemModelDelta delta = deltaMgr.computeDelta(expectedModel, currentModel)
 
     if(!delta.hasDelta())
@@ -106,7 +119,10 @@ class DeploymentServiceImpl implements DeploymentService
       metadata = [:]
 
     types.collect { Type type ->
-      Plan<ActionDescriptor> plan = planner.computeDeploymentPlan(type, delta)
+      // 2. compute the deployment plan for the delta (and the given type)
+      Plan<ActionDescriptor> plan = closure(type, delta)
+
+      // 3. set name and metadata for the plan
       plan.setMetadata('fabric', expectedModel.fabric)
       plan.setMetadata('systemId', expectedModel.id)
       plan.setMetadata(metadata)
@@ -122,7 +138,7 @@ class DeploymentServiceImpl implements DeploymentService
       plan.name = name
 
       return plan
-    }
+    }.findAll { Plan plan -> plan.hasLeafSteps() }
   }
 
   /**
@@ -144,114 +160,47 @@ class DeploymentServiceImpl implements DeploymentService
   }
 
   /**
-   * Computes a transition plan. The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
+   * Computes a transition plan.
+   * @param metadata any metadata to add to the plan(s)
    */
-  Plan computeTransitionPlan(params, Closure filter)
+  Collection<Plan<ActionDescriptor>> computeTransitionPlans(params, def metadata)
   {
-    def env = getCurrentEnvironment(params)
-
-    agentsService.createTransitionPlan(installations: env.installations, state: params.state, filter)
-  }
-
-  /**
-   * Compute a bounce plan to bounce (= stop/start) containers. The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
-   */
-  Plan computeBouncePlan(params, Closure filter)
-  {
-    params.state = ['stopped', 'running']
-    computeTransitionPlan(params, filter)
-  }
-
-  /**
-   * Compute an undeploy plan. The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
-   */
-  Plan computeUndeployPlan(params, Closure filter)
-  {
-    computeUndeployPlan(getCurrentEnvironment(params), filter)
-  }
-
-  /**
-   * Compute an undeploy plan. The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
-   */
-  private Plan computeUndeployPlan(Environment environment, Closure filter)
-  {
-    // we create an undeploy plan
-    def undeployPlan = agentsService.createTransitionPlan(installations: environment.installations,
-                                                          state: ['undeployed'],
-                                                          filter)
-
-    return undeployPlan
-  }
-
-  /**
-   * Compute a deploy plan. The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
-   */
-  private Plan computeDeployPlan(Environment environment, params, Closure filter)
-  {
-    SystemModel system = params.system
-
-    if(!system)
-      return null
-
-    def expectedEnvironment = agentsService.computeEnvironment(params.fabric, system)
-    def currentSystem = new SystemModel(fabric: system.fabric) // empty
-    def currentEnvironment = agentsService.computeEnvironment(params.fabric, currentSystem)
-
-    // all the installations in transition need to be removed from the current environment
-    def installations = environment.installations.findAll { it.transitionState == null }.id as Set
-
-    expectedEnvironment = expectedEnvironment.filterBy(expectedEnvironment.name) {
-      installations.contains(it.id)
-    }
-
-    if(expectedEnvironment && currentEnvironment)
-    {
-      def plan = createPlan(params.name,
-                            currentEnvironment,
-                            expectedEnvironment,
-                            filter)
-      return plan
-    }
-    else
-    {
-      return null
+    computeDeploymentPlans(params, metadata) { Type type, SystemModelDelta delta ->
+      planner.computeTransitionPlan(type, delta, [params.state])
     }
   }
 
   /**
-   * Compute a redeploy plan (= undeploy/deploy). The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
+   * Compute a bounce plan to bounce (= stop/start) containers.
+   * @param metadata any metadata to add to the plan(s)
    */
-  Plan computeRedeployPlan(params, Closure filter)
+  Collection<Plan<ActionDescriptor>> computeBouncePlans(params, def metadata)
   {
-    def env = getCurrentEnvironment(params)
-
-    def undeployPlan = computeUndeployPlan(env, filter)
-    def deployPlan = computeDeployPlan(env, params, filter)
-    def steps = []
-    if(undeployPlan?.step)
-      steps << undeployPlan?.step
-    if(deployPlan?.step)
-      steps << deployPlan?.step
-    if(steps)
-    {
-      Map metadata = [:]
-      steps.each { metadata.putAll(it.metadata) }
-      new Plan(new SequentialStep("Redeploy", metadata, steps))
+    computeDeploymentPlans(params, metadata) { Type type, SystemModelDelta delta ->
+      planner.computeTransitionPlan(type, delta, ['stopped', '<running>'])
     }
-    else
-      return null
+  }
+
+  /**
+   * Compute an undeploy plan.
+   * @param metadata any metadata to add to the plan(s)
+   */
+  Collection<Plan<ActionDescriptor>> computeUndeployPlans(params, def metadata)
+  {
+    computeDeploymentPlans(params, metadata) { Type type, SystemModelDelta delta ->
+      planner.computeTransitionPlan(type, delta, [null])
+    }
+  }
+
+  /**
+   * Compute a redeploy plan (= undeploy/deploy).
+   * @param metadata any metadata to add to the plan(s)
+   */
+  Collection<Plan<ActionDescriptor>> computeRedeployPlans(params, def metadata)
+  {
+    computeDeploymentPlans(params, metadata) { Type type, SystemModelDelta delta ->
+      planner.computeTransitionPlan(type, delta, [null, '<running>'])
+    }
   }
 
   public Plan createPlan(String name,

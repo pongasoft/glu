@@ -21,7 +21,6 @@ import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.agent.tracker.MountPointInfo
-import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import java.security.AccessControlException
 import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException
@@ -109,9 +108,7 @@ class AgentsController extends ControllerBase
     def agent = agentsService.getAgentInfo(request.fabric, params.id)
 
     def model = [:]
-    def plans
-    def bouncePlans
-    def redeployPlans
+    def allPlans = [:]
 
     def title = "agent [${params.id}]"
     
@@ -128,28 +125,21 @@ class AgentsController extends ControllerBase
       request.system = system
       params.system = system
 
+
       session.delta = []
 
-      plans = deploymentService.computeDeploymentPlans(params, [type: 'deploy', agent: params.id])
+      ['deploy', 'bounce', 'redeploy', 'undeploy'].each { type ->
+        params.name = "${type.capitalize()}: ${title}".toString()
 
-      session.delta.addAll(plans)
+        def plans =
+          deploymentService."compute${type.capitalize()}Plans"(params,
+                                                               [type: type,
+                                                                agent: params.id])
+        if(plans)
+          session.delta.addAll(plans)
 
-      // TODO HIGH YP: add this back
-//      def bouncePlan = deploymentService.computeBouncePlan(params)  { true }
-//      if(bouncePlan)
-//      {
-//        bouncePlan.name = "Bounce: ${title}"
-//        bouncePlans = deploymentService.groupByInstance(bouncePlan, [type: 'bounce', agent: params.id])
-//        session.delta.addAll(bouncePlans)
-//      }
-//
-//      def redeployPlan = deploymentService.computeRedeployPlan(params) { true }
-//      if(redeployPlan)
-//      {
-//        redeployPlan.name = "Redeploy: ${title}"
-//        redeployPlans = deploymentService.groupByInstance(redeployPlan, [type: 'redeploy', agent: params.id])
-//        session.delta.addAll(redeployPlans)
-//      }
+        allPlans[type] = plans
+      }
 
       def mountPoints = [] as Set
       system.each { mountPoints << it.mountPoint }
@@ -157,15 +147,16 @@ class AgentsController extends ControllerBase
       model = computeAgentModel(request.fabric,
                                 agent,
                                 mountPoints,
-                                plans && plans[0]?.hasLeafSteps())
+                                allPlans.deploy && allPlans.deploy[0]?.hasLeafSteps())
     }
 
     return [
-        model: model,
-        delta: plans,
-        bounce: bouncePlans,
-        redeploy: redeployPlans,
-        title: title
+      model: model,
+      delta: allPlans.deploy,
+      bounce: allPlans.bounce,
+      redeploy: allPlans.redeploy,
+      undeploy: allPlans.undeploy,
+      title: title
     ]
   }
 
@@ -256,8 +247,8 @@ class AgentsController extends ControllerBase
   def start = {
     params.state = 'running'
     params.name = params.name ?: 'Start'
-    redirectToActionPlan('start') { p ->
-      deploymentService.computeTransitionPlan(p) { true }
+    redirectToActionPlan('start') { p, metadata ->
+      deploymentService.computeTransitionPlans(p, metadata)
     }
   }
 
@@ -266,8 +257,8 @@ class AgentsController extends ControllerBase
   def stop = {
     params.state = 'stopped'
     params.name = params.name ?: 'Stop'
-    redirectToActionPlan('stop') { p ->
-      deploymentService.computeTransitionPlan(p) { true }
+    redirectToActionPlan('stop') { p, metadata ->
+      deploymentService.computeTransitionPlans(p, metadata)
     }
   }
 
@@ -275,8 +266,8 @@ class AgentsController extends ControllerBase
    * Bounce */
   def bounce = {
     params.name = params.name ?: 'Bounce'
-    redirectToActionPlan('bounce') { p ->
-      deploymentService.computeBouncePlan(p) { true }
+    redirectToActionPlan('bounce') { p, metadata ->
+      deploymentService.computeBouncePlans(p, metadata)
     }
   }
 
@@ -284,8 +275,8 @@ class AgentsController extends ControllerBase
    * Undeploy */
   def undeploy = {
     params.name = params.name ?: 'Undeploy'
-    redirectToActionPlan('undeploy') { p ->
-      deploymentService.computeUndeployPlan(p) { true }
+    redirectToActionPlan('undeploy') { p, metadata ->
+      deploymentService.computeUndeployPlans(p, metadata)
     }
   }
 
@@ -293,8 +284,8 @@ class AgentsController extends ControllerBase
    * Redeploy */
   def redeploy = {
     params.name = params.name ?: 'Redeploy'
-    redirectToActionPlan('redeploy') { p ->
-      deploymentService.computeRedeployPlan(p) { true }
+    redirectToActionPlan('redeploy') { p, metadata ->
+      deploymentService.computeRedeployPlans(p, metadata)
     }
   }
 
@@ -313,20 +304,26 @@ class AgentsController extends ControllerBase
 
       params.system = system
       params.fabric = request.fabric
+      params.type = IStep.Type.SEQUENTIAL
+      params.name = "${params.name} ${params.id}:${params.mountPoint}".toString()
 
-      def plan = closure(params)
+      def metadata = [
+        action: action,
+        agent: params.id,
+        mountPoint: params.mountPoint
+      ]
 
-      if(params.name)
+      def plans = closure(params, metadata)
+      if(plans)
       {
-        plan.name = "${params.name} ${params.id}:${params.mountPoint}".toString()
+        session.delta = plans
+        redirect(controller: 'plan', action: 'view', id: plans[0].id)
       }
-      plan = deploymentService.groupByInstance(plan,
-                                               IStep.Type.SEQUENTIAL,
-                                               [action: action,
-                                               agent: params.id,
-                                               mountPoint: params.mountPoint])
-      session.delta = [plan]
-      redirect(controller: 'plan', action: 'view', id: plan.id)
+      else
+      {
+        flash.error = "No plan to execute ${action}"
+        redirect(controller: 'agent', action: 'view', id: params.id)
+      }
     }
     catch (Exception e)
     {

@@ -524,7 +524,7 @@ public class ConsoleTagLib
         }
       }.join(' - ')
     }
-    
+
     if(step instanceof CompositeStep)
     {
       step.steps.each { child ->

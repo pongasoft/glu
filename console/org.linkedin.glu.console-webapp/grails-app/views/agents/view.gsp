@@ -125,6 +125,8 @@
 
   <g:render template="/plan/selectDelta" model="[delta: redeploy, title: 'Redeploy: ' + title]"/>
 
+  <g:render template="/plan/selectDelta" model="[delta: undeploy, title: 'Undeploy: ' + title]"/>
+
 </g:if>
 <g:else>
   <h2>No such agent ${params.id} [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h2>

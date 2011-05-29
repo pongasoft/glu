@@ -32,10 +32,13 @@ import org.linkedin.glu.provisioner.plan.api.Plan;
 import org.linkedin.glu.provisioner.plan.api.PlanBuilder;
 import org.linkedin.groovy.util.state.StateMachine;
 import org.linkedin.util.annotations.Initializer;
+import org.linkedin.util.lang.LangUtils;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author yan@pongasoft.com
@@ -73,12 +76,82 @@ public class PlannerImpl implements Planner
 
     ICompositeStepBuilder<ActionDescriptor> stepBuilder = builder.addCompositeSteps(type);
 
-    for(String key : systemModelDelta.getKeys())
+    Set<String> keys = new TreeSet<String>(systemModelDelta.getKeys());
+
+    for(String key : keys)
     {
       processEntryDelta(stepBuilder, systemModelDelta, systemModelDelta.findEntryDelta(key));
     }
 
     return builder.toPlan();
+  }
+
+  @Override
+  public Plan<ActionDescriptor> computeTransitionPlan(IStep.Type type,
+                                                      SystemModelDelta systemModelDelta,
+                                                      Collection<String> toStates)
+  {
+    if(systemModelDelta == null)
+      return null;
+
+    PlanBuilder<ActionDescriptor> builder = new PlanBuilder<ActionDescriptor>();
+
+    ICompositeStepBuilder<ActionDescriptor> stepBuilder = builder.addCompositeSteps(type);
+
+    Set<String> keys = new TreeSet<String>(systemModelDelta.getKeys());
+
+    for(String key : keys)
+    {
+      processEntryTransition(stepBuilder,
+                             systemModelDelta,
+                             systemModelDelta.findEntryDelta(key),
+                             toStates);
+    }
+
+    return builder.toPlan();
+  }
+
+  /**
+   * Processes one entry transition
+   */
+  protected void processEntryTransition(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
+                                        SystemModelDelta systemModelDelta,
+                                        SystemEntryDelta entryDelta,
+                                        Collection<String> toStates)
+  {
+    if(addNoOpStepOnNotOkToProcess(stepBuilder, systemModelDelta, entryDelta))
+      return;
+
+    ICompositeStepBuilder<ActionDescriptor> entryStepsBuilder =
+      createAgentMountPointSequentialSteps(stepBuilder, entryDelta);
+
+    String fromState = entryDelta.getCurrentEntryState();
+
+    for(String toState : toStates)
+    {
+      if("<running>".equals(toState))
+        toState = entryDelta.getExpectedEntryState();
+      
+      processEntryStateMismatch(entryStepsBuilder,
+                                systemModelDelta,
+                                entryDelta,
+                                fromState,
+                                toState);
+
+      fromState = toState;
+    }
+  }
+
+  private ICompositeStepBuilder<ActionDescriptor> createAgentMountPointSequentialSteps(
+    ICompositeStepBuilder<ActionDescriptor> stepBuilder, SystemEntryDelta entryDelta)
+  {
+    ICompositeStepBuilder<ActionDescriptor> entryStepsBuilder =
+      stepBuilder.addCompositeSteps(IStep.Type.SEQUENTIAL);
+
+    entryStepsBuilder.setMetadata("agent", entryDelta.getAgent());
+    entryStepsBuilder.setMetadata("mountPoint", entryDelta.getMountPoint());
+
+    return entryStepsBuilder;
   }
 
   /**
@@ -91,13 +164,37 @@ public class PlannerImpl implements Planner
     if(!entryDelta.hasDelta())
       return;
 
+    if(addNoOpStepOnNotOkToProcess(stepBuilder, systemModelDelta, entryDelta))
+      return;
+
+    // not deployed => need to deploy it or deployed but not expected => need to undeploy
+    if(entryDelta.getCurrentEntry() == null || entryDelta.getExpectedEntry() == null)
+    {
+      ICompositeStepBuilder<ActionDescriptor> entryStepsBuilder =
+        createAgentMountPointSequentialSteps(stepBuilder, entryDelta);
+
+      processEntryStateMismatch(entryStepsBuilder,
+                                systemModelDelta,
+                                entryDelta);
+      return;
+    }
+  }
+
+  /**
+   * Check if the entry is ok to process meaning it is not in transition and the agent is available
+   * @return <code>true</code> if noop steps were added
+   */
+  protected boolean addNoOpStepOnNotOkToProcess(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
+                                                SystemModelDelta systemModelDelta,
+                                                SystemEntryDelta entryDelta)
+  {
     if(entryDelta.findCurrentValue("metadata.transitionState") != null)
     {
       addNoOpStep(stepBuilder,
                   entryDelta,
                   "already in transition: " +
                   entryDelta.findCurrentValue("metadata.transitionState"));
-      return;
+      return true;
     }
 
     if(_agentURIProvider != null)
@@ -111,24 +208,10 @@ public class PlannerImpl implements Planner
         addNoOpStep(stepBuilder,
                     entryDelta,
                     "missing agent: " + entryDelta.getAgent());
-        return;
+        return true;
       }
     }
-
-    // not deployed => need to deploy it or deployed but not expected => need to undeploy
-    if(entryDelta.getCurrentEntry() == null || entryDelta.getExpectedEntry() == null)
-    {
-      ICompositeStepBuilder<ActionDescriptor> entryStepsBuilder =
-        stepBuilder.addCompositeSteps(IStep.Type.SEQUENTIAL);
-
-      entryStepsBuilder.setMetadata("agent", entryDelta.getAgent());
-      entryStepsBuilder.setMetadata("mountPoint", entryDelta.getMountPoint());
-
-      processEntryStateMismatch(entryStepsBuilder,
-                                systemModelDelta,
-                                entryDelta);
-      return;
-    }
+    return false;
   }
 
   /**
@@ -168,6 +251,10 @@ public class PlannerImpl implements Planner
                                            Object fromState,
                                            Object toState)
   {
+    // nothing to do if both states are equal!
+    if(LangUtils.isEqual(fromState, toState))
+      return;
+
     if(fromState == null)
       addLifecycleInstallStep(stepBuilder, systemModelDelta, entryDelta);
 
@@ -226,6 +313,10 @@ public class PlannerImpl implements Planner
                                     Object fromState,
                                     Object toState)
   {
+    // nothing to do if both states are equal!
+    if(LangUtils.isEqual(fromState, toState))
+      return;
+
     if(fromState == null)
       fromState = StateMachine.NONE;
 

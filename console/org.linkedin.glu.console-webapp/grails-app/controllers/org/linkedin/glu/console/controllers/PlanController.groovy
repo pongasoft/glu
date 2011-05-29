@@ -306,15 +306,15 @@ public class PlanController extends ControllerBase
         break;
 
       case 'undeploy':
-        plan = deploymentService.computeUndeployPlan(args) { true }
+        plan = deploymentService.computeUndeployPlans(args) { true }
         break;
 
       case 'bounce':
-        plan = deploymentService.computeBouncePlan(args) { true }
+        plan = deploymentService.computeBouncePlans(args) { true }
         break;
 
       case 'redeploy':
-        plan = deploymentService.computeRedeployPlan(args) { true }
+        plan = deploymentService.computeRedeployPlans(args) { true }
         break;
 
       default:
@@ -472,7 +472,7 @@ public class PlanController extends ControllerBase
     def args = [:]
     args.system = request.system
     args.fabric = request.fabric
-    return deploymentService.computeUndeployPlan(args) { true }
+    return deploymentService.computeUndeployPlans(args) { true }
   }
 
   private Plan createStopAllPlan(IStep.Type type)

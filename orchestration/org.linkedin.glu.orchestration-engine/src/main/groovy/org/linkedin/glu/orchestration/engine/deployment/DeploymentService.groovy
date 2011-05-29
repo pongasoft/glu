@@ -38,40 +38,31 @@ interface DeploymentService
    * @param metadata any metadata to add to the plan(s)
    * @return the plans (0, 1 or 2) depending on whether there is a plan at all or if more than 1 type
    */
-  Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params, def metadata)
+  Collection<Plan<ActionDescriptor>> computeDeployPlans(params, def metadata)
 
   /**
-   * Computes a transition plan. The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
+   * Computes a transition plan.
+   * @param metadata any metadata to add to the plan(s)
    */
-  Plan computeTransitionPlan(params, Closure filter)
+  Collection<Plan<ActionDescriptor>> computeTransitionPlans(params, def metadata)
 
   /**
-   * Compute a bounce plan to bounce (= stop/start) containers. The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
+   * Compute a bounce plan to bounce (= stop/start) containers.
+   * @param metadata any metadata to add to the plan(s)
    */
-  Plan computeBouncePlan(params, Closure filter)
+  Collection<Plan<ActionDescriptor>> computeBouncePlans(params, def metadata)
 
   /**
-   * Compute an undeploy plan. The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
+   * Compute an undeploy plan.
+   * @param metadata any metadata to add to the plan(s)
    */
-  Plan computeUndeployPlan(params, Closure filter)
+  Collection<Plan<ActionDescriptor>> computeUndeployPlans(params, def metadata)
 
   /**
-   * Compute a redeploy plan (= undeploy/deploy). The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
+   * Compute a redeploy plan (= undeploy/deploy).
+   * @param metadata any metadata to add to the plan(s)
    */
-  Plan computeRedeployPlan(params, Closure filter)
-
-  Plan createPlan(String name,
-                  Environment currentEnvironment,
-                  Environment expectedEnvironment,
-                  Closure closure)
+  Collection<Plan<ActionDescriptor>> computeRedeployPlans(params, def metadata)
 
   /**
    * Shortcut to group the plan by instance in both sequential and parallel types.

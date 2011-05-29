@@ -21,10 +21,24 @@ import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
 import org.linkedin.glu.provisioner.plan.api.IStep;
 import org.linkedin.glu.provisioner.plan.api.Plan;
 
+import java.util.Collection;
+
 /**
  * @author yan@pongasoft.com
  */
 public interface Planner
 {
+  /**
+   * Compute the deployment plan to 'fix' the delta
+   * @return a plan with the main step of type <code>type</code>
+   */
   Plan<ActionDescriptor> computeDeploymentPlan(IStep.Type type, SystemModelDelta systemModelDelta);
+
+  /**
+   * Computes the transition plan from the current state to the states provided in the collection
+   * @return a plan with the main step of type <code>type</code>
+   */
+  Plan<ActionDescriptor> computeTransitionPlan(IStep.Type type,
+                                               SystemModelDelta systemModelDelta,
+                                               Collection<String> toStates);
 }
