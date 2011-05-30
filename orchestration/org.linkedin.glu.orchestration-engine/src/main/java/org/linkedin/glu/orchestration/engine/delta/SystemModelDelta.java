@@ -18,6 +18,7 @@ package org.linkedin.glu.orchestration.engine.delta;
 
 import org.linkedin.glu.provisioner.core.model.SystemModel;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,6 +33,7 @@ public interface SystemModelDelta
 
   Set<String> getKeys();
   SystemEntryDelta findEntryDelta(String key);
+  Map<String, SystemEntryDelta> getEntryDeltas();
 
   /**
    * @return <code>true</code> if any entry has a delta

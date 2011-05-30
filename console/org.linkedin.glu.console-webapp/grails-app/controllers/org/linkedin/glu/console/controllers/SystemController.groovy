@@ -19,7 +19,6 @@ package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
-import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.console.domain.DbSystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.orchestration.engine.system.SystemService
@@ -122,7 +121,6 @@ class SystemController extends ControllerBase
       def title = "Fabric [${request.fabric}]"
 
       params.system = request.system
-      params.fabric = request.fabric
 
       def missingAgents = systemService.getMissingAgents(request.fabric, request.system)
 
@@ -167,7 +165,6 @@ class SystemController extends ControllerBase
 
       def args = [:]
       args.system = request.system
-      args.fabric = request.fabric
       args.name = params.title
 
       def allPlans = [:]

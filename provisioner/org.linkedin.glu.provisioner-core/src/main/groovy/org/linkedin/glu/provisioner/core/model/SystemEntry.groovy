@@ -27,6 +27,7 @@ import org.linkedin.glu.utils.tags.ReadOnlyTaggeable
 class SystemEntry implements ReadOnlyTaggeable
 {
   public static final String DEFAULT_ENTRY_STATE = "running";
+  public static final String DEFAULT_PARENT = "/";
 
   String agent
   String mountPoint
@@ -55,7 +56,7 @@ class SystemEntry implements ReadOnlyTaggeable
     if(entryState)
       res.entryState = entryState
 
-    if(parent)
+    if(parent && parent != DEFAULT_PARENT)
       res.parent = parent
 
     if(initParameters)
@@ -79,6 +80,14 @@ class SystemEntry implements ReadOnlyTaggeable
       return DEFAULT_ENTRY_STATE
     else
       return entryState
+  }
+
+  String getParent()
+  {
+    if(!parent)
+      return DEFAULT_PARENT
+    else
+      return parent
   }
 
   @Override

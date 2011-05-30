@@ -60,7 +60,7 @@ public class SystemModelDeltaImpl implements SystemModelDelta
     return _currentSystemModel;
   }
 
-  public Map<String, SystemEntryDelta> getDeltas()
+  public Map<String, SystemEntryDelta> getEntryDeltas()
   {
     return _deltas;
   }

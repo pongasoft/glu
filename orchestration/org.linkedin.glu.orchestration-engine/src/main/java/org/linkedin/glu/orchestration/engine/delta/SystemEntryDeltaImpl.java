@@ -180,6 +180,12 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
   }
 
   @Override
+  public Object getError()
+  {
+    return getMetadataValue(_currentEntry, "error");
+  }
+
+  @Override
   public boolean hasDelta()
   {
     return !_valueDeltas.isEmpty();
@@ -189,5 +195,18 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
   public StateMachine getStateMachine()
   {
     return DEFAULT_STATE_MACHINE;
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> T getMetadataValue(SystemEntry entry, String key)
+  {
+    if(entry == null)
+      return null;
+
+    Map<String, Object> metadata = (Map<String, Object>) entry.getMetadata();
+    if(metadata == null)
+      return null;
+
+    return (T) metadata.get(key);
   }
 }

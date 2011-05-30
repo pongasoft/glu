@@ -50,6 +50,8 @@ public interface SystemEntryDelta
   Map<String, Object> getCurrentValues();
   Object findCurrentValue(String key);
 
+  Object getError();
+
   boolean hasDelta();
 
   /**

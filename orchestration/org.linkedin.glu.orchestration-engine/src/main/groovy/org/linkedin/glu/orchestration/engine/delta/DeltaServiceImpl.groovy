@@ -17,7 +17,6 @@
 
 package org.linkedin.glu.orchestration.engine.delta
 
-import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
@@ -25,6 +24,7 @@ import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.provisioner.core.model.TagsSystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemFilter
 import org.linkedin.glu.provisioner.core.model.LogicSystemFilterChain
+import org.linkedin.glu.orchestration.engine.fabric.FabricService
 
 class DeltaServiceImpl implements DeltaService
 {
@@ -32,183 +32,173 @@ class DeltaServiceImpl implements DeltaService
   AgentsService agentsService
 
   @Initializable
-  Set<String> includedInVersionMismatch = null
+  FabricService fabricService
 
-  @Initializable
-  Set<String> excludedInVersionMismatch = null
+  @Initializable(required = true)
+  DeltaMgr deltaMgr
 
   @Initializable
   boolean notRunningOverridesVersionMismatch = false
 
-  def computeDelta(Fabric fabric, SystemModel expectedSystem)
+  def computeDelta(SystemModel expectedModel)
   {
-    if(expectedSystem && expectedSystem.fabric != fabric.name)
-      throw new IllegalArgumentException("fabric mismatch")
+    if(!expectedModel)
+      return null
+
+    Fabric fabric = fabricService.findFabric(expectedModel.fabric)
+
+    if(!fabric)
+      throw new IllegalArgumentException("unknown fabric ${expectedModel.fabric}")
 
     SystemModel currentSystem = agentsService.getCurrentSystemModel(fabric)
 
     [
-        delta: computeDelta(currentSystem, expectedSystem),
+        delta: computeDelta(expectedModel, currentSystem),
         accuracy: currentSystem.metadata.accuracy
     ]
   }
 
-  def computeDelta(SystemModel currentSystem, SystemModel expectedSystem)
+  Collection<Map<String, Object>> computeDelta(SystemModel expectedModel,
+                                               SystemModel currentModel)
   {
-    (expectedSystem, currentSystem) = SystemModel.filter(expectedSystem, currentSystem)
+    // 1. compute delta between expectedModel and currentModel
+    SystemModelDelta delta = deltaMgr.computeDelta(expectedModel, currentModel)
 
     def entries = []
 
-    Set<String> emptyAgents = new HashSet<String>()
-    if(currentSystem?.metadata?.emptyAgents)
-      emptyAgents.addAll(currentSystem.metadata.emptyAgents)
+    if(delta == null)
+      return entries
 
-    if(expectedSystem == null)
+    Set<String> emptyAgents = new HashSet<String>()
+    if(currentModel?.metadata?.emptyAgents)
+      emptyAgents.addAll(currentModel.metadata.emptyAgents)
+
+    Set<String> allKeys = delta.keys as SortedSet
+
+    allKeys.each { String key ->
+      SystemEntryDelta entryDelta = delta.findEntryDelta(key)
+
+      def cef = entryDelta.currentValues
+
+      def eef = entryDelta.expectedValues
+
+      // means that it is not deployed at all
+      if(!cef)
+      {
+        eef.status = 'notDeployed'
+        eef.state = 'ERROR'
+        setTags(eef, entryDelta.expectedEntry.tags)
+        entries << eef
+        emptyAgents.remove(eef.agent)
+        return
+      }
+
+      // means that it should not be deployed at all
+      if(!eef)
+      {
+        cef.status = 'unexpected'
+        cef.state = 'ERROR'
+        entries << cef
+        emptyAgents.remove(cef.agent)
+        return
+      }
+
+      // here we have both currentEntry and expectedEntry...
+      emptyAgents.remove(cef.agent)
+
+      // processing version mismatch
+      processDelta(entryDelta, cef)
+
+      if(cef.state != 'ERROR')
+      {
+        // copy all missing keys from expected into current
+        eef.each { k,v ->
+          if(!cef.containsKey(k))
+            cef[k] = v
+        }
+      }
+      else
+      {
+        // override all keys from expected into current
+        eef.each { k,v ->
+          cef[k] = v
+        }
+      }
+
+      setTags(cef, entryDelta.expectedEntry.tags)
+      entries << cef
+    }
+
+  emptyAgents.each { agent ->
+    def entry= [:]
+    entry.agent = agent
+    entry['metadata.currentState'] = 'NA'
+    entry.status = 'NA'
+    entry.state = 'NA'
+    setTags(entry, expectedModel?.getAgentTags(agent)?.tags)
+    entries << entry
+  }
+
+  return entries
+}
+
+/**
+ * Set status/statusInfo/state for an entry delta (note that the delta has already been computed
+ * and is accessible with {@link SystemEntryDelta#getValueDeltaKeys()})
+ *
+ * @param stateMap where to write the state
+ */
+  protected void processDelta(SystemEntryDelta entryDelta, Map<String, Object> stateMap)
+  {
+    // give a chance for custom delta...
+    processCustomDelta(entryDelta, stateMap)
+
+    // if custom delta has set a state then there is nothing else to do
+    if(stateMap.state)
+      return
+
+    // in case there is a delta
+    if(entryDelta.hasDelta())
     {
-      currentSystem.each { SystemEntry currentEntry ->
-        def entry = currentEntry.flatten()
-        entry.state = 'UNKNOWN'
-        entry.status = 'unknown'
-        entries << entry
+      stateMap.state = 'ERROR'
+
+      Set<String> keys = entryDelta.valueDeltaKeys
+
+      // in case notRunningOverridesVersionMismatch is set, overrides the value
+      if(entryDelta.findEntryStateDelta() &&
+         (keys.size() == 1 || notRunningOverridesVersionMismatch))
+      {
+        stateMap.status = "notExpectedState"
+        stateMap.statusInfo = "${entryDelta.expectedEntryState} != ${entryDelta.currentEntryState}".toString()
+      }
+      else
+      {
+        // handle it as a delta
+        stateMap.status = 'delta'
+        stateMap.statusInfo = keys.sort().collect { String n ->
+          ValueDelta delta = entryDelta.findValueDelta(n)
+          "${n}:${delta.expectedValue} != ${n}:${delta.currentValue}".toString()
+        }
+        
+        if(stateMap.statusInfo.size() == 1)
+          stateMap.statusInfo = stateMap.statusInfo[0]
       }
     }
     else
     {
-      def allKeys = (expectedSystem.findEntries().key + currentSystem.findEntries().key) as SortedSet
-
-      allKeys.each { key ->
-        SystemEntry currentEntry = currentSystem.findEntry(key)
-        def cef = currentEntry?.flatten()
-        
-        SystemEntry expectedEntry = expectedSystem.findEntry(key)
-        def eef = expectedEntry?.flatten()
-
-        // means that it is not deployed at all
-        if(!cef)
-        {
-          eef.status = 'notDeployed'
-          eef.state = 'ERROR'
-          setTags(eef, expectedEntry.tags)
-          entries << eef
-          emptyAgents.remove(eef.agent)
-          return
-        }
-
-        // means that it should not be deployed at all
-        if(!eef)
-        {
-          cef.status = 'unexpected'
-          cef.state = 'ERROR'
-          entries << cef
-          emptyAgents.remove(cef.agent)
-          return
-        }
-
-        // here we have both currentEntry and expectedEntry...
-        emptyAgents.remove(cef.agent)
-
-        // processing version mismatch
-        processVersionMismatch(eef, cef)
-
-        // a chance to add custom processing
-        processCustomDelta(eef, cef)
-
-        if(!cef.state)
-        {
-          if(cef['metadata.currentState'] == 'running')
-          {
-            def error = cef['metadata.error']
-            if(error)
-            {
-              cef.status = 'error'
-              cef.statusInfo = error.toString()
-              cef.state = 'ERROR'
-            }
-            else
-            {
-              cef.status = 'running'
-              cef.state = 'RUNNING'
-            }
-          }
-          else
-          {
-            cef.status = 'notRunning'
-            cef.state = 'ERROR'
-          }
-        }
-
-        if(cef.state != 'ERROR')
-        {
-          // copy all missing keys from expected into current
-          eef.each { k,v ->
-            if(!cef.containsKey(k))
-              cef[k] = v
-          }
-        }
-        else
-        {
-          // override all keys from expected into current
-          eef.each { k,v ->
-            cef[k] = v
-          }
-        }
-
-        setTags(cef, expectedEntry.tags)
-        entries << cef
-      }
-    }
-
-    emptyAgents.each { agent ->
-      def entry= [:]
-      entry.agent = agent
-      entry['metadata.currentState'] = 'NA'
-      entry.status = 'NA'
-      entry.state = 'NA'
-      setTags(entry, expectedSystem?.getAgentTags(agent)?.tags)
-      entries << entry
-    }
-
-    return entries
-  }
-
-  /**
-   * By default the version mismatch is computed by comparing all initParameters (+ script). You
-   * can tweak which ones are taken into account by initializing:
-   * <code>includedInVersionMismatch</code> or <code>excludedInVersionMismatch</code>.
-   *
-   * @param eef expected entry (flattened)
-   * @param cef current entry (flattened)
-   */
-  protected void processVersionMismatch(Map eef, Map cef)
-  {
-    def initParameters = eef.keySet().findAll { it.startsWith("initParameters.") } +
-                         cef.keySet().findAll { it.startsWith("initParameters.") }
-
-    initParameters << 'script'
-
-    if(includedInVersionMismatch != null)
-      initParameters = initParameters.findAll { includedInVersionMismatch.contains(it) }
-
-    if(excludedInVersionMismatch != null)
-      initParameters = initParameters.findAll { !excludedInVersionMismatch.contains(it) }
-
-    initParameters.each { n ->
-      if(eef[n] != cef[n])
+      // when there is an error
+      if(entryDelta.error)
       {
-        cef.status = 'versionMismatch'
-        cef.statusInfo = "${n}:${eef[n]} != ${n}:${cef[n]}".toString()
-        cef.state = 'ERROR'
+        stateMap.status = 'error'
+        stateMap.statusInfo = entryDelta.error.toString()
+        stateMap.state = 'ERROR'
       }
-    }
-
-    // allow to override version mismatch in case not running
-    if(cef['metadata.currentState'] != 'running')
-    {
-      if(notRunningOverridesVersionMismatch)
+      else
       {
-        cef.status = 'notRunning'
-        cef.remove('statusInfo')
-        cef.state = 'ERROR'
+        // everything ok!
+        stateMap.status = "expectedState"
+        stateMap.statusInfo = entryDelta.expectedEntryState
+        stateMap.state = 'OK'
       }
     }
   }
@@ -216,10 +206,11 @@ class DeltaServiceImpl implements DeltaService
   /**
    * Nothing to do here. Subclasses can tweak the delta.
    * 
-   * @param eef expected entry (flattened)
-   * @param cef current entry (flattened)
+   * @param entryDelta the delta has already been computed
+   * and is accessible with {@link SystemEntryDelta#getValueDeltaKeys()}
+   * @param stateMap where to write the state
    */
-  protected void processCustomDelta(Map eef, Map cef)
+  protected void processCustomDelta(SystemEntryDelta entryDelta, Map<String, Object> stateMap)
   {
     // nothing to do in this implementation
   }
@@ -237,12 +228,11 @@ class DeltaServiceImpl implements DeltaService
       entry.tags = entryTags as SortedSet
   }
 
-  Map computeGroupByDelta(Fabric fabric,
-                          SystemModel expectedSystem,
+  Map computeGroupByDelta(SystemModel expectedSystem,
                           Map groupByDefinition,
                           Map groupBySelection)
   {
-    def deltaWithAccuracy = computeDelta(fabric, expectedSystem)
+    def deltaWithAccuracy = computeDelta(expectedSystem)
     def current = deltaWithAccuracy.delta
 
     def columnNames = groupByDefinition.collect { k, v -> k }
@@ -273,6 +263,13 @@ class DeltaServiceImpl implements DeltaService
       columnNames = [groupBySelection.groupBy, * columnNames]
     }
 
+    boolean removeStatusInfoColumn = false
+    if(columnNames.contains("status") && !columnNames.contains("statusInfo"))
+    {
+      removeStatusInfoColumn = true
+      columnNames << "statusInfo"
+    }
+    
     def column0Name = columnNames[0]
 
     def allTags = new HashSet()
@@ -358,7 +355,7 @@ class DeltaServiceImpl implements DeltaService
           errorsCount: errors.size()
       ]
 
-      row.state = expectedSystem ? (row.errorsCount > 0 ? 'ERROR' : 'RUNNING') : 'UNKNOWN'
+      row.state = expectedSystem ? (row.errorsCount > 0 ? 'ERROR' : 'OK') : 'UNKNOWN'
       row.na = list.find { it.state == 'NA'} ? 'NA' : ''
 
       def entries = isErrorsFilter ? errors : list
@@ -372,7 +369,7 @@ class DeltaServiceImpl implements DeltaService
           if(entries.size() > 1)
           {
             summary = [:]
-            groupByColumns.each { column ->
+            columnNames.each { column ->
               if(column != 'tags')
                 summary[column] = entries."${column}".unique()
             }
@@ -392,6 +389,9 @@ class DeltaServiceImpl implements DeltaService
         delta[column0] = row
       }
     }
+
+    if(removeStatusInfoColumn)
+      columnNames.remove("statusInfo")
 
     return [
         delta: delta,

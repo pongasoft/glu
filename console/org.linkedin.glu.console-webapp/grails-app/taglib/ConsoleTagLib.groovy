@@ -200,7 +200,7 @@ public class ConsoleTagLib
 
       case 'status':
         out << cl.formatDeltaStatus(status: value, statusInfo: detail.statusInfo, row: args.row)
-        break;
+      break;
 
       default:
         if(columns[columnName].linkFilter)
@@ -285,23 +285,29 @@ public class ConsoleTagLib
 
     switch(status)
     {
-      case 'running':
-        out << 'running'
+      case 'expectedState':
+      case 'notExpectedState':
+        def statusInfo = args.statusInfo
+        if(statusInfo instanceof Collection)
+        {
+          statusInfo = statusInfo as Set
+          if(statusInfo.size() == 1)
+            statusInfo = statusInfo.iterator().next()
+          else
+          {
+            out << "<div class=\"count\">${statusInfo.size()}</div>"
+            return
+          }
+        }
+        out << statusInfo.encodeAsHTML()
         break;
 
-      case 'notRunning':
-        out << 'NOT running'
-        break;
-
-      case 'versionMismatch':
-        if(args.statusInfo)
-        {
-          out << "<a href=\"#\" title=\"${args.statusInfo.encodeAsHTML()}\" class=\"statusInfo\" onclick=\"toggleShowHide('si-${args.row}');return false;\">version MISMATCH</a><dt id=\"si-${args.row}\" class=\"hidden\">${args.statusInfo.encodeAsHTML()}</dt>"
+      case 'delta':
+        out << "<a href=\"#\" title=\"${args.statusInfo.toString().encodeAsHTML()}\" class=\"statusInfo\" onclick=\"toggleShowHide('si-${args.row}');return false;\">DELTA</a><dt id=\"si-${args.row}\" class=\"hidden\"><ul>"
+        args.statusInfo.each { statusInfo ->
+          out << "<li>${statusInfo.encodeAsHTML()}</li>"
         }
-        else
-        {
-          out << "version MISMATCH"
-        }
+        out << "</ul></dt>"
         break;
 
       case 'unexpected':

@@ -114,7 +114,6 @@ class AgentsController extends ControllerBase
     
     if(agent)
     {
-      params.fabric = request.fabric
       params.name = title
 
       def system = request.system
@@ -303,7 +302,6 @@ class AgentsController extends ControllerBase
       request.system = system
 
       params.system = system
-      params.fabric = request.fabric
       params.type = IStep.Type.SEQUENTIAL
       params.name = "${params.name} ${params.id}:${params.mountPoint}".toString()
 

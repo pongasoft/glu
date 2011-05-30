@@ -39,7 +39,7 @@
     padding-bottom: 1em;
   }
   </style>
-  <link rel="stylesheet" href="${resource(dir:'css',file:'audit.css')}"/>
+  <link rel="stylesheet" href="${resource(dir:'css',file:'delta.css')}"/>
   <script type="text/javascript" src="${resource(dir:'js',file:'delta.js')}"></script>
   <g:javascript>
 <cl:renderDeltaJS filter="${params.systemFilter}"/>

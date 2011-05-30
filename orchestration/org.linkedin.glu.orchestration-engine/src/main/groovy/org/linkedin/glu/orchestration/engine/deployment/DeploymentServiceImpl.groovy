@@ -89,6 +89,16 @@ class DeploymentServiceImpl implements DeploymentService
     }
   }
 
+  /**
+   * Compute deployment plans by doing the following:
+   * <ol>
+   *   <li>compute delta between expected model (params.system) and current model (computed)
+   *   <li>compute the deployment plan(s) (closure callback) (use params.type if a given type only
+   *       is required
+   *   <li>set various metadata on the plan(s) as well as the name
+   * </ol>
+   * @return a collection of plans (<code>null</code> if no expected model) which may be empty
+   */
   private Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params,
                                                                     def metadata,
                                                                     Closure closure)
@@ -98,16 +108,15 @@ class DeploymentServiceImpl implements DeploymentService
     if(!expectedModel)
       return null
 
-    if(expectedModel.fabric != params.fabric?.name)
-      throw new IllegalArgumentException("mismatch fabric: ${expectedModel.fabric} != ${params.fabric?.name}")
+    Fabric fabric = fabricService.findFabric(expectedModel.fabric)
 
-    SystemModel currentModel = agentsService.getCurrentSystemModel(params.fabric)
+    if(!fabric)
+      throw new IllegalArgumentException("unknown fabric ${expectedModel.fabric}")
+
+    SystemModel currentModel = agentsService.getCurrentSystemModel(fabric)
 
     // 1. compute delta between expectedModel and currentModel
     SystemModelDelta delta = deltaMgr.computeDelta(expectedModel, currentModel)
-
-    if(!delta.hasDelta())
-      return []
 
     Collection<Type> types = []
     if(params.type)

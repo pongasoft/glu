@@ -21,9 +21,10 @@ import org.linkedin.glu.orchestration.engine.fabric.Fabric
 
 interface DeltaService
 {
-  def computeDelta(Fabric fabric, SystemModel expectedSystem)
-
-  def computeDelta(SystemModel currentSystem, SystemModel expectedSystem)
+  /**
+   * Computes the delta between the expected model and the current one (which will be computed)
+   */
+  def computeDelta(SystemModel expectedModel)
 
   /**
    * This method used to be in <code>DashboardController</code> and as been moved here to
@@ -33,8 +34,7 @@ interface DeltaService
    * @param groupBySelection TODO MED YP (params from the request)
    * @return the delta grouped by according to the definition and selection
    */
-  Map computeGroupByDelta(Fabric fabric,
-                          SystemModel expectedSystem,
+  Map computeGroupByDelta(SystemModel expectedSystem,
                           Map groupByDefinition,
                           Map groupBySelection)
 }

@@ -17,7 +17,6 @@
 
 package org.linkedin.glu.orchestration.engine.deployment
 
-import org.linkedin.glu.provisioner.core.environment.Environment
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.plan.api.IPlanExecutionProgressTracker
 import org.linkedin.glu.provisioner.plan.api.IStep
@@ -32,7 +31,6 @@ interface DeploymentService
 {
   /**
    * @param params.system the 'expected' system (with filters)
-   * @param params.fabric the fabric (object)
    * @param params.name name of the plan created
    * @param params.type plan types (<code>null</code> means both types, otherwise the type you want)
    * @param metadata any metadata to add to the plan(s)
