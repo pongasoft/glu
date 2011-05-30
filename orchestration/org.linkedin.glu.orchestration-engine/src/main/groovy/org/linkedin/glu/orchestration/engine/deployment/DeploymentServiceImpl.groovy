@@ -177,7 +177,7 @@ class DeploymentServiceImpl implements DeploymentService
   Collection<Plan<ActionDescriptor>> computeBouncePlans(params, def metadata)
   {
     computeDeploymentPlans(params, metadata) { Type type, SystemModelDelta delta ->
-      planner.computeTransitionPlan(type, delta, ['stopped', '<running>'])
+      planner.computeTransitionPlan(type, delta, ['stopped', '<expected>'])
     }
   }
 
@@ -199,7 +199,7 @@ class DeploymentServiceImpl implements DeploymentService
   Collection<Plan<ActionDescriptor>> computeRedeployPlans(params, def metadata)
   {
     computeDeploymentPlans(params, metadata) { Type type, SystemModelDelta delta ->
-      planner.computeTransitionPlan(type, delta, [null, '<running>'])
+      planner.computeTransitionPlan(type, delta, [null, '<expected>'])
     }
   }
 

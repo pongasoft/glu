@@ -61,11 +61,11 @@ public class TestPlannerImpl extends GroovyTestCase
     assertEquals("""<?xml version="1.0"?>
 <plan>
   <sequential>
-    <sequential>
-      <leaf agent="a1" description="TODO script lifecycle: installScript" fabric="f1" mountPoint="a1" scriptLifecycle="installScript" />
-      <leaf agent="a1" description="TODO script action: install" fabric="f1" mountPoint="a1" scriptTransition="install" />
-      <leaf agent="a1" description="TODO script action: configure" fabric="f1" mountPoint="a1" scriptTransition="configure" />
-      <leaf agent="a1" description="TODO script action: start" fabric="f1" mountPoint="a1" scriptTransition="start" />
+    <sequential agent="a1" mountPoint="m1">
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: install" scriptTransition="install" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: start" scriptTransition="start" />
     </sequential>
   </sequential>
 </plan>
@@ -87,11 +87,11 @@ public class TestPlannerImpl extends GroovyTestCase
     assertEquals("""<?xml version="1.0"?>
 <plan>
   <sequential>
-    <sequential>
-      <leaf agent="a1" description="TODO script action: stop" fabric="f1" mountPoint="m1" scriptTransition="stop" />
-      <leaf agent="a1" description="TODO script action: unconfigure" fabric="f1" mountPoint="m1" scriptTransition="unconfigure" />
-      <leaf agent="a1" description="TODO script action: uninstall" fabric="f1" mountPoint="m1" scriptTransition="uninstall" />
-      <leaf agent="a1" description="TODO script lifecycle: uninstallScript" fabric="f1" mountPoint="m1" scriptLifecycle="uninstallScript" />
+    <sequential agent="a1" mountPoint="m1">
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
     </sequential>
   </sequential>
 </plan>

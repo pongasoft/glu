@@ -129,7 +129,7 @@ public class PlannerImpl implements Planner
 
     for(String toState : toStates)
     {
-      if("<running>".equals(toState))
+      if("<expected>".equals(toState))
         toState = entryDelta.getExpectedEntryState();
       
       processEntryStateMismatch(entryStepsBuilder,
