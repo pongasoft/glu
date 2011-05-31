@@ -40,7 +40,7 @@ class DeltaServiceImpl implements DeltaService
   @Initializable
   boolean notRunningOverridesVersionMismatch = false
 
-  def computeDelta(SystemModel expectedModel)
+  Map computeDelta(SystemModel expectedModel)
   {
     if(!expectedModel)
       return null

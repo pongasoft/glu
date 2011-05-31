@@ -23,8 +23,10 @@ interface DeltaService
 {
   /**
    * Computes the delta between the expected model and the current one (which will be computed)
+   * In this version the delta is a set
+   * @return a map with 2 entries: <code>accuracy</code> and <code>delta</code>.
    */
-  def computeDelta(SystemModel expectedModel)
+  Map computeDelta(SystemModel expectedModel)
 
   /**
    * This method used to be in <code>DashboardController</code> and as been moved here to

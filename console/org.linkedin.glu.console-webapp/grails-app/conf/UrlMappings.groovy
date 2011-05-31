@@ -169,6 +169,9 @@ class UrlMappings
     /**************************************
      * REST Api
      */
+    /***
+     * plan
+     */
     "/rest/v1/$fabric/plans"(controller: 'plan') {
       action = [GET: 'rest_list_plans', POST: 'rest_create_plan']
     }
@@ -181,11 +184,22 @@ class UrlMappings
     name restExecution: "/rest/v1/$fabric/plan/$planId/execution/$id"(controller: 'plan') {
       action = [GET: 'rest_view_execution', HEAD: 'rest_execution_status']
     }
+
+    /***
+     * model
+     */
     name restStaticModel: "/rest/v1/$fabric/model/static"(controller: 'model') {
       action = [POST: 'rest_upload_model', GET: 'rest_get_static_model']
     }
     name restLiveModel: "/rest/v1/$fabric/model/live"(controller: 'model') {
       action = [GET: 'rest_get_live_model']
+    }
+
+    /***
+     * delta
+     */
+    name restDelta: "/rest/v1/$fabric/delta"(controller: 'delta') {
+      action = [GET: 'rest_get_delta']
     }
 
     /**
