@@ -44,7 +44,11 @@
   <div id="__delta_content">
     <table>
       <tr>
-        <th>${columns[columnNames[0]].name}:${counts[columnNames[0]]}</th>
+        <th>
+          <g:if test="${columns[columnNames[0]] != null}">
+            ${columns[columnNames[0]].name}:${counts[columnNames[0]]}
+          </g:if>
+        </th>
         <th>I:${counts['instances']}</th>
         <th>E:${counts['errors']}</th>
         <g:each in="${columnsTail}" var="column" status="columnIdx">
