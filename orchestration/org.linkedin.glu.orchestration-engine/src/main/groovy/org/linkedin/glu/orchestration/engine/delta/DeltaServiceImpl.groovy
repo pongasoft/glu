@@ -61,171 +61,28 @@ class DeltaServiceImpl implements DeltaService
   Collection<Map<String, Object>> computeDelta(SystemModel expectedModel,
                                                SystemModel currentModel)
   {
-    // 1. compute delta between expectedModel and currentModel
     SystemModelDelta delta = deltaMgr.computeDelta(expectedModel, currentModel)
 
-    def entries = []
+    Collection<Map<String, Object>> flattenedDelta =
+      delta.flatten(new TreeMap<String, Map<String, Object>>()).values()
 
-    if(delta == null)
-      return entries
-
-    Set<String> emptyAgents = new HashSet<String>()
-    if(currentModel?.metadata?.emptyAgents)
-      emptyAgents.addAll(currentModel.metadata.emptyAgents)
-
-    Set<String> allKeys = delta.keys as SortedSet
-
-    allKeys.each { String key ->
-      SystemEntryDelta entryDelta = delta.findEntryDelta(key)
-
-      def cef = entryDelta.currentValues
-
-      def eef = entryDelta.expectedValues
-
-      // means that it is not deployed at all
-      if(!cef)
-      {
-        eef.status = 'notDeployed'
-        eef.state = 'ERROR'
-        setTags(eef, entryDelta.expectedEntry.tags)
-        entries << eef
-        emptyAgents.remove(eef.agent)
-        return
-      }
-
-      // means that it should not be deployed at all
-      if(!eef)
-      {
-        cef.status = 'unexpected'
-        cef.state = 'ERROR'
-        entries << cef
-        emptyAgents.remove(cef.agent)
-        return
-      }
-
-      // here we have both currentEntry and expectedEntry...
-      emptyAgents.remove(cef.agent)
-
-      // processing version mismatch
-      processDelta(entryDelta, cef)
-
-      if(cef.state != 'ERROR')
-      {
-        // copy all missing keys from expected into current
-        eef.each { k,v ->
-          if(!cef.containsKey(k))
-            cef[k] = v
+    if(notRunningOverridesVersionMismatch)
+    {
+      flattenedDelta.each { Map m ->
+        if(m.status == 'delta')
+        {
+          SystemEntryValueWithDelta<String> entryStateDelta =
+            delta.findEntryDelta(m.key).findEntryStateDelta()
+          if(entryStateDelta)
+          {
+            m.status = 'notExpectedState'
+            m.statusInfo = "${entryStateDelta.expectedValue}!=${entryStateDelta.currentValue}"
+          }
         }
       }
-      else
-      {
-        // override all keys from expected into current
-        eef.each { k,v ->
-          cef[k] = v
-        }
-      }
-
-      setTags(cef, entryDelta.expectedEntry.tags)
-      entries << cef
     }
 
-  emptyAgents.each { agent ->
-    def entry= [:]
-    entry.agent = agent
-    entry['metadata.currentState'] = 'NA'
-    entry.status = 'NA'
-    entry.state = 'NA'
-    setTags(entry, expectedModel?.getAgentTags(agent)?.tags)
-    entries << entry
-  }
-
-  return entries
-}
-
-/**
- * Set status/statusInfo/state for an entry delta (note that the delta has already been computed
- * and is accessible with {@link SystemEntryDelta#getValueDeltaKeys()})
- *
- * @param stateMap where to write the state
- */
-  protected void processDelta(SystemEntryDelta entryDelta, Map<String, Object> stateMap)
-  {
-    // give a chance for custom delta...
-    processCustomDelta(entryDelta, stateMap)
-
-    // if custom delta has set a state then there is nothing else to do
-    if(stateMap.state)
-      return
-
-    // in case there is a delta
-    if(entryDelta.hasDelta())
-    {
-      stateMap.state = 'ERROR'
-
-      Set<String> keys = entryDelta.valueDeltaKeys
-
-      // in case notRunningOverridesVersionMismatch is set, overrides the value
-      if(entryDelta.findEntryStateDelta() &&
-         (keys.size() == 1 || notRunningOverridesVersionMismatch))
-      {
-        stateMap.status = "notExpectedState"
-        stateMap.statusInfo = "${entryDelta.expectedEntryState} != ${entryDelta.currentEntryState}".toString()
-      }
-      else
-      {
-        // handle it as a delta
-        stateMap.status = 'delta'
-        stateMap.statusInfo = keys.sort().collect { String n ->
-          ValueDelta delta = entryDelta.findValueDelta(n)
-          "${n}:${delta.expectedValue} != ${n}:${delta.currentValue}".toString()
-        }
-        
-        if(stateMap.statusInfo.size() == 1)
-          stateMap.statusInfo = stateMap.statusInfo[0]
-      }
-    }
-    else
-    {
-      // when there is an error
-      if(entryDelta.error)
-      {
-        stateMap.status = 'error'
-        stateMap.statusInfo = entryDelta.error.toString()
-        stateMap.state = 'ERROR'
-      }
-      else
-      {
-        // everything ok!
-        stateMap.status = "expectedState"
-        stateMap.statusInfo = entryDelta.expectedEntryState
-        stateMap.state = 'OK'
-      }
-    }
-  }
-
-  /**
-   * Nothing to do here. Subclasses can tweak the delta.
-   * 
-   * @param entryDelta the delta has already been computed
-   * and is accessible with {@link SystemEntryDelta#getValueDeltaKeys()}
-   * @param stateMap where to write the state
-   */
-  protected void processCustomDelta(SystemEntryDelta entryDelta, Map<String, Object> stateMap)
-  {
-    // nothing to do in this implementation
-  }
-
-  private void setTags(def entry, Collection<String> entryTags)
-  {
-    if(entry.key)
-    {
-      entryTags?.each { String tag ->
-        entry["tags.${tag}".toString()] = entry.key
-      }
-    }
-    
-    if(entryTags)
-      entry.tags = entryTags as SortedSet
+    return flattenedDelta
   }
 
   Map computeGroupByDelta(SystemModel expectedSystem,

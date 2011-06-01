@@ -14,34 +14,11 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.delta;
+package org.linkedin.glu.provisioner.core.model
 
 /**
- * @author yan@pongasoft.com
- */
-public class ValueDeltaImpl<T> implements ValueDelta<T>
+ * @author yan@pongasoft.com */
+public interface MetadataProvider
 {
-  private final T _expectedValue;
-  private final T _currentValue;
-
-  /**
-   * Constructor
-   */
-  public ValueDeltaImpl(T expectedValue, T currentValue)
-  {
-    _expectedValue = expectedValue;
-    _currentValue = currentValue;
-  }
-
-  @Override
-  public T getExpectedValue()
-  {
-    return _expectedValue;
-  }
-
-  @Override
-  public T getCurrentValue()
-  {
-    return _currentValue;
-  }
+  Map<String, Object> getMetadata()
 }

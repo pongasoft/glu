@@ -16,9 +16,13 @@
 
 package org.linkedin.glu.orchestration.engine.delta;
 
+import org.linkedin.glu.provisioner.core.model.MetadataProvider;
 import org.linkedin.glu.provisioner.core.model.SystemModel;
+import org.linkedin.glu.utils.core.Externable;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -84,14 +88,71 @@ public class SystemModelDeltaImpl implements SystemModelDelta
   }
 
   @Override
-  public boolean hasDelta()
+  public boolean hasErrorDelta()
   {
     for(SystemEntryDelta delta : _deltas.values())
     {
-      if(delta.hasDelta())
+      if(delta.hasErrorDelta())
         return true;
     }
     
     return false;
+  }
+
+  @Override
+  public Set<String> getEmptyAgents()
+  {
+    Set<String> emptyAgents = new HashSet<String>();
+    Collection<String> currentModelEmptyAgent = getMetadataValue(_currentSystemModel, "emptyAgents");
+    if(currentModelEmptyAgent != null)
+      emptyAgents.addAll(currentModelEmptyAgent);
+    for(SystemEntryDelta entryDelta : _deltas.values())
+    {
+      emptyAgents.remove(entryDelta.getAgent());
+    }
+    return emptyAgents;
+  }
+
+  @Override
+  public Map<String, Map<String, Object>> flatten(Map<String, Map<String, Object>> flattenInto)
+  {
+    if(flattenInto == null)
+      return null;
+
+    for(SystemEntryDelta entryDelta : _deltas.values())
+    {
+      boolean isInError = entryDelta.getState() == SystemEntryDelta.State.ERROR;
+
+      Map<String, Object> valueMap = new HashMap<String, Object>();
+      for(Map.Entry<String, SystemEntryValue> entry : entryDelta.getValues().entrySet())
+      {
+        SystemEntryValue sev = entry.getValue();
+        Object value = sev.getCurrentValue();
+        if(value == null || isInError)
+        {
+          if(sev.getExpectedValue() != null)
+            value = sev.getExpectedValue();
+        }
+        if(value instanceof Externable)
+          value = ((Externable) value).toExternalRepresentation();
+        valueMap.put(entry.getKey(), value);
+      }
+      flattenInto.put(entryDelta.getKey(), valueMap);
+    }
+
+    return flattenInto;
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T> T getMetadataValue(MetadataProvider metadaProvider, String key)
+  {
+    if(metadaProvider == null)
+      return null;
+
+    Map<String, Object> metadata = metadaProvider.getMetadata();
+    if(metadata == null)
+      return null;
+
+    return (T) metadata.get(key);
   }
 }

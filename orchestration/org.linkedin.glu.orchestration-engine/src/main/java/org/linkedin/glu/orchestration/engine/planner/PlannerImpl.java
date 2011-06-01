@@ -161,7 +161,7 @@ public class PlannerImpl implements Planner
                                    SystemModelDelta systemModelDelta,
                                    SystemEntryDelta entryDelta)
   {
-    if(!entryDelta.hasDelta())
+    if(!entryDelta.hasErrorDelta())
       return;
 
     if(addNoOpStepOnNotOkToProcess(stepBuilder, systemModelDelta, entryDelta))

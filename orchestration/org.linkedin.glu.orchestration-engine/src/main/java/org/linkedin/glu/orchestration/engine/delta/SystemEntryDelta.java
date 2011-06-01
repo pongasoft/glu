@@ -27,32 +27,125 @@ import java.util.Set;
  */
 public interface SystemEntryDelta
 {
+  enum State
+  {
+    OK,
+    WARN,
+    ERROR,
+    NA
+  }
+
+  // YP note: status cannot be an enum as it prevents extension :(
+//  enum Status
+//  {
+//    notDeployed,
+//    unexpected,
+//    notExpectedState,
+//    expectedState,
+//    delta,
+//    error
+//  }
+
+  /**
+   * @return the unique key (in the model) for this entry
+   */
   String getKey();
 
+  /**
+   * Shortcut to get the agent
+   */
   String getAgent();
+
+  /**
+   * Shortcut to get the mountpoint
+   */
   String getMountPoint();
 
+  /*******************************
+   * Methods related to "expected"
+   */
   SystemEntry getExpectedEntry();
-  SystemEntry getCurrentEntry();
-
   String getExpectedEntryState();
-  String getCurrentEntryState();
-
-  Set<String> getValueDeltaKeys();
-  <T> ValueDelta<T> findValueDelta(String key);
-
-  ValueDelta<String> findParentDelta();
-  ValueDelta<String> findEntryStateDelta();
-
-  Map<String, Object> getExpectedValues();
   Object findExpectedValue(String key);
 
-  Map<String, Object> getCurrentValues();
+  /*******************************
+   * Methods related to "current"
+   */
+  SystemEntry getCurrentEntry();
+  String getCurrentEntryState();
   Object findCurrentValue(String key);
 
+  /**
+   * @return all the values of this entry */
+  Map<String, SystemEntryValue> getValues();
+
+  /**
+   * @return the value given the key (or <code>null</code> if no such value)
+   */
+  <T> SystemEntryValue<T> findValue(String key);
+
+  /**
+   * @return the value given the key (or <code>null</code> if no such value or not in delta)
+   */
+  <T> SystemEntryValueWithDelta<T> findValueWithDelta(String key);
+
+  /**
+   * @return the value given the key (or <code>null</code> if no such value or in delta). Note
+   * that this call return the value itself (not the wrapper).
+   */
+  <T> T findValueWithNoDelta(String key);
+
+  /**
+   * @return all the keys where the value has a delta */
+  Set<String> getDeltaValueKeys();
+
+  /**
+   * @return all the keys where the value has a delta which triggers an error  */
+  Set<String> getErrorValueKeys();
+
+  /**
+   * This call will return a non <code>null</code> result iff there is a value which has a delta
+   * part of the error or in other word if key belongs to the set returned by
+   * {@link #getErrorValueKeys()}
+   * @return <code>null</code> if no such key OR not an error value (potentially even if delta!)
+   */
+  <T> SystemEntryValueWithDelta<T> findErrorValue(String key);
+
+  /**
+   * @return <code>true</code> if this entry is in error because of a delta or in other word
+   * this call will return <code>true</code> iff {@link #getErrorValueKeys()} is not empty
+   */
+  boolean hasErrorDelta();
+
+  /**
+   * @return the delta for parent (<code>null</code> if no delta!)
+   */
+  SystemEntryValueWithDelta<String> findParentDelta();
+
+  /**
+   * @return the delta for entryState (<code>null</code> if no delta!)
+   */
+  SystemEntryValueWithDelta<String> findEntryStateDelta();
+
+  /**
+   * @return the error if this entry is in error (from a state machine point of view)
+   */
   Object getError();
 
-  boolean hasDelta();
+  /**
+   * Shortcut to get the state (equivalent to <code>findValue("state")?.expectedValue</code>)
+   */
+  State getState();
+
+  /**
+   * Shortcut to get the status (equivalent to <code>findValue("status")?.expectedValue</code>)
+   */
+  String getStatus();
+
+  /**
+   * Shortcut to get the statusInfo (equivalent to <code>findValue("statusInfo")?.expectedValue</code>)
+   */
+  StatusInfo getStatusInfo();
 
   /**
    * @return the state machine associated to this delta

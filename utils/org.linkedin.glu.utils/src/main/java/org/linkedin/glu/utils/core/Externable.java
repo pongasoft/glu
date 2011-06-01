@@ -14,34 +14,18 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.delta;
+package org.linkedin.glu.utils.core;
 
 /**
  * @author yan@pongasoft.com
  */
-public class ValueDeltaImpl<T> implements ValueDelta<T>
+public interface Externable
 {
-  private final T _expectedValue;
-  private final T _currentValue;
-
   /**
-   * Constructor
+   * A 'friendly' representation of the object. Should be compatible with json so should be
+   * maps or lists of primitives (and recursive).
+   *
+   * @return usually a primitive or a map or a collection
    */
-  public ValueDeltaImpl(T expectedValue, T currentValue)
-  {
-    _expectedValue = expectedValue;
-    _currentValue = currentValue;
-  }
-
-  @Override
-  public T getExpectedValue()
-  {
-    return _expectedValue;
-  }
-
-  @Override
-  public T getCurrentValue()
-  {
-    return _currentValue;
-  }
+  Object toExternalRepresentation();
 }

@@ -23,6 +23,7 @@ import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl
 import org.linkedin.glu.orchestration.engine.delta.DeltaMgrImpl
+import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta.State
 
 class TestDeltaService extends GroovyTestCase
 {
@@ -36,7 +37,7 @@ class TestDeltaService extends GroovyTestCase
     // empty
     def current = []
     def expected = []
-    groovy.util.GroovyTestCase.assertEquals([], doComputeDelta(current, expected))
+    assertEqualsIgnoreType([], doComputeDelta(current, expected))
 
     // notDeployed
     current = []
@@ -56,8 +57,9 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'notDeployed',
+                            statusInfo: 'NOT deployed',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
@@ -83,8 +85,9 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'notDeployed',
+                            statusInfo: 'NOT deployed',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
@@ -117,9 +120,9 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'notExpectedState',
-                            statusInfo: 'running != stopped',
+                            statusInfo: 'running!=stopped',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
@@ -153,9 +156,9 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'notExpectedState',
-                            statusInfo: 'stopped != configured',
+                            statusInfo: 'stopped!=configured',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
@@ -188,10 +191,10 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'delta',
-                            statusInfo: ['entryState:running != entryState:stopped',
-                                         'initParameters.wars:w2 != initParameters.wars:w1'],
+                            statusInfo: ['entryState:[running!=stopped]',
+                                         'initParameters.wars:[w2!=w1]'],
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w2'
                             ]
@@ -225,9 +228,9 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'notExpectedState',
-                            statusInfo: 'running != stopped',
+                            statusInfo: 'running!=stopped',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w2'
                             ]
@@ -263,10 +266,10 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'delta',
-                            statusInfo: ['entryState:running != entryState:stopped',
-                                         'initParameters.wars:w2 != initParameters.wars:w1'],
+                            statusInfo: ['entryState:[running!=stopped]',
+                                         'initParameters.wars:[w2!=w1]'],
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w2'
                             ]
@@ -300,10 +303,10 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'delta',
-                            statusInfo: ['entryState:running != entryState:stopped',
-                                         'initParameters.config:cnf2 != initParameters.config:cnf1'],
+                            statusInfo: ['entryState:[running!=stopped]',
+                                         'initParameters.config:[cnf2!=cnf1]'],
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
@@ -337,11 +340,11 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'delta',
-                            statusInfo: ['entryState:running != entryState:stopped',
-                                         'initParameters.config:cnf2 != initParameters.config:cnf1',
-                                         'initParameters.wars:w2 != initParameters.wars:w1'],
+                            statusInfo: ['entryState:[running!=stopped]',
+                                         'initParameters.config:[cnf2!=cnf1]',
+                                         'initParameters.wars:[w2!=w1]'],
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w2'
                             ]
@@ -375,10 +378,10 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's2',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'delta',
-                            statusInfo: ['entryState:running != entryState:stopped',
-                                         'script:s2 != script:s1'],
+                            statusInfo: ['entryState:[running!=stopped]',
+                                         'script:[s2!=s1]'],
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
@@ -411,9 +414,9 @@ class TestDeltaService extends GroovyTestCase
                               mountPoint: '/m1',
                               'metadata.product': 'p1',
                               script: 's2',
-                              state: 'ERROR',
+                              state: State.ERROR,
                               status: 'delta',
-                              statusInfo: 'script:s2 != script:s1',
+                              statusInfo: 'script:[s2!=s1]',
                               'metadata.version': 'R2',
                               'initParameters.wars': 'w1'
                               ]
@@ -447,7 +450,7 @@ class TestDeltaService extends GroovyTestCase
                               mountPoint: '/m1',
                               'metadata.product': 'p1',
                               script: 's1',
-                              state: 'OK',
+                              state: State.OK,
                               status: 'expectedState',
                               statusInfo: 'running',
                               'metadata.version': 'R2',
@@ -484,9 +487,9 @@ class TestDeltaService extends GroovyTestCase
                              mountPoint: '/m1',
                              'metadata.product': 'p1',
                              script: 's2',
-                             state: 'ERROR',
+                             state: State.ERROR,
                              status: 'delta',
-                             statusInfo: 'script:s2 != script:s1',
+                             statusInfo: 'script:[s2!=s1]',
                              'metadata.version': 'R2',
                              'initParameters.wars': 'w1'
                              ]
@@ -520,7 +523,7 @@ class TestDeltaService extends GroovyTestCase
                               mountPoint: '/m1',
                               'metadata.product': 'p1',
                               script: 's1',
-                              state: 'OK',
+                              state: State.OK,
                               status: 'expectedState',
                               statusInfo: 'running',
                               'metadata.version': 'R2',
@@ -555,8 +558,9 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'unexpected',
+                            statusInfo: 'should NOT be deployed',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ],
@@ -568,8 +572,9 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'notDeployed',
+                            statusInfo: 'NOT deployed',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
@@ -596,31 +601,20 @@ class TestDeltaService extends GroovyTestCase
                             'metadata.container': 'c1',
                             'metadata.currentState': 'running',
                             'metadata.error': 'in error',
+                             error: 'in error',
                             entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'error',
                             statusInfo: 'in error',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
-
-    // unknown
-    current = [
-        [
-            agent: 'a1', mountPoint: '/m1', script: 's1',
-            initParameters: [wars: 'w1'],
-            metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
-        ]
-    ]
-    expected = null
-    assertEqualsIgnoreType([],
                            doComputeDelta(current, expected))
 
     // ok
@@ -651,7 +645,7 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'OK',
+                            state: State.OK,
                             status: 'expectedState',
                             statusInfo: 'running',
                             'metadata.version': 'R2',
@@ -689,7 +683,7 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'OK',
+                            state: State.OK,
                             status: 'expectedState',
                             statusInfo: 'running',
                             'metadata.version': 'R2',
@@ -725,7 +719,7 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'OK',
+                            state: State.OK,
                             status: 'expectedState',
                             statusInfo: 'running',
                             'metadata.version': 'R2',
@@ -733,24 +727,6 @@ class TestDeltaService extends GroovyTestCase
                             ]
                            ],
                            doComputeDelta(current, expected))
-
-    // nothing deployed on the agent at all
-    current = [
-    ]
-    expected = [
-    ]
-
-    assertEqualsIgnoreType([
-                           [
-                            'metadata.currentState': 'NA',
-                            agent: 'a1',
-                            state: 'NA',
-                            status: 'NA'
-                            ]
-                           ],
-                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
-                             cs.metadata.emptyAgents = ['a1']
-                           })
 
     // (system) tags
     current = [
@@ -780,7 +756,7 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'OK',
+                            state: State.OK,
                             status: 'expectedState',
                             statusInfo: 'running',
                             'metadata.version': 'R2',
@@ -814,8 +790,9 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'notDeployed',
+                            statusInfo: 'NOT deployed',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1',
                             'tags.ee:1': 'a1:/m1',
@@ -848,8 +825,9 @@ class TestDeltaService extends GroovyTestCase
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: State.ERROR,
                             status: 'unexpected',
+                            statusInfo: 'should NOT be deployed',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
@@ -857,6 +835,24 @@ class TestDeltaService extends GroovyTestCase
                            doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
+                           })
+
+    // nothing deployed on the agent at all
+    current = [
+    ]
+    expected = [
+    ]
+
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.currentState': 'NA',
+                            agent: 'a1',
+                            state: 'NA',
+                            status: 'NA'
+                            ]
+                           ],
+                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
+                             cs.metadata.emptyAgents = ['a1']
                            })
 
     current = [
@@ -963,8 +959,8 @@ class TestDeltaService extends GroovyTestCase
           'metadata.currentState': state,
           key: "a1:/${mountPoint}".toString(),
           status: state == 'running' ? 'expectedState' : 'notExpectedState',
-          statusInfo: state == 'running' ? 'running' : 'running != stopped',
-          state: state == 'running' ? 'OK' : 'ERROR'
+          statusInfo: state == 'running' ? 'running' : 'running!=stopped',
+          state: state == 'running' ? State.OK : State.ERROR
       ]
 
       // when not in error, then priority comes from 'current'

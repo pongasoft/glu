@@ -24,7 +24,7 @@ import org.linkedin.glu.utils.tags.ReadOnlyTaggeable
 
 /**
  * @author ypujante@linkedin.com */
-class SystemEntry implements ReadOnlyTaggeable
+class SystemEntry implements ReadOnlyTaggeable, MetadataProvider
 {
   public static final String DEFAULT_ENTRY_STATE = "running";
   public static final String DEFAULT_PARENT = "/";
@@ -36,7 +36,7 @@ class SystemEntry implements ReadOnlyTaggeable
   String parent // optional
   def initParameters = [:] // optional
   def actionArgs = [:] // optional
-  def metadata = [:] // optional
+  Map<String, Object> metadata = [:] // optional
   volatile ReadOnlyTaggeable entryTags = ReadOnlyTaggeable.EMPTY // optional
 
   String getKey()

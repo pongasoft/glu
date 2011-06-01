@@ -19,29 +19,14 @@ package org.linkedin.glu.orchestration.engine.delta;
 /**
  * @author yan@pongasoft.com
  */
-public class ValueDeltaImpl<T> implements ValueDelta<T>
+public interface SystemEntryValue<T>
 {
-  private final T _expectedValue;
-  private final T _currentValue;
-
   /**
-   * Constructor
+   * @return <code>true</code> if {@link #getExpectedValue()} and {@link @getCurrentValue()} are
+   *         different
    */
-  public ValueDeltaImpl(T expectedValue, T currentValue)
-  {
-    _expectedValue = expectedValue;
-    _currentValue = currentValue;
-  }
+  boolean hasDelta();
 
-  @Override
-  public T getExpectedValue()
-  {
-    return _expectedValue;
-  }
-
-  @Override
-  public T getCurrentValue()
-  {
-    return _currentValue;
-  }
+  T getExpectedValue();
+  T getCurrentValue();
 }

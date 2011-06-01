@@ -16,32 +16,48 @@
 
 package org.linkedin.glu.orchestration.engine.delta;
 
+import java.util.Collection;
+
 /**
  * @author yan@pongasoft.com
  */
-public class ValueDeltaImpl<T> implements ValueDelta<T>
+public class MultipleStatusInfo implements StatusInfo
 {
-  private final T _expectedValue;
-  private final T _currentValue;
+  private final Collection<String> _values;
 
   /**
    * Constructor
    */
-  public ValueDeltaImpl(T expectedValue, T currentValue)
+  public MultipleStatusInfo(Collection<String> values)
   {
-    _expectedValue = expectedValue;
-    _currentValue = currentValue;
+    _values = values;
+  }
+
+  public Collection<String> getValues()
+  {
+    return _values;
   }
 
   @Override
-  public T getExpectedValue()
+  public Object toExternalRepresentation()
   {
-    return _expectedValue;
+    return getValues();
   }
 
   @Override
-  public T getCurrentValue()
+  public String toString()
   {
-    return _currentValue;
+    return _values.toString();
+  }
+
+  public static StatusInfo create(Collection<String> values)
+  {
+    if(values == null)
+      return null;
+
+    if(values.size() == 1)
+      return new SimpleStatusInfo(values.iterator().next());
+    else
+      return new MultipleStatusInfo(values);
   }
 }

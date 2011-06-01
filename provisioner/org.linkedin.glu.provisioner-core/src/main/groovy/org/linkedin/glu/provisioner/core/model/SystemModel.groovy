@@ -31,7 +31,7 @@ import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
 
 /**
  * @author ypujante@linkedin.com  */
-class SystemModel
+class SystemModel implements MetadataProvider
 {
   public static final OneWayCodec SHA1 =
     OneWayMessageDigestCodec.createSHA1Instance('', HexaCodec.INSTANCE)
@@ -45,7 +45,7 @@ class SystemModel
   String id
   String fabric
 
-  def metadata = [:]
+  Map<String, Object> metadata = [:]
 
   // contains a list of filters that have been applied to this model from the original (chain if
   // more than one)

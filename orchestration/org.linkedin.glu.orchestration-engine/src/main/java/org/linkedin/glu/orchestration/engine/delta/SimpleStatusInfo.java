@@ -19,29 +19,32 @@ package org.linkedin.glu.orchestration.engine.delta;
 /**
  * @author yan@pongasoft.com
  */
-public class ValueDeltaImpl<T> implements ValueDelta<T>
+public class SimpleStatusInfo implements StatusInfo
 {
-  private final T _expectedValue;
-  private final T _currentValue;
+  private final String _value;
 
   /**
    * Constructor
    */
-  public ValueDeltaImpl(T expectedValue, T currentValue)
+  public SimpleStatusInfo(String value)
   {
-    _expectedValue = expectedValue;
-    _currentValue = currentValue;
+    _value = value;
+  }
+
+  public String getValue()
+  {
+    return _value;
   }
 
   @Override
-  public T getExpectedValue()
+  public Object toExternalRepresentation()
   {
-    return _expectedValue;
+    return getValue();
   }
 
   @Override
-  public T getCurrentValue()
+  public String toString()
   {
-    return _currentValue;
+    return _value;
   }
 }

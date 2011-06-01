@@ -14,13 +14,13 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.core;
+package org.linkedin.glu.orchestration.engine.delta;
 
-import java.util.Map;
+import org.linkedin.glu.utils.core.Externable;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface Metadata extends Map<String, Object>
+public interface StatusInfo extends Externable
 {
 }

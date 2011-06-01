@@ -19,7 +19,7 @@ package org.linkedin.glu.orchestration.engine.delta;
 /**
  * @author yan@pongasoft.com
  */
-public class ValueDeltaImpl<T> implements ValueDelta<T>
+public class SystemEntryValueWithDelta<T> implements SystemEntryValue<T>
 {
   private final T _expectedValue;
   private final T _currentValue;
@@ -27,10 +27,16 @@ public class ValueDeltaImpl<T> implements ValueDelta<T>
   /**
    * Constructor
    */
-  public ValueDeltaImpl(T expectedValue, T currentValue)
+  public SystemEntryValueWithDelta(T expectedValue, T currentValue)
   {
     _expectedValue = expectedValue;
     _currentValue = currentValue;
+  }
+
+  @Override
+  public boolean hasDelta()
+  {
+    return true;
   }
 
   @Override
@@ -43,5 +49,13 @@ public class ValueDeltaImpl<T> implements ValueDelta<T>
   public T getCurrentValue()
   {
     return _currentValue;
+  }
+
+  @Override
+  public String toString()
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append(_expectedValue).append("!=").append(_currentValue);
+    return sb.toString();
   }
 }

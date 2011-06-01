@@ -36,7 +36,18 @@ public interface SystemModelDelta
   Map<String, SystemEntryDelta> getEntryDeltas();
 
   /**
+   * @return the set of empty agents (agents which do not have anything deployed on it as well
+   *         as nothing to be deployed on) */
+  Set<String> getEmptyAgents();
+
+  /**
+   * Flatten the delta in the provided map
+   * @return <code>flattenInto</code>
+   */
+  Map<String, Map<String, Object>> flatten(Map<String, Map<String, Object>> flattenInto);
+
+  /**
    * @return <code>true</code> if any entry has a delta
    */
-  boolean hasDelta();
+  boolean hasErrorDelta();
 }

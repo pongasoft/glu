@@ -19,12 +19,14 @@ package org.linkedin.glu.orchestration.engine.delta;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
 import org.linkedin.glu.provisioner.core.model.SystemModel;
 import org.linkedin.util.annotations.Initializer;
-import org.linkedin.util.lang.LangUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author yan@pongasoft.com
@@ -98,6 +100,8 @@ public class DeltaMgrImpl implements DeltaMgr
       systemModelDelta.setEntryDelta(delta);
     }
 
+    computeEmptyAgentsDelta(systemModelDelta);
+
     return systemModelDelta;
   }
 
@@ -107,39 +111,110 @@ public class DeltaMgrImpl implements DeltaMgr
     SystemEntryDeltaImpl sed = new SystemEntryDeltaImpl(expectedEntry, currentEntry);
 
     // processing version mismatch
+    processCustomDeltaPreVersionMismatch(sed);
+
+    // processing version mismatch
     processVersionMismatch(sed);
 
     // a chance to add custom processing
-    processCustomDelta(sed);
+    processCustomDeltaPostVersionMismatch(sed);
 
     return sed;
   }
 
   protected void processVersionMismatch(SystemEntryDeltaImpl sed)
   {
-    // 1. compute the set of keys taken into consideration for the delta
-    Set<String> valueKeys = new HashSet<String>();
-    addKeys(valueKeys, sed.getExpectedValues().keySet());
-    addKeys(valueKeys, sed.getCurrentValues().keySet());
+    if(sed.getState() != null)
+      return;
 
-    for(String valueKey : valueKeys)
-    {
-      Object expectedValue = sed.findExpectedValue(valueKey);
-      Object currentValue = sed.findCurrentValue(valueKey);
-      if(!LangUtils.isEqual(expectedValue, currentValue))
-      {
-        sed.setValueDelta(new ValueDeltaImpl<Object>(valueKey, expectedValue, currentValue));
-      }
-    }
-  }
-
-  protected void addKeys(Set<String> allValueKeys, Set<String> valueKeys)
-  {
-    for(String key : valueKeys)
+    for(String key : sed.getDeltaValueKeys())
     {
       if(isKeyIncludedInVersionMismatch(key))
-        allValueKeys.add(key);
+        sed.setErrorValue(key);
     }
+
+    // means that it is not deployed at all
+    if(sed.getCurrentEntry() == null)
+    {
+      sed.setStatus("notDeployed");
+      sed.setState(SystemEntryDelta.State.ERROR);
+      sed.setStatusInfo(new SimpleStatusInfo("NOT deployed"));
+      return;
+    }
+
+    // means that it should not be deployed at all
+    if(sed.getExpectedEntry() == null)
+    {
+      sed.setStatus("unexpected");
+      sed.setState(SystemEntryDelta.State.ERROR);
+      sed.setStatusInfo(new SimpleStatusInfo("should NOT be deployed"));
+      return;
+    }
+
+    // processing delta
+    processDelta(sed);
+  }
+
+  /**
+   * Set status/statusInfo/state for an entry delta (note that the delta has already been computed
+   * and is accessible with {@link SystemEntryDelta#getErrorValueKeys()})
+   */
+  protected void processDelta(SystemEntryDeltaImpl sed)
+  {
+    // give a chance for custom delta...
+    processCustomDelta(sed);
+
+    if(sed.getState() != null)
+      return;
+
+    // in case there is a delta
+    if(sed.hasErrorDelta())
+    {
+      sed.setState(SystemEntryDelta.State.ERROR);
+
+      Set<String> keys = sed.getErrorValueKeys();
+
+      // when only a difference in state
+      if(sed.findEntryStateDelta() != null && keys.size() == 1)
+      {
+        sed.setStatus("notExpectedState");
+        sed.setStatusInfo(new SimpleStatusInfo(sed.getExpectedEntryState() + "!=" +
+                                               sed.getCurrentEntryState()));
+      }
+      else
+      {
+        // handle it as a delta
+        sed.setStatus("delta");
+        keys = new TreeSet<String>(keys);
+        Collection<String> values = new ArrayList<String>(keys.size());
+        for(String key : keys)
+        {
+          SystemEntryValueWithDelta<Object> errorValue = sed.findErrorValue(key);
+          values.add(key + ":[" + errorValue.getExpectedValue() + "!=" +
+                     errorValue.getCurrentValue() + "]");
+
+        }
+        sed.setStatusInfo(MultipleStatusInfo.create(values));
+      }
+    }
+    else
+    {
+      // when there is an error
+      if(sed.getError() != null)
+      {
+        sed.setState(SystemEntryDelta.State.ERROR);
+        sed.setStatus("error");
+        sed.setStatusInfo(new SimpleStatusInfo(sed.getError().toString()));
+      }
+      else
+      {
+        // everything ok!
+        sed.setState(SystemEntryDelta.State.OK);
+        sed.setStatus("expectedState");
+        sed.setStatusInfo(new SimpleStatusInfo(sed.getExpectedEntryState()));
+      }
+    }
+
   }
 
   /**
@@ -159,12 +234,57 @@ public class DeltaMgrImpl implements DeltaMgr
   }
 
   /**
+   * Processes all empty agent to add a 'fake' delta
+   * @param systemModelDelta
+   */
+  protected void computeEmptyAgentsDelta(SystemModelDeltaImpl systemModelDelta)
+  {
+    for(String emptyAgent : systemModelDelta.getEmptyAgents())
+    {
+      // TODO HIGH YP:  add this back
+      /*
+  emptyAgents.each { agent ->
+    def entry= [:]
+    entry.agent = agent
+    entry.entryState = 'NA'
+    entry['metadata.currentState'] = 'NA'
+    entry.status = 'NA'
+    entry.state = 'NA'
+    setTags(entry, expectedModel?.getAgentTags(agent)?.tags)
+    entries << entry
+  }
+       */
+    }
+  }
+
+  /**
+   * Nothing to do here. Subclasses can tweak the delta. Note that if you set the state in this
+   * method, then there won't be further processing, thus effectively bypassing the processing
+   *
+   * @param sed system delta for the entry
+   */
+  protected void processCustomDeltaPreVersionMismatch(SystemEntryDeltaImpl sed)
+  {
+    // nothing to do in this implementation
+  }
+
+  /**
    * Nothing to do here. Subclasses can tweak the delta.
    *
    * @param sed system delta for the entry
    */
-  protected void processCustomDelta(SystemEntryDeltaImpl sed)
+  protected void processCustomDeltaPostVersionMismatch(SystemEntryDeltaImpl sed)
   {
     // nothing to do in this implementation
+  }
+
+  /**
+   * Nothing to do here. Subclasses can tweak the delta.
+   *
+   * @param sed the delta has already been computed
+   * and is accessible with {@link SystemEntryDelta#getErrorValueKeys()}
+   */
+  protected void processCustomDelta(SystemEntryDeltaImpl sed)
+  {
   }
 }

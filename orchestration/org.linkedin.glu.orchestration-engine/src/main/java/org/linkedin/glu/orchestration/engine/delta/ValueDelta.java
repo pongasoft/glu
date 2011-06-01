@@ -21,8 +21,6 @@ package org.linkedin.glu.orchestration.engine.delta;
  */
 public interface ValueDelta<T>
 {
-  String getKey();
-
   T getExpectedValue();
   T getCurrentValue();
 }

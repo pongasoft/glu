@@ -20,11 +20,14 @@ import org.linkedin.glu.agent.api.Agent;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
 import org.linkedin.groovy.util.state.StateMachine;
 import org.linkedin.groovy.util.state.StateMachineImpl;
+import org.linkedin.util.lang.LangUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author yan@pongasoft.com
@@ -43,10 +46,8 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
   private final SystemEntry _expectedEntry;
   private final SystemEntry _currentEntry;
 
-  private final Map<String, Object> _expectedValues;
-  private final Map<String, Object> _currentValues;
-
-  private final Map<String, ValueDelta> _valueDeltas = new HashMap<String, ValueDelta>();
+  private final Map<String, SystemEntryValue> _values;
+  private final Set<String> _errorValueKeys = new HashSet<String>();
 
   /**
    * Constructor
@@ -63,9 +64,10 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
 
     _expectedEntry = expectedEntry;
     _currentEntry = currentEntry;
-
-    _expectedValues = computeValues(_expectedEntry);
-    _currentValues = computeValues(_currentEntry);
+    _values = computeValues(expectedEntry, currentEntry);
+    Object error = SystemModelDeltaImpl.getMetadataValue(_currentEntry, "error");
+    if(error != null)
+      _values.put("error", new SystemEntryValueNoDelta<Object>(error));
   }
 
   @SuppressWarnings("unchecked")
@@ -75,6 +77,65 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
       return Collections.emptyMap();
 
     return entry.flatten();
+  }
+
+  private static Map<String, SystemEntryValue> computeValues(SystemEntry expectedEntry,
+                                                             SystemEntry currentEntry)
+  {
+    Map<String, SystemEntryValue> values = new HashMap<String, SystemEntryValue>();
+
+    Map<String, Object> expectedValues = computeValues(expectedEntry);
+    Map<String, Object> currentValues = computeValues(currentEntry);
+
+
+    for(Map.Entry<String, Object> entry : expectedValues.entrySet())
+    {
+      Object currentValue = currentValues.get(entry.getKey());
+      if(LangUtils.isEqual(entry.getValue(), currentValue))
+      {
+        values.put(entry.getKey(), new SystemEntryValueNoDelta<Object>(currentValue));
+      }
+      else
+      {
+        values.put(entry.getKey(),
+                   new SystemEntryValueWithDelta<Object>(entry.getValue(), currentValue));
+      }
+    }
+
+    for(Map.Entry<String, Object> entry : currentValues.entrySet())
+    {
+      if(!values.containsKey(entry.getKey()))
+      {
+        Object expectedValue = null; // it must be null otherwise it would be in previous loop!
+        if(LangUtils.isEqual(entry.getValue(), expectedValue))
+        {
+          values.put(entry.getKey(), new SystemEntryValueNoDelta<Object>(expectedValue));
+        }
+        else
+        {
+          values.put(entry.getKey(),
+                     new SystemEntryValueWithDelta<Object>(expectedValue, entry.getValue()));
+        }
+      }
+    }
+
+    if(expectedEntry != null && expectedEntry.hasTags())
+    {
+      Set<String> tags = expectedEntry.getTags();
+      values.put("tags", new SystemEntryValueNoDelta<Object>(new TreeSet<String>(tags)));
+      for(String tag : tags)
+      {
+        values.put("tags." + tag, new SystemEntryValueNoDelta<String>(expectedEntry.getKey()));
+      }
+    }
+
+    return values;
+  }
+
+  @Override
+  public Map<String, SystemEntryValue> getValues()
+  {
+    return _values;
   }
 
   @Override
@@ -126,87 +187,159 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
   }
 
   @Override
-  public Set<String> getValueDeltaKeys()
+  public Set<String> getDeltaValueKeys()
   {
-    return _valueDeltas.keySet();
+    Set<String> res = new HashSet<String>();
+
+    for(Map.Entry<String, SystemEntryValue> entry : _values.entrySet())
+    {
+      if(entry.getValue().hasDelta())
+        res.add(entry.getKey());
+    }
+
+    return res;
   }
 
-  <T> void setValueDelta(ValueDelta<T> valueDelta)
+  @Override
+  public Set<String> getErrorValueKeys()
   {
-    _valueDeltas.put(valueDelta.getKey(), valueDelta);
+    return _errorValueKeys;
+  }
+
+  @Override
+  public boolean hasErrorDelta()
+  {
+    return !_errorValueKeys.isEmpty();
+  }
+
+  @Override
+  public <T> SystemEntryValueWithDelta<T> findErrorValue(String key)
+  {
+    if(_errorValueKeys.contains(key))
+      return findValueWithDelta(key);
+    else
+      return null;
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T> ValueDelta<T> findValueDelta(String key)
+  public <T> SystemEntryValue<T> findValue(String key)
   {
-    return (ValueDelta<T>) _valueDeltas.get(key);
+    return _values.get(key);
   }
 
   @Override
-  public ValueDelta<String> findParentDelta()
+  public <T> SystemEntryValueWithDelta<T> findValueWithDelta(String key)
   {
-    return findValueDelta("parent");
+    SystemEntryValue<T> value = findValue(key);
+    if(value instanceof SystemEntryValueWithDelta)
+      return (SystemEntryValueWithDelta<T>) value;
+    else
+      return null;
   }
 
   @Override
-  public ValueDelta<String> findEntryStateDelta()
+  public <T> T findValueWithNoDelta(String key)
   {
-    return findValueDelta("entryState");
+    SystemEntryValue<T> value = findValue(key);
+    if(value instanceof SystemEntryValueNoDelta)
+      return value.getExpectedValue();
+    else
+      return null;
+  }
+
+  void setErrorValue(String key)
+  {
+    if(findValueWithDelta(key) == null)
+      throw new IllegalArgumentException(key + " does not reference a delta");
+
+    _errorValueKeys.add(key);
+  }
+
+  void clearErrorValue(String key)
+  {
+    _errorValueKeys.remove(key);
   }
 
   @Override
-  public Map<String, Object> getExpectedValues()
+  public SystemEntryValueWithDelta<String> findParentDelta()
   {
-    return _expectedValues;
+    return findValueWithDelta("parent");
   }
 
   @Override
-  public Object findExpectedValue(String key)
+  public SystemEntryValueWithDelta<String> findEntryStateDelta()
   {
-    return _expectedValues.get(key);
-  }
-
-  @Override
-  public Map<String, Object> getCurrentValues()
-  {
-    return _currentValues;
+    return findValueWithDelta("entryState");
   }
 
   @Override
   public Object findCurrentValue(String key)
   {
-    return _currentValues.get(key);
+    SystemEntryValue<Object> value = findValue(key);
+    if(value != null)
+      return value.getCurrentValue();
+    else
+      return null;
+  }
+
+  @Override
+  public Object findExpectedValue(String key)
+  {
+    SystemEntryValue<Object> value = findValue(key);
+    if(value != null)
+      return value.getExpectedValue();
+    else
+      return null;
   }
 
   @Override
   public Object getError()
   {
-    return getMetadataValue(_currentEntry, "error");
+    return findValueWithNoDelta("error");
   }
 
   @Override
-  public boolean hasDelta()
+  public State getState()
   {
-    return !_valueDeltas.isEmpty();
+    return findValueWithNoDelta("state");
+  }
+
+  public void setState(State state)
+  {
+    setValue("state", state);
+  }
+
+  @Override
+  public String getStatus()
+  {
+    return findValueWithNoDelta("status");
+  }
+
+  public void setStatus(String status)
+  {
+    setValue("status", status);
+  }
+
+  @Override
+  public StatusInfo getStatusInfo()
+  {
+    return findValueWithNoDelta("statusInfo");
+  }
+
+  public void setStatusInfo(StatusInfo statusInfo)
+  {
+    setValue("statusInfo", statusInfo);
+  }
+
+  public void setValue(String key, Object value)
+  {
+    _values.put(key, new SystemEntryValueNoDelta<Object>(value));
   }
 
   @Override
   public StateMachine getStateMachine()
   {
     return DEFAULT_STATE_MACHINE;
-  }
-
-  @SuppressWarnings("unchecked")
-  private <T> T getMetadataValue(SystemEntry entry, String key)
-  {
-    if(entry == null)
-      return null;
-
-    Map<String, Object> metadata = (Map<String, Object>) entry.getMetadata();
-    if(metadata == null)
-      return null;
-
-    return (T) metadata.get(key);
   }
 }
