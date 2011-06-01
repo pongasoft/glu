@@ -70,7 +70,6 @@ public class TestPlannerImpl extends GroovyTestCase
   </sequential>
 </plan>
 """, p.toXml())
-    // TODO HIGH YP:  add more tests
   }
 
   /**
@@ -96,8 +95,87 @@ public class TestPlannerImpl extends GroovyTestCase
   </sequential>
 </plan>
 """, p.toXml())
-    // TODO HIGH YP:  add more tests
   }
+
+  /**
+   * When delta means to fully undeploy and redeploy
+   */
+  public void testDeploymentPlanDelta()
+  {
+    Plan<ActionDescriptor> p = plan(Type.SEQUENTIAL,
+                                    delta(m([agent: 'a1', mountPoint: 'm1', script: 's1']),
+                                          m([agent: 'a1', mountPoint: 'm1', script: 's2'])))
+
+    assertEquals(Type.SEQUENTIAL, p.step.type)
+    assertEquals(8, p.leafStepsCount)
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <sequential>
+    <sequential agent="a1" mountPoint="m1">
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: install" scriptTransition="install" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: start" scriptTransition="start" />
+    </sequential>
+  </sequential>
+</plan>
+""", p.toXml())
+  }
+
+  /**
+   * When delta means to fully undeploy and redeploy (starting from installed with an expected
+   * final state of stopped)
+   */
+  public void testDeploymentPlanDeltaWithEntryState()
+  {
+    Plan<ActionDescriptor> p = plan(Type.SEQUENTIAL,
+                                    delta(m([agent: 'a1', mountPoint: 'm1', script: 's1', entryState: 'stopped']),
+                                          m([agent: 'a1', mountPoint: 'm1', script: 's2', entryState: 'installed'])))
+
+    assertEquals(Type.SEQUENTIAL, p.step.type)
+    assertEquals(5, p.leafStepsCount)
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <sequential>
+    <sequential agent="a1" mountPoint="m1">
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: install" scriptTransition="install" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: configure" scriptTransition="configure" />
+    </sequential>
+  </sequential>
+</plan>
+""", p.toXml())
+  }
+
+  /**
+   * When delta means to simply bring the entry to its expected state
+   */
+  public void testDeploymentPlanUnexpectedState()
+  {
+    Plan<ActionDescriptor> p = plan(Type.SEQUENTIAL,
+                                    delta(m([agent: 'a1', mountPoint: 'm1', script: 's1']),
+                                          m([agent: 'a1', mountPoint: 'm1', script: 's1', entryState: 'installed'])))
+
+    assertEquals(Type.SEQUENTIAL, p.step.type)
+    assertEquals(2, p.leafStepsCount)
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <sequential>
+    <sequential agent="a1" mountPoint="m1">
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: start" scriptTransition="start" />
+    </sequential>
+  </sequential>
+</plan>
+""", p.toXml())
+  }
+
 
   private SystemModel m(Map... entries)
   {

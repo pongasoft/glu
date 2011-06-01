@@ -34,6 +34,7 @@ import org.linkedin.groovy.util.state.StateMachine;
 import org.linkedin.util.annotations.Initializer;
 import org.linkedin.util.lang.LangUtils;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +46,8 @@ import java.util.TreeSet;
  */
 public class PlannerImpl implements Planner
 {
+  protected final static Collection<String> DELTA_TRANSITIONS = Arrays.asList(null, "<expected>");
+
   private AgentURIProvider _agentURIProvider;
 
   /**
@@ -167,6 +170,31 @@ public class PlannerImpl implements Planner
     if(addNoOpStepOnNotOkToProcess(stepBuilder, systemModelDelta, entryDelta))
       return;
 
+    if(entryDelta.getState() == SystemEntryDelta.State.ERROR)
+    {
+      ICompositeStepBuilder<ActionDescriptor> entryStepsBuilder =
+        createAgentMountPointSequentialSteps(stepBuilder, entryDelta);
+
+      // this means that there is a delta => need to undeploy/redeploy
+      if("delta".equals(entryDelta.getStatus()))
+      {
+        processEntryTransition(stepBuilder,
+                               systemModelDelta,
+                               entryDelta,
+                               DELTA_TRANSITIONS);
+      }
+
+      // this means there is a state mismatch => fix state mismatch by doing proper action
+      if("unexpected".equals(entryDelta.getStatus()) ||
+         "notDeployed".equals(entryDelta.getStatus()) ||
+         "notExpectedState".equals(entryDelta.getStatus()))
+      {
+        processEntryStateMismatch(entryStepsBuilder,
+                                  systemModelDelta,
+                                  entryDelta);
+        return;
+      }
+    }
     // not deployed => need to deploy it or deployed but not expected => need to undeploy
     if(entryDelta.getCurrentEntry() == null || entryDelta.getExpectedEntry() == null)
     {
