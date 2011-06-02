@@ -22,7 +22,9 @@ import org.linkedin.glu.provisioner.core.model.MetadataProvider;
 import org.linkedin.glu.provisioner.core.model.SystemModel;
 import org.linkedin.glu.utils.core.Externable;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -33,11 +35,17 @@ import java.util.Set;
  */
 public class SystemModelDeltaImpl implements InternalSystemModelDelta
 {
+  private static final Collection<InternalSystemEntryDelta> NO_ENTRY_DELTA_LIST =
+    Collections.unmodifiableList(Collections.<InternalSystemEntryDelta>emptyList());
+
   private final Map<String, InternalSystemEntryDelta> _deltas =
     new HashMap<String, InternalSystemEntryDelta>();
 
   private final SystemModel _expectedSystemModel;
   private final SystemModel _currentSystemModel;
+
+  private EntryDependencies _expectedDependencies;
+  private EntryDependencies _currentDependencies;
 
   /**
    * Constructor
@@ -188,6 +196,60 @@ public class SystemModelDeltaImpl implements InternalSystemModelDelta
     }
 
     return flattenInto;
+  }
+
+  @Override
+  public void setExpectedDependencies(EntryDependencies expectedDependencies)
+  {
+    _expectedDependencies = expectedDependencies;
+  }
+
+  @Override
+  public void setCurrentDependencies(EntryDependencies currentDependencies)
+  {
+    _currentDependencies = currentDependencies;
+  }
+
+  @Override
+  public InternalSystemEntryDelta findExpectedParentEntryDelta(String key)
+  {
+    return findAnyEntryDelta(_expectedDependencies.findParent(key));
+  }
+
+  @Override
+  public InternalSystemEntryDelta findCurrentParentEntryDelta(String key)
+  {
+    return findAnyEntryDelta(_currentDependencies.findParent(key));
+  }
+
+  @Override
+  public Collection<InternalSystemEntryDelta> findExpectedChildrenEntryDelta(String key)
+  {
+    return findChildrenEntryDelta(_expectedDependencies, key);
+  }
+
+  @Override
+  public Collection<InternalSystemEntryDelta> findCurrentChildrenEntryDelta(String key)
+  {
+    return findChildrenEntryDelta(_currentDependencies, key);
+  }
+
+  private Collection<InternalSystemEntryDelta> findChildrenEntryDelta(EntryDependencies dependencies,
+                                                                      String key)
+  {
+    Set<String> children = dependencies.findChildren(key);
+    if(children.isEmpty())
+      return NO_ENTRY_DELTA_LIST;
+    else
+    {
+      Collection<InternalSystemEntryDelta> res =
+        new ArrayList<InternalSystemEntryDelta>(children.size());
+      for(String child : children)
+      {
+        res.add(findAnyEntryDelta(child));
+      }
+      return res;
+    }
   }
 
   @SuppressWarnings("unchecked")

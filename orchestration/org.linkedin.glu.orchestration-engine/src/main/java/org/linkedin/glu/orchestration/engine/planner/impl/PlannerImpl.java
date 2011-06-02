@@ -176,6 +176,13 @@ public class PlannerImpl implements Planner
       ICompositeStepBuilder<ActionDescriptor> entryStepsBuilder =
         createAgentMountPointSequentialSteps(stepBuilder, entryDelta);
 
+      // when expectedState or in error there is nothing to do
+      if("expectedState".equals(entryDelta.getStatus()) ||
+         "error".equals(entryDelta.getStatus()))
+      {
+        return;
+      }
+
       // this means that there is a delta => need to undeploy/redeploy
       if("delta".equals(entryDelta.getStatus()))
       {
@@ -183,29 +190,13 @@ public class PlannerImpl implements Planner
                                systemModelDelta,
                                entryDelta,
                                DELTA_TRANSITIONS);
-      }
-
-      // this means there is a state mismatch => fix state mismatch by doing proper action
-      if("unexpected".equals(entryDelta.getStatus()) ||
-         "notDeployed".equals(entryDelta.getStatus()) ||
-         "notExpectedState".equals(entryDelta.getStatus()))
-      {
-        processEntryStateMismatch(entryStepsBuilder,
-                                  systemModelDelta,
-                                  entryDelta);
         return;
       }
-    }
-    // not deployed => need to deploy it or deployed but not expected => need to undeploy
-    if(entryDelta.getCurrentEntry() == null || entryDelta.getExpectedEntry() == null)
-    {
-      ICompositeStepBuilder<ActionDescriptor> entryStepsBuilder =
-        createAgentMountPointSequentialSteps(stepBuilder, entryDelta);
 
+      // all other states will trigger a fix state mismatch by doing proper action
       processEntryStateMismatch(entryStepsBuilder,
                                 systemModelDelta,
                                 entryDelta);
-      return;
     }
   }
 

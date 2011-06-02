@@ -88,10 +88,21 @@ public class DeltaMgrImpl implements DeltaMgr
     SystemModel unfilteredExpectedModel = systemModelDelta.getExpectedSystemModel().unfilter();
     SystemModel unfilteredCurrentModel = systemModelDelta.getCurrentSystemModel().unfilter();
 
-    Set<String> unfilteredKeys = SystemModel.filterKeys(unfilteredExpectedModel,
-                                                        unfilteredCurrentModel);
+    EntryDependencies expectedDependencies =
+      computeDependencies(filteredKeys, unfilteredExpectedModel);
+    systemModelDelta.setExpectedDependencies(expectedDependencies);
 
-    for(String key : unfilteredKeys)
+    EntryDependencies currentDependencies =
+      computeDependencies(filteredKeys, unfilteredCurrentModel);
+    systemModelDelta.setCurrentDependencies(currentDependencies);
+
+    // keys required are all filtered keys + all dependency keys (which may or may not be present
+    // in filteredKeys!)
+    Set<String> requiredKeys = new HashSet<String>(filteredKeys);
+    expectedDependencies.getEntriesWithDependency(requiredKeys);
+    currentDependencies.getEntriesWithDependency(requiredKeys);
+
+    for(String key : requiredKeys)
     {
       InternalSystemEntryDelta delta =
         computeSystemEntryDelta(unfilteredExpectedModel.findEntry(key),
@@ -105,8 +116,24 @@ public class DeltaMgrImpl implements DeltaMgr
     return systemModelDelta;
   }
 
-  private InternalSystemEntryDelta computeSystemEntryDelta(SystemEntry expectedEntry,
-                                                           SystemEntry currentEntry)
+  protected EntryDependencies computeDependencies(Set<String> keys, SystemModel model)
+  {
+    EntryDependenciesImpl dependencies = new EntryDependenciesImpl();
+
+    for(String key : keys)
+    {
+      SystemEntry entry = model.findEntry(key);
+      if(entry != null && !SystemEntry.DEFAULT_PARENT.equals(entry.getParent()))
+      {
+        dependencies.setParent(key, entry.getParent());
+      }
+    }
+
+    return dependencies;
+  }
+
+  protected InternalSystemEntryDelta computeSystemEntryDelta(SystemEntry expectedEntry,
+                                                             SystemEntry currentEntry)
   {
     InternalSystemEntryDelta sed = new SystemEntryDeltaImpl(expectedEntry, currentEntry);
 

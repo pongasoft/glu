@@ -26,10 +26,17 @@ import java.util.Collection;
 public interface InternalSystemModelDelta extends SystemModelDelta
 {
   InternalSystemEntryDelta findAnyEntryDelta(String key);
-
   void setEntryDelta(InternalSystemEntryDelta delta);
 
-//  /** parent/children **/
-//  InternalSystemEntryDelta findParentEntryDelta(String key);
-//  Collection<InternalSystemEntryDelta> findChildrenEntryDelta(String key);
+  /* parent (getter) */
+  InternalSystemEntryDelta findExpectedParentEntryDelta(String key);
+  InternalSystemEntryDelta findCurrentParentEntryDelta(String key);
+
+  /* children (getter) */
+  Collection<InternalSystemEntryDelta> findExpectedChildrenEntryDelta(String key);
+  Collection<InternalSystemEntryDelta> findCurrentChildrenEntryDelta(String key);
+
+  /* dependencies (setter) */
+  void setExpectedDependencies(EntryDependencies expectedDependencies);
+  void setCurrentDependencies(EntryDependencies currentDependencies);
 }
