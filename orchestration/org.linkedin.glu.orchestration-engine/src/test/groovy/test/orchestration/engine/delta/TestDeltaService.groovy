@@ -22,7 +22,7 @@ import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl
-import org.linkedin.glu.orchestration.engine.delta.DeltaMgrImpl
+import org.linkedin.glu.orchestration.engine.delta.impl.DeltaMgrImpl
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta.State
 
 class TestDeltaService extends GroovyTestCase

@@ -14,8 +14,10 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.delta;
+package org.linkedin.glu.orchestration.engine.delta.impl;
 
+import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
+import org.linkedin.glu.orchestration.engine.delta.SystemEntryValue;
 import org.linkedin.glu.provisioner.core.model.MetadataProvider;
 import org.linkedin.glu.provisioner.core.model.SystemModel;
 import org.linkedin.glu.utils.core.Externable;
@@ -29,9 +31,10 @@ import java.util.Set;
 /**
  * @author yan@pongasoft.com
  */
-public class SystemModelDeltaImpl implements SystemModelDelta
+public class SystemModelDeltaImpl implements InternalSystemModelDelta
 {
-  private final Map<String, SystemEntryDelta> _deltas = new HashMap<String, SystemEntryDelta>();
+  private final Map<String, InternalSystemEntryDelta> _deltas =
+    new HashMap<String, InternalSystemEntryDelta>();
 
   private final SystemModel _expectedSystemModel;
   private final SystemModel _currentSystemModel;
@@ -66,22 +69,62 @@ public class SystemModelDeltaImpl implements SystemModelDelta
 
   public Map<String, SystemEntryDelta> getEntryDeltas()
   {
-    return _deltas;
+    Map<String, SystemEntryDelta> res = new HashMap<String, SystemEntryDelta>();
+    for(InternalSystemEntryDelta entryDelta : _deltas.values())
+    {
+      if(entryDelta.isPrimaryDelta())
+        res.put(entryDelta.getKey(), entryDelta);
+    }
+    return res;
   }
 
   @Override
   public Set<String> getKeys()
   {
-    return _deltas.keySet();
+    Set<String> res = new HashSet<String>();
+    for(InternalSystemEntryDelta entryDelta : _deltas.values())
+    {
+      if(entryDelta.isPrimaryDelta())
+        res.add(entryDelta.getKey());
+    }
+    return res;
   }
 
   @Override
   public SystemEntryDelta findEntryDelta(String key)
   {
+    InternalSystemEntryDelta entryDelta = _deltas.get(key);
+    if(entryDelta != null && entryDelta.isPrimaryDelta())
+      return entryDelta;
+    else
+      return null;
+  }
+
+  @Override
+  public InternalSystemEntryDelta findAnyEntryDelta(String key)
+  {
     return _deltas.get(key);
   }
 
-  public void setEntryDelta(SystemEntryDelta delta)
+//  @Override
+//  public InternalSystemEntryDelta findParentEntryDelta(String key)
+//  {
+//    InternalSystemEntryDelta delta = findAnyEntryDelta(key);
+//    if(delta == null)
+//      return null;
+//
+//    // TODO HIGH YP:  stopped here... 2 parents ?
+//    return null;
+//  }
+//
+//  @Override
+//  public Collection<InternalSystemEntryDelta> findChildrenEntryDelta(String key)
+//  {
+//    return null;
+//  }
+
+  @Override
+  public void setEntryDelta(InternalSystemEntryDelta delta)
   {
     if(delta != null)
       _deltas.put(delta.getKey(), delta);
@@ -90,9 +133,9 @@ public class SystemModelDeltaImpl implements SystemModelDelta
   @Override
   public boolean hasErrorDelta()
   {
-    for(SystemEntryDelta delta : _deltas.values())
+    for(InternalSystemEntryDelta delta : _deltas.values())
     {
-      if(delta.hasErrorDelta())
+      if(!delta.isDependentDelta() && delta.hasErrorDelta())
         return true;
     }
     
@@ -106,9 +149,10 @@ public class SystemModelDeltaImpl implements SystemModelDelta
     Collection<String> currentModelEmptyAgent = getMetadataValue(_currentSystemModel, "emptyAgents");
     if(currentModelEmptyAgent != null)
       emptyAgents.addAll(currentModelEmptyAgent);
-    for(SystemEntryDelta entryDelta : _deltas.values())
+    for(InternalSystemEntryDelta entryDelta : _deltas.values())
     {
-      emptyAgents.remove(entryDelta.getAgent());
+      if(entryDelta.isPrimaryDelta())
+        emptyAgents.remove(entryDelta.getAgent());
     }
     return emptyAgents;
   }
@@ -119,25 +163,28 @@ public class SystemModelDeltaImpl implements SystemModelDelta
     if(flattenInto == null)
       return null;
 
-    for(SystemEntryDelta entryDelta : _deltas.values())
+    for(InternalSystemEntryDelta entryDelta : _deltas.values())
     {
-      boolean isInError = entryDelta.getState() == SystemEntryDelta.State.ERROR;
-
-      Map<String, Object> valueMap = new HashMap<String, Object>();
-      for(Map.Entry<String, SystemEntryValue> entry : entryDelta.getValues().entrySet())
+      if(entryDelta.isPrimaryDelta())
       {
-        SystemEntryValue sev = entry.getValue();
-        Object value = sev.getCurrentValue();
-        if(value == null || isInError)
+        boolean isInError = entryDelta.getState() == SystemEntryDelta.State.ERROR;
+
+        Map<String, Object> valueMap = new HashMap<String, Object>();
+        for(Map.Entry<String, SystemEntryValue> entry : entryDelta.getValues().entrySet())
         {
-          if(sev.getExpectedValue() != null)
-            value = sev.getExpectedValue();
+          SystemEntryValue sev = entry.getValue();
+          Object value = sev.getCurrentValue();
+          if(value == null || isInError)
+          {
+            if(sev.getExpectedValue() != null)
+              value = sev.getExpectedValue();
+          }
+          if(value instanceof Externable)
+            value = ((Externable) value).toExternalRepresentation();
+          valueMap.put(entry.getKey(), value);
         }
-        if(value instanceof Externable)
-          value = ((Externable) value).toExternalRepresentation();
-        valueMap.put(entry.getKey(), value);
+        flattenInto.put(entryDelta.getKey(), valueMap);
       }
-      flattenInto.put(entryDelta.getKey(), valueMap);
     }
 
     return flattenInto;

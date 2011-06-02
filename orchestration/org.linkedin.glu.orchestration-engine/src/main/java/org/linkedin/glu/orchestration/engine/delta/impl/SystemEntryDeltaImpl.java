@@ -14,9 +14,13 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.delta;
+package org.linkedin.glu.orchestration.engine.delta.impl;
 
 import org.linkedin.glu.agent.api.Agent;
+import org.linkedin.glu.orchestration.engine.delta.StatusInfo;
+import org.linkedin.glu.orchestration.engine.delta.SystemEntryValue;
+import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueNoDelta;
+import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueWithDelta;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
 import org.linkedin.groovy.util.state.StateMachine;
 import org.linkedin.groovy.util.state.StateMachineImpl;
@@ -32,7 +36,7 @@ import java.util.TreeSet;
 /**
  * @author yan@pongasoft.com
  */
-public class SystemEntryDeltaImpl implements SystemEntryDelta
+public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
 {
   public static final StateMachine DEFAULT_STATE_MACHINE;
 
@@ -48,6 +52,8 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
 
   private final Map<String, SystemEntryValue> _values;
   private final Set<String> _errorValueKeys = new HashSet<String>();
+
+  private boolean _isPrimaryDelta = true;
 
   /**
    * Constructor
@@ -248,7 +254,8 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
       return null;
   }
 
-  void setErrorValue(String key)
+  @Override
+  public void setErrorValue(String key)
   {
     if(findValueWithDelta(key) == null)
       throw new IllegalArgumentException(key + " does not reference a delta");
@@ -256,7 +263,8 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
     _errorValueKeys.add(key);
   }
 
-  void clearErrorValue(String key)
+  @Override
+  public void clearErrorValue(String key)
   {
     _errorValueKeys.remove(key);
   }
@@ -305,6 +313,7 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
     return findValueWithNoDelta("state");
   }
 
+  @Override
   public void setState(State state)
   {
     setValue("state", state);
@@ -316,6 +325,7 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
     return findValueWithNoDelta("status");
   }
 
+  @Override
   public void setStatus(String status)
   {
     setValue("status", status);
@@ -327,14 +337,32 @@ public class SystemEntryDeltaImpl implements SystemEntryDelta
     return findValueWithNoDelta("statusInfo");
   }
 
+  @Override
   public void setStatusInfo(StatusInfo statusInfo)
   {
     setValue("statusInfo", statusInfo);
   }
 
+  @Override
   public void setValue(String key, Object value)
   {
     _values.put(key, new SystemEntryValueNoDelta<Object>(value));
+  }
+
+  @Override
+  public boolean isPrimaryDelta()
+  {
+    return _isPrimaryDelta;
+  }
+
+  public boolean isDependentDelta()
+  {
+    return !_isPrimaryDelta;
+  }
+
+  public void setDependentDelta(boolean dependentDelta)
+  {
+    _isPrimaryDelta = !dependentDelta;
   }
 
   @Override

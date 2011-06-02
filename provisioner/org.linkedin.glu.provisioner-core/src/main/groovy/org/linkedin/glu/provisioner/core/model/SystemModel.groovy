@@ -246,15 +246,7 @@ class SystemModel implements MetadataProvider
       return [system1, system2]
     }
 
-    def filters1 = system1.filters
-    def filters2 = system2.filters
-
-    system1 = system1.filterBy(filters2)
-    system2 = system2.filterBy(filters1)
-
-    def keys = new HashSet()
-    system1.each { keys << it.key }
-    system2.each { keys << it.key }
+    def keys = filterKeys(system1, system2)
 
     system1 = system1.unfilter()
     system2 = system2.unfilter()
@@ -266,6 +258,36 @@ class SystemModel implements MetadataProvider
 
     return [system1, system2]
   }
+
+  /**
+   * Filters the 2 models in the following way:
+   * <ul>
+   * <li>filter system2 with all filter applied to system1</li>
+   * <li>filter system1 with all filter applied to system2</li>
+   * <li>compute and return union of keys between system1 and system2</li>
+   * </ul>
+   *
+   * @return the keys
+   */
+  static Set<String> filterKeys(SystemModel system1, SystemModel system2)
+  {
+    if(system1 == null || system2 == null)
+    {
+      return [] as Set
+    }
+
+    def filters1 = system1.filters
+    def filters2 = system2.filters
+
+    system1 = system1.filterBy(filters2)
+    system2 = system2.filterBy(filters1)
+
+    def keys = new HashSet()
+    system1.each { keys << it.key }
+    system2.each { keys << it.key }
+    return keys
+  }
+
 
   /**
    * The filter is a dsl

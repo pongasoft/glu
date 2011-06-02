@@ -14,8 +14,14 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.delta;
+package org.linkedin.glu.orchestration.engine.delta.impl;
 
+import org.linkedin.glu.orchestration.engine.delta.DeltaMgr;
+import org.linkedin.glu.orchestration.engine.delta.MultipleStatusInfo;
+import org.linkedin.glu.orchestration.engine.delta.SimpleStatusInfo;
+import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
+import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueWithDelta;
+import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
 import org.linkedin.glu.provisioner.core.model.SystemModel;
 import org.linkedin.util.annotations.Initializer;
@@ -24,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -68,35 +73,30 @@ public class DeltaMgrImpl implements DeltaMgr
   }
 
   @Override
-  public SystemModelDelta computeDelta(SystemModel expectedModel, SystemModel currentModel)
+  public SystemModelDelta computeDelta(SystemModel filteredExpectedModel,
+                                       SystemModel filteredCurrentModel)
   {
-    if(expectedModel == null || currentModel == null)
+    if(filteredExpectedModel == null || filteredCurrentModel == null)
       return null;
 
-    SystemModelDeltaImpl systemModelDelta = new SystemModelDeltaImpl(expectedModel, currentModel);
+    InternalSystemModelDelta systemModelDelta = new SystemModelDeltaImpl(filteredExpectedModel,
+                                                                         filteredCurrentModel);
 
-    List<SystemModel> models = SystemModel.filter(expectedModel, currentModel);
+    Set<String> filteredKeys = SystemModel.filterKeys(filteredExpectedModel,
+                                                      filteredCurrentModel);
 
-    expectedModel = models.get(0);
-    currentModel = models.get(1);
+    SystemModel unfilteredExpectedModel = systemModelDelta.getExpectedSystemModel().unfilter();
+    SystemModel unfilteredCurrentModel = systemModelDelta.getCurrentSystemModel().unfilter();
 
-    Set<String> allKeys = new HashSet<String>();
+    Set<String> unfilteredKeys = SystemModel.filterKeys(unfilteredExpectedModel,
+                                                        unfilteredCurrentModel);
 
-    for(SystemEntry entry : expectedModel.findEntries())
+    for(String key : unfilteredKeys)
     {
-      allKeys.add(entry.getKey());
-    }
-
-    for(SystemEntry entry : currentModel.findEntries())
-    {
-      allKeys.add(entry.getKey());
-    }
-
-    for(String key : allKeys)
-    {
-      SystemEntryDelta delta =
-        computeSystemEntryDelta(expectedModel.findEntry(key), currentModel.findEntry(key));
-      
+      InternalSystemEntryDelta delta =
+        computeSystemEntryDelta(unfilteredExpectedModel.findEntry(key),
+                                unfilteredCurrentModel.findEntry(key));
+      delta.setDependentDelta(!filteredKeys.contains(key));
       systemModelDelta.setEntryDelta(delta);
     }
 
@@ -105,10 +105,10 @@ public class DeltaMgrImpl implements DeltaMgr
     return systemModelDelta;
   }
 
-  private SystemEntryDelta computeSystemEntryDelta(SystemEntry expectedEntry,
-                                                   SystemEntry currentEntry)
+  private InternalSystemEntryDelta computeSystemEntryDelta(SystemEntry expectedEntry,
+                                                           SystemEntry currentEntry)
   {
-    SystemEntryDeltaImpl sed = new SystemEntryDeltaImpl(expectedEntry, currentEntry);
+    InternalSystemEntryDelta sed = new SystemEntryDeltaImpl(expectedEntry, currentEntry);
 
     // processing version mismatch
     processCustomDeltaPreVersionMismatch(sed);
@@ -122,7 +122,7 @@ public class DeltaMgrImpl implements DeltaMgr
     return sed;
   }
 
-  protected void processVersionMismatch(SystemEntryDeltaImpl sed)
+  protected void processVersionMismatch(InternalSystemEntryDelta sed)
   {
     if(sed.getState() != null)
       return;
@@ -159,7 +159,7 @@ public class DeltaMgrImpl implements DeltaMgr
    * Set status/statusInfo/state for an entry delta (note that the delta has already been computed
    * and is accessible with {@link SystemEntryDelta#getErrorValueKeys()})
    */
-  protected void processDelta(SystemEntryDeltaImpl sed)
+  protected void processDelta(InternalSystemEntryDelta sed)
   {
     // give a chance for custom delta...
     processCustomDelta(sed);
@@ -237,7 +237,7 @@ public class DeltaMgrImpl implements DeltaMgr
    * Processes all empty agent to add a 'fake' delta
    * @param systemModelDelta
    */
-  protected void computeEmptyAgentsDelta(SystemModelDeltaImpl systemModelDelta)
+  protected void computeEmptyAgentsDelta(InternalSystemModelDelta systemModelDelta)
   {
     for(String emptyAgent : systemModelDelta.getEmptyAgents())
     {
@@ -263,7 +263,7 @@ public class DeltaMgrImpl implements DeltaMgr
    *
    * @param sed system delta for the entry
    */
-  protected void processCustomDeltaPreVersionMismatch(SystemEntryDeltaImpl sed)
+  protected void processCustomDeltaPreVersionMismatch(InternalSystemEntryDelta sed)
   {
     // nothing to do in this implementation
   }
@@ -273,7 +273,7 @@ public class DeltaMgrImpl implements DeltaMgr
    *
    * @param sed system delta for the entry
    */
-  protected void processCustomDeltaPostVersionMismatch(SystemEntryDeltaImpl sed)
+  protected void processCustomDeltaPostVersionMismatch(InternalSystemEntryDelta sed)
   {
     // nothing to do in this implementation
   }
@@ -284,7 +284,7 @@ public class DeltaMgrImpl implements DeltaMgr
    * @param sed the delta has already been computed
    * and is accessible with {@link SystemEntryDelta#getErrorValueKeys()}
    */
-  protected void processCustomDelta(SystemEntryDeltaImpl sed)
+  protected void processCustomDelta(InternalSystemEntryDelta sed)
   {
   }
 }

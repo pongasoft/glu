@@ -14,7 +14,9 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.delta;
+package org.linkedin.glu.orchestration.engine.delta.impl;
+
+import org.linkedin.glu.orchestration.engine.delta.ValueDelta;
 
 /**
  * @author yan@pongasoft.com

@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.planner;
+package org.linkedin.glu.orchestration.engine.planner.impl;
 
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
 import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider;
@@ -25,6 +25,7 @@ import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptTransitionA
 import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
+import org.linkedin.glu.orchestration.engine.planner.Planner;
 import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
 import org.linkedin.glu.provisioner.plan.api.IStep;
 import org.linkedin.glu.provisioner.plan.api.LeafStep;

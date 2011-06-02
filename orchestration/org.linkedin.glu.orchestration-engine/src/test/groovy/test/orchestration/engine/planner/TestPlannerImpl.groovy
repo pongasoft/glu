@@ -16,7 +16,7 @@
 
 package test.orchestration.engine.planner
 
-import org.linkedin.glu.orchestration.engine.planner.PlannerImpl
+import org.linkedin.glu.orchestration.engine.planner.impl.PlannerImpl
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
@@ -24,7 +24,7 @@ import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta
 import org.linkedin.glu.orchestration.engine.delta.DeltaMgr
-import org.linkedin.glu.orchestration.engine.delta.DeltaMgrImpl
+import org.linkedin.glu.orchestration.engine.delta.impl.DeltaMgrImpl
 
 /**
  * @author yan@pongasoft.com */

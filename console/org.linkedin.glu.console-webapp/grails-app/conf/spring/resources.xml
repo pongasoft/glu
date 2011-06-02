@@ -74,9 +74,9 @@
     <property name="planExecutor" ref="planExecutor"/>
   </bean>
 
-  <bean id="deltaMgr" class="org.linkedin.glu.orchestration.engine.delta.DeltaMgrImpl"/>
+  <bean id="deltaMgr" class="org.linkedin.glu.orchestration.engine.delta.impl.DeltaMgrImpl"/>
 
-  <bean id="planner" class="org.linkedin.glu.orchestration.engine.planner.PlannerImpl">
+  <bean id="planner" class="org.linkedin.glu.orchestration.engine.planner.impl.PlannerImpl">
     <property name="agentURIProvider" ref="_agentsServiceImpl"/>
   </bean>
 
