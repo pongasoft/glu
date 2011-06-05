@@ -80,7 +80,7 @@ public class SystemModelDeltaImpl implements InternalSystemModelDelta
     Map<String, SystemEntryDelta> res = new HashMap<String, SystemEntryDelta>();
     for(InternalSystemEntryDelta entryDelta : _deltas.values())
     {
-      if(entryDelta.isPrimaryDelta())
+      if(entryDelta.isNotFilteredOut())
         res.put(entryDelta.getKey(), entryDelta);
     }
     return res;
@@ -89,20 +89,28 @@ public class SystemModelDeltaImpl implements InternalSystemModelDelta
   @Override
   public Set<String> getKeys()
   {
-    Set<String> res = new HashSet<String>();
+    return getKeys(new HashSet<String>());
+  }
+
+  @Override
+  public Set<String> getKeys(Set<String> keys)
+  {
+    if(keys == null)
+      return null;
+
     for(InternalSystemEntryDelta entryDelta : _deltas.values())
     {
-      if(entryDelta.isPrimaryDelta())
-        res.add(entryDelta.getKey());
+      if(entryDelta.isNotFilteredOut())
+        keys.add(entryDelta.getKey());
     }
-    return res;
+    return keys;
   }
 
   @Override
   public SystemEntryDelta findEntryDelta(String key)
   {
     InternalSystemEntryDelta entryDelta = _deltas.get(key);
-    if(entryDelta != null && entryDelta.isPrimaryDelta())
+    if(entryDelta != null && entryDelta.isNotFilteredOut())
       return entryDelta;
     else
       return null;
@@ -113,23 +121,6 @@ public class SystemModelDeltaImpl implements InternalSystemModelDelta
   {
     return _deltas.get(key);
   }
-
-//  @Override
-//  public InternalSystemEntryDelta findParentEntryDelta(String key)
-//  {
-//    InternalSystemEntryDelta delta = findAnyEntryDelta(key);
-//    if(delta == null)
-//      return null;
-//
-//    // TODO HIGH YP:  stopped here... 2 parents ?
-//    return null;
-//  }
-//
-//  @Override
-//  public Collection<InternalSystemEntryDelta> findChildrenEntryDelta(String key)
-//  {
-//    return null;
-//  }
 
   @Override
   public void setEntryDelta(InternalSystemEntryDelta delta)
@@ -143,7 +134,7 @@ public class SystemModelDeltaImpl implements InternalSystemModelDelta
   {
     for(InternalSystemEntryDelta delta : _deltas.values())
     {
-      if(!delta.isDependentDelta() && delta.hasErrorDelta())
+      if(!delta.isFilteredOut() && delta.hasErrorDelta())
         return true;
     }
     
@@ -159,7 +150,7 @@ public class SystemModelDeltaImpl implements InternalSystemModelDelta
       emptyAgents.addAll(currentModelEmptyAgent);
     for(InternalSystemEntryDelta entryDelta : _deltas.values())
     {
-      if(entryDelta.isPrimaryDelta())
+      if(entryDelta.isNotFilteredOut())
         emptyAgents.remove(entryDelta.getAgent());
     }
     return emptyAgents;
@@ -173,9 +164,9 @@ public class SystemModelDeltaImpl implements InternalSystemModelDelta
 
     for(InternalSystemEntryDelta entryDelta : _deltas.values())
     {
-      if(entryDelta.isPrimaryDelta())
+      if(entryDelta.isNotFilteredOut())
       {
-        boolean isInError = entryDelta.getState() == SystemEntryDelta.State.ERROR;
+        boolean isInError = entryDelta.getDeltaState() == SystemEntryDelta.DeltaState.ERROR;
 
         Map<String, Object> valueMap = new HashMap<String, Object>();
         for(Map.Entry<String, SystemEntryValue> entry : entryDelta.getValues().entrySet())
@@ -220,6 +211,16 @@ public class SystemModelDeltaImpl implements InternalSystemModelDelta
   public InternalSystemEntryDelta findCurrentParentEntryDelta(String key)
   {
     return findAnyEntryDelta(_currentDependencies.findParent(key));
+  }
+
+  @Override
+  public Set<String> getParentKeys(Set<String> keys)
+  {
+    if(keys == null)
+      return null;
+    keys.addAll(_expectedDependencies.getEntriesWithChildren());
+    keys.addAll(_currentDependencies.getEntriesWithChildren());
+    return keys;
   }
 
   @Override

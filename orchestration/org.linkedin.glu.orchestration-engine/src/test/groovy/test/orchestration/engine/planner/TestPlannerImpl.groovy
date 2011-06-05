@@ -25,6 +25,7 @@ import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta
 import org.linkedin.glu.orchestration.engine.delta.DeltaMgr
 import org.linkedin.glu.orchestration.engine.delta.impl.DeltaMgrImpl
+import org.linkedin.groovy.util.json.JsonUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -176,6 +177,48 @@ public class TestPlannerImpl extends GroovyTestCase
 """, p.toXml())
   }
 
+  /**
+   * Complex case when the child changes parent and parent changes state...
+   */
+  public void testParentChildDelta()
+  {
+//    Plan<ActionDescriptor> p = plan(Type.SEQUENTIAL,
+//                                    delta(m([agent: 'a1', mountPoint: 'p1', script: 's1'],
+//                                            [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1']),
+//
+//                                          m([agent: 'a1', mountPoint: 'p1', script: 's2'],
+//                                            [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1'])))
+
+    Plan<ActionDescriptor> p = plan(Type.SEQUENTIAL,
+                                    delta(m([agent: 'a1', mountPoint: 'p1', script: 's2'],
+                                            [agent: 'a1', mountPoint: 'p2', script: 's1'],
+                                            [agent: 'a1', mountPoint: 'c1', parent: 'p2', script: 's1'],
+                                            [agent: 'a1', mountPoint: 'c2', parent: 'p1', script: 's1']),
+
+                                          m([agent: 'a1', mountPoint: 'p1', script: 's1'],
+                                            [agent: 'a1', mountPoint: 'p2', script: 's1', entryState: 'stopped'],
+                                            [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1'],
+                                            [agent: 'a1', mountPoint: 'c2', parent: 'p1', script: 's1'])))
+
+    assertEquals(Type.SEQUENTIAL, p.step.type)
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <sequential>
+    <sequential agent="a1" mountPoint="m1">
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: install" scriptTransition="install" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: start" scriptTransition="start" />
+    </sequential>
+  </sequential>
+</plan>
+""", p.toXml())
+    assertEquals(8, p.leafStepsCount)
+  }
 
   private SystemModel m(Map... entries)
   {
@@ -196,6 +239,13 @@ public class TestPlannerImpl extends GroovyTestCase
 
   private Plan<ActionDescriptor> plan(Type type, SystemModelDelta delta)
   {
-    planner.computeDeploymentPlan(type, delta)
+    println JsonUtils.toJSON(delta.flatten(new TreeMap())).toString(2)
+    Plan<ActionDescriptor> plan = planner.computeDeploymentPlan(type, delta)
+    println "executeAfter"
+    planner.transitions.filterVirtual()
+    println JsonUtils.toJSON(planner.transitions.transitions.values().collect { "${it.key} -> ${it.executeAfter}"}).toString(2)
+    println "executeBefore"
+    println JsonUtils.toJSON(planner.transitions.transitions.values().collect { "${it.key} -> ${it.executeBefore}"}).toString(2)
+    return plan
   }
 }

@@ -32,6 +32,7 @@ public interface SystemModelDelta
   SystemModel getCurrentSystemModel();
 
   Set<String> getKeys();
+  Set<String> getKeys(Set<String> keys);
   SystemEntryDelta findEntryDelta(String key);
   Map<String, SystemEntryDelta> getEntryDeltas();
 

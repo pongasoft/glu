@@ -16,7 +16,7 @@
 
 package org.linkedin.glu.orchestration.engine.delta.impl;
 
-import org.linkedin.glu.orchestration.engine.delta.StatusInfo;
+import org.linkedin.glu.orchestration.engine.delta.DeltaStatusInfo;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
 
 /**
@@ -24,16 +24,22 @@ import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
  */
 public interface InternalSystemEntryDelta extends SystemEntryDelta
 {
-  public boolean isPrimaryDelta();
-  public boolean isDependentDelta();
-  public void setDependentDelta(boolean isDependentDelta);
+  public boolean isNotFilteredOut();
+  public boolean isFilteredOut();
+  public void setFilteredOut(boolean isFilteredOut);
 
   void setErrorValue(String key);
   void clearErrorValue(String key);
 
-  void setState(State state);
-  void setStatus(String status);
-  void setStatusInfo(StatusInfo statusInfo);
+  void setDeltaState(DeltaState deltaState);
+  void setDeltaStatus(String status);
+  void setDeltaStatusInfo(DeltaStatusInfo deltaStatusInfo);
+  void clearDeltaState();
 
+  /* value overriding */
+  void setExpectedValue(String key, Object value);
+  void setCurrentValue(String key, Object value);
+  void setValue(String key, Object expectedValue, Object currentValue);
   void setValue(String key, Object value);
+  void clearValue(String key);
 }

@@ -17,7 +17,7 @@
 package org.linkedin.glu.orchestration.engine.delta.impl;
 
 import org.linkedin.glu.agent.api.Agent;
-import org.linkedin.glu.orchestration.engine.delta.StatusInfo;
+import org.linkedin.glu.orchestration.engine.delta.DeltaStatusInfo;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValue;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueNoDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueWithDelta;
@@ -53,12 +53,14 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
   private final Map<String, SystemEntryValue> _values;
   private final Set<String> _errorValueKeys = new HashSet<String>();
 
-  private boolean _isPrimaryDelta = true;
+  private boolean _isFilteredOut;
 
   /**
    * Constructor
    */
-  public SystemEntryDeltaImpl(SystemEntry expectedEntry, SystemEntry currentEntry)
+  public SystemEntryDeltaImpl(SystemEntry expectedEntry,
+                              SystemEntry currentEntry,
+                              boolean isFilteredOut)
   {
     if(expectedEntry == null && currentEntry == null)
       throw new IllegalArgumentException("at least one entry must not be null");
@@ -71,9 +73,13 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
     _expectedEntry = expectedEntry;
     _currentEntry = currentEntry;
     _values = computeValues(expectedEntry, currentEntry);
-    Object error = SystemModelDeltaImpl.getMetadataValue(_currentEntry, "error");
+    Object error = SystemModelDeltaImpl.getMetadataValue(_currentEntry, ERROR_KEY);
     if(error != null)
-      _values.put("error", new SystemEntryValueNoDelta<Object>(error));
+      _values.put(ERROR_KEY, new SystemEntryValueNoDelta<Object>(error));
+    _isFilteredOut = isFilteredOut;
+    // when the entry is filtered out, the 'expected' state should be the 'current' state
+    if(_isFilteredOut)
+      setValue(ENTRY_STATE_KEY, this.<Object>findCurrentValue(ENTRY_STATE_KEY));
   }
 
   @SuppressWarnings("unchecked")
@@ -96,32 +102,17 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
 
     for(Map.Entry<String, Object> entry : expectedValues.entrySet())
     {
-      Object currentValue = currentValues.get(entry.getKey());
-      if(LangUtils.isEqual(entry.getValue(), currentValue))
-      {
-        values.put(entry.getKey(), new SystemEntryValueNoDelta<Object>(currentValue));
-      }
-      else
-      {
-        values.put(entry.getKey(),
-                   new SystemEntryValueWithDelta<Object>(entry.getValue(), currentValue));
-      }
+      values.put(entry.getKey(), computeValue(entry.getValue(),
+                                              currentValues.get(entry.getKey())));
     }
 
     for(Map.Entry<String, Object> entry : currentValues.entrySet())
     {
       if(!values.containsKey(entry.getKey()))
       {
-        Object expectedValue = null; // it must be null otherwise it would be in previous loop!
-        if(LangUtils.isEqual(entry.getValue(), expectedValue))
-        {
-          values.put(entry.getKey(), new SystemEntryValueNoDelta<Object>(expectedValue));
-        }
-        else
-        {
-          values.put(entry.getKey(),
-                     new SystemEntryValueWithDelta<Object>(expectedValue, entry.getValue()));
-        }
+        // expectedValue must be null otherwise it would be in previous loop!
+        values.put(entry.getKey(), computeValue(null,
+                                                entry.getValue()));
       }
     }
 
@@ -136,6 +127,18 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
     }
 
     return values;
+  }
+
+  private static SystemEntryValue computeValue(Object expectedValue, Object currentValue)
+  {
+    if(LangUtils.isEqual(expectedValue, currentValue))
+    {
+      return new SystemEntryValueNoDelta<Object>(expectedValue);
+    }
+    else
+    {
+      return new SystemEntryValueWithDelta<Object>(expectedValue, currentValue);
+    }
   }
 
   @Override
@@ -177,19 +180,13 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
   @Override
   public String getExpectedEntryState()
   {
-    if(_expectedEntry != null)
-      return _expectedEntry.getEntryState();
-    else
-      return null;
+    return findExpectedValue(ENTRY_STATE_KEY);
   }
 
   @Override
   public String getCurrentEntryState()
   {
-    if(_currentEntry != null)
-      return _currentEntry.getEntryState();
-    else
-      return null;
+    return findCurrentValue(ENTRY_STATE_KEY);
   }
 
   @Override
@@ -272,19 +269,19 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
   @Override
   public SystemEntryValueWithDelta<String> findParentDelta()
   {
-    return findValueWithDelta("parent");
+    return findValueWithDelta(PARENT_KEY);
   }
 
   @Override
   public SystemEntryValueWithDelta<String> findEntryStateDelta()
   {
-    return findValueWithDelta("entryState");
+    return findValueWithDelta(ENTRY_STATE_KEY);
   }
 
   @Override
-  public Object findCurrentValue(String key)
+  public <T> T findCurrentValue(String key)
   {
-    SystemEntryValue<Object> value = findValue(key);
+    SystemEntryValue<T> value = findValue(key);
     if(value != null)
       return value.getCurrentValue();
     else
@@ -292,9 +289,9 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
   }
 
   @Override
-  public Object findExpectedValue(String key)
+  public <T> T findExpectedValue(String key)
   {
-    SystemEntryValue<Object> value = findValue(key);
+    SystemEntryValue<T> value = findValue(key);
     if(value != null)
       return value.getExpectedValue();
     else
@@ -304,65 +301,97 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
   @Override
   public Object getError()
   {
-    return findValueWithNoDelta("error");
+    return findValueWithNoDelta(ERROR_KEY);
   }
 
   @Override
-  public State getState()
+  public DeltaState getDeltaState()
   {
-    return findValueWithNoDelta("state");
+    return findValueWithNoDelta(DELTA_STATE_KEY);
   }
 
   @Override
-  public void setState(State state)
+  public void setDeltaState(DeltaState deltaState)
   {
-    setValue("state", state);
+    setValue(DELTA_STATE_KEY, deltaState);
   }
 
   @Override
-  public String getStatus()
+  public String getDeltaStatus()
   {
-    return findValueWithNoDelta("status");
+    return findValueWithNoDelta(DELTA_STATUS_KEY);
   }
 
   @Override
-  public void setStatus(String status)
+  public void setDeltaStatus(String status)
   {
-    setValue("status", status);
+    setValue(DELTA_STATUS_KEY, status);
   }
 
   @Override
-  public StatusInfo getStatusInfo()
+  public DeltaStatusInfo getDeltaStatusInfo()
   {
-    return findValueWithNoDelta("statusInfo");
+    return findValueWithNoDelta(DELTA_STATUS_INFO_KEY);
   }
 
   @Override
-  public void setStatusInfo(StatusInfo statusInfo)
+  public void setDeltaStatusInfo(DeltaStatusInfo deltaStatusInfo)
   {
-    setValue("statusInfo", statusInfo);
+    setValue(DELTA_STATUS_INFO_KEY, deltaStatusInfo);
+  }
+
+  @Override
+  public void clearDeltaState()
+  {
+    clearValue(DELTA_STATE_KEY);
+    clearValue(DELTA_STATUS_KEY);
+    clearValue(DELTA_STATUS_INFO_KEY);
   }
 
   @Override
   public void setValue(String key, Object value)
   {
-    _values.put(key, new SystemEntryValueNoDelta<Object>(value));
+    setValue(key, value, value);
   }
 
   @Override
-  public boolean isPrimaryDelta()
+  public void setExpectedValue(String key, Object value)
   {
-    return _isPrimaryDelta;
+    setValue(key, value, this.<Object>findCurrentValue(key));
   }
 
-  public boolean isDependentDelta()
+  @Override
+  public void setCurrentValue(String key, Object value)
   {
-    return !_isPrimaryDelta;
+    setValue(key, this.<Object>findExpectedValue(key), value);
   }
 
-  public void setDependentDelta(boolean dependentDelta)
+  @Override
+  public void setValue(String key, Object expectedValue, Object currentValue)
   {
-    _isPrimaryDelta = !dependentDelta;
+    _values.put(key, computeValue(expectedValue, currentValue));
+  }
+
+  @Override
+  public void clearValue(String key)
+  {
+    _values.remove(key);
+  }
+
+  @Override
+  public boolean isNotFilteredOut()
+  {
+    return !_isFilteredOut;
+  }
+
+  public boolean isFilteredOut()
+  {
+    return _isFilteredOut;
+  }
+
+  public void setFilteredOut(boolean isFilteredOut)
+  {
+    _isFilteredOut = isFilteredOut;
   }
 
   @Override

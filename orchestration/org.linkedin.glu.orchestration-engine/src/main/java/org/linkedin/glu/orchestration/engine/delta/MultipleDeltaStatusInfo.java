@@ -21,14 +21,14 @@ import java.util.Collection;
 /**
  * @author yan@pongasoft.com
  */
-public class MultipleStatusInfo implements StatusInfo
+public class MultipleDeltaStatusInfo implements DeltaStatusInfo
 {
   private final Collection<String> _values;
 
   /**
    * Constructor
    */
-  public MultipleStatusInfo(Collection<String> values)
+  public MultipleDeltaStatusInfo(Collection<String> values)
   {
     _values = values;
   }
@@ -50,14 +50,14 @@ public class MultipleStatusInfo implements StatusInfo
     return _values.toString();
   }
 
-  public static StatusInfo create(Collection<String> values)
+  public static DeltaStatusInfo create(Collection<String> values)
   {
     if(values == null)
       return null;
 
     if(values.size() == 1)
-      return new SimpleStatusInfo(values.iterator().next());
+      return new SimpleDeltaStatusInfo(values.iterator().next());
     else
-      return new MultipleStatusInfo(values);
+      return new MultipleDeltaStatusInfo(values);
   }
 }

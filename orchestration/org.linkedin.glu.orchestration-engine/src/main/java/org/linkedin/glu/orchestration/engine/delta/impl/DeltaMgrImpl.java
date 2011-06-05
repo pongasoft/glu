@@ -17,14 +17,18 @@
 package org.linkedin.glu.orchestration.engine.delta.impl;
 
 import org.linkedin.glu.orchestration.engine.delta.DeltaMgr;
-import org.linkedin.glu.orchestration.engine.delta.MultipleStatusInfo;
-import org.linkedin.glu.orchestration.engine.delta.SimpleStatusInfo;
+import org.linkedin.glu.orchestration.engine.delta.MultipleDeltaStatusInfo;
+import org.linkedin.glu.orchestration.engine.delta.SimpleDeltaStatusInfo;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueWithDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
 import org.linkedin.glu.provisioner.core.model.SystemModel;
+import org.linkedin.groovy.util.state.StateMachine;
 import org.linkedin.util.annotations.Initializer;
+import org.linkedin.util.lang.LangUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +42,9 @@ import java.util.TreeSet;
  */
 public class DeltaMgrImpl implements DeltaMgr
 {
+  public static final String MODULE = DeltaMgrImpl.class.getName();
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
+
   private Set<String> _includedInVersionMismatch =
     new HashSet<String>(Arrays.asList("parent", "script", "entryState"));
 
@@ -82,9 +89,12 @@ public class DeltaMgrImpl implements DeltaMgr
     InternalSystemModelDelta systemModelDelta = new SystemModelDeltaImpl(filteredExpectedModel,
                                                                          filteredCurrentModel);
 
+    // 1. we get all the keys that will be part of the delta
     Set<String> filteredKeys = SystemModel.filterKeys(filteredExpectedModel,
                                                       filteredCurrentModel);
 
+    // 2. we compute the dependencies (on the unfiltered model) which may bring back some keys
+    // that were filtered out in step 1.
     SystemModel unfilteredExpectedModel = systemModelDelta.getExpectedSystemModel().unfilter();
     SystemModel unfilteredCurrentModel = systemModelDelta.getCurrentSystemModel().unfilter();
 
@@ -96,24 +106,95 @@ public class DeltaMgrImpl implements DeltaMgr
       computeDependencies(filteredKeys, unfilteredCurrentModel);
     systemModelDelta.setCurrentDependencies(currentDependencies);
 
-    // keys required are all filtered keys + all dependency keys (which may or may not be present
+    // 3. keys required are all filtered keys + all dependency keys (which may or may not be present
     // in filteredKeys!)
     Set<String> requiredKeys = new HashSet<String>(filteredKeys);
     expectedDependencies.getEntriesWithDependency(requiredKeys);
     currentDependencies.getEntriesWithDependency(requiredKeys);
 
+    // 4. we compute the delta for all entries pretending there is no dependencies
     for(String key : requiredKeys)
     {
       InternalSystemEntryDelta delta =
-        computeSystemEntryDelta(unfilteredExpectedModel.findEntry(key),
-                                unfilteredCurrentModel.findEntry(key));
-      delta.setDependentDelta(!filteredKeys.contains(key));
+        new SystemEntryDeltaImpl(unfilteredExpectedModel.findEntry(key),
+                                 unfilteredCurrentModel.findEntry(key),
+                                 !filteredKeys.contains(key));
+
+      computeSystemEntryDelta(delta);
+
       systemModelDelta.setEntryDelta(delta);
     }
+
+    // 5. we adjust the delta based on the dependencies
+    adjustDeltaFromDependencies(systemModelDelta);
 
     computeEmptyAgentsDelta(systemModelDelta);
 
     return systemModelDelta;
+  }
+
+  protected void adjustDeltaFromDependencies(InternalSystemModelDelta systemModelDelta)
+  {
+    // we start from the parents
+    Set<String> parentKeys = systemModelDelta.getParentKeys(new TreeSet<String>());
+    for(String key : parentKeys)
+    {
+      InternalSystemEntryDelta parentEntryDelta = systemModelDelta.findAnyEntryDelta(key);
+      StateMachine stateMachine = parentEntryDelta.getStateMachine();
+
+      Collection<InternalSystemEntryDelta> expectedChildrenEntryDelta =
+        systemModelDelta.findExpectedChildrenEntryDelta(key);
+
+      String parentExpectedState = parentEntryDelta.getExpectedEntryState();
+
+      for(InternalSystemEntryDelta childEntryDelta : expectedChildrenEntryDelta)
+      {
+        int childDepth =
+          stateMachine.getDepth(childEntryDelta.getExpectedEntryState());
+        if(childDepth > stateMachine.getDepth(parentExpectedState))
+          parentExpectedState = childEntryDelta.getExpectedEntryState();
+      }
+
+      adjustDeltaFromDependencies(parentEntryDelta, parentExpectedState);
+
+      if("delta".equals(parentEntryDelta.getDeltaStatus()))
+      {
+        for(InternalSystemEntryDelta childDelta : expectedChildrenEntryDelta)
+        {
+          adjustChildDeltaWhenParentDelta(childDelta);
+        }
+        Collection<InternalSystemEntryDelta> currentChildrenEntryDelta =
+          systemModelDelta.findCurrentChildrenEntryDelta(key);
+        for(InternalSystemEntryDelta childDelta : currentChildrenEntryDelta)
+        {
+          adjustChildDeltaWhenParentDelta(childDelta);
+        }
+      }
+    }
+  }
+
+  protected void adjustDeltaFromDependencies(InternalSystemEntryDelta systemEntryDelta,
+                                             String expectedState)
+  {
+    if(!LangUtils.isEqual(expectedState, systemEntryDelta.getExpectedEntryState()))
+    {
+      systemEntryDelta.setExpectedValue(SystemEntryDelta.ENTRY_STATE_KEY, expectedState);
+      systemEntryDelta.clearDeltaState();
+      computeSystemEntryDelta(systemEntryDelta);
+      systemEntryDelta.setFilteredOut(false);
+    }
+  }
+
+  protected void adjustChildDeltaWhenParentDelta(InternalSystemEntryDelta childDelta)
+  {
+    if(!"delta".equals(childDelta.getDeltaStatus()))
+    {
+      childDelta.clearDeltaState();
+      childDelta.setDeltaStatus("parentDelta");
+      childDelta.setDeltaState(SystemEntryDelta.DeltaState.ERROR);
+      childDelta.setDeltaStatusInfo(new SimpleDeltaStatusInfo("needs redeploy (parent delta)"));
+      childDelta.setFilteredOut(false);
+    }
   }
 
   protected EntryDependencies computeDependencies(Set<String> keys, SystemModel model)
@@ -125,18 +206,23 @@ public class DeltaMgrImpl implements DeltaMgr
       SystemEntry entry = model.findEntry(key);
       if(entry != null && !SystemEntry.DEFAULT_PARENT.equals(entry.getParent()))
       {
-        dependencies.setParent(key, entry.getParent());
+        SystemEntry parentEntry = model.findEntry(entry.getAgent(), entry.getParent());
+        if(parentEntry == null)
+        {
+          log.warn("model does not contain parent (" + entry.getParent() + ") for " + key);
+        }
+        else
+        {
+          dependencies.setParent(key, parentEntry.getKey());
+        }
       }
     }
 
     return dependencies;
   }
 
-  protected InternalSystemEntryDelta computeSystemEntryDelta(SystemEntry expectedEntry,
-                                                             SystemEntry currentEntry)
+  protected InternalSystemEntryDelta computeSystemEntryDelta(InternalSystemEntryDelta sed)
   {
-    InternalSystemEntryDelta sed = new SystemEntryDeltaImpl(expectedEntry, currentEntry);
-
     // processing version mismatch
     processCustomDeltaPreVersionMismatch(sed);
 
@@ -151,7 +237,7 @@ public class DeltaMgrImpl implements DeltaMgr
 
   protected void processVersionMismatch(InternalSystemEntryDelta sed)
   {
-    if(sed.getState() != null)
+    if(sed.getDeltaState() != null)
       return;
 
     for(String key : sed.getDeltaValueKeys())
@@ -163,18 +249,18 @@ public class DeltaMgrImpl implements DeltaMgr
     // means that it is not deployed at all
     if(sed.getCurrentEntry() == null)
     {
-      sed.setStatus("notDeployed");
-      sed.setState(SystemEntryDelta.State.ERROR);
-      sed.setStatusInfo(new SimpleStatusInfo("NOT deployed"));
+      sed.setDeltaStatus("notDeployed");
+      sed.setDeltaState(SystemEntryDelta.DeltaState.ERROR);
+      sed.setDeltaStatusInfo(new SimpleDeltaStatusInfo("NOT deployed"));
       return;
     }
 
     // means that it should not be deployed at all
     if(sed.getExpectedEntry() == null)
     {
-      sed.setStatus("unexpected");
-      sed.setState(SystemEntryDelta.State.ERROR);
-      sed.setStatusInfo(new SimpleStatusInfo("should NOT be deployed"));
+      sed.setDeltaStatus("unexpected");
+      sed.setDeltaState(SystemEntryDelta.DeltaState.ERROR);
+      sed.setDeltaStatusInfo(new SimpleDeltaStatusInfo("should NOT be deployed"));
       return;
     }
 
@@ -191,27 +277,27 @@ public class DeltaMgrImpl implements DeltaMgr
     // give a chance for custom delta...
     processCustomDelta(sed);
 
-    if(sed.getState() != null)
+    if(sed.getDeltaState() != null)
       return;
 
     // in case there is a delta
     if(sed.hasErrorDelta())
     {
-      sed.setState(SystemEntryDelta.State.ERROR);
+      sed.setDeltaState(SystemEntryDelta.DeltaState.ERROR);
 
       Set<String> keys = sed.getErrorValueKeys();
 
       // when only a difference in state
       if(sed.findEntryStateDelta() != null && keys.size() == 1)
       {
-        sed.setStatus("notExpectedState");
-        sed.setStatusInfo(new SimpleStatusInfo(sed.getExpectedEntryState() + "!=" +
-                                               sed.getCurrentEntryState()));
+        sed.setDeltaStatus("notExpectedState");
+        sed.setDeltaStatusInfo(new SimpleDeltaStatusInfo(sed.getExpectedEntryState() + "!=" +
+                                                         sed.getCurrentEntryState()));
       }
       else
       {
         // handle it as a delta
-        sed.setStatus("delta");
+        sed.setDeltaStatus("delta");
         keys = new TreeSet<String>(keys);
         Collection<String> values = new ArrayList<String>(keys.size());
         for(String key : keys)
@@ -221,7 +307,7 @@ public class DeltaMgrImpl implements DeltaMgr
                      errorValue.getCurrentValue() + "]");
 
         }
-        sed.setStatusInfo(MultipleStatusInfo.create(values));
+        sed.setDeltaStatusInfo(MultipleDeltaStatusInfo.create(values));
       }
     }
     else
@@ -229,16 +315,16 @@ public class DeltaMgrImpl implements DeltaMgr
       // when there is an error
       if(sed.getError() != null)
       {
-        sed.setState(SystemEntryDelta.State.ERROR);
-        sed.setStatus("error");
-        sed.setStatusInfo(new SimpleStatusInfo(sed.getError().toString()));
+        sed.setDeltaState(SystemEntryDelta.DeltaState.ERROR);
+        sed.setDeltaStatus("error");
+        sed.setDeltaStatusInfo(new SimpleDeltaStatusInfo(sed.getError().toString()));
       }
       else
       {
         // everything ok!
-        sed.setState(SystemEntryDelta.State.OK);
-        sed.setStatus("expectedState");
-        sed.setStatusInfo(new SimpleStatusInfo(sed.getExpectedEntryState()));
+        sed.setDeltaState(SystemEntryDelta.DeltaState.OK);
+        sed.setDeltaStatus("expectedState");
+        sed.setDeltaStatusInfo(new SimpleDeltaStatusInfo(sed.getExpectedEntryState()));
       }
     }
 

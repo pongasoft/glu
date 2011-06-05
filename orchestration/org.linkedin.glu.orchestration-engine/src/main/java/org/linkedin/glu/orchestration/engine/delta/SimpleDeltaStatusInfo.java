@@ -16,11 +16,35 @@
 
 package org.linkedin.glu.orchestration.engine.delta;
 
-import org.linkedin.glu.utils.core.Externable;
-
 /**
  * @author yan@pongasoft.com
  */
-public interface StatusInfo extends Externable
+public class SimpleDeltaStatusInfo implements DeltaStatusInfo
 {
+  private final String _value;
+
+  /**
+   * Constructor
+   */
+  public SimpleDeltaStatusInfo(String value)
+  {
+    _value = value;
+  }
+
+  public String getValue()
+  {
+    return _value;
+  }
+
+  @Override
+  public Object toExternalRepresentation()
+  {
+    return getValue();
+  }
+
+  @Override
+  public String toString()
+  {
+    return _value;
+  }
 }

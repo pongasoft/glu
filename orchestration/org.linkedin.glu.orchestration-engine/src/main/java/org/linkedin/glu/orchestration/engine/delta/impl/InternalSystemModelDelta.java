@@ -19,6 +19,7 @@ package org.linkedin.glu.orchestration.engine.delta.impl;
 import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author yan@pongasoft.com
@@ -31,6 +32,7 @@ public interface InternalSystemModelDelta extends SystemModelDelta
   /* parent (getter) */
   InternalSystemEntryDelta findExpectedParentEntryDelta(String key);
   InternalSystemEntryDelta findCurrentParentEntryDelta(String key);
+  Set<String> getParentKeys(Set<String> keys);
 
   /* children (getter) */
   Collection<InternalSystemEntryDelta> findExpectedChildrenEntryDelta(String key);

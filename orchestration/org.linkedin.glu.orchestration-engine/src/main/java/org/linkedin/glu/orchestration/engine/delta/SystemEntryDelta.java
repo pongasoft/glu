@@ -27,24 +27,29 @@ import java.util.Set;
  */
 public interface SystemEntryDelta
 {
-  enum State
+  /**
+   * Represents the state of the entry (= the state from the state machine backing up this entry)
+   */
+  public static final String ENTRY_STATE_KEY = "entryState";
+  /**
+   * Represents the state of the delta itself (ex: 'notDeployed', 'unexpected', 'notExpectedState',
+   * 'expectedState', 'delta', 'error')
+   */
+  public static final String DELTA_STATE_KEY = "state";
+  public static final String DELTA_STATUS_KEY = "status";
+  public static final String DELTA_STATUS_INFO_KEY = "statusInfo";
+
+  public static final String PARENT_KEY = "parent";
+
+  public static final String ERROR_KEY = "error";
+
+  enum DeltaState
   {
     OK,
     WARN,
     ERROR,
     NA
   }
-
-  // YP note: status cannot be an enum as it prevents extension :(
-//  enum Status
-//  {
-//    notDeployed,
-//    unexpected,
-//    notExpectedState,
-//    expectedState,
-//    delta,
-//    error
-//  }
 
   /**
    * @return the unique key (in the model) for this entry
@@ -66,14 +71,14 @@ public interface SystemEntryDelta
    */
   SystemEntry getExpectedEntry();
   String getExpectedEntryState();
-  Object findExpectedValue(String key);
+  <T> T findExpectedValue(String key);
 
   /*******************************
    * Methods related to "current"
    */
   SystemEntry getCurrentEntry();
   String getCurrentEntryState();
-  Object findCurrentValue(String key);
+  <T> T findCurrentValue(String key);
 
   /**
    * @return all the values of this entry */
@@ -135,17 +140,17 @@ public interface SystemEntryDelta
   /**
    * Shortcut to get the state (equivalent to <code>findValue("state")?.expectedValue</code>)
    */
-  State getState();
+  DeltaState getDeltaState();
 
   /**
    * Shortcut to get the status (equivalent to <code>findValue("status")?.expectedValue</code>)
    */
-  String getStatus();
+  String getDeltaStatus();
 
   /**
    * Shortcut to get the statusInfo (equivalent to <code>findValue("statusInfo")?.expectedValue</code>)
    */
-  StatusInfo getStatusInfo();
+  DeltaStatusInfo getDeltaStatusInfo();
 
   /**
    * @return the state machine associated to this delta
