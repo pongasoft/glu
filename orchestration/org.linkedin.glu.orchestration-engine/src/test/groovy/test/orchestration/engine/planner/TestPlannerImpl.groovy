@@ -26,6 +26,8 @@ import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta
 import org.linkedin.glu.orchestration.engine.delta.DeltaMgr
 import org.linkedin.glu.orchestration.engine.delta.impl.DeltaMgrImpl
 import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.glu.orchestration.engine.planner.impl.Transitions
+import org.linkedin.glu.orchestration.engine.planner.impl.Transition
 
 /**
  * @author yan@pongasoft.com */
@@ -58,7 +60,6 @@ public class TestPlannerImpl extends GroovyTestCase
                                           m()))
 
     assertEquals(Type.SEQUENTIAL, p.step.type)
-    assertEquals(4, p.leafStepsCount)
     assertEquals("""<?xml version="1.0"?>
 <plan>
   <sequential>
@@ -71,6 +72,7 @@ public class TestPlannerImpl extends GroovyTestCase
   </sequential>
 </plan>
 """, p.toXml())
+    assertEquals(4, p.leafStepsCount)
   }
 
   /**
@@ -178,17 +180,68 @@ public class TestPlannerImpl extends GroovyTestCase
   }
 
   /**
+   * Test that when the parent is in delta it triggers a plan which redeploys the child as well
+   * (note how the steps are intermingled)
+   */
+  public void testParentChildDeltaParentDelta()
+  {
+    Plan<ActionDescriptor> p = plan(Type.PARALLEL,
+                                    delta(m([agent: 'a1', mountPoint: 'p1', script: 's1'],
+                                            [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1']),
+
+                                          m([agent: 'a1', mountPoint: 'p1', script: 's2'],
+                                            [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1'])))
+
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <sequential>
+    <parallel depth="0">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: stop" scriptTransition="stop" />
+    </parallel>
+    <parallel depth="1">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: stop" scriptTransition="stop" />
+    </parallel>
+    <parallel depth="2">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+    </parallel>
+    <parallel depth="3">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+    </parallel>
+    <parallel depth="4">
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+    </parallel>
+    <parallel depth="5">
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+    </parallel>
+    <parallel depth="6">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: install" scriptTransition="install" />
+    </parallel>
+    <parallel depth="7">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: install" scriptTransition="install" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: configure" scriptTransition="configure" />
+    </parallel>
+    <parallel depth="8">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: start" scriptTransition="start" />
+    </parallel>
+    <parallel depth="9">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: start" scriptTransition="start" />
+    </parallel>
+  </sequential>
+</plan>
+""", p.toXml())
+    assertEquals(16, p.leafStepsCount)
+  }
+
+  /**
    * Complex case when the child changes parent and parent changes state...
    */
-  public void testParentChildDelta()
+  public void testParentChildDeltaReparent()
   {
-//    Plan<ActionDescriptor> p = plan(Type.SEQUENTIAL,
-//                                    delta(m([agent: 'a1', mountPoint: 'p1', script: 's1'],
-//                                            [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1']),
-//
-//                                          m([agent: 'a1', mountPoint: 'p1', script: 's2'],
-//                                            [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1'])))
-
     Plan<ActionDescriptor> p = plan(Type.SEQUENTIAL,
                                     delta(m([agent: 'a1', mountPoint: 'p1', script: 's2'],
                                             [agent: 'a1', mountPoint: 'p2', script: 's1'],
@@ -200,24 +253,58 @@ public class TestPlannerImpl extends GroovyTestCase
                                             [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1'],
                                             [agent: 'a1', mountPoint: 'c2', parent: 'p1', script: 's1'])))
 
-    assertEquals(Type.SEQUENTIAL, p.step.type)
     assertEquals("""<?xml version="1.0"?>
 <plan>
   <sequential>
-    <sequential agent="a1" mountPoint="m1">
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: stop" scriptTransition="stop" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: install" scriptTransition="install" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: configure" scriptTransition="configure" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: start" scriptTransition="start" />
+    <sequential depth="0">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="p2" name="TODO script action: start" scriptTransition="start" />
+    </sequential>
+    <sequential depth="1">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: stop" scriptTransition="stop" />
+    </sequential>
+    <sequential depth="2">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+    </sequential>
+    <sequential depth="3">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+    </sequential>
+    <sequential depth="4">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+    </sequential>
+    <sequential depth="5">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: install" scriptTransition="install" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+    </sequential>
+    <sequential depth="6">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: install" scriptTransition="install" />
+    </sequential>
+    <sequential depth="7">
+      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script action: install" scriptTransition="install" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: configure" scriptTransition="configure" />
+    </sequential>
+    <sequential depth="8">
+      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: start" scriptTransition="start" />
+    </sequential>
+    <sequential depth="9">
+      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script action: start" scriptTransition="start" />
     </sequential>
   </sequential>
 </plan>
 """, p.toXml())
-    assertEquals(8, p.leafStepsCount)
+    assertEquals(25, p.leafStepsCount)
   }
 
   private SystemModel m(Map... entries)
@@ -239,13 +326,35 @@ public class TestPlannerImpl extends GroovyTestCase
 
   private Plan<ActionDescriptor> plan(Type type, SystemModelDelta delta)
   {
-    println JsonUtils.toJSON(delta.flatten(new TreeMap())).toString(2)
-    Plan<ActionDescriptor> plan = planner.computeDeploymentPlan(type, delta)
-    println "executeAfter"
-    planner.transitions.filterVirtual()
-    println JsonUtils.toJSON(planner.transitions.transitions.values().collect { "${it.key} -> ${it.executeAfter}"}).toString(2)
-    println "executeBefore"
-    println JsonUtils.toJSON(planner.transitions.transitions.values().collect { "${it.key} -> ${it.executeBefore}"}).toString(2)
-    return plan
+    planner.computeDeploymentPlan(type, delta)
+  }
+
+  /**
+   * Computes the digraph of the transitions
+   * (to render with <code>dot -Tpdf < out of this method</code>)
+   */
+  private static String digraph(Transitions transitions)
+  {
+    String graph = new TreeMap(transitions.transitions).values().collect { Transition t ->
+      t.executeBefore.sort().collect { String key ->
+        "\"${t.key}\" -> \"${key}\""
+      }.join('\n')
+    }.join('\n')
+
+    "digraph delta {\n${graph}\n}"
+  }
+
+  private static String toStringAfter(Transitions transitions)
+  {
+    JsonUtils.toJSON(new TreeMap(transitions.transitions).values().collect { Transition t ->
+      "${t.key} -> ${t.executeAfter.sort()}"
+    }).toString(2)
+  }
+
+  private static String toStringBefore(Transitions transitions)
+  {
+    JsonUtils.toJSON(new TreeMap(transitions.transitions).values().collect { Transition t ->
+      "${t.key} -> ${t.executeBefore.sort()}"
+    }).toString(2)
   }
 }

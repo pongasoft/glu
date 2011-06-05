@@ -17,19 +17,22 @@
 package org.linkedin.glu.orchestration.engine.planner.impl;
 
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
-import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptLifecycleInstallActionDescriptor;
-import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptLifecycleUninstallActionDescriptor;
-import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptTransitionActionDescriptor;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemEntryDelta;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemModelDelta;
-import org.linkedin.glu.provisioner.plan.api.LeafStep;
+import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
+import org.linkedin.glu.provisioner.plan.api.IStep;
+import org.linkedin.glu.provisioner.plan.api.Plan;
+import org.linkedin.glu.provisioner.plan.api.PlanBuilder;
 import org.linkedin.groovy.util.state.StateMachine;
 import org.linkedin.util.lang.LangUtils;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author yan@pongasoft.com
@@ -40,6 +43,8 @@ public class Transitions
   
   private final InternalSystemModelDelta _systemModelDelta;
   private final Map<String, Transition> _transitions = new LinkedHashMap<String, Transition>();
+
+  private boolean _postProcessed = false;
 
   /**
    * Constructor
@@ -59,57 +64,140 @@ public class Transitions
     return _transitions;
   }
 
-//  public Map<Transition, Collection<Transition>> getReverseTransitions()
-//  {
-//    Map<Transition, Collection<Transition>> reverseTransitions =
-//      new LinkedHashMap<Transition, Collection<Transition>>();
-//
-//    for(Map.Entry<Transition, Collection<Transition>> entry : _transitions.entrySet())
-//    {
-//      for(Transition transition : entry.getValue())
-//      {
-//        Collection<Transition> rts = reverseTransitions.get(transition);
-//        if(rts == null)
-//        {
-//          rts = new HashSet<Transition>();
-//          reverseTransitions.put(transition, rts);
-//        }
-//        rts.add(entry.getKey());
-//      }
-//    }
-//
-//    return reverseTransitions;
-//  }
-
-
-  public Transition addRealTransition(String entryKey, String action, String to, int distance)
+  public Plan<ActionDescriptor> buildPlan(IStep.Type type)
   {
-    String key = Transition.computeTransitionKey(entryKey, action, to, distance);
+    postProcess();
+    
+    PlanBuilder<ActionDescriptor> builder = new PlanBuilder<ActionDescriptor>();
+
+    if(isMultiStepsOnly())
+    {
+      ICompositeStepBuilder<ActionDescriptor> stepBuilder = builder.addCompositeSteps(type);
+      for(String key : new TreeSet<String>(_transitions.keySet()))
+      {
+        Transition transition = _transitions.get(key);
+        transition.addSteps(stepBuilder, _systemModelDelta);
+      }
+    }
+    else
+    {
+      ICompositeStepBuilder<ActionDescriptor> stepBuilder = builder.addSequentialSteps();
+
+      Set<Transition> roots =
+        findRoots(new TreeSet<Transition>(Transition.TransitionComparator.INSTANCE));
+
+      addSteps(stepBuilder, type, roots, 0, new HashSet<String>());
+    }
+
+
+    return builder.toPlan();
+  }
+
+  private boolean isMultiStepsOnly()
+  {
+    for(Transition transition : _transitions.values())
+    {
+      if(!(transition instanceof MultiStepsSingleEntryTransition))
+        return false;
+    }
+
+    return true;
+  }
+
+  public Set<Transition> findRoots(Set<Transition> roots)
+  {
+    Map<String, Transition> transitions = getTransitions();
+
+    for(Transition transition : transitions.values())
+    {
+      if(transition.isRoot())
+      {
+        roots.add(transition);
+      }
+    }
+
+    return roots;
+  }
+
+  private void addSteps(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
+                        IStep.Type type,
+                        Set<Transition> transitions,
+                        int depth,
+                        Set<String> alreadyProcessed)
+  {
+    if(transitions.size() == 0)
+      return;
+
+    ICompositeStepBuilder<ActionDescriptor> depthBuilder = stepBuilder.addCompositeSteps(type);
+    depthBuilder.setMetadata("depth", depth);
+
+    Set<Transition> nextTransitions =
+      new TreeSet<Transition>(Transition.TransitionComparator.INSTANCE);
+
+    for(Transition transition : transitions)
+    {
+      if(!alreadyProcessed.contains(transition.getKey()))
+      {
+        // make sure that all 'before' steps have been completed
+        if(checkExecuteBefore(transition, alreadyProcessed))
+        {
+          alreadyProcessed.add(transition.getKey());
+          transition.addSteps(depthBuilder, _systemModelDelta);
+          for(String key : transition.getExecuteBefore())
+          {
+            nextTransitions.add(_transitions.get(key));
+          }
+        }
+        else
+        {
+          // no they have not => add for next iteration
+          nextTransitions.add(transition);
+        }
+      }
+    }
+
+    addSteps(stepBuilder, type, nextTransitions, depth + 1, alreadyProcessed);
+  }
+
+  private boolean checkExecuteBefore(Transition transition, Set<String> alreadyProcessed)
+  {
+    for(String key : transition.getExecuteAfter())
+    {
+      if(!alreadyProcessed.contains(key))
+        return false;
+    }
+    return true;
+  }
+
+  public Transition addRealTransition(String entryKey, String action, String to)
+  {
+    String key = SingleStepTransition.computeTransitionKey(entryKey, action);
     Transition transition = _transitions.get(key);
     if(transition == null)
     {
-      transition = new Transition(key, entryKey, action, to, distance);
+      transition = new SingleStepTransition(key, entryKey, action, to);
       _transitions.put(key, transition);
     }
     transition.setVirtual(false);
     return transition;
   }
 
-  public Transition addVirtualTransition(String entryKey, String action, String to, int distance)
+  public Transition addVirtualTransition(String entryKey, String action, String to)
   {
-    String key = Transition.computeTransitionKey(entryKey, action, to, distance);
+    String key = SingleStepTransition.computeTransitionKey(entryKey, action);
     Transition transition = _transitions.get(key);
     if(transition == null)
     {
-      transition = new Transition(key, entryKey, action, to, distance);
+      transition = new SingleStepTransition(key, entryKey, action, to);
       _transitions.put(key, transition);
       transition.setVirtual(true);
     }
     return transition;
   }
 
-  public void filterVirtual()
+  private void filterVirtual()
   {
+
     for(Transition transition : _transitions.values())
     {
       Iterator<String> iter = transition.getExecuteAfter().iterator();
@@ -136,44 +224,81 @@ public class Transitions
     }
   }
 
+  private void optimizeMultiSteps()
+  {
+    Set<Transition> roots = findRoots(new HashSet<Transition>());
+
+    for(Transition root : roots)
+    {
+      MultiStepsSingleEntryTransition mset = root.convertToMultiSteps(_transitions);
+      if(mset != null)
+      {
+        for(Transition transition : mset.getTransitions())
+        {
+          _transitions.remove(transition.getKey());
+        }
+        _transitions.put(mset.getKey(), mset);
+      }
+    }
+  }
+
   protected Transition addTransition(InternalSystemEntryDelta entryDelta,
                                      String action,
                                      String to,
                                      int distance)
   {
-    Transition transition = addRealTransition(entryDelta.getKey(), action, to, distance);
+    return addTransition(entryDelta.getKey(), action, to, distance);
+  }
+
+  protected Transition addTransition(String entryKey,
+                                     String action,
+                                     String to,
+                                     int distance)
+  {
+    Transition transition = addRealTransition(entryKey, action, to);
     if(distance > 0)
     {
       InternalSystemEntryDelta parentEntryDelta =
-        _systemModelDelta.findExpectedParentEntryDelta(entryDelta.getKey());
+        _systemModelDelta.findExpectedParentEntryDelta(entryKey);
       if(parentEntryDelta != null)
       {
         Transition parentTransition =
-          addVirtualTransition(parentEntryDelta.getKey(), action, to, distance);
+          addVirtualTransition(parentEntryDelta.getKey(), action, to);
         transition.executeAfter(parentTransition);
       }
     }
     else
     {
       Collection<InternalSystemEntryDelta> childrenEntryDelta =
-        _systemModelDelta.findCurrentChildrenEntryDelta(entryDelta.getKey());
+        _systemModelDelta.findCurrentChildrenEntryDelta(entryKey);
       for(InternalSystemEntryDelta childDelta : childrenEntryDelta)
       {
         Transition childTransition =
-          addVirtualTransition(childDelta.getKey(), action, to, distance);
+          addVirtualTransition(childDelta.getKey(), action, to);
         transition.executeAfter(childTransition);
       }
     }
     return transition;
   }
 
+  private void postProcess()
+  {
+    if(_postProcessed)
+      return;
+
+    filterVirtual();
+    optimizeMultiSteps();
+
+    _postProcessed = true;
+  }
+
   /**
    * Process entry state mismatch
    */
-  public Transition processEntryStateMismatch(Transition transition,
-                                              InternalSystemEntryDelta entryDelta,
-                                              Object fromState,
-                                              Object toState)
+  public Transition addTransition(Transition transition,
+                                  InternalSystemEntryDelta entryDelta,
+                                  Object fromState,
+                                  Object toState)
   {
     // nothing to do if both states are equal!
     if(LangUtils.isEqual(fromState, toState))
@@ -182,10 +307,10 @@ public class Transitions
     if(fromState == null)
     {
       Transition installScript =
-        addRealTransition(entryDelta.getKey(),
-                          Transition.INSTALL_SCRIPT_ACTION,
-                          (String) StateMachine.NONE,
-                          1);
+        addTransition(entryDelta.getKey(),
+                      SingleStepTransition.INSTALL_SCRIPT_ACTION,
+                      (String) StateMachine.NONE,
+                      1);
       installScript.executeAfter(transition);
       transition = installScript;
     }
@@ -197,10 +322,10 @@ public class Transitions
 
     if(toState == null)
     {
-      Transition uninstallScript = addRealTransition(entryDelta.getKey(),
-                                                     Transition.UNINSTALL_SCRIPT_ACTION,
-                                                     null,
-                                                     -1);
+      Transition uninstallScript = addTransition(entryDelta.getKey(),
+                                                 SingleStepTransition.UNINSTALL_SCRIPT_ACTION,
+                                                 null,
+                                                 -1);
       uninstallScript.executeAfter(transition);
       transition = uninstallScript;
     }
@@ -235,80 +360,11 @@ public class Transitions
     for(Map<String, String> p : path)
     {
       Transition newTransition =
-        addTransition(entryDelta, p.get("action"), p.get("to"), distance > 0 ? 1 : -1);
+        addTransition(entryDelta, p.get("action"), p.get("to"), distance);
       newTransition.executeAfter(transition);
       transition = newTransition;
     }
 
     return transition;
-  }
-
-  /**
-   * Builds a leaf step from a transition
-   */
-  protected LeafStep<ActionDescriptor> buildStep(Transition transition)
-  {
-    if(transition == null)
-      return null;
-
-    InternalSystemEntryDelta entryDelta =
-      _systemModelDelta.findAnyEntryDelta(transition.getEntryKey());
-
-    if(entryDelta == null)
-      return null;
-
-    ActionDescriptor actionDescriptor;
-
-    if(Transition.INSTALL_SCRIPT_ACTION.equals(transition.getAction()))
-    {
-      actionDescriptor =
-        new ScriptLifecycleInstallActionDescriptor("TODO script lifecycle: installScript",
-                                                   _systemModelDelta.getFabric(),
-                                                   entryDelta.getAgent(),
-                                                   entryDelta.getMountPoint(),
-                                                   entryDelta.getExpectedEntry().getParent(),
-                                                   entryDelta.getExpectedEntry().getScript(),
-                                                   (Map) entryDelta.getExpectedEntry().getInitParameters());
-
-    }
-    else
-    {
-      if(Transition.UNINSTALL_SCRIPT_ACTION.equals(transition.getAction()))
-      {
-        actionDescriptor =
-          new ScriptLifecycleUninstallActionDescriptor("TODO script lifecycle: uninstallScript",
-                                                       _systemModelDelta.getFabric(),
-                                                       entryDelta.getAgent(),
-                                                       entryDelta.getMountPoint());
-
-      }
-      else
-      {
-        // TODO HIGH YP:  handle actionArgs
-        Map actionArgs = null;
-
-        actionDescriptor =
-          new ScriptTransitionActionDescriptor("TODO script action: " + transition.getAction(),
-                                               _systemModelDelta.getFabric(),
-                                               entryDelta.getAgent(),
-                                               entryDelta.getMountPoint(),
-                                               transition.getAction(),
-                                               transition.getTo(),
-                                               actionArgs);
-
-      }
-    }
-
-    return buildStep(actionDescriptor);
-  }
-
-  /**
-   * Builds a leaf step
-   */
-  protected LeafStep<ActionDescriptor> buildStep(ActionDescriptor actionDescriptor)
-  {
-    return new LeafStep<ActionDescriptor>(null,
-                                          actionDescriptor.toMetadata(),
-                                          actionDescriptor);
   }
 }

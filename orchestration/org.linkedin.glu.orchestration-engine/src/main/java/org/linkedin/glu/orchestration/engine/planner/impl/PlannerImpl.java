@@ -32,7 +32,6 @@ import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
 import org.linkedin.glu.provisioner.plan.api.IStep;
 import org.linkedin.glu.provisioner.plan.api.LeafStep;
 import org.linkedin.glu.provisioner.plan.api.Plan;
-import org.linkedin.glu.provisioner.plan.api.PlanBuilder;
 import org.linkedin.groovy.util.state.StateMachine;
 import org.linkedin.util.annotations.Initializer;
 import org.linkedin.util.lang.LangUtils;
@@ -40,9 +39,9 @@ import org.linkedin.util.lang.LangUtils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * @author yan@pongasoft.com
@@ -78,9 +77,6 @@ public class PlannerImpl implements Planner
     _agentURIProvider = agentURIProvider;
   }
 
-  private Transition lastTransition = null;
-  private Transitions transitions = null;
-
   @Override
   public Plan<ActionDescriptor> computeDeploymentPlan(IStep.Type type,
                                                       SystemModelDelta systemModelDelta)
@@ -88,31 +84,16 @@ public class PlannerImpl implements Planner
     if(systemModelDelta == null)
       return null;
 
-    InternalSystemModelDelta ismd = (InternalSystemModelDelta) systemModelDelta;
+    Set<String> keys = systemModelDelta.getKeys(new HashSet<String>());
 
-    PlanBuilder<ActionDescriptor> builder = new PlanBuilder<ActionDescriptor>();
-
-    ICompositeStepBuilder<ActionDescriptor> stepBuilder = builder.addCompositeSteps(type);
-
-    Set<String> keys = systemModelDelta.getKeys(new TreeSet<String>());
-
-    lastTransition = null;
-    transitions = new Transitions((InternalSystemModelDelta) systemModelDelta);
-
-//    // first we deal with all parents
-//    Set<String> parentKeys = ismd.getParentKeys(new TreeSet<String>());
-//    for(String key : parentKeys)
-//    {
-//      processParentEntryDelta(stepBuilder, ismd, ismd.findAnyEntryDelta(key));
-//    }
+    Transitions transitions = new Transitions((InternalSystemModelDelta) systemModelDelta);
 
     for(String key : keys)
     {
-      processEntryDelta(stepBuilder, ismd, ismd.findAnyEntryDelta(key));
-      lastTransition = null;
+      processEntryDelta(transitions, transitions.getSystemModelDelta().findAnyEntryDelta(key));
     }
 
-    return builder.toPlan();
+    return transitions.buildPlan(type);
   }
 
   @Override
@@ -123,38 +104,38 @@ public class PlannerImpl implements Planner
     if(systemModelDelta == null)
       return null;
 
-    InternalSystemModelDelta ismd = (InternalSystemModelDelta) systemModelDelta;
-
-    PlanBuilder<ActionDescriptor> builder = new PlanBuilder<ActionDescriptor>();
-
-    ICompositeStepBuilder<ActionDescriptor> stepBuilder = builder.addCompositeSteps(type);
-
-    Set<String> keys = new TreeSet<String>(systemModelDelta.getKeys());
-
-    for(String key : keys)
-    {
-      processEntryTransition(stepBuilder,
-                             ismd,
-                             ismd.findAnyEntryDelta(key),
-                             toStates);
-    }
-
-    return builder.toPlan();
+    return null;
+//    InternalSystemModelDelta ismd = (InternalSystemModelDelta) systemModelDelta;
+//
+//    PlanBuilder<ActionDescriptor> builder = new PlanBuilder<ActionDescriptor>();
+//
+//    ICompositeStepBuilder<ActionDescriptor> stepBuilder = builder.addCompositeSteps(type);
+//
+//    Set<String> keys = new TreeSet<String>(systemModelDelta.getKeys());
+//
+//    for(String key : keys)
+//    {
+//      processEntryTransition(stepBuilder,
+//                             ismd,
+//                             ismd.findAnyEntryDelta(key),
+//                             toStates);
+//    }
+//
+//    return builder.toPlan();
   }
 
   /**
    * Processes one entry transition
    */
-  protected void processEntryTransition(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
-                                        InternalSystemModelDelta systemModelDelta,
+  protected void processEntryTransition(Transitions transitions,
                                         InternalSystemEntryDelta entryDelta,
                                         Collection<String> toStates)
   {
-    if(addNoOpStepOnNotOkToProcess(stepBuilder, systemModelDelta, entryDelta))
-      return;
+    // TODO HIGH YP:  handle this
+//    if(addNoOpStepOnNotOkToProcess(stepBuilder, systemModelDelta, entryDelta))
+//      return;
 
-    ICompositeStepBuilder<ActionDescriptor> entryStepsBuilder =
-      createAgentMountPointSequentialSteps(stepBuilder, entryDelta);
+    Transition lastTransition = null;
 
     String fromState = entryDelta.getCurrentEntryState();
 
@@ -163,58 +144,42 @@ public class PlannerImpl implements Planner
       if("<expected>".equals(toState))
         toState = entryDelta.getExpectedEntryState();
       
-      processEntryStateMismatch(entryStepsBuilder,
-                                systemModelDelta,
-                                entryDelta,
-                                fromState,
-                                toState);
+      lastTransition = processEntryStateMismatch(transitions,
+                                                 lastTransition,
+                                                 entryDelta,
+                                                 fromState,
+                                                 toState);
 
       fromState = toState;
     }
   }
 
-  private ICompositeStepBuilder<ActionDescriptor> createAgentMountPointSequentialSteps(
-    ICompositeStepBuilder<ActionDescriptor> stepBuilder, SystemEntryDelta entryDelta)
-  {
-    ICompositeStepBuilder<ActionDescriptor> entryStepsBuilder =
-      stepBuilder.addCompositeSteps(IStep.Type.SEQUENTIAL);
-
-    entryStepsBuilder.setMetadata("agent", entryDelta.getAgent());
-    entryStepsBuilder.setMetadata("mountPoint", entryDelta.getMountPoint());
-
-    return entryStepsBuilder;
-  }
-
   /**
    * Processes one entry delta (agent/mountPoint)
    */
-  protected void processEntryDelta(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
-                                   InternalSystemModelDelta systemModelDelta,
+  protected void processEntryDelta(Transitions transitions,
                                    InternalSystemEntryDelta entryDelta)
   {
-    if(addNoOpStepOnNotOkToProcess(stepBuilder, systemModelDelta, entryDelta))
-      return;
+    // TODO HIGH YP: handle this
+//    if(addNoOpStepOnNotOkToProcess(stepBuilder, systemModelDelta, entryDelta))
+//      return;
 
     if(entryDelta.getDeltaState() == SystemEntryDelta.DeltaState.ERROR)
     {
-      ICompositeStepBuilder<ActionDescriptor> entryStepsBuilder =
-        createAgentMountPointSequentialSteps(stepBuilder, entryDelta);
-
       switch(computeActionFromStatus(entryDelta))
       {
         case NO_ACTION:
           break;
 
         case REDEPLOY:
-          processEntryTransition(stepBuilder,
-                                 systemModelDelta,
+          processEntryTransition(transitions,
                                  entryDelta,
                                  DELTA_TRANSITIONS);
           break;
 
         case FIX_MISMATCH_STATE:
-          processEntryStateMismatch(entryStepsBuilder,
-                                    systemModelDelta,
+          processEntryStateMismatch(transitions,
+                                    null,
                                     entryDelta);
           break;
 
@@ -297,44 +262,27 @@ public class PlannerImpl implements Planner
   /**
    * Process entry state mismatch
    */
-  protected void processEntryStateMismatch(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
-                                           InternalSystemModelDelta systemModelDelta,
-                                           InternalSystemEntryDelta entryDelta)
+  protected Transition processEntryStateMismatch(Transitions transitions,
+                                                 Transition lastTransition,
+                                                 InternalSystemEntryDelta entryDelta)
   {
-    processEntryStateMismatch(stepBuilder,
-                              systemModelDelta,
-                              entryDelta,
-                              entryDelta.getCurrentEntryState(),
-                              entryDelta.getExpectedEntryState());
+    return processEntryStateMismatch(transitions,
+                                     lastTransition,
+                                     entryDelta,
+                                     entryDelta.getCurrentEntryState(),
+                                     entryDelta.getExpectedEntryState());
   }
 
   /**
    * Process entry state mismatch
    */
-  protected void processEntryStateMismatch(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
-                                           InternalSystemModelDelta systemModelDelta,
-                                           InternalSystemEntryDelta entryDelta,
-                                           Object fromState,
-                                           Object toState)
+  protected Transition processEntryStateMismatch(Transitions transitions,
+                                                 Transition lastTransition,
+                                                 InternalSystemEntryDelta entryDelta,
+                                                 Object fromState,
+                                                 Object toState)
   {
-    lastTransition =
-      transitions.processEntryStateMismatch(lastTransition, entryDelta, fromState, toState);
-    
-    // nothing to do if both states are equal!
-    if(LangUtils.isEqual(fromState, toState))
-      return;
-
-    if(fromState == null)
-      addLifecycleInstallStep(stepBuilder, systemModelDelta, entryDelta);
-
-    addTransitionSteps(stepBuilder,
-                       systemModelDelta,
-                       entryDelta,
-                       fromState,
-                       toState);
-
-    if(toState == null)
-      addLifecycleUninstallStep(stepBuilder, systemModelDelta, entryDelta);
+    return transitions.addTransition(lastTransition, entryDelta, fromState, toState);
   }
 
 
