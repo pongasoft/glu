@@ -168,7 +168,7 @@ def class ScriptManagerImpl implements ScriptManager
 
     addScriptNode(childNode)
 
-    childNode.log.info("installed")
+    childNode.log.info("installScript(${args})")
 
     return childNode
   }

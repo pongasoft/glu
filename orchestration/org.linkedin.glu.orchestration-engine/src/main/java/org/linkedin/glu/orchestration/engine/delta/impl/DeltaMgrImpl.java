@@ -18,7 +18,7 @@ package org.linkedin.glu.orchestration.engine.delta.impl;
 
 import org.linkedin.glu.orchestration.engine.delta.DeltaMgr;
 import org.linkedin.glu.orchestration.engine.delta.MultipleDeltaStatusInfo;
-import org.linkedin.glu.orchestration.engine.delta.SimpleDeltaStatusInfo;
+import org.linkedin.glu.orchestration.engine.delta.SingleDeltaStatusInfo;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueWithDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
@@ -192,7 +192,7 @@ public class DeltaMgrImpl implements DeltaMgr
       childDelta.clearDeltaState();
       childDelta.setDeltaStatus("parentDelta");
       childDelta.setDeltaState(SystemEntryDelta.DeltaState.ERROR);
-      childDelta.setDeltaStatusInfo(new SimpleDeltaStatusInfo("needs redeploy (parent delta)"));
+      childDelta.setDeltaStatusInfo(new SingleDeltaStatusInfo("needs redeploy (parent delta)"));
       childDelta.setFilteredOut(false);
     }
   }
@@ -251,7 +251,7 @@ public class DeltaMgrImpl implements DeltaMgr
     {
       sed.setDeltaStatus("notDeployed");
       sed.setDeltaState(SystemEntryDelta.DeltaState.ERROR);
-      sed.setDeltaStatusInfo(new SimpleDeltaStatusInfo("NOT deployed"));
+      sed.setDeltaStatusInfo(new SingleDeltaStatusInfo("NOT deployed"));
       return;
     }
 
@@ -260,7 +260,7 @@ public class DeltaMgrImpl implements DeltaMgr
     {
       sed.setDeltaStatus("unexpected");
       sed.setDeltaState(SystemEntryDelta.DeltaState.ERROR);
-      sed.setDeltaStatusInfo(new SimpleDeltaStatusInfo("should NOT be deployed"));
+      sed.setDeltaStatusInfo(new SingleDeltaStatusInfo("should NOT be deployed"));
       return;
     }
 
@@ -291,7 +291,7 @@ public class DeltaMgrImpl implements DeltaMgr
       if(sed.findEntryStateDelta() != null && keys.size() == 1)
       {
         sed.setDeltaStatus("notExpectedState");
-        sed.setDeltaStatusInfo(new SimpleDeltaStatusInfo(sed.getExpectedEntryState() + "!=" +
+        sed.setDeltaStatusInfo(new SingleDeltaStatusInfo(sed.getExpectedEntryState() + "!=" +
                                                          sed.getCurrentEntryState()));
       }
       else
@@ -317,14 +317,14 @@ public class DeltaMgrImpl implements DeltaMgr
       {
         sed.setDeltaState(SystemEntryDelta.DeltaState.ERROR);
         sed.setDeltaStatus("error");
-        sed.setDeltaStatusInfo(new SimpleDeltaStatusInfo(sed.getError().toString()));
+        sed.setDeltaStatusInfo(new SingleDeltaStatusInfo(sed.getError().toString()));
       }
       else
       {
         // everything ok!
         sed.setDeltaState(SystemEntryDelta.DeltaState.OK);
         sed.setDeltaStatus("expectedState");
-        sed.setDeltaStatusInfo(new SimpleDeltaStatusInfo(sed.getExpectedEntryState()));
+        sed.setDeltaStatusInfo(new SingleDeltaStatusInfo(sed.getExpectedEntryState()));
       }
     }
 

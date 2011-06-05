@@ -25,6 +25,7 @@ import org.linkedin.glu.provisioner.core.model.TagsSystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemFilter
 import org.linkedin.glu.provisioner.core.model.LogicSystemFilterChain
 import org.linkedin.glu.orchestration.engine.fabric.FabricService
+import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta.DeltaState
 
 class DeltaServiceImpl implements DeltaService
 {
@@ -205,7 +206,7 @@ class DeltaServiceImpl implements DeltaService
     def groupByColumn0 = current.groupBy { it.getAt(column0Name) }
 
     groupByColumn0.each { column0, list ->
-      def errors = list.findAll { it.state == 'ERROR' }
+      def errors = list.findAll { it.state == DeltaState.ERROR }
 
       def row = [
           instancesCount: list.size(),

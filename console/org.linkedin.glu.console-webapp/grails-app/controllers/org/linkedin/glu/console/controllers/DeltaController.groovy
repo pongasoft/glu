@@ -18,6 +18,7 @@ package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.orchestration.engine.delta.DeltaService
 import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta.DeltaState
 
 /**
  * @author ypujante@linkedin.com
@@ -37,15 +38,17 @@ class DeltaController extends ControllerBase
   def rest_get_delta = {
     def delta = deltaService.computeDelta(request.system)
 
+    // curl -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/delta?errorsOnly=true"
     if(params.errorsOnly?.toString() == 'true')
     {
       delta.delta = delta.delta.findAll { entry ->
-        entry.state != 'OK'
+        entry.state != DeltaState.OK
       }
     }
 
     delta = JsonUtils.toJSON(delta)
 
+    // curl -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/delta?prettyPrint=true"
     if(params.prettyPrint?.toString() == 'true')
       delta = delta.toString(2)
     else

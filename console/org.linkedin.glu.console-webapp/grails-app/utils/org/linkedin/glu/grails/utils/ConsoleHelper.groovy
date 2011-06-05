@@ -299,4 +299,18 @@ class ConsoleHelper
 
     CodecUtils.encodeString(SHA1, s)
   }
+
+  /**
+   * Make sure that the argument is a collection by wrapping it in a collection if necessary
+   */
+  static Collection toCollection(def o)
+  {
+    if(o == null)
+      return null
+
+    if(o instanceof Collection)
+      return o
+
+    return [o]
+  }
 }

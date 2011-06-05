@@ -56,7 +56,7 @@ public class MultipleDeltaStatusInfo implements DeltaStatusInfo
       return null;
 
     if(values.size() == 1)
-      return new SimpleDeltaStatusInfo(values.iterator().next());
+      return new SingleDeltaStatusInfo(values.iterator().next());
     else
       return new MultipleDeltaStatusInfo(values);
   }

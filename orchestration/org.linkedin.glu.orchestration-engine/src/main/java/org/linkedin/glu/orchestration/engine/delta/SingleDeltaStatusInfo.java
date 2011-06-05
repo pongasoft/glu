@@ -19,14 +19,14 @@ package org.linkedin.glu.orchestration.engine.delta;
 /**
  * @author yan@pongasoft.com
  */
-public class SimpleDeltaStatusInfo implements DeltaStatusInfo
+public class SingleDeltaStatusInfo implements DeltaStatusInfo
 {
   private final String _value;
 
   /**
    * Constructor
    */
-  public SimpleDeltaStatusInfo(String value)
+  public SingleDeltaStatusInfo(String value)
   {
     _value = value;
   }

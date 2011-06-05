@@ -32,6 +32,7 @@ import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
 import org.linkedin.glu.provisioner.plan.api.IStep;
 import org.linkedin.glu.provisioner.plan.api.LeafStep;
 import org.linkedin.glu.provisioner.plan.api.Plan;
+import org.linkedin.glu.provisioner.plan.api.PlanBuilder;
 import org.linkedin.groovy.util.state.StateMachine;
 import org.linkedin.util.annotations.Initializer;
 import org.linkedin.util.lang.LangUtils;
@@ -104,10 +105,12 @@ public class PlannerImpl implements Planner
     if(systemModelDelta == null)
       return null;
 
-    return null;
+    PlanBuilder<ActionDescriptor> builder = new PlanBuilder<ActionDescriptor>();
+
+    return builder.toPlan();
+
 //    InternalSystemModelDelta ismd = (InternalSystemModelDelta) systemModelDelta;
 //
-//    PlanBuilder<ActionDescriptor> builder = new PlanBuilder<ActionDescriptor>();
 //
 //    ICompositeStepBuilder<ActionDescriptor> stepBuilder = builder.addCompositeSteps(type);
 //
