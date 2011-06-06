@@ -214,7 +214,7 @@ class DeltaServiceImpl implements DeltaService
       ]
 
       row.state = expectedSystem ? (row.errorsCount > 0 ? 'ERROR' : 'OK') : 'UNKNOWN'
-      row.na = list.find { it.state == 'NA'} ? 'NA' : ''
+      row.na = list.find { it.state == DeltaState.NA} ? 'NA' : ''
 
       def entries = isErrorsFilter ? errors : list
 

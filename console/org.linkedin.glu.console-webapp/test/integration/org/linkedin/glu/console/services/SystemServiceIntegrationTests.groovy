@@ -23,11 +23,13 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 
 import org.linkedin.glu.orchestration.engine.system.SystemService
+import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 
 /**
  * @author ypujante@linkedin.com */
 class SystemServiceIntegrationTests extends GroovyTestCase
 {
+  JSONSystemModelSerializer serializer = new JSONSystemModelSerializer(prettyPrint: 2)
   SystemService systemService
 
   public void testCurrentSystem()
@@ -43,6 +45,7 @@ class SystemServiceIntegrationTests extends GroovyTestCase
     def currentId = currentModel.id
     assertEquals('f1', currentModel.fabric)
     assertEquals('json', currentModel.contentSerializer)
+    assertEquals(serializer.serialize(model1), serializer.serialize(currentModel.systemModel))
     assertEquals(model1, currentModel.systemModel)
 
     // we resave the exact same model... should not do anything

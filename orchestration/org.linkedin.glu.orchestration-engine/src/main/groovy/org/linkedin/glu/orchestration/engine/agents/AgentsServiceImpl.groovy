@@ -253,14 +253,18 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
 
     SystemModel systemModel = new SystemModel(fabric: fabric.name)
 
-    def emptyAgents = []
-
+    // 1. add the agent tags
     agents.values().each { agent ->
       def agentName = agent.info.agentName
       def agentTags = agent.info.tags
       
       if(agentTags)
         systemModel.addAgentTags(agentName, agentTags)
+    }
+
+    // 2. add entries
+    agents.values().each { agent ->
+      def agentName = agent.info.agentName
 
       if(agent.mountPoints)
       {
@@ -270,12 +274,15 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
       }
       else
       {
-        emptyAgents << agentName
+        // empty agent
+        SystemEntry emptyAgentEntry = new SystemEntry(agent: agentName)
+        emptyAgentEntry.metadata.emptyAgent = true
+        emptyAgentEntry.metadata.currentState = 'NA'
+        systemModel.addEntry(emptyAgentEntry)
       }
     }
 
     systemModel.metadata.accuracy = accuracy
-    systemModel.metadata.emptyAgents = emptyAgents
 
     return systemModel
   }

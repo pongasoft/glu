@@ -48,10 +48,14 @@ class SystemEntry implements ReadOnlyTaggeable, MetadataProvider
   {
     def res =
     [
-      agent: agent,
-      mountPoint: mountPoint,
-      script: script
+      agent: agent
     ]
+
+    if(script)
+      res.script = script
+
+    if(mountPoint)
+      res.mountPoint = mountPoint
 
     if(entryState)
       res.entryState = entryState
@@ -74,12 +78,22 @@ class SystemEntry implements ReadOnlyTaggeable, MetadataProvider
     return res
   }
 
+  private String getRawEntryState()
+  {
+    entryState
+  }
+
   String getEntryState()
   {
     if(!entryState)
       return DEFAULT_ENTRY_STATE
     else
       return entryState
+  }
+
+  private String getRawParent()
+  {
+    parent
   }
 
   String getParent()
@@ -148,6 +162,11 @@ class SystemEntry implements ReadOnlyTaggeable, MetadataProvider
     entryTags = new TaggeableTreeSetImpl(tags)
   }
 
+  boolean isEmptyAgent()
+  {
+    return mountPoint == null
+  }
+
   /**
    * @return a flattened version of the entry (a map with only one level)
    */
@@ -187,8 +206,8 @@ class SystemEntry implements ReadOnlyTaggeable, MetadataProvider
     if(initParameters != that.initParameters) return false;
     if(metadata != that.metadata) return false;
     if(mountPoint != that.mountPoint) return false;
-    if(entryState != that.entryState) return false;
-    if(parent != that.parent) return false;
+    if(rawEntryState != that.rawEntryState) return false;
+    if(rawParent != that.rawParent) return false;
     if(script != that.script) return false;
     if(entryTags != that.entryTags) return false;
 

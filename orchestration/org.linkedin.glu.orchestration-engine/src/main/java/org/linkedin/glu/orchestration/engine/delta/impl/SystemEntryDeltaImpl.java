@@ -395,6 +395,12 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
   }
 
   @Override
+  public boolean isEmptyAgent()
+  {
+    return _currentEntry != null && _currentEntry.isEmptyAgent();
+  }
+
+  @Override
   public StateMachine getStateMachine()
   {
     return DEFAULT_STATE_MACHINE;

@@ -37,7 +37,7 @@ class TestDeltaService extends GroovyTestCase
     // empty
     def current = []
     def expected = []
-    assertEqualsIgnoreType([], doComputeDelta(current, expected))
+    assertEqualsIgnoreType([], doComputeDelta(expected, current))
 
     // notDeployed
     current = []
@@ -64,7 +64,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // notDeployed + cluster (GLU-393)
     current = []
@@ -92,7 +92,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // notExpectedState (with default = running)
     current = [
@@ -127,7 +127,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // notExectedState (with specific state=stopped)
     current = [
@@ -163,7 +163,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // notRunning + versionMismatch => default is versionMismatch wins
     current = [
@@ -199,7 +199,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w2'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // notRunning + versionMismatch => we force notRunning to win
     deltaService.notRunningOverridesVersionMismatch = true
@@ -235,7 +235,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w2'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // restoring defaults
     deltaService.notRunningOverridesVersionMismatch = false
@@ -274,7 +274,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w2'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // versionMismatch (config)
     current = [
@@ -311,7 +311,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // versionMismatch (wars & config)
     current = [
@@ -349,7 +349,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w2'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // versionMismatch (script)
     current = [
@@ -386,7 +386,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // versionMismatch (script) (with includedInVersionMismatch)
     withNewDeltaMgr(['script'], null ) {
@@ -421,7 +421,7 @@ class TestDeltaService extends GroovyTestCase
                               'initParameters.wars': 'w1'
                               ]
                              ],
-                             doComputeDelta(current, expected))
+                             doComputeDelta(expected, current))
     }
 
     // versionMismatch (script) (with includedInVersionMismatch)
@@ -457,7 +457,7 @@ class TestDeltaService extends GroovyTestCase
                               'initParameters.wars': 'w1'
                               ]
                              ],
-                             doComputeDelta(current, expected))
+                             doComputeDelta(expected, current))
     }
 
     // versionMismatch (script) (with excludedInVersionMismatch)
@@ -494,7 +494,7 @@ class TestDeltaService extends GroovyTestCase
                              'initParameters.wars': 'w1'
                              ]
                              ],
-                             doComputeDelta(current, expected))
+                             doComputeDelta(expected, current))
     }
 
     // versionMismatch (script) (with excludedInVersionMismatch)
@@ -530,7 +530,7 @@ class TestDeltaService extends GroovyTestCase
                               'initParameters.wars': 'w1'
                               ]
                              ],
-                             doComputeDelta(current, expected))
+                             doComputeDelta(expected, current))
     }
 
     // unexpected
@@ -579,7 +579,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // error
     current = [
@@ -615,7 +615,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // ok
     current = [
@@ -654,7 +654,7 @@ class TestDeltaService extends GroovyTestCase
                              tags: ['ee:1']
                             ]
                             ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // ok (with cluster)
     current = [
@@ -690,7 +690,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // ok (with cluster)
     current = [
@@ -726,7 +726,7 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // (system) tags
     current = [
@@ -766,11 +766,11 @@ class TestDeltaService extends GroovyTestCase
                              tags: ['a:2', 'ee:1']
                             ]
                            ],
-                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
+                           doComputeDelta(expected, current, { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
                              [cs, es]
-                           })
+                           }))
 
     current = [
     ]
@@ -801,11 +801,11 @@ class TestDeltaService extends GroovyTestCase
                              tags: ['a:2', 'ee:1']
                             ]
                            ],
-                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
+                           doComputeDelta(expected, current, { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
                              [cs, es]
-                           })
+                           }))
 
     current = [
         [
@@ -834,14 +834,23 @@ class TestDeltaService extends GroovyTestCase
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
+                           doComputeDelta(expected, current, { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
                              [cs, es]
-                           })
+                           }))
+  }
+
+  public void testEmptyAgent()
+  {
+    def current
+    def expected
 
     // nothing deployed on the agent at all
     current = [
+      [
+        agent: 'a1', entryState: 'NA', metadata: [emptyAgent: true, currentState: 'NA']
+      ]
     ]
     expected = [
     ]
@@ -849,17 +858,21 @@ class TestDeltaService extends GroovyTestCase
     assertEqualsIgnoreType([
                            [
                             'metadata.currentState': 'NA',
+                            'metadata.emptyAgent': true,
+                            entryState: 'NA',
+                            key: 'a1:null',
                             agent: 'a1',
-                            state: 'NA',
-                            status: 'NA'
+                            state: DeltaState.NA,
+                            status: 'NA',
+                            statusInfo: 'NA'
                             ]
                            ],
-                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
-                             cs.metadata.emptyAgents = ['a1']
-                             [cs, es]
-                           })
+                           doComputeDelta(expected, current))
 
     current = [
+      [
+        agent: 'a1', entryState: 'NA', metadata: [emptyAgent: true, currentState: 'NA']
+      ]
     ]
     expected = [
     ]
@@ -867,19 +880,21 @@ class TestDeltaService extends GroovyTestCase
     assertEqualsIgnoreType([
                            [
                             'metadata.currentState': 'NA',
+                            'metadata.emptyAgent': true,
+                            entryState: 'NA',
+                            key: 'a1:null',
                             agent: 'a1',
-                            state: 'NA',
+                            state: DeltaState.NA,
                             status: 'NA',
-                             tags: ['a:2']
+                            statusInfo: 'NA',
+                            tags: ['a:2'],
+                             "tags.a:2": "a1:null"
                             ]
-                           ],
-                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
-                             cs.addAgentTags('a1', ['a:1'])
-                             es.addAgentTags('a1', ['a:2'])
-                             cs.metadata.emptyAgents = ['a1']
+                            ],
+                           doComputeDelta(expected, current, { SystemModel cs, SystemModel es ->
+                             cs.addAgentTags('a1', ['a:2'])
                              [cs, es]
-                           })
-
+                           }))
   }
 
   /**
@@ -930,7 +945,7 @@ class TestDeltaService extends GroovyTestCase
                             statusInfo: 'script:[s2!=s1]'
                            ],
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // when the filter, filters out the child, it still need to be present otherwise the plan
     // will be wrong!
@@ -1104,22 +1119,22 @@ class TestDeltaService extends GroovyTestCase
 
   private def deltaF(def current, def expected, def filter)
   {
-    doComputeDelta(current, expected, null) { SystemModel cs, SystemModel es ->
+    doComputeDelta(expected, current, null) { SystemModel cs, SystemModel es ->
       [cs, es.filterBy(filter)]
     }
   }
 
-  private def doComputeDelta(def current, def expected)
+  private def doComputeDelta(def expected, def current)
   {
-    doComputeDelta(current, expected, null, null)
+    doComputeDelta(expected, current, null, null)
   }
 
-  private def doComputeDelta(def current, def expected, Closure closure)
+  private def doComputeDelta(def expected, def current, Closure closure)
   {
-    doComputeDelta(current, expected, closure, null)
+    doComputeDelta(expected, current, closure, null)
   }
 
-  private def doComputeDelta(def current, def expected, Closure beforeEntries, Closure afterEntries)
+  private def doComputeDelta(def expected, def current, Closure beforeEntries, Closure afterEntries)
   {
     SystemModel currentSystem = createEmptySystem(current)
     SystemModel expectedSystem = createEmptySystem(expected)

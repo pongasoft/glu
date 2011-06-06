@@ -152,6 +152,8 @@ public interface SystemEntryDelta
    */
   DeltaStatusInfo getDeltaStatusInfo();
 
+  boolean isEmptyAgent();
+
   /**
    * @return the state machine associated to this delta
    */

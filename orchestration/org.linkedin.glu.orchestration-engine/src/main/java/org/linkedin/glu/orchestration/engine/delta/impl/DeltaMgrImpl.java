@@ -115,9 +115,15 @@ public class DeltaMgrImpl implements DeltaMgr
     // 4. we compute the delta for all entries pretending there is no dependencies
     for(String key : requiredKeys)
     {
+      SystemEntry expectedEntry = unfilteredExpectedModel.findEntry(key);
+      SystemEntry currentEntry = unfilteredCurrentModel.findEntry(key);
+      if(currentEntry != null && currentEntry.isEmptyAgent() && expectedEntry == null)
+      {
+        expectedEntry = currentEntry;
+      }
       InternalSystemEntryDelta delta =
-        new SystemEntryDeltaImpl(unfilteredExpectedModel.findEntry(key),
-                                 unfilteredCurrentModel.findEntry(key),
+        new SystemEntryDeltaImpl(expectedEntry,
+                                 currentEntry,
                                  !filteredKeys.contains(key));
 
       computeSystemEntryDelta(delta);
@@ -127,8 +133,6 @@ public class DeltaMgrImpl implements DeltaMgr
 
     // 5. we adjust the delta based on the dependencies
     adjustDeltaFromDependencies(systemModelDelta);
-
-    computeEmptyAgentsDelta(systemModelDelta);
 
     return systemModelDelta;
   }
@@ -330,10 +334,20 @@ public class DeltaMgrImpl implements DeltaMgr
       }
       else
       {
-        // everything ok!
-        sed.setDeltaState(SystemEntryDelta.DeltaState.OK);
-        sed.setDeltaStatus("expectedState");
-        sed.setDeltaStatusInfo(new SingleDeltaStatusInfo(sed.getExpectedEntryState()));
+        // empty agent
+        if(sed.isEmptyAgent())
+        {
+          sed.setDeltaState(SystemEntryDelta.DeltaState.NA);
+          sed.setDeltaStatus("NA");
+          sed.setDeltaStatusInfo(new SingleDeltaStatusInfo("empty agent"));
+        }
+        else
+        {
+          // everything ok!
+          sed.setDeltaState(SystemEntryDelta.DeltaState.OK);
+          sed.setDeltaStatus("expectedState");
+          sed.setDeltaStatusInfo(new SingleDeltaStatusInfo(sed.getExpectedEntryState()));
+        }
       }
     }
 
@@ -353,30 +367,6 @@ public class DeltaMgrImpl implements DeltaMgr
     res = res && (_excludedInVersionMismatch == null || !_excludedInVersionMismatch.contains(key));
 
     return res;
-  }
-
-  /**
-   * Processes all empty agent to add a 'fake' delta
-   * @param systemModelDelta
-   */
-  protected void computeEmptyAgentsDelta(InternalSystemModelDelta systemModelDelta)
-  {
-    for(String emptyAgent : systemModelDelta.getEmptyAgents())
-    {
-      // TODO HIGH YP:  add this back
-      /*
-  emptyAgents.each { agent ->
-    def entry= [:]
-    entry.agent = agent
-    entry.entryState = 'NA'
-    entry['metadata.currentState'] = 'NA'
-    entry.status = 'NA'
-    entry.state = 'NA'
-    setTags(entry, expectedModel?.getAgentTags(agent)?.tags)
-    entries << entry
-  }
-       */
-    }
   }
 
   /**
