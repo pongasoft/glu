@@ -40,6 +40,7 @@ class SystemModel implements MetadataProvider
     new JSONSystemModelSerializer(prettyPrint: 2)
 
   private final Map<String, SystemEntry> _entries = new TreeMap()
+  private final Map<String, Collection<String>> _children = new HashMap<String,Collection<String>>()
   private Map<String, Taggeable> _agentTags = new TreeMap<String, Taggeable>()
 
   String id
@@ -71,6 +72,14 @@ class SystemModel implements MetadataProvider
       throw new IllegalArgumentException("already defined entry ${entry.key}")
     }
     _entries[entry.key] = entry
+    if(entry.parent != SystemEntry.DEFAULT_PARENT)
+    {
+      Collection<String> children = _children[entry.parentKey]
+      if(children == null)
+        children = new HashSet<String>()
+      _children[entry.parentKey] = children
+      children << entry.key
+    }
     def agentTags = getAgentTags(entry.agent)
     if(!entry.entryTags.hasAllTags(agentTags.tags))
     {
@@ -97,6 +106,11 @@ class SystemModel implements MetadataProvider
   SystemEntry findEntry(String key)
   {
     _entries[key]
+  }
+
+  Collection<String> findChildrenKeys(String parentKey)
+  {
+    _children[parentKey]
   }
 
   Collection<SystemEntry> findEntries()

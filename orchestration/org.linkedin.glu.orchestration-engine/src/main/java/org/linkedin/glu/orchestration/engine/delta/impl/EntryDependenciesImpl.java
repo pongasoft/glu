@@ -89,8 +89,15 @@ public class EntryDependenciesImpl implements EntryDependencies
 
   public void setParent(String key, String parent)
   {
-    if(_parents.containsKey(key))
-      throw new IllegalStateException("parent already set for " + key);
+    String previousParent = _parents.get(key);
+
+    if(previousParent != null)
+    {
+      if(previousParent.equals(parent))
+        return;
+      else
+        throw new IllegalStateException("parent already set for " + key);
+    }
 
     _parents.put(key, parent);
     

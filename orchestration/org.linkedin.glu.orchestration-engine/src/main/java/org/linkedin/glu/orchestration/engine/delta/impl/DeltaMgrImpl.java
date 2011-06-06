@@ -216,6 +216,15 @@ public class DeltaMgrImpl implements DeltaMgr
           dependencies.setParent(key, parentEntry.getKey());
         }
       }
+
+      Collection<String> children = model.findChildrenKeys(key);
+      if(children != null)
+      {
+        for(String childKey : children)
+        {
+          dependencies.setParent(childKey, key);
+        }
+      }
     }
 
     return dependencies;

@@ -769,6 +769,7 @@ class TestDeltaService extends GroovyTestCase
                            doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
+                             [cs, es]
                            })
 
     current = [
@@ -803,6 +804,7 @@ class TestDeltaService extends GroovyTestCase
                            doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
+                             [cs, es]
                            })
 
     current = [
@@ -835,6 +837,7 @@ class TestDeltaService extends GroovyTestCase
                            doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
+                             [cs, es]
                            })
 
     // nothing deployed on the agent at all
@@ -853,6 +856,7 @@ class TestDeltaService extends GroovyTestCase
                            ],
                            doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
                              cs.metadata.emptyAgents = ['a1']
+                             [cs, es]
                            })
 
     current = [
@@ -873,10 +877,88 @@ class TestDeltaService extends GroovyTestCase
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
                              cs.metadata.emptyAgents = ['a1']
+                             [cs, es]
                            })
 
   }
 
+  /**
+   * Specific tests for parent/child relationship
+   */
+  void testParentChild()
+  {
+    def current
+    def expected
+
+    // parentDelta (parent needs redeploy => child needs redeploy)
+    current = [
+      [
+        agent: 'a1', mountPoint: '/p1', script: 's1'
+      ],
+      [
+        agent: 'a1', mountPoint: '/c1', script: 's1', parent: '/p1'
+      ]
+    ]
+    expected = [
+      [
+        agent: 'a1', mountPoint: '/p1', script: 's2'
+      ],
+      [
+        agent: 'a1', mountPoint: '/c1', script: 's1', parent: '/p1'
+      ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            entryState: 'running',
+                            key: 'a1:/c1',
+                            agent: 'a1',
+                            mountPoint: '/c1',
+                            parent: "/p1",
+                            script: 's1',
+                            state: DeltaState.ERROR,
+                            status: 'parentDelta',
+                            statusInfo: 'needs redeploy (parent delta)'
+                           ],
+                           [
+                            entryState: 'running',
+                            key: 'a1:/p1',
+                            agent: 'a1',
+                            mountPoint: '/p1',
+                            script: 's2',
+                            state: DeltaState.ERROR,
+                            status: 'delta',
+                            statusInfo: 'script:[s2!=s1]'
+                           ],
+                           ],
+                           doComputeDelta(current, expected))
+
+    // when the filter, filters out the child, it still need to be present otherwise the plan
+    // will be wrong!
+    assertEqualsIgnoreType([
+                           [
+                            entryState: 'running',
+                            key: 'a1:/c1',
+                            agent: 'a1',
+                            mountPoint: '/c1',
+                            parent: "/p1",
+                            script: 's1',
+                            state: DeltaState.ERROR,
+                            status: 'parentDelta',
+                            statusInfo: 'needs redeploy (parent delta)'
+                           ],
+                           [
+                            entryState: 'running',
+                            key: 'a1:/p1',
+                            agent: 'a1',
+                            mountPoint: '/p1',
+                            script: 's2',
+                            state: DeltaState.ERROR,
+                            status: 'delta',
+                            statusInfo: 'script:[s2!=s1]'
+                           ],
+                           ],
+                           deltaF(current, expected, "mountPoint='/p1'"))
+  }
 
   // Testing for use case where metadata changes (version in this case)
   // entry | current | expected
@@ -1019,23 +1101,37 @@ class TestDeltaService extends GroovyTestCase
 
     return toSystem(entries)
   }
-  
+
+  private def deltaF(def current, def expected, def filter)
+  {
+    doComputeDelta(current, expected, null) { SystemModel cs, SystemModel es ->
+      [cs, es.filterBy(filter)]
+    }
+  }
+
   private def doComputeDelta(def current, def expected)
   {
-    doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
-      // nothing to do
-    }
+    doComputeDelta(current, expected, null, null)
   }
 
   private def doComputeDelta(def current, def expected, Closure closure)
   {
+    doComputeDelta(current, expected, closure, null)
+  }
+
+  private def doComputeDelta(def current, def expected, Closure beforeEntries, Closure afterEntries)
+  {
     SystemModel currentSystem = createEmptySystem(current)
     SystemModel expectedSystem = createEmptySystem(expected)
 
-    closure(currentSystem, expectedSystem)
+    if(beforeEntries)
+      (currentSystem, expectedSystem) = beforeEntries(currentSystem, expectedSystem)
 
     addEntries(currentSystem, current)
     addEntries(expectedSystem, expected)
+
+    if(afterEntries)
+      (currentSystem, expectedSystem) = afterEntries(currentSystem, expectedSystem)
 
     return deltaService.computeDelta(expectedSystem, currentSystem)
   }

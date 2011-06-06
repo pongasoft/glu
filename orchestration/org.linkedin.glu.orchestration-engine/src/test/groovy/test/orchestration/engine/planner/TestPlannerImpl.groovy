@@ -307,6 +307,66 @@ public class TestPlannerImpl extends GroovyTestCase
     assertEquals(25, p.leafStepsCount)
   }
 
+  /**
+   * Test that when the parent is in delta it triggers a plan which redeploys the child as well
+   * (note how the steps are intermingled) even when there is a filter!
+   */
+  public void testParentChildDeltaWithFilter()
+  {
+    String filter = "mountPoint='p1'"
+
+    Plan<ActionDescriptor> p = plan(Type.PARALLEL,
+                                    delta(m([agent: 'a1', mountPoint: 'p1', script: 's1'],
+                                            [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1']).filterBy(filter),
+
+                                          m([agent: 'a1', mountPoint: 'p1', script: 's2'],
+                                            [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1'])))
+
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <sequential>
+    <parallel depth="0">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: stop" scriptTransition="stop" />
+    </parallel>
+    <parallel depth="1">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: stop" scriptTransition="stop" />
+    </parallel>
+    <parallel depth="2">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+    </parallel>
+    <parallel depth="3">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+    </parallel>
+    <parallel depth="4">
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+    </parallel>
+    <parallel depth="5">
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+    </parallel>
+    <parallel depth="6">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: install" scriptTransition="install" />
+    </parallel>
+    <parallel depth="7">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: install" scriptTransition="install" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: configure" scriptTransition="configure" />
+    </parallel>
+    <parallel depth="8">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: start" scriptTransition="start" />
+    </parallel>
+    <parallel depth="9">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: start" scriptTransition="start" />
+    </parallel>
+  </sequential>
+</plan>
+""", p.toXml())
+    assertEquals(16, p.leafStepsCount)
+  }
+
   private SystemModel m(Map... entries)
   {
     SystemModel model = new SystemModel(fabric: "f1")
