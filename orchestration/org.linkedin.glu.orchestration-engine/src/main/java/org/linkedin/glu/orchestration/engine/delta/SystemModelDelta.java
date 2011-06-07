@@ -18,6 +18,7 @@ package org.linkedin.glu.orchestration.engine.delta;
 
 import org.linkedin.glu.provisioner.core.model.SystemModel;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,7 +33,7 @@ public interface SystemModelDelta
   SystemModel getCurrentSystemModel();
 
   Set<String> getKeys();
-  Set<String> getKeys(Set<String> keys);
+  <T extends Collection<String>> T getKeys(T keys);
   SystemEntryDelta findEntryDelta(String key);
   Map<String, SystemEntryDelta> getEntryDeltas();
 

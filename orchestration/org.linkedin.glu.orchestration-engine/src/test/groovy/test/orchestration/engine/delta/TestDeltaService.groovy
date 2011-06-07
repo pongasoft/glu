@@ -864,7 +864,7 @@ class TestDeltaService extends GroovyTestCase
                             agent: 'a1',
                             state: DeltaState.NA,
                             status: 'NA',
-                            statusInfo: 'NA'
+                            statusInfo: 'empty agent'
                             ]
                            ],
                            doComputeDelta(expected, current))
@@ -886,7 +886,7 @@ class TestDeltaService extends GroovyTestCase
                             agent: 'a1',
                             state: DeltaState.NA,
                             status: 'NA',
-                            statusInfo: 'NA',
+                            statusInfo: 'empty agent',
                             tags: ['a:2'],
                              "tags.a:2": "a1:null"
                             ]

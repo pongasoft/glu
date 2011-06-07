@@ -93,7 +93,7 @@ public class SystemModelDeltaImpl implements InternalSystemModelDelta
   }
 
   @Override
-  public Set<String> getKeys(Set<String> keys)
+  public <T extends Collection<String>> T getKeys(T keys)
   {
     if(keys == null)
       return null;
