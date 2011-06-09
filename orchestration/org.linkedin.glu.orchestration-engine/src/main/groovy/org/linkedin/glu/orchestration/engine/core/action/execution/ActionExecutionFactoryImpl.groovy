@@ -32,6 +32,8 @@ import org.linkedin.glu.agent.rest.client.EncryptionKeysProvider
 import org.linkedin.util.clock.Timespan
 import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptLifecycleInstallActionDescriptor
 import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptLifecycleUninstallActionDescriptor
+import org.linkedin.util.reflect.ObjectProxyBuilder
+import org.linkedin.glu.orchestration.engine.action.execution.RecoverableAgent
 
 /**
  * This implementation uses a convention:
@@ -58,6 +60,22 @@ public class ActionExecutionFactoryImpl implements ActionExecutionFactory
   Timespan timeout = Timespan.parse('10s')
 
   /**
+   * when a communication exception is detected with the agent, it will sleep for this time
+   * before trying again */
+  @Initializable(required = false)
+  Timespan agentRecoveryTimeout = Timespan.parse('5s')
+
+  // wait for 5s (default) for the agent to restart
+  @Initializable(required = false)
+  Timespan selfUpgradeWaitForRestartTimeout = Timespan.parse("5s")
+
+  /**
+   * when a communication exception is detected with the agent, it will retry a certain number of
+   * times */
+  @Initializable(required = false)
+  int agentRecoveryNumRetries = 10
+
+  /**
    * For NoOpActionDescriptor: do nothing
    */
   def NoOpActionDescriptor_execution = { NoOpActionDescriptor ad ->
@@ -82,6 +100,17 @@ public class ActionExecutionFactoryImpl implements ActionExecutionFactory
       Map actionArgs = computeActionArgs(ad)
       agent.executeAction(mountPoint: mountPoint, action: ad.action, actionArgs: actionArgs)
 
+      // // TODO MED YP: this is somewhat hacky but it will do for now
+      if(mountPoint == "/self/upgrade")
+      {
+        if(ad.action == 'prepare' || ad.action == 'rollback')
+        {
+          if(log.isDebugEnabled())
+            log.debug("sleeping before waiting for state for ${ad.action}")
+          Thread.sleep(selfUpgradeWaitForRestartTimeout.durationInMilliseconds)
+        }
+      }
+
       // 3. we wait for the action to be completed
       def success = false
       while(!success)
@@ -104,10 +133,17 @@ public class ActionExecutionFactoryImpl implements ActionExecutionFactory
    */
   def ScriptLifecycleInstallActionDescriptor_execution = { ScriptLifecycleInstallActionDescriptor ad ->
     withAgent(ad) { Agent agent ->
-      agent.installScript(mountPoint: ad.mountPoint,
-                          scriptLocation: ad.script,
-                          parent: ad.parent,
-                          initParameters: ad.initParameters)
+      def args =
+      [
+        mountPoint: ad.mountPoint,
+        parent: ad.parent,
+        initParameters: ad.initParameters
+      ]
+      if(ad.script instanceof Map)
+        args.putAll(ad.script)
+      else
+        args.scriptLocation = ad.script
+      agent.installScript(args)
     }
   }
 
@@ -146,7 +182,11 @@ public class ActionExecutionFactoryImpl implements ActionExecutionFactory
    */
   private def withAgent(AgentActionDescriptor ad, Closure closure)
   {
-    agentFactory.withRemoteAgent(agentURIProvider.getAgentURI(ad.fabric, ad.agent), closure)
+    agentFactory.withRemoteAgent(agentURIProvider.getAgentURI(ad.fabric, ad.agent)) { Agent agent ->
+      def agentProxy = new RecoverableAgent(agent, agentRecoveryNumRetries, agentRecoveryTimeout)
+      agent = ObjectProxyBuilder.createProxy(agentProxy, Agent.class)
+      closure(agent)
+    }
   }
 
   @Override

@@ -29,6 +29,8 @@ import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
  * @author ypujante@linkedin.com */
 interface DeploymentService
 {
+  public static final String AGENT_SELF_UPGRADE_MOUNT_POINT = "/self/upgrade"
+
   /**
    * @param params.system the 'expected' system (with filters)
    * @param params.name name of the plan created
@@ -61,6 +63,18 @@ interface DeploymentService
    * @param metadata any metadata to add to the plan(s)
    */
   Collection<Plan<ActionDescriptor>> computeRedeployPlans(params, def metadata)
+
+  /**
+   * Computes the deployment plan for upgrading agents
+   * @param metadata any metadata to add to the plan(s)
+   */
+  Collection<Plan<ActionDescriptor>> computeAgentsUpgradePlan(params, def metadata)
+
+  /**
+   * Computes the deployment plan for cleaning any upgrade that failed
+   * @param metadata any metadata to add to the plan(s)
+   */
+  Collection<Plan<ActionDescriptor>> computeAgentsCleanupUpgradePlan(params, def metadata)
 
   /**
    * Shortcut to group the plan by instance in both sequential and parallel types.

@@ -41,7 +41,7 @@ import java.util.TreeSet;
 /**
  * @author yan@pongasoft.com
  */
-public class Transitions
+public class TransitionPlan
 {
   public enum ActionFromStatus
   {
@@ -62,7 +62,7 @@ public class Transitions
   /**
    * Constructor
    */
-  public Transitions(InternalSystemModelDelta systemModelDelta)
+  public TransitionPlan(InternalSystemModelDelta systemModelDelta)
   {
     _systemModelDelta = systemModelDelta;
   }

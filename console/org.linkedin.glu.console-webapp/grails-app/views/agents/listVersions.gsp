@@ -19,7 +19,13 @@
 <head>
   <title>GLU Console - Agents</title>
   <meta name="layout" content="main"/>
-  <script type="text/javascript" src="${resource(dir:'js',file:'console.js')}"/>
+  <script type="text/javascript" src="${resource(dir:'js',file:'console.js')}"></script>
+  <style type="text/css">
+    .separator {
+      border-top: 1px solid black;
+      padding-top: 1.5em;
+    }
+  </style>
 </head>
 <body>
 <h1>Agent Upgrade</h1>
@@ -29,7 +35,6 @@
   <li>Coordinates: <g:textField name="coordinates" size="100"/></li>
   </ul>
   <g:actionSubmit action="upgrade" value="Upgrade"/>
-  <g:actionSubmit action="cleanup" value="Cleanup"/>
 <g:each in="${versions.keySet().sort()}" var="version">
   <h2>${version}</h2>
   <p>Quick Select:
@@ -49,6 +54,11 @@
     </g:each>
   </table>
 </g:each>
+</g:form>
+<h2 class="separator">Agent Cleanup Upgrade</h2>
+<g:form method="post" controller="agents" action="upgrade">
+  <g:actionSubmit action="cleanup" value="Cleanup"/>
+  <span class="example">Cleanup all previously leftover upgrade</span>
 </g:form>
 </body>
 </html>

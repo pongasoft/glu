@@ -16,7 +16,6 @@
 
 package org.linkedin.glu.orchestration.engine.deployment
 
-import org.linkedin.glu.provisioner.core.environment.Environment
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.impl.agent.DefaultDescriptionProvider
 import org.linkedin.glu.provisioner.plan.api.IPlanExecutionProgressTracker
@@ -37,6 +36,7 @@ import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta
 import org.linkedin.glu.orchestration.engine.planner.Planner
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
+import org.linkedin.glu.provisioner.core.model.SystemEntry
 
 /**
  * System service.
@@ -115,6 +115,25 @@ class DeploymentServiceImpl implements DeploymentService
 
     SystemModel currentModel = agentsService.getCurrentSystemModel(fabric)
 
+    computeDeploymentPlans(params, expectedModel, currentModel, metadata, closure)
+  }
+
+  /**
+   * Compute deployment plans by doing the following:
+   * <ol>
+   *   <li>compute delta between expected model and current model (computed)
+   *   <li>compute the deployment plan(s) (closure callback) (use params.type if a given type only
+   *       is required
+   *   <li>set various metadata on the plan(s) as well as the name
+   * </ol>
+   * @return a collection of plans (<code>null</code> if no expected model) which may be empty
+   */
+  private Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params,
+                                                                    SystemModel expectedModel,
+                                                                    SystemModel currentModel,
+                                                                    def metadata,
+                                                                    Closure closure)
+  {
     // 1. compute delta between expectedModel and currentModel
     SystemModelDelta delta = deltaMgr.computeDelta(expectedModel, currentModel)
 
@@ -185,8 +204,19 @@ class DeploymentServiceImpl implements DeploymentService
    */
   Collection<Plan<ActionDescriptor>> computeBouncePlans(params, def metadata)
   {
+    SystemModel expectedModel = params.system
+
+    if(!expectedModel)
+      return null
+
+    // we filter by entries where the 'expectedState' should be 'running'!
+    expectedModel = expectedModel.filterBy { SystemEntry entry ->
+      entry.entryState == 'running'
+    }
+    params.system = expectedModel
+
     computeDeploymentPlans(params, metadata) { Type type, SystemModelDelta delta ->
-      planner.computeTransitionPlan(type, delta, ['stopped', '<expected>'])
+      planner.computeTransitionPlan(type, delta, ['stopped', 'running'])
     }
   }
 
@@ -212,16 +242,65 @@ class DeploymentServiceImpl implements DeploymentService
     }
   }
 
-  public Plan createPlan(String name,
-                         Environment currentEnvironment,
-                         Environment expectedEnvironment,
-                         Closure closure)
+  /**
+   * Computes the deployment plan for upgrading agents
+   * @param metadata any metadata to add to the plan(s)
+   */
+  @Override
+  Collection<Plan<ActionDescriptor>> computeAgentsUpgradePlan(params, def metadata)
   {
-    deploymentMgr.createPlan(name,
-                             currentEnvironment,
-                             expectedEnvironment,
-                             descriptionProvider,
-                             closure)
+    SystemModel currentModel = agentsService.getCurrentSystemModel(params.fabric)
+    def agents = (params.agents ?: []) as Set
+    currentModel = currentModel.filterBy { SystemEntry entry ->
+      agents.contains(entry.agent)
+    }
+
+    // we keep only the agents that are part of the current model!
+    agents = new HashSet()
+    currentModel.each { SystemEntry entry ->
+      agents << entry.agent
+    }
+    currentModel = currentModel.filterBy { SystemEntry entry ->
+      entry.mountPoint == DeploymentService.AGENT_SELF_UPGRADE_MOUNT_POINT
+    }
+
+    SystemModel expectedModel = new SystemModel(fabric: currentModel.fabric)
+    agents.each { String agent ->
+      SystemEntry entry = new SystemEntry(agent: agent,
+                                          mountPoint: DeploymentService.AGENT_SELF_UPGRADE_MOUNT_POINT,
+                                          entryState: 'upgraded')
+      entry.script = [scriptClassName: "org.linkedin.glu.agent.impl.script.AutoUpgradeScript"]
+      entry.initParameters = [
+        newVersion: params.version,
+        agentTar: params.coordinates,
+      ]
+      expectedModel.addEntry(entry)
+    }
+
+    computeDeploymentPlans(params, expectedModel, currentModel, metadata) { Type type, SystemModelDelta delta ->
+      planner.computeTransitionPlan(type, delta, ['<expected>', null])
+    }
+  }
+
+  /**
+   * Computes the deployment plan for cleaning any upgrade that failed
+   * @param metadata any metadata to add to the plan(s)
+   */
+  @Override
+  Collection<Plan<ActionDescriptor>> computeAgentsCleanupUpgradePlan(params, def metadata)
+  {
+    SystemModel expectedModel = params.system
+
+    if(!expectedModel)
+      return null
+
+    // we filter by entries with only self upgrade mountpoint
+    expectedModel = expectedModel.filterBy { SystemEntry entry ->
+      entry.mountPoint == DeploymentService.AGENT_SELF_UPGRADE_MOUNT_POINT
+    }
+    params.system = expectedModel
+
+    computeDeployPlans(params, metadata)
   }
 
   /**

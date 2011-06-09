@@ -24,6 +24,7 @@ import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import java.security.AccessControlException
 import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException
+import org.linkedin.glu.provisioner.plan.api.IStep.Type
 
 /**
  * @author ypujante@linkedin.com
@@ -44,9 +45,7 @@ class AgentsController extends ControllerBase
   def listVersions = {
     def agents = agentsService.getAgentInfos(request.fabric)
 
-    def versions = agents.values().groupBy { agent ->
-      agent.agentProperties['org.linkedin.glu.agent.version']
-    }
+    def versions = agents.values().groupBy { it.version }
 
     return [versions: versions]
   }
@@ -68,37 +67,46 @@ class AgentsController extends ControllerBase
     }
 
     params.fabric = request.fabric
+    params.type = Type.PARALLEL
 
-    def plan = agentsService.createAgentsUpgradePlan(params)
+    def plans =
+      deploymentService.computeAgentsUpgradePlan(params,
+                                                 [name: "Agent upgrade to version ${params.version}".toString()])
 
-    session.delta = [plan]
-
-    redirect(controller: 'plan', action: 'view', id: plan.id)
+    if(plans)
+    {
+      session.delta = plans
+      println plans[0].toXml()
+      redirect(controller: 'plan', action: 'view', id: plans[0].id)
+    }
+    else
+    {
+      flash.message = "No agent to upgrade"
+      redirect(action: 'listVersions')
+    }
   }
 
   /**
    * cleanup
    */
   def cleanup = {
-    if(!params.version)
+    params.name = "Agent upgrade cleanup"
+    params.system = request.system
+    params.type = Type.PARALLEL
+
+    def plans = deploymentService.computeAgentsCleanupUpgradePlan(params, null)
+
+    if(plans)
     {
-      flash.error = "Missing version"
+      session.delta = plans
+      println plans[0].toXml()
+      redirect(controller: 'plan', action: 'view', id: plans[0].id)
+    }
+    else
+    {
+      flash.message = "No agent to cleanup"
       redirect(action: 'listVersions')
-      return
     }
-
-    if(params.agents instanceof String)
-    {
-      params.agents = [params.agents]
-    }
-
-    params.fabric = request.fabric
-    
-    def plan = agentsService.createAgentsCleanupUpgradePlan(params)
-
-    session.delta = [plan]
-
-    redirect(controller: 'plan', action: 'view', id: plan.id)
   }
 
   /**
@@ -117,9 +125,7 @@ class AgentsController extends ControllerBase
       params.name = title
 
       def system = request.system
-      system = system?.filterBy {
-        it.agent == params.id
-      }
+      system = system?.filterBy("agent='${params.id}'".toString())
 
       request.system = system
       params.system = system

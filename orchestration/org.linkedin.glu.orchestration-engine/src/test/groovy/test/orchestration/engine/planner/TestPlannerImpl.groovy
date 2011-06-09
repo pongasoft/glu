@@ -26,7 +26,7 @@ import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta
 import org.linkedin.glu.orchestration.engine.delta.DeltaMgr
 import org.linkedin.glu.orchestration.engine.delta.impl.DeltaMgrImpl
 import org.linkedin.groovy.util.json.JsonUtils
-import org.linkedin.glu.orchestration.engine.planner.impl.Transitions
+import org.linkedin.glu.orchestration.engine.planner.impl.TransitionPlan
 import org.linkedin.glu.orchestration.engine.planner.impl.Transition
 
 /**
@@ -761,7 +761,7 @@ public class TestPlannerImpl extends GroovyTestCase
    * Computes the digraph of the transitions
    * (to render with <code>dot -Tpdf < out of this method</code>)
    */
-  private static String digraph(Transitions transitions)
+  private static String digraph(TransitionPlan transitions)
   {
     String graph = new TreeMap(transitions.transitions).values().collect { Transition t ->
       t.executeBefore.sort().collect { String key ->
@@ -772,14 +772,14 @@ public class TestPlannerImpl extends GroovyTestCase
     "digraph delta {\n${graph}\n}"
   }
 
-  private static String toStringAfter(Transitions transitions)
+  private static String toStringAfter(TransitionPlan transitions)
   {
     JsonUtils.toJSON(new TreeMap(transitions.transitions).values().collect { Transition t ->
       "${t.key} -> ${t.executeAfter.sort()}"
     }).toString(2)
   }
 
-  private static String toStringBefore(Transitions transitions)
+  private static String toStringBefore(TransitionPlan transitions)
   {
     JsonUtils.toJSON(new TreeMap(transitions.transitions).values().collect { Transition t ->
       "${t.key} -> ${t.executeBefore.sort()}"

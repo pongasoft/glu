@@ -21,6 +21,7 @@ import org.linkedin.glu.orchestration.engine.delta.DeltaStatusInfo;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValue;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueNoDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueWithDelta;
+import org.linkedin.glu.orchestration.engine.deployment.DeploymentService;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
 import org.linkedin.groovy.util.state.StateMachine;
 import org.linkedin.groovy.util.state.StateMachineImpl;
@@ -39,12 +40,18 @@ import java.util.TreeSet;
 public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
 {
   public static final StateMachine DEFAULT_STATE_MACHINE;
+  public static final StateMachine SELF_UPGRADE_STATE_MACHINE;
+
 
   static
   {
     Map<String, Object> args = new HashMap<String, Object>();
     args.put("transitions", Agent.DEFAULT_TRANSITIONS);
     DEFAULT_STATE_MACHINE = new StateMachineImpl(args);
+
+    args = new HashMap<String, Object>();
+    args.put("transitions", Agent.SELF_UPGRADE_TRANSITIONS);
+    SELF_UPGRADE_STATE_MACHINE = new StateMachineImpl(args);
   }
 
   private final SystemEntry _expectedEntry;
@@ -403,6 +410,12 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
   @Override
   public StateMachine getStateMachine()
   {
-    return DEFAULT_STATE_MACHINE;
+    String mountPoint = getMountPoint();
+    if(mountPoint == null)
+      return null;
+    else
+      return mountPoint.startsWith(DeploymentService.AGENT_SELF_UPGRADE_MOUNT_POINT) ?
+        SELF_UPGRADE_STATE_MACHINE :
+        DEFAULT_STATE_MACHINE;
   }
 }

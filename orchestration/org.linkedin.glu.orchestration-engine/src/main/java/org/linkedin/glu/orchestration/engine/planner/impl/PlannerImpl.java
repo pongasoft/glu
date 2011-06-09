@@ -70,11 +70,11 @@ public class PlannerImpl implements Planner
     if(systemModelDelta == null)
       return null;
 
-    Transitions transitions = new Transitions((InternalSystemModelDelta) systemModelDelta);
+    TransitionPlan transitionPlan = new TransitionPlan((InternalSystemModelDelta) systemModelDelta);
 
-    transitions.computeTransitionsToFixDelta();
+    transitionPlan.computeTransitionsToFixDelta();
 
-    return transitions.buildPlan(type);
+    return transitionPlan.buildPlan(type);
   }
 
   @Override
@@ -85,11 +85,11 @@ public class PlannerImpl implements Planner
     if(systemModelDelta == null)
       return null;
 
-    Transitions transitions = new Transitions((InternalSystemModelDelta) systemModelDelta);
+    TransitionPlan transitionPlan = new TransitionPlan((InternalSystemModelDelta) systemModelDelta);
 
-    transitions.computeTransitions(toStates);
+    transitionPlan.computeTransitions(toStates);
 
-    return transitions.buildPlan(type);
+    return transitionPlan.buildPlan(type);
   }
 
   // TODO HIGH YP:  add no step handling

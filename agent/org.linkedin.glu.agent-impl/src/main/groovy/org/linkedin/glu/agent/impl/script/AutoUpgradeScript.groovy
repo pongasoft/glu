@@ -18,6 +18,7 @@
 package org.linkedin.glu.agent.impl.script
 
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
+import org.linkedin.glu.agent.api.Agent
 
 /**
  * This is the script that will auto upgrade the agent.
@@ -36,13 +37,7 @@ import org.linkedin.groovy.util.io.fs.FileSystemImpl
  */
 class AutoUpgradeScript
 {
-  def static stateMachine =
-  [
-      NONE: [[to: 'installed', action: 'install']],
-      installed: [[to: 'NONE', action: 'uninstall'], [to: 'prepared', action: 'prepare']],
-      prepared: [[to: 'upgraded', action: 'commit'], [to: 'installed', action: 'rollback']],
-      upgraded: [[to: 'NONE', action: 'uninstall']]
-  ]
+  def static stateMachine = Agent.SELF_UPGRADE_TRANSITIONS
 
   def currentVersion
   File agentRootDir
