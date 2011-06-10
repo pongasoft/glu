@@ -16,6 +16,8 @@
 
 package org.linkedin.glu.orchestration.engine.planner.impl;
 
+import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemEntryDelta;
+
 /**
  * @author yan@pongasoft.com
  */
@@ -26,10 +28,25 @@ public abstract class SingleEntryTransition extends Transition
   /**
    * Constructor
    */
-  public SingleEntryTransition(String key, String entryKey)
+  public SingleEntryTransition(TransitionPlan transitionPlan, String key, String entryKey)
   {
-    super(key);
+    super(transitionPlan, key);
     _entryKey = entryKey;
+  }
+
+  public String getMountPoint()
+  {
+    return getSystemEntryDelta().getMountPoint();
+  }
+
+  public String getAgent()
+  {
+    return getSystemEntryDelta().getAgent();
+  }
+
+  public InternalSystemEntryDelta getSystemEntryDelta()
+  {
+    return getSystemModelDelta().findAnyEntryDelta(getEntryKey());
   }
 
   public String getEntryKey()

@@ -17,13 +17,13 @@
 package org.linkedin.glu.orchestration.engine.planner.impl;
 
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
+import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor;
 import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptLifecycleInstallActionDescriptor;
 import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptLifecycleUninstallActionDescriptor;
 import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptTransitionActionDescriptor;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemEntryDelta;
-import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemModelDelta;
 import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
-import org.linkedin.glu.provisioner.plan.api.LeafStep;
+import org.linkedin.util.lang.LangUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,19 +38,20 @@ public class SingleStepTransition extends SingleEntryTransition
   public static final String UNINSTALL_SCRIPT_ACTION = "uninstallScript";
 
   private final String _action;
-  private final String _to;
+  private final String _toState;
 
   /**
    * Constructor
    */
-  public SingleStepTransition(String key,
+  public SingleStepTransition(TransitionPlan transitionPlan,
+                              String key,
                               String entryKey,
                               String action,
-                              String to)
+                              String toState)
   {
-    super(key, entryKey);
+    super(transitionPlan, key, entryKey);
     _action = action;
-    _to = to;
+    _toState = toState;
   }
 
   public static String computeTransitionKey(String entryKey, String action)
@@ -66,29 +67,28 @@ public class SingleStepTransition extends SingleEntryTransition
     return _action;
   }
 
-  public String getTo()
+  public String getToState()
   {
-    return _to;
+    return _toState;
   }
 
-  public MultiStepsSingleEntryTransition convertToMultiSteps(Map<String, Transition> transitions)
+  public MultiStepsSingleEntryTransition convertToMultiSteps()
   {
     if(!isRoot())
       return null;
 
     Collection<Transition> linearTransitions = new ArrayList<Transition>();
 
-    linearTransitions = collectLinearTransitions(getEntryKey(), transitions, linearTransitions);
+    linearTransitions = collectLinearTransitions(getEntryKey(), linearTransitions);
 
     if(linearTransitions == null)
       return null;
 
-    return new MultiStepsSingleEntryTransition(getKey(), getEntryKey(), linearTransitions);
+    return new MultiStepsSingleEntryTransition(getTransitionPlan(), getKey(), getEntryKey(), linearTransitions);
   }
 
   @Override
   protected Collection<Transition> collectLinearTransitions(String entryKey,
-                                                            Map<String, Transition> transitions,
                                                             Collection<Transition> linearTransitions)
   {
     if(!getEntryKey().equals(entryKey))
@@ -101,11 +101,15 @@ public class SingleStepTransition extends SingleEntryTransition
     }
     else
     {
-      Transition transition = transitions.get(findSingleExecuteBefore());
-      if(transition != null && getKey().equals(transition.findSingleExecuteAfter()))
+      Transition transition = findSingleExecuteBefore();
+      if(transition != null)
       {
-        linearTransitions.add(this);
-        return transition.collectLinearTransitions(entryKey, transitions, linearTransitions);
+        Transition executeAfter = transition.findSingleExecuteAfter();
+        if(executeAfter != null && getKey().equals(executeAfter.getKey()))
+        {
+          linearTransitions.add(this);
+          return transition.collectLinearTransitions(entryKey, linearTransitions);
+        }
       }
     }
 
@@ -113,11 +117,20 @@ public class SingleStepTransition extends SingleEntryTransition
   }
 
   @Override
-  public void addSteps(ICompositeStepBuilder<ActionDescriptor> builder,
-                       InternalSystemModelDelta systemModelDelta)
+  public void addSteps(ICompositeStepBuilder<ActionDescriptor> builder)
   {
-    InternalSystemEntryDelta entryDelta =
-      systemModelDelta.findAnyEntryDelta(getEntryKey());
+    SkippableTransition skipRootCause = getSkipRootCause();
+    if(skipRootCause != null)
+    {
+      NoOpActionDescriptor actionDescriptor = skipRootCause.computeActionDescriptor();
+      Map<String, Object> details = actionDescriptor.getDetails();
+      populateRootCauseDetails(details, "agent", getAgent());
+      populateRootCauseDetails(details, "mountPoint", getMountPoint());
+      builder.addLeafStep(buildStep(actionDescriptor));
+      return;
+    }
+    
+    InternalSystemEntryDelta entryDelta = getSystemEntryDelta();
 
     if(entryDelta == null)
       return;
@@ -128,7 +141,7 @@ public class SingleStepTransition extends SingleEntryTransition
     {
       actionDescriptor =
         new ScriptLifecycleInstallActionDescriptor("TODO script lifecycle: installScript",
-                                                   systemModelDelta.getFabric(),
+                                                   getFabric(),
                                                    entryDelta.getAgent(),
                                                    entryDelta.getMountPoint(),
                                                    entryDelta.getExpectedEntry().getParent(),
@@ -142,7 +155,7 @@ public class SingleStepTransition extends SingleEntryTransition
       {
         actionDescriptor =
           new ScriptLifecycleUninstallActionDescriptor("TODO script lifecycle: uninstallScript",
-                                                       systemModelDelta.getFabric(),
+                                                       getFabric(),
                                                        entryDelta.getAgent(),
                                                        entryDelta.getMountPoint());
 
@@ -154,11 +167,11 @@ public class SingleStepTransition extends SingleEntryTransition
 
         actionDescriptor =
           new ScriptTransitionActionDescriptor("TODO script action: " + getAction(),
-                                               systemModelDelta.getFabric(),
+                                               getFabric(),
                                                entryDelta.getAgent(),
                                                entryDelta.getMountPoint(),
                                                getAction(),
-                                               getTo(),
+                                               getToState(),
                                                actionArgs);
 
       }
@@ -167,13 +180,13 @@ public class SingleStepTransition extends SingleEntryTransition
     builder.addLeafStep(buildStep(actionDescriptor));
   }
 
-  /**
-   * Builds a leaf step
-   */
-  protected LeafStep<ActionDescriptor> buildStep(ActionDescriptor actionDescriptor)
+  private void populateRootCauseDetails(Map<String, Object> details, String name, Object value)
   {
-    return new LeafStep<ActionDescriptor>(null,
-                                          actionDescriptor.toMetadata(),
-                                          actionDescriptor);
+    Object rootCauseDetail = details.get(name);
+    if(!LangUtils.isEqual(rootCauseDetail, value))
+    {
+      details.put(name, value);
+      details.put(name + "RootCause", rootCauseDetail);
+    }
   }
 }

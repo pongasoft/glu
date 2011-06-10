@@ -17,8 +17,6 @@
 package org.linkedin.glu.orchestration.engine.planner.impl;
 
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
-import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemEntryDelta;
-import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemModelDelta;
 import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
 
 import java.util.Collection;
@@ -33,12 +31,22 @@ public class MultiStepsSingleEntryTransition extends SingleEntryTransition
   /**
    * Constructor
    */
-  public MultiStepsSingleEntryTransition(String key,
+  public MultiStepsSingleEntryTransition(TransitionPlan transitionPlan,
+                                         String key,
                                          String entryKey,
                                          Collection<Transition> transitions)
   {
-    super(key, entryKey);
+    super(transitionPlan, key, entryKey);
     _transitions = transitions;
+    for(Transition transition : transitions)
+    {
+      SkippableTransition skipRootCause = transition.getSkipRootCause();
+      if(skipRootCause != null)
+      {
+        _skipRootCause = skipRootCause;
+        break; // get out of the for
+      }
+    }
   }
 
   public Collection<Transition> getTransitions()
@@ -46,18 +54,25 @@ public class MultiStepsSingleEntryTransition extends SingleEntryTransition
     return _transitions;
   }
 
-  public void addSteps(ICompositeStepBuilder<ActionDescriptor> builder,
-                       InternalSystemModelDelta systemModelDelta)
+  @Override
+  public void addSteps(ICompositeStepBuilder<ActionDescriptor> builder)
   {
     builder = builder.addSequentialSteps();
 
-    InternalSystemEntryDelta entryDelta = systemModelDelta.findAnyEntryDelta(getEntryKey());
-    builder.setMetadata("agent", entryDelta.getAgent());
-    builder.setMetadata("mountPoint", entryDelta.getMountPoint());
+    builder.setMetadata("agent", getAgent());
+    builder.setMetadata("mountPoint", getMountPoint());
 
-    for(Transition transition : _transitions)
+    SkippableTransition skipRootCause = getSkipRootCause();
+    if(skipRootCause != null)
     {
-      transition.addSteps(builder, systemModelDelta);
+      builder.addLeafStep(buildStep(skipRootCause.computeActionDescriptor()));
+    }
+    else
+    {
+      for(Transition transition : _transitions)
+      {
+        transition.addSteps(builder);
+      }
     }
   }
 }

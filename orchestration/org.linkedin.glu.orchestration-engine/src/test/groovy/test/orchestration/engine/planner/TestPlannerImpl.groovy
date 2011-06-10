@@ -28,13 +28,15 @@ import org.linkedin.glu.orchestration.engine.delta.impl.DeltaMgrImpl
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.orchestration.engine.planner.impl.TransitionPlan
 import org.linkedin.glu.orchestration.engine.planner.impl.Transition
+import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider
+import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException;
 
 /**
  * @author yan@pongasoft.com */
 public class TestPlannerImpl extends GroovyTestCase
 {
-  def PlannerImpl planner = new PlannerImpl()
-  def DeltaMgr deltaMgr = new DeltaMgrImpl()
+  PlannerImpl planner = new PlannerImpl()
+  DeltaMgr deltaMgr = new DeltaMgrImpl()
 
   public void testDeploymentPlanNoDelta()
   {
@@ -729,6 +731,83 @@ public class TestPlannerImpl extends GroovyTestCase
     assertEquals(12, p.leafStepsCount)
   }
 
+  public void testPlanWithNoOp()
+  {
+    Plan<ActionDescriptor> p = plan(Type.SEQUENTIAL,
+                                    delta(m([agent: 'a1', mountPoint: 'm1', script: 's1']),
+                                          m([agent: 'a1', mountPoint: 'm1', script: 's1',
+                                             entryState: 'installed', metadata: [transitionState: 'installed->stopped']])))
+
+    assertEquals(Type.SEQUENTIAL, p.step.type)
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <sequential>
+    <sequential agent="a1" mountPoint="m1">
+      <leaf action="noop" agent="a1" mountPoint="m1" name="already in transition: installed-&gt;stopped" />
+    </sequential>
+  </sequential>
+</plan>
+""", p.toXml())
+    assertEquals(1, p.leafStepsCount)
+  }
+
+  /**
+   * child in transition => cannot redeploy the parent
+   */
+  public void testParentChildDeltaParentDeltaWithNoOp()
+  {
+    Plan<ActionDescriptor> p = plan(Type.PARALLEL,
+                                    delta(m([agent: 'a1', mountPoint: 'p1', script: 's1'],
+                                            [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1'],
+                                            [agent: 'a1', mountPoint: 'c2', parent: 'p1', script: 's1']),
+
+                                          m([agent: 'a1', mountPoint: 'p1', script: 's2'],
+                                            [agent: 'a1', mountPoint: 'c2', parent: 'p1', script: 's1', entryState: 'stopped'],
+                                            [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1', metadata: [transitionState: 'running->stopped']])))
+
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <sequential>
+    <parallel depth="0">
+      <leaf action="noop" agent="a1" mountPoint="c1" name="already in transition: running-&gt;stopped" />
+      <leaf action="noop" agent="a1" mountPoint="c2" mountPointRootCause="c1" name="already in transition: running-&gt;stopped" />
+    </parallel>
+  </sequential>
+</plan>
+""", p.toXml())
+    assertEquals(2, p.leafStepsCount)
+
+  }
+
+  /**
+   * missing agent
+   */
+  public void testParentChildMissingAgentWithNoOp()
+  {
+    planner.agentURIProvider = new ThrowExceptionAgentURIProvider()
+
+    Plan<ActionDescriptor> p = plan(Type.PARALLEL,
+                                    delta(m([agent: 'a1', mountPoint: 'p1', script: 's1'],
+                                            [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1'],
+                                            [agent: 'a1', mountPoint: 'c2', parent: 'p1', script: 's1']),
+
+                                          m([agent: 'a1', mountPoint: 'p1', script: 's2'],
+                                            [agent: 'a1', mountPoint: 'c2', parent: 'p1', script: 's1', entryState: 'stopped'],
+                                            [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1'])))
+
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <sequential>
+    <parallel depth="0">
+      <leaf action="noop" agent="a1" mountPoint="c1" name="missing agent: a1" />
+      <leaf action="noop" agent="a1" mountPoint="c2" name="missing agent: a1" />
+    </parallel>
+  </sequential>
+</plan>
+""", p.toXml())
+    assertEquals(2, p.leafStepsCount)
+  }
+
 
   private SystemModel m(Map... entries)
   {
@@ -784,5 +863,14 @@ public class TestPlannerImpl extends GroovyTestCase
     JsonUtils.toJSON(new TreeMap(transitions.transitions).values().collect { Transition t ->
       "${t.key} -> ${t.executeBefore.sort()}"
     }).toString(2)
+  }
+}
+
+class ThrowExceptionAgentURIProvider implements AgentURIProvider
+{
+  @Override
+  URI getAgentURI(String fabric, String agent)
+  {
+    throw new NoSuchAgentException(agent)
   }
 }

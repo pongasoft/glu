@@ -19,12 +19,12 @@ package org.linkedin.glu.orchestration.engine.planner.impl;
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemModelDelta;
 import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
+import org.linkedin.glu.provisioner.plan.api.LeafStep;
 import org.linkedin.util.lang.LangUtils;
 
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,12 +32,14 @@ import java.util.Set;
  */
 public abstract class Transition
 {
+  private final TransitionPlan _transitionPlan;
   private final String _key;
 
-  private boolean _virtual = false;
+  private boolean _virtual = true;
+  protected SkippableTransition _skipRootCause = null;
 
-  private Set<String> _executeAfter = new HashSet<String>();
-  private Set<String> _executeBefore = new HashSet<String>();
+  private Set<Transition> _executeAfter = new HashSet<Transition>();
+  private Set<Transition> _executeBefore = new HashSet<Transition>();
 
   public static class TransitionComparator implements Comparator<Transition>
   {
@@ -53,9 +55,25 @@ public abstract class Transition
   /**
    * Constructor
    */
-  public Transition(String key)
+  public Transition(TransitionPlan transitionPlan, String key)
   {
+    _transitionPlan = transitionPlan;
     _key = key;
+  }
+
+  public TransitionPlan getTransitionPlan()
+  {
+    return _transitionPlan;
+  }
+
+  public InternalSystemModelDelta getSystemModelDelta()
+  {
+    return _transitionPlan.getSystemModelDelta();
+  }
+
+  public String getFabric()
+  {
+    return getSystemModelDelta().getFabric();
   }
 
   public String getKey()
@@ -74,21 +92,59 @@ public abstract class Transition
     return _executeAfter.size() == 0;
   }
 
+  public SkippableTransition getSkipRootCause()
+  {
+    return _skipRootCause;
+  }
+
+  public boolean shouldSkip()
+  {
+    return _skipRootCause != null;
+  }
+
+  public void skip(SkippableTransition rootCause)
+  {
+    if(shouldSkip())
+      return;
+
+    _skipRootCause = rootCause;
+
+    for(Transition transition : _executeAfter)
+    {
+      transition.skip(rootCause);
+    }
+
+    for(Transition transition : _executeBefore)
+    {
+      transition.skip(rootCause);
+    }
+  }
+
   public void executeAfter(Transition transition)
   {
     if(transition != null)
     {
-      _executeAfter.add(transition.getKey());
-      transition._executeBefore.add(_key);
+      if(transition.shouldSkip())
+      {
+        skip(transition.getSkipRootCause());
+      }
+      else
+      {
+        if(shouldSkip())
+          transition.skip(getSkipRootCause());
+      }
+
+      _executeAfter.add(transition);
+      transition._executeBefore.add(this);
     }
   }
 
-  public Set<String> getExecuteAfter()
+  public Set<Transition> getExecuteAfter()
   {
     return _executeAfter;
   }
 
-  public String findSingleExecuteAfter()
+  public Transition findSingleExecuteAfter()
   {
     if(_executeAfter.size() == 1)
       return _executeAfter.iterator().next();
@@ -96,7 +152,7 @@ public abstract class Transition
       return null;
   }
 
-  public String findSingleExecuteBefore()
+  public Transition findSingleExecuteBefore()
   {
     if(_executeBefore.size() == 1)
       return _executeBefore.iterator().next();
@@ -104,7 +160,7 @@ public abstract class Transition
       return null;
   }
 
-  public Set<String> getExecuteBefore()
+  public Set<Transition> getExecuteBefore()
   {
     return _executeBefore;
   }
@@ -114,23 +170,53 @@ public abstract class Transition
     return _virtual;
   }
 
-  public void setVirtual(boolean virtual)
+  public void clearVirtual()
   {
-    _virtual = virtual;
+    _virtual = false;
   }
 
-  public abstract void addSteps(ICompositeStepBuilder<ActionDescriptor> builder,
-                                InternalSystemModelDelta systemModelDelta);
+  public abstract void addSteps(ICompositeStepBuilder<ActionDescriptor> builder);
 
-  public MultiStepsSingleEntryTransition convertToMultiSteps(Map<String, Transition> transitions)
+  public MultiStepsSingleEntryTransition convertToMultiSteps()
   {
     return null;
   }
 
   protected Collection<Transition> collectLinearTransitions(String entryKey,
-                                                            Map<String, Transition> transitions,
                                                             Collection<Transition> linearTransitions)
   {
     return null;
+  }
+
+  /**
+   * Builds a leaf step
+   */
+  protected LeafStep<ActionDescriptor> buildStep(ActionDescriptor actionDescriptor)
+  {
+    return new LeafStep<ActionDescriptor>(null,
+                                          actionDescriptor.toMetadata(),
+                                          actionDescriptor);
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if(this == o) return true;
+    if(!(o instanceof Transition)) return false;
+
+    Transition that = (Transition) o;
+
+    if(!_key.equals(that._key)) return false;
+    if(!_transitionPlan.equals(that._transitionPlan)) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode()
+  {
+    int result = _transitionPlan.hashCode();
+    result = 31 * result + _key.hashCode();
+    return result;
   }
 }

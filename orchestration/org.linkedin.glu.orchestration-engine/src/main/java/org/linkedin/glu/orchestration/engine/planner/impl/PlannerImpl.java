@@ -70,7 +70,8 @@ public class PlannerImpl implements Planner
     if(systemModelDelta == null)
       return null;
 
-    TransitionPlan transitionPlan = new TransitionPlan((InternalSystemModelDelta) systemModelDelta);
+    TransitionPlan transitionPlan =
+      new TransitionPlan((InternalSystemModelDelta) systemModelDelta, _agentURIProvider);
 
     transitionPlan.computeTransitionsToFixDelta();
 
@@ -85,7 +86,8 @@ public class PlannerImpl implements Planner
     if(systemModelDelta == null)
       return null;
 
-    TransitionPlan transitionPlan = new TransitionPlan((InternalSystemModelDelta) systemModelDelta);
+    TransitionPlan transitionPlan =
+      new TransitionPlan((InternalSystemModelDelta) systemModelDelta, _agentURIProvider);
 
     transitionPlan.computeTransitions(toStates);
 
