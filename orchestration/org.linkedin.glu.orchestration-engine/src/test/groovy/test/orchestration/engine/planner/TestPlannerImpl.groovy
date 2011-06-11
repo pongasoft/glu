@@ -29,13 +29,18 @@ import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.orchestration.engine.planner.impl.TransitionPlan
 import org.linkedin.glu.orchestration.engine.planner.impl.Transition
 import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider
-import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException;
+import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptorAdjuster;
 
 /**
  * @author yan@pongasoft.com */
 public class TestPlannerImpl extends GroovyTestCase
 {
-  PlannerImpl planner = new PlannerImpl()
+  // setting a noop action descriptor adjuster to not have to deal with names
+  ActionDescriptorAdjuster actionDescriptorAdjuster = {
+    return it
+  } as ActionDescriptorAdjuster
+  PlannerImpl planner = new PlannerImpl(actionDescriptorAdjuster: actionDescriptorAdjuster)
   DeltaMgr deltaMgr = new DeltaMgrImpl()
 
   public void testDeploymentPlanNoDelta()
@@ -66,10 +71,10 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <sequential agent="a1" mountPoint="m1">
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: install" scriptTransition="install" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: configure" scriptTransition="configure" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="start" toState="running" />
     </sequential>
   </sequential>
 </plan>
@@ -92,10 +97,10 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <sequential agent="a1" mountPoint="m1">
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: stop" scriptTransition="stop" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="stop" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptLifecycle="uninstallScript" />
     </sequential>
   </sequential>
 </plan>
@@ -117,14 +122,14 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <sequential agent="a1" mountPoint="m1">
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: stop" scriptTransition="stop" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: install" scriptTransition="install" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: configure" scriptTransition="configure" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="stop" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="start" toState="running" />
     </sequential>
   </sequential>
 </plan>
@@ -147,11 +152,11 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <sequential agent="a1" mountPoint="m1">
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: install" scriptTransition="install" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="configure" toState="stopped" />
     </sequential>
   </sequential>
 </plan>
@@ -173,8 +178,8 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <sequential agent="a1" mountPoint="m1">
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: configure" scriptTransition="configure" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="start" toState="running" />
     </sequential>
   </sequential>
 </plan>
@@ -198,40 +203,40 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <parallel depth="0">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="stop" toState="stopped" />
     </parallel>
     <parallel depth="1">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="stop" toState="stopped" />
     </parallel>
     <parallel depth="2">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="unconfigure" toState="installed" />
     </parallel>
     <parallel depth="3">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="uninstall" toState="NONE" />
     </parallel>
     <parallel depth="4">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptLifecycle="uninstallScript" />
     </parallel>
     <parallel depth="5">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" script="s1" scriptLifecycle="installScript" />
     </parallel>
     <parallel depth="6">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: install" scriptTransition="install" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" parent="p1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="install" toState="installed" />
     </parallel>
     <parallel depth="7">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: install" scriptTransition="install" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="configure" toState="stopped" />
     </parallel>
     <parallel depth="8">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: configure" scriptTransition="configure" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="start" toState="running" />
     </parallel>
     <parallel depth="9">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="start" toState="running" />
     </parallel>
   </sequential>
 </plan>
@@ -259,49 +264,49 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <sequential depth="0">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: stop" scriptTransition="stop" />
-      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script action: stop" scriptTransition="stop" />
-      <leaf agent="a1" fabric="f1" mountPoint="p2" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="stop" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="c2" scriptAction="stop" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="p2" scriptAction="start" toState="running" />
     </sequential>
     <sequential depth="1">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
-      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="c2" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="stop" toState="stopped" />
     </sequential>
     <sequential depth="2">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="c2" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="unconfigure" toState="installed" />
     </sequential>
     <sequential depth="3">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="c2" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="uninstall" toState="NONE" />
     </sequential>
     <sequential depth="4">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" parent="p2" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptLifecycle="uninstallScript" />
     </sequential>
     <sequential depth="5">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: install" scriptTransition="install" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" script="s2" scriptLifecycle="installScript" />
     </sequential>
     <sequential depth="6">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: configure" scriptTransition="configure" />
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: start" scriptTransition="start" />
-      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: install" scriptTransition="install" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="start" toState="running" />
+      <leaf agent="a1" fabric="f1" mountPoint="c2" parent="p1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="install" toState="installed" />
     </sequential>
     <sequential depth="7">
-      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script action: install" scriptTransition="install" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="c2" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="configure" toState="stopped" />
     </sequential>
     <sequential depth="8">
-      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script action: configure" scriptTransition="configure" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c2" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="start" toState="running" />
     </sequential>
     <sequential depth="9">
-      <leaf agent="a1" fabric="f1" mountPoint="c2" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c2" scriptAction="start" toState="running" />
     </sequential>
   </sequential>
 </plan>
@@ -328,40 +333,40 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <parallel depth="0">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="stop" toState="stopped" />
     </parallel>
     <parallel depth="1">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="stop" toState="stopped" />
     </parallel>
     <parallel depth="2">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="unconfigure" toState="installed" />
     </parallel>
     <parallel depth="3">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="uninstall" toState="NONE" />
     </parallel>
     <parallel depth="4">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptLifecycle="uninstallScript" />
     </parallel>
     <parallel depth="5">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" script="s1" scriptLifecycle="installScript" />
     </parallel>
     <parallel depth="6">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: install" scriptTransition="install" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" parent="p1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="install" toState="installed" />
     </parallel>
     <parallel depth="7">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: install" scriptTransition="install" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="configure" toState="stopped" />
     </parallel>
     <parallel depth="8">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: configure" scriptTransition="configure" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="start" toState="running" />
     </parallel>
     <parallel depth="9">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="start" toState="running" />
     </parallel>
   </sequential>
 </plan>
@@ -384,8 +389,8 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <sequential agent="a1" mountPoint="m1">
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: stop" scriptTransition="stop" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="stop" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="start" toState="running" />
     </sequential>
   </sequential>
 </plan>
@@ -402,10 +407,10 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <parallel>
     <sequential agent="a1" mountPoint="m1">
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: stop" scriptTransition="stop" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="stop" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptLifecycle="uninstallScript" />
     </sequential>
   </parallel>
 </plan>
@@ -422,14 +427,14 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <parallel>
     <sequential agent="a1" mountPoint="m1">
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: stop" scriptTransition="stop" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: install" scriptTransition="install" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: configure" scriptTransition="configure" />
-      <leaf agent="a1" fabric="f1" mountPoint="m1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="stop" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="m1" scriptAction="start" toState="running" />
     </sequential>
   </parallel>
 </plan>
@@ -458,16 +463,16 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <parallel depth="0">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="stop" toState="stopped" />
     </parallel>
     <parallel depth="1">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="stop" toState="stopped" />
     </parallel>
     <parallel depth="2">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="start" toState="running" />
     </parallel>
     <parallel depth="3">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="start" toState="running" />
     </parallel>
   </sequential>
 </plan>
@@ -509,14 +514,14 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <parallel depth="0">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="configure" toState="stopped" />
     </parallel>
     <parallel depth="1">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: configure" scriptTransition="configure" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="start" toState="running" />
     </parallel>
     <parallel depth="2">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="start" toState="running" />
     </parallel>
   </sequential>
 </plan>
@@ -536,16 +541,16 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <parallel depth="0">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="stop" toState="stopped" />
     </parallel>
     <parallel depth="1">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="stop" toState="stopped" />
     </parallel>
     <parallel depth="2">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="start" toState="running" />
     </parallel>
     <parallel depth="3">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="start" toState="running" />
     </parallel>
   </sequential>
 </plan>
@@ -565,10 +570,10 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <parallel>
     <sequential agent="a1" mountPoint="c1">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: stop" scriptTransition="stop" />
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="stop" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptLifecycle="uninstallScript" />
     </sequential>
   </parallel>
 </plan>
@@ -588,22 +593,22 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <parallel depth="0">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="stop" toState="stopped" />
     </parallel>
     <parallel depth="1">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="stop" toState="stopped" />
     </parallel>
     <parallel depth="2">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="unconfigure" toState="installed" />
     </parallel>
     <parallel depth="3">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="uninstall" toState="NONE" />
     </parallel>
     <parallel depth="4">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptLifecycle="uninstallScript" />
     </parallel>
   </sequential>
 </plan>
@@ -647,40 +652,40 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <parallel depth="0">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="stop" toState="stopped" />
     </parallel>
     <parallel depth="1">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="stop" toState="stopped" />
     </parallel>
     <parallel depth="2">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="unconfigure" toState="installed" />
     </parallel>
     <parallel depth="3">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="uninstall" toState="NONE" />
     </parallel>
     <parallel depth="4">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptLifecycle="uninstallScript" />
     </parallel>
     <parallel depth="5">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" script="s1" scriptLifecycle="installScript" />
     </parallel>
     <parallel depth="6">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: install" scriptTransition="install" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" parent="p1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="install" toState="installed" />
     </parallel>
     <parallel depth="7">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: install" scriptTransition="install" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="configure" toState="stopped" />
     </parallel>
     <parallel depth="8">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: configure" scriptTransition="configure" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="start" toState="running" />
     </parallel>
     <parallel depth="9">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="start" toState="running" />
     </parallel>
   </sequential>
 </plan>
@@ -700,30 +705,30 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <parallel depth="0">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: stop" scriptTransition="stop" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="stop" toState="stopped" />
     </parallel>
     <parallel depth="1">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: unconfigure" scriptTransition="unconfigure" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: uninstall" scriptTransition="uninstall" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="uninstall" toState="NONE" />
     </parallel>
     <parallel depth="2">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptLifecycle="uninstallScript" />
     </parallel>
     <parallel depth="3">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" script="s1" scriptLifecycle="installScript" />
     </parallel>
     <parallel depth="4">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script lifecycle: installScript" scriptLifecycle="installScript" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: install" scriptTransition="install" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" parent="p1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="install" toState="installed" />
     </parallel>
     <parallel depth="5">
-      <leaf agent="a1" fabric="f1" mountPoint="c1" name="TODO script action: install" scriptTransition="install" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: configure" scriptTransition="configure" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="configure" toState="stopped" />
     </parallel>
     <parallel depth="6">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" name="TODO script action: start" scriptTransition="start" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="start" toState="running" />
     </parallel>
   </sequential>
 </plan>
@@ -743,7 +748,7 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <sequential agent="a1" mountPoint="m1">
-      <leaf action="noop" agent="a1" mountPoint="m1" name="already in transition: installed-&gt;stopped" />
+      <leaf action="noop" agent="a1" fabric="f1" mountPoint="m1" reason="alreadyInTransition" transitionState="installed-&gt;stopped" />
     </sequential>
   </sequential>
 </plan>
@@ -769,8 +774,8 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <parallel depth="0">
-      <leaf action="noop" agent="a1" mountPoint="c1" name="already in transition: running-&gt;stopped" />
-      <leaf action="noop" agent="a1" mountPoint="c2" mountPointRootCause="c1" name="already in transition: running-&gt;stopped" />
+      <leaf action="noop" agent="a1" fabric="f1" mountPoint="c1" reason="alreadyInTransition" transitionState="running-&gt;stopped" />
+      <leaf action="noop" agent="a1" fabric="f1" mountPoint="c2" mountPointRootCause="c1" reason="alreadyInTransition" transitionState="running-&gt;stopped" />
     </parallel>
   </sequential>
 </plan>
@@ -799,8 +804,8 @@ public class TestPlannerImpl extends GroovyTestCase
 <plan>
   <sequential>
     <parallel depth="0">
-      <leaf action="noop" agent="a1" mountPoint="c1" name="missing agent: a1" />
-      <leaf action="noop" agent="a1" mountPoint="c2" name="missing agent: a1" />
+      <leaf action="noop" agent="a1" fabric="f1" mountPoint="c1" reason="missingAgent" />
+      <leaf action="noop" agent="a1" fabric="f1" mountPoint="c2" reason="missingAgent" />
     </parallel>
   </sequential>
 </plan>

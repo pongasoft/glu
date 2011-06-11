@@ -16,28 +16,48 @@
 
 package org.linkedin.glu.orchestration.engine.action.descriptor;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
  * @author yan@pongasoft.com
  */
-public class BaseActionDescriptor implements ActionDescriptor
+public class BaseActionDescriptor implements InternalActionDescriptor
 {
-  private final String _name;
+  private Map<String, Object> _values = new HashMap<String, Object>();
 
-  /**
-   * Constructor
-   */
-  public BaseActionDescriptor(String name)
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T> T findValue(String name)
   {
-    _name = name;
+    return (T) _values.get(name);
+  }
+
+  @Override
+  public void setValue(String name, Object value)
+  {
+    if(value == null)
+      _values.remove(name);
+    else
+      _values.put(name, value);
+  }
+
+  @Override
+  public Map<String, Object> getValues()
+  {
+    return _values;
   }
 
   @Override
   public String getName()
   {
-    return _name;
+    return findValue("name");
+  }
+
+  public void setName(String name)
+  {
+    setValue("name", name);
   }
 
   @Override
@@ -51,6 +71,6 @@ public class BaseActionDescriptor implements ActionDescriptor
   @Override
   public void toMetadata(Map<String, Object> metadata)
   {
-    metadata.put("name", _name);
+    metadata.putAll(_values);
   }
 }

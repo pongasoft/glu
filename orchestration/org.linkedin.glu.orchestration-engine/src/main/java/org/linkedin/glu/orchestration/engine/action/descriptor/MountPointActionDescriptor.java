@@ -16,36 +16,18 @@
 
 package org.linkedin.glu.orchestration.engine.action.descriptor;
 
-import java.util.Map;
-
 /**
  * @author yan@pongasoft.com
  */
 public class MountPointActionDescriptor extends AgentActionDescriptor
 {
-  private final String _mountPoint;
-
-  /**
-   * Constructor
-   */
-  public MountPointActionDescriptor(String name,
-                                    String fabric,
-                                    String agent,
-                                    String mountPoint)
-  {
-    super(name, fabric, agent);
-    _mountPoint = mountPoint;
-  }
-
   public String getMountPoint()
   {
-    return _mountPoint;
+    return findValue("mountPoint");
   }
 
-  @Override
-  public void toMetadata(Map<String, Object> metadata)
+  public void setMountPoint(String mountPoint)
   {
-    super.toMetadata(metadata);
-    metadata.put("mountPoint", _mountPoint);
+    setValue("mountPoint", mountPoint);
   }
 }

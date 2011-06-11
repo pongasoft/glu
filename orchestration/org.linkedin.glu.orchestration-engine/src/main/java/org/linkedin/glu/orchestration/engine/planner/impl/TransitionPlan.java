@@ -17,6 +17,7 @@
 package org.linkedin.glu.orchestration.engine.planner.impl;
 
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptorAdjuster;
 import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider;
 import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
@@ -58,6 +59,7 @@ public class TransitionPlan
   private Deque<String> _entriesToProcess;
   private final InternalSystemModelDelta _systemModelDelta;
   private final AgentURIProvider _agentURIProvider;
+  private final ActionDescriptorAdjuster _actionDescriptorAdjuster;
   private final Map<String, Transition> _transitions = new HashMap<String, Transition>();
 
   private boolean _postProcessed = false;
@@ -65,10 +67,13 @@ public class TransitionPlan
   /**
    * Constructor
    */
-  public TransitionPlan(InternalSystemModelDelta systemModelDelta, AgentURIProvider agentURIProvider)
+  public TransitionPlan(InternalSystemModelDelta systemModelDelta,
+                        AgentURIProvider agentURIProvider,
+                        ActionDescriptorAdjuster actionDescriptorAdjuster)
   {
     _systemModelDelta = systemModelDelta;
     _agentURIProvider = agentURIProvider;
+    _actionDescriptorAdjuster = actionDescriptorAdjuster;
   }
 
   public InternalSystemModelDelta getSystemModelDelta()
@@ -79,6 +84,11 @@ public class TransitionPlan
   public AgentURIProvider getAgentURIProvider()
   {
     return _agentURIProvider;
+  }
+
+  public ActionDescriptorAdjuster getActionDescriptorAdjuster()
+  {
+    return _actionDescriptorAdjuster;
   }
 
   public Map<String, Transition> getTransitions()

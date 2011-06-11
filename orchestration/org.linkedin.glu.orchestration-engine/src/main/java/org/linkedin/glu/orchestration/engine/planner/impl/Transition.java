@@ -17,6 +17,8 @@
 package org.linkedin.glu.orchestration.engine.planner.impl;
 
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptorAdjuster;
+import org.linkedin.glu.orchestration.engine.action.descriptor.InternalActionDescriptor;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemModelDelta;
 import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
 import org.linkedin.glu.provisioner.plan.api.LeafStep;
@@ -69,6 +71,11 @@ public abstract class Transition
   public InternalSystemModelDelta getSystemModelDelta()
   {
     return _transitionPlan.getSystemModelDelta();
+  }
+
+  public ActionDescriptorAdjuster getActionDescriptorAdjuster()
+  {
+    return _transitionPlan.getActionDescriptorAdjuster();
   }
 
   public String getFabric()
@@ -191,11 +198,27 @@ public abstract class Transition
   /**
    * Builds a leaf step
    */
-  protected LeafStep<ActionDescriptor> buildStep(ActionDescriptor actionDescriptor)
+  protected LeafStep<ActionDescriptor> buildStep(InternalActionDescriptor actionDescriptor)
   {
-    return new LeafStep<ActionDescriptor>(null,
-                                          actionDescriptor.toMetadata(),
-                                          actionDescriptor);
+    actionDescriptor = getActionDescriptorAdjuster().adjustDescriptor(actionDescriptor);
+
+    if(actionDescriptor != null)
+    {
+
+      return new LeafStep<ActionDescriptor>(null,
+                                            actionDescriptor.toMetadata(),
+                                            actionDescriptor);
+    }
+    else
+    {
+      return null;
+    }
+  }
+
+  protected <T extends InternalActionDescriptor> T populateActionDescriptor(T actionDescriptor)
+  {
+    actionDescriptor.setValue("fabric", getFabric());
+    return actionDescriptor;
   }
 
   @Override

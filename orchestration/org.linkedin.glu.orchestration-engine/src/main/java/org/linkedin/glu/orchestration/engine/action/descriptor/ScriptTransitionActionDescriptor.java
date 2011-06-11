@@ -23,46 +23,39 @@ import java.util.Map;
  */
 public class ScriptTransitionActionDescriptor extends MountPointActionDescriptor
 {
-  private final String _action;
-  private final String _endState;
-  private final Map _actionArgs;
-
-  /**
-   * Constructor
-   */
-  public ScriptTransitionActionDescriptor(String name,
-                                          String fabric,
-                                          String agent,
-                                          String mountPoint,
-                                          String action,
-                                          String endState,
-                                          Map actionArgs)
-  {
-    super(name, fabric, agent, mountPoint);
-    _action = action;
-    _endState = endState;
-    _actionArgs = actionArgs;
-  }
-
   public String getAction()
   {
-    return _action;
+    return findValue("scriptAction");
   }
 
-  public String getEndState()
+  public void setAction(String action)
   {
-    return _endState;
+    setValue("scriptAction", action);
+  }
+
+  public String getToState()
+  {
+    return findValue("toState");
+  }
+
+  public void setToState(String toState)
+  {
+    setValue("toState", toState);
   }
 
   public Map getActionArgs()
   {
-    return _actionArgs;
+    return findValue("actionArgs");
+  }
+
+  public void setActionArgs(Map actionArgs)
+  {
+    setValue("actionArgs", actionArgs);
   }
 
   @Override
   public void toMetadata(Map<String, Object> metadata)
   {
     super.toMetadata(metadata);
-    metadata.put("scriptTransition", _action);
   }
 }

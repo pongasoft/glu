@@ -50,9 +50,8 @@ public class MissingAgentTransition extends SingleStepTransition implements Skip
   @Override
   public NoOpActionDescriptor computeActionDescriptor()
   {
-    Map<String, Object> details = new HashMap<String, Object>();
-    details.put("agent", getAgent());
-    details.put("mountPoint", getMountPoint());
-    return new NoOpActionDescriptor("missing agent: " + getAgent(), details);
+    NoOpActionDescriptor ad = populateActionDescriptor(new NoOpActionDescriptor());
+    ad.setReason("missingAgent");
+    return ad;
   }
 }

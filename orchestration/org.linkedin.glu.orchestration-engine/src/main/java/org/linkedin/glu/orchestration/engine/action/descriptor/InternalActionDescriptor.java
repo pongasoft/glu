@@ -21,12 +21,9 @@ import java.util.Map;
 /**
  * @author yan@pongasoft.com
  */
-public class ScriptLifecycleUninstallActionDescriptor extends MountPointActionDescriptor
+public interface InternalActionDescriptor extends ActionDescriptor
 {
-  @Override
-  public void toMetadata(Map<String, Object> metadata)
-  {
-    super.toMetadata(metadata);
-    metadata.put("scriptLifecycle", "uninstallScript");
-  }
+  <T> T findValue(String name);
+  void setValue(String name, Object value);
+  Map<String, Object> getValues();
 }

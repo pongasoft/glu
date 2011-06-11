@@ -104,6 +104,11 @@ class SystemEntry implements ReadOnlyTaggeable, MetadataProvider
       return parent
   }
 
+  boolean isDefaultParent()
+  {
+    return getParent() == DEFAULT_PARENT
+  }
+
   String getParentKey()
   {
     return "${agent}:${parent}".toString()

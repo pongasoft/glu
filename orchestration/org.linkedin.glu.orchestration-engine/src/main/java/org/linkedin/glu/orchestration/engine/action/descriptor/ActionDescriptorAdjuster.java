@@ -14,17 +14,20 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.planner.impl;
-
-import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemEntryDelta;
-import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemModelDelta;
+package org.linkedin.glu.orchestration.engine.action.descriptor;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface DescriptionProvider
+public interface ActionDescriptorAdjuster
 {
-  String computeDescription(InternalSystemModelDelta modelDelta,
-                            InternalSystemEntryDelta entryDelta,
-                            Transition transition);
+  /**
+   * Allows you to adjusts the descriptor including changing it entirely if you want to return
+   * a different one (not recommended though).
+   *
+   * @param actionDescriptor
+   * @return if you return <code>null</code>, then it will be removed from the generated plan
+   *         entirely (do this at your own risks!).
+   */
+  InternalActionDescriptor adjustDescriptor(InternalActionDescriptor actionDescriptor);
 }

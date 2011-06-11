@@ -17,13 +17,14 @@
 package org.linkedin.glu.orchestration.engine.planner.impl;
 
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
+import org.linkedin.glu.orchestration.engine.action.descriptor.InternalActionDescriptor;
 import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor;
 import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptLifecycleInstallActionDescriptor;
 import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptLifecycleUninstallActionDescriptor;
 import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptTransitionActionDescriptor;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemEntryDelta;
+import org.linkedin.glu.provisioner.core.model.SystemEntry;
 import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
-import org.linkedin.util.lang.LangUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -119,45 +120,28 @@ public class SingleStepTransition extends SingleEntryTransition
   @Override
   public void addSteps(ICompositeStepBuilder<ActionDescriptor> builder)
   {
-    SkippableTransition skipRootCause = getSkipRootCause();
-    if(skipRootCause != null)
-    {
-      NoOpActionDescriptor actionDescriptor = skipRootCause.computeActionDescriptor();
-      Map<String, Object> details = actionDescriptor.getDetails();
-      populateRootCauseDetails(details, "agent", getAgent());
-      populateRootCauseDetails(details, "mountPoint", getMountPoint());
-      builder.addLeafStep(buildStep(actionDescriptor));
-      return;
-    }
-    
     InternalSystemEntryDelta entryDelta = getSystemEntryDelta();
 
     if(entryDelta == null)
       return;
 
-    ActionDescriptor actionDescriptor;
+    InternalActionDescriptor actionDescriptor;
 
     if(INSTALL_SCRIPT_ACTION.equals(getAction()))
     {
-      actionDescriptor =
-        new ScriptLifecycleInstallActionDescriptor("TODO script lifecycle: installScript",
-                                                   getFabric(),
-                                                   entryDelta.getAgent(),
-                                                   entryDelta.getMountPoint(),
-                                                   entryDelta.getExpectedEntry().getParent(),
-                                                   entryDelta.getExpectedEntry().getScript(),
-                                                   (Map) entryDelta.getExpectedEntry().getInitParameters());
-
+      ScriptLifecycleInstallActionDescriptor ad = new ScriptLifecycleInstallActionDescriptor();
+      SystemEntry expectedEntry = entryDelta.getExpectedEntry();
+      if(!expectedEntry.isDefaultParent())
+        ad.setParent(expectedEntry.getParent());
+      ad.setScript(expectedEntry.getScript());
+      ad.setInitParameters((Map) expectedEntry.getInitParameters());
+      actionDescriptor = ad;
     }
     else
     {
       if(UNINSTALL_SCRIPT_ACTION.equals(getAction()))
       {
-        actionDescriptor =
-          new ScriptLifecycleUninstallActionDescriptor("TODO script lifecycle: uninstallScript",
-                                                       getFabric(),
-                                                       entryDelta.getAgent(),
-                                                       entryDelta.getMountPoint());
+        actionDescriptor = new ScriptLifecycleUninstallActionDescriptor();
 
       }
       else
@@ -165,28 +149,46 @@ public class SingleStepTransition extends SingleEntryTransition
         // TODO HIGH YP:  handle actionArgs
         Map actionArgs = null;
 
-        actionDescriptor =
-          new ScriptTransitionActionDescriptor("TODO script action: " + getAction(),
-                                               getFabric(),
-                                               entryDelta.getAgent(),
-                                               entryDelta.getMountPoint(),
-                                               getAction(),
-                                               getToState(),
-                                               actionArgs);
-
+        ScriptTransitionActionDescriptor ad = new ScriptTransitionActionDescriptor();
+        ad.setAction(getAction());
+        ad.setToState(getToState());
+        ad.setActionArgs(actionArgs);
+        actionDescriptor = ad;
       }
+    }
+
+    actionDescriptor = populateActionDescriptor(actionDescriptor);
+
+    SkippableTransition skipRootCause = getSkipRootCause();
+    if(skipRootCause != null)
+    {
+      NoOpActionDescriptor noopActionDescriptor = skipRootCause.computeActionDescriptor();
+      actionDescriptor = adjustForNoOp(actionDescriptor,  noopActionDescriptor);
     }
 
     builder.addLeafStep(buildStep(actionDescriptor));
   }
 
-  private void populateRootCauseDetails(Map<String, Object> details, String name, Object value)
+  private NoOpActionDescriptor adjustForNoOp(InternalActionDescriptor actionDescriptor,
+                                             NoOpActionDescriptor noopActionDescriptor)
   {
-    Object rootCauseDetail = details.get(name);
-    if(!LangUtils.isEqual(rootCauseDetail, value))
+    for(Map.Entry<String, Object> entry : actionDescriptor.getValues().entrySet())
     {
-      details.put(name, value);
-      details.put(name + "RootCause", rootCauseDetail);
+      String key = entry.getKey();
+      Object value = noopActionDescriptor.findValue(key);
+      if(value == null)
+      {
+        noopActionDescriptor.setValue(key, value);
+      }
+      else
+      {
+        if(!value.equals(entry.getValue()))
+        {
+          noopActionDescriptor.setValue(key, entry.getValue());
+          noopActionDescriptor.setValue(key + "RootCause", value);
+        }
+      }
     }
+    return noopActionDescriptor;
   }
 }

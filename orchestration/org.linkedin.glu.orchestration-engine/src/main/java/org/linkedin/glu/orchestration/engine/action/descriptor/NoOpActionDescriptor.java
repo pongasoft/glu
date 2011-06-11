@@ -23,28 +23,20 @@ import java.util.Map;
  */
 public class NoOpActionDescriptor extends BaseActionDescriptor
 {
-  private final Map<String, Object> _details;
-
-  /**
-   * Constructor
-   */
-  public NoOpActionDescriptor(String name, Map<String, Object> details)
+  public String getReason()
   {
-    super(name);
-    _details = details;
+    return findValue("reason");
   }
 
-  public Map<String, Object> getDetails()
+  public void setReason(String reason)
   {
-    return _details;
+    setValue("reason", reason);
   }
 
   @Override
   public void toMetadata(Map<String, Object> metadata)
   {
     super.toMetadata(metadata);
-    if(_details != null)
-      metadata.putAll(_details);
     metadata.put("action", "noop");
   }
 

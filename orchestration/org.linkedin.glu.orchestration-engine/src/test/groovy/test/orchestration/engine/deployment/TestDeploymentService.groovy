@@ -27,12 +27,17 @@ import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.orchestration.engine.fabric.FabricService
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptorAdjuster
 
 /**
  * @author yan@pongasoft.com */
 public class TestDeploymentService extends GroovyTestCase
 {
-  PlannerImpl planner = new PlannerImpl()
+  // setting a noop action descriptor adjuster to not have to deal with names
+  ActionDescriptorAdjuster actionDescriptorAdjuster = {
+    return it
+  } as ActionDescriptorAdjuster
+  PlannerImpl planner = new PlannerImpl(actionDescriptorAdjuster: actionDescriptorAdjuster)
   DeltaMgrImpl deltaMgr = new DeltaMgrImpl()
 
   FabricService fabricService = [
@@ -121,13 +126,13 @@ public class TestDeploymentService extends GroovyTestCase
 <plan fabric="f1" name=" - PARALLEL">
   <parallel>
     <sequential agent="a3" mountPoint="/self/upgrade">
-      <leaf agent="a3" fabric="f1" mountPoint="/self/upgrade" name="TODO script action: rollback" scriptTransition="rollback" />
-      <leaf agent="a3" fabric="f1" mountPoint="/self/upgrade" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a3" fabric="f1" mountPoint="/self/upgrade" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a3" fabric="f1" mountPoint="/self/upgrade" scriptAction="rollback" toState="installed" />
+      <leaf agent="a3" fabric="f1" mountPoint="/self/upgrade" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a3" fabric="f1" mountPoint="/self/upgrade" scriptLifecycle="uninstallScript" />
     </sequential>
     <sequential agent="a4" mountPoint="/self/upgrade">
-      <leaf agent="a4" fabric="f1" mountPoint="/self/upgrade" name="TODO script action: uninstall" scriptTransition="uninstall" />
-      <leaf agent="a4" fabric="f1" mountPoint="/self/upgrade" name="TODO script lifecycle: uninstallScript" scriptLifecycle="uninstallScript" />
+      <leaf agent="a4" fabric="f1" mountPoint="/self/upgrade" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a4" fabric="f1" mountPoint="/self/upgrade" scriptLifecycle="uninstallScript" />
     </sequential>
   </parallel>
 </plan>

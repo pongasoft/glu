@@ -16,41 +16,28 @@
 
 package org.linkedin.glu.orchestration.engine.action.descriptor;
 
-import java.util.Map;
-
 /**
  * @author yan@pongasoft.com
  */
 public class AgentActionDescriptor extends BaseActionDescriptor
 {
-  private final String _agent;
-  private final String _fabric;
-
-  /**
-   * Constructor
-   */
-  public AgentActionDescriptor(String name, String fabric, String agent)
-  {
-    super(name);
-    _fabric = fabric;
-    _agent = agent;
-  }
-
   public String getAgent()
   {
-    return _agent;
+    return findValue("agent");
+  }
+
+  public void setAgent(String agent)
+  {
+    setValue("agent", agent);
   }
 
   public String getFabric()
   {
-    return _fabric;
+    return findValue("fabric");
   }
 
-  @Override
-  public void toMetadata(Map<String, Object> metadata)
+  public void setFabric(String fabric)
   {
-    super.toMetadata(metadata);
-    metadata.put("agent", _agent);
-    metadata.put("fabric", _fabric);
+    setValue("fabric", fabric);
   }
 }

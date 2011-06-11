@@ -48,10 +48,10 @@ public class AlreadyInTransition extends SingleStepTransition implements Skippab
   @Override
   public NoOpActionDescriptor computeActionDescriptor()
   {
-    Map<String, Object> details = new HashMap<String, Object>();
-    details.put("agent", getAgent());
-    details.put("mountPoint", getMountPoint());
-    return new NoOpActionDescriptor("already in transition: " + _transitionState, details);
+    NoOpActionDescriptor ad = populateActionDescriptor(new NoOpActionDescriptor());
+    ad.setValue("transitionState", _transitionState);
+    ad.setReason("alreadyInTransition");
+    return ad;
   }
 
   @Override

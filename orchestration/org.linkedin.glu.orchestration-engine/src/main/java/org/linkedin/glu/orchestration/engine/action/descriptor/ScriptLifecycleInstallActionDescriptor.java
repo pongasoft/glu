@@ -23,40 +23,35 @@ import java.util.Map;
  */
 public class ScriptLifecycleInstallActionDescriptor extends MountPointActionDescriptor
 {
-  private final Map _initParameters;
-  private final String _parent;
-  private final Object _script;
-
-  /**
-   * Constructor
-   */
-  public ScriptLifecycleInstallActionDescriptor(String name,
-                                                String fabric,
-                                                String agent,
-                                                String mountPoint,
-                                                String parent,
-                                                Object script,
-                                                Map initParameters)
-  {
-    super(name, fabric, agent, mountPoint);
-    _parent = parent;
-    _script = script;
-    _initParameters = initParameters;
-  }
-
   public Map getInitParameters()
   {
-    return _initParameters;
+    return findValue("initParameters");
+  }
+
+  public void setInitParameters(Map initParameters)
+  {
+    if(initParameters != null && !initParameters.isEmpty())
+      setValue("initParameters", initParameters);
   }
 
   public String getParent()
   {
-    return _parent;
+    return findValue("parent");
+  }
+
+  public void setParent(String parent)
+  {
+    setValue("parent", parent);
   }
 
   public Object getScript()
   {
-    return _script;
+    return findValue("script");
+  }
+
+  public void setScript(Object script)
+  {
+    setValue("script", script);
   }
 
   @Override

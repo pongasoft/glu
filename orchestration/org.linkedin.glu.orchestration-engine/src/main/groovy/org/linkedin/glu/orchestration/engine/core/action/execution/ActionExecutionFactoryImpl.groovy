@@ -115,7 +115,7 @@ public class ActionExecutionFactoryImpl implements ActionExecutionFactory
       def success = false
       while(!success)
       {
-        success = agent.waitForState(mountPoint: mountPoint, state: ad.endState, timeout: timeout)
+        success = agent.waitForState(mountPoint: mountPoint, state: ad.toState, timeout: timeout)
         if(!success)
         {
           if(Thread.currentThread().isInterrupted())

@@ -16,6 +16,7 @@
 
 package org.linkedin.glu.orchestration.engine.planner.impl;
 
+import org.linkedin.glu.orchestration.engine.action.descriptor.InternalActionDescriptor;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemEntryDelta;
 
 /**
@@ -52,5 +53,15 @@ public abstract class SingleEntryTransition extends Transition
   public String getEntryKey()
   {
     return _entryKey;
+  }
+
+  protected <T extends InternalActionDescriptor> T populateActionDescriptor(T actionDescriptor)
+  {
+    actionDescriptor = super.populateActionDescriptor(actionDescriptor);
+
+    actionDescriptor.setValue("agent", getAgent());
+    actionDescriptor.setValue("mountPoint", getMountPoint());
+
+    return actionDescriptor;
   }
 }
