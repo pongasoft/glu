@@ -24,7 +24,7 @@ spec = [
       grails: '1.3.5',
       groovy: '1.7.5',
       jetty: '7.2.2.v20101205',
-      linkedinUtils: '1.7.0-SNAPSHOT',
+      linkedinUtils: '1.7.0',
       linkedinZookeeper: '1.3.0',
       restlet: '2.0.1',
       sigar: '1.6.4',

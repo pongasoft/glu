@@ -18,7 +18,6 @@
 package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
-import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
@@ -26,6 +25,7 @@ import java.security.AccessControlException
 import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.provisioner.core.model.SystemModel
+import org.linkedin.glu.orchestration.engine.planner.PlannerService
 
 /**
  * @author ypujante@linkedin.com
@@ -33,7 +33,7 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 class AgentsController extends ControllerBase
 {
   AgentsService agentsService
-  DeploymentService deploymentService
+  PlannerService plannerService
 
   def beforeInterceptor = {
     // we make sure that the fabric is always set before executing any action
@@ -70,15 +70,14 @@ class AgentsController extends ControllerBase
     params.fabric = request.fabric
     params.type = Type.PARALLEL
 
-    def plans =
-      deploymentService.computeAgentsUpgradePlan(params,
-                                                 [name: "Agent upgrade to version ${params.version}".toString()])
+    def plan =
+      plannerService.computeAgentsUpgradePlan(params,
+                                              [name: "Agent upgrade to version ${params.version}".toString()])
 
-    if(plans)
+    if(plan)
     {
-      session.delta = plans
-      println plans[0].toXml()
-      redirect(controller: 'plan', action: 'view', id: plans[0].id)
+      session.delta = [plan]
+      redirect(controller: 'plan', action: 'view', id: plan.id)
     }
     else
     {
@@ -95,13 +94,12 @@ class AgentsController extends ControllerBase
     params.system = request.system
     params.type = Type.PARALLEL
 
-    def plans = deploymentService.computeAgentsCleanupUpgradePlan(params, null)
+    def plan = plannerService.computeAgentsCleanupUpgradePlan(params, null)
 
-    if(plans)
+    if(plan)
     {
-      session.delta = plans
-      println plans[0].toXml()
-      redirect(controller: 'plan', action: 'view', id: plans[0].id)
+      session.delta = [plan]
+      redirect(controller: 'plan', action: 'view', id: plan.id)
     }
     else
     {
@@ -138,9 +136,9 @@ class AgentsController extends ControllerBase
         params.name = "${type.capitalize()}: ${title}".toString()
 
         def plans =
-          deploymentService."compute${type.capitalize()}Plans"(params,
-                                                               [type: type,
-                                                                agent: params.id])
+          plannerService."compute${type.capitalize()}Plans"(params,
+                                                            [type: type,
+                                                            agent: params.id])
         if(plans)
           session.delta.addAll(plans)
 
@@ -257,7 +255,7 @@ class AgentsController extends ControllerBase
     params.state = 'running'
     params.name = params.name ?: 'Start'
     redirectToActionPlan('start') { p, metadata ->
-      deploymentService.computeTransitionPlans(p, metadata)
+      plannerService.computeTransitionPlans(p, metadata)
     }
   }
 
@@ -267,7 +265,7 @@ class AgentsController extends ControllerBase
     params.state = 'stopped'
     params.name = params.name ?: 'Stop'
     redirectToActionPlan('stop') { p, metadata ->
-      deploymentService.computeTransitionPlans(p, metadata)
+      plannerService.computeTransitionPlans(p, metadata)
     }
   }
 
@@ -276,7 +274,7 @@ class AgentsController extends ControllerBase
   def bounce = {
     params.name = params.name ?: 'Bounce'
     redirectToActionPlan('bounce') { p, metadata ->
-      deploymentService.computeBouncePlans(p, metadata)
+      plannerService.computeBouncePlans(p, metadata)
     }
   }
 
@@ -285,7 +283,7 @@ class AgentsController extends ControllerBase
   def undeploy = {
     params.name = params.name ?: 'Undeploy'
     redirectToActionPlan('undeploy') { p, metadata ->
-      deploymentService.computeUndeployPlans(p, metadata)
+      plannerService.computeUndeployPlans(p, metadata)
     }
   }
 
@@ -294,7 +292,7 @@ class AgentsController extends ControllerBase
   def redeploy = {
     params.name = params.name ?: 'Redeploy'
     redirectToActionPlan('redeploy') { p, metadata ->
-      deploymentService.computeRedeployPlans(p, metadata)
+      plannerService.computeRedeployPlans(p, metadata)
     }
   }
 

@@ -80,8 +80,6 @@
     <property name="agentURIProvider" ref="_agentsServiceImpl"/>
   </bean>
 
-  <bean id="agentPlanner" class="org.linkedin.glu.provisioner.impl.planner.AgentPlanner"/>
-
   <bean id="configurableFactory" class="org.linkedin.glu.agent.rest.client.ConfigurableFactoryImpl"/>
 
   <bean id="consoleConfig" class="org.linkedin.glu.grails.utils.ConsoleConfig"/>
@@ -143,7 +141,6 @@
   <bean id="_agentsServiceImpl"
         class="org.linkedin.glu.orchestration.engine.agents.AgentsServiceImpl">
     <property name="agentFactory" ref="agentFactory"/>
-    <property name="agentPlanner" ref="agentPlanner"/>
     <property name="trackerService" ref="trackerService"/>
     <property name="authorizationService" ref="authorizationService"/>
   </bean>
@@ -170,16 +167,23 @@
   </bean>
 
   <!-- *********************** -->
+  <!-- plannerService           -->
+  <!-- *********************** -->
+  <bean id="plannerService"
+        class="org.linkedin.glu.orchestration.engine.planner.PlannerServiceImpl">
+    <property name="agentsService" ref="agentsService"/>
+    <property name="deltaMgr" ref="deltaMgr"/>
+    <property name="planner" ref="planner"/>
+    <property name="fabricService" ref="fabricService"/>
+  </bean>
+
+  <!-- *********************** -->
   <!-- deploymentService           -->
   <!-- *********************** -->
   <bean id="_deploymentServiceImpl"
         class="org.linkedin.glu.orchestration.engine.deployment.DeploymentServiceImpl">
-    <property name="agentsService" ref="agentsService"/>
     <property name="authorizationService" ref="authorizationService"/>
     <property name="deployer" ref="deployer"/>
-    <property name="deltaMgr" ref="deltaMgr"/>
-    <property name="planner" ref="planner"/>
-    <property name="fabricService" ref="fabricService"/>
     <property name="deploymentStorage">
       <bean class="org.linkedin.glu.console.provisioner.services.storage.DeploymentStorageImpl"/>
     </property>

@@ -17,7 +17,6 @@
 package org.linkedin.glu.orchestration.engine.delta
 
 import org.linkedin.glu.provisioner.core.model.SystemModel
-import org.linkedin.glu.orchestration.engine.fabric.Fabric
 
 interface DeltaService
 {

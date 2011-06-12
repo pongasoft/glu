@@ -21,7 +21,7 @@ import org.linkedin.glu.orchestration.engine.delta.DeltaStatusInfo;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValue;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueNoDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueWithDelta;
-import org.linkedin.glu.orchestration.engine.deployment.DeploymentService;
+import org.linkedin.glu.orchestration.engine.planner.PlannerService;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
 import org.linkedin.groovy.util.state.StateMachine;
 import org.linkedin.groovy.util.state.StateMachineImpl;
@@ -414,7 +414,7 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
     if(mountPoint == null)
       return null;
     else
-      return mountPoint.startsWith(DeploymentService.AGENT_SELF_UPGRADE_MOUNT_POINT) ?
+      return mountPoint.startsWith(PlannerService.AGENT_SELF_UPGRADE_MOUNT_POINT) ?
         SELF_UPGRADE_STATE_MACHINE :
         DEFAULT_STATE_MACHINE;
   }

@@ -19,7 +19,6 @@ package org.linkedin.glu.orchestration.engine.deployment
 
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.plan.api.IPlanExecutionProgressTracker
-import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 
@@ -29,66 +28,9 @@ import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
  * @author ypujante@linkedin.com */
 interface DeploymentService
 {
-  public static final String AGENT_SELF_UPGRADE_MOUNT_POINT = "/self/upgrade"
+  Plan<ActionDescriptor> getPlan(String id)
 
-  /**
-   * @param params.system the 'expected' system (with filters)
-   * @param params.name name of the plan created
-   * @param params.type plan types (<code>null</code> means both types, otherwise the type you want)
-   * @param metadata any metadata to add to the plan(s)
-   * @return the plans (0, 1 or 2) depending on whether there is a plan at all or if more than 1 type
-   */
-  Collection<Plan<ActionDescriptor>> computeDeployPlans(params, def metadata)
-
-  /**
-   * Computes a transition plan.
-   * @param metadata any metadata to add to the plan(s)
-   */
-  Collection<Plan<ActionDescriptor>> computeTransitionPlans(params, def metadata)
-
-  /**
-   * Compute a bounce plan to bounce (= stop/start) containers.
-   * @param metadata any metadata to add to the plan(s)
-   */
-  Collection<Plan<ActionDescriptor>> computeBouncePlans(params, def metadata)
-
-  /**
-   * Compute an undeploy plan.
-   * @param metadata any metadata to add to the plan(s)
-   */
-  Collection<Plan<ActionDescriptor>> computeUndeployPlans(params, def metadata)
-
-  /**
-   * Compute a redeploy plan (= undeploy/deploy).
-   * @param metadata any metadata to add to the plan(s)
-   */
-  Collection<Plan<ActionDescriptor>> computeRedeployPlans(params, def metadata)
-
-  /**
-   * Computes the deployment plan for upgrading agents
-   * @param metadata any metadata to add to the plan(s)
-   */
-  Collection<Plan<ActionDescriptor>> computeAgentsUpgradePlan(params, def metadata)
-
-  /**
-   * Computes the deployment plan for cleaning any upgrade that failed
-   * @param metadata any metadata to add to the plan(s)
-   */
-  Collection<Plan<ActionDescriptor>> computeAgentsCleanupUpgradePlan(params, def metadata)
-
-  /**
-   * Shortcut to group the plan by instance in both sequential and parallel types.
-   */
-  Collection<Plan> groupByInstance(Plan plan, def metadata)
-
-  /**
-   * Create a new plan of the given type where the entries going to be grouped by instance.
-   */
-  Plan groupByInstance(Plan plan, IStep.Type type, def metadata)
-
-  Plan getPlan(String id)
-
-  void savePlan(Plan plan)
+  void savePlan(Plan<ActionDescriptor> plan)
 
   Collection<CurrentDeployment> getDeployments(String fabric)
 

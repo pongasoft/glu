@@ -19,10 +19,7 @@ package org.linkedin.glu.orchestration.engine.agents
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.tracker.AgentInfo
 import org.linkedin.glu.agent.tracker.MountPointInfo
-import org.linkedin.glu.provisioner.core.action.ActionDescriptor
-import org.linkedin.glu.provisioner.core.environment.Environment
 import org.linkedin.glu.provisioner.core.model.SystemModel
-import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 
 /**
@@ -48,10 +45,6 @@ interface AgentsService
 
   def forceUninstallScript(args)
 
-  public Plan createTransitionPlan(args)
-
-  public Plan createTransitionPlan(args, Closure filter)
-
   def interruptAction(args)
 
   def ps(args)
@@ -64,26 +57,8 @@ interface AgentsService
 
   void streamFileContent(args, Closure closure)
 
-  Plan<ActionDescriptor> createAgentsUpgradePlan(args)
-
-  Plan<ActionDescriptor> createAgentsCleanupUpgradePlan(args)
-
   /**
    * Builds the current system model based on the live data from ZooKeeper
    */
   SystemModel getCurrentSystemModel(Fabric fabric)
-
-  /**
-   * Computes the current environment based on the live ZooKeeper data
-   */
-  Environment getCurrentEnvironment(Fabric fabric)
-
-  /**
-   * Computes the environment based on the system
-   */
-  Environment computeEnvironment(Fabric fabric, SystemModel system)
-
-  Environment getAgentEnvironment(Fabric fabric, String agentName)
-
-  Environment getAgentEnvironment(Fabric fabric, String agentName, mountPoint)
 }

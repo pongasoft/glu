@@ -26,13 +26,13 @@ import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.provisioner.plan.api.IStepExecution
 import org.linkedin.glu.provisioner.plan.api.IPlanExecution
 import org.linkedin.glu.console.domain.DbDeployment
-import org.linkedin.glu.provisioner.core.action.ActionDescriptor
-import org.linkedin.glu.provisioner.plan.api.LeafStep
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import javax.servlet.http.HttpServletResponse
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
 import org.linkedin.glu.orchestration.engine.deployment.CurrentDeployment
+import org.linkedin.glu.orchestration.engine.planner.PlannerService
+import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor
 
 /**
  * @author ypujante@linkedin.com */
@@ -40,6 +40,7 @@ public class PlanController extends ControllerBase
 {
   Clock clock = SystemClock.instance()
   DeploymentService deploymentService
+  PlannerService plannerService
   AgentsService agentsService
 
   def beforeInterceptor = {
@@ -290,44 +291,9 @@ public class PlanController extends ControllerBase
     args.fabric = request.fabric
     args.name = params.systemFilter ?: 'all'
 
-
-    Plan plan
-
-    switch(params.planAction)
-    {
-      case 'start':
-      case 'deploy':
-        plan = deploymentService.computeDeploymentPlan(args)
-        break;
-
-      case 'stop':
-        args.state = ['stopped']
-        plan = deploymentService.computeTransitionPlan(args) { true }
-        break;
-
-      case 'undeploy':
-        plan = deploymentService.computeUndeployPlans(args) { true }
-        break;
-
-      case 'bounce':
-        plan = deploymentService.computeBouncePlans(args) { true }
-        break;
-
-      case 'redeploy':
-        plan = deploymentService.computeRedeployPlans(args) { true }
-        break;
-
-      default:
-        render "invalid action: ${params.planAction}"
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST)
-        return
-    }
-
-    def type
-
     try
     {
-      type = IStep.Type.valueOf((params.order ?: 'sequential').toUpperCase())
+      args.type = IStep.Type.valueOf((params.order ?: 'sequential').toUpperCase())
     }
     catch (IllegalArgumentException e)
     {
@@ -336,15 +302,43 @@ public class PlanController extends ControllerBase
       return
     }
 
-    plan?.name = null // force the generation of a new name
-    plan =
-      deploymentService.groupByInstance(plan,
-                                        type,
-                                        [origin: 'rest', action: params.planAction, filter: args.name])
+    Plan plan
+
+    def metadata = [origin: 'rest', action: params.planAction, filter: args.name]
+
+    switch(params.planAction)
+    {
+      case 'start':
+      case 'deploy':
+        plan = plannerService.computeDeployPlan(args, metadata)
+        break;
+
+      case 'stop':
+        args.state = ['stopped']
+        plan = plannerService.computeTransitionPlan(args, metadata)
+        break;
+
+      case 'undeploy':
+        plan = plannerService.computeUndeployPlan(args, metadata)
+        break;
+
+      case 'bounce':
+        plan = plannerService.computeBouncePlan(args, metadata)
+        break;
+
+      case 'redeploy':
+        plan = plannerService.computeRedeployPlan(args, metadata)
+        break;
+
+      default:
+        render "invalid action: ${params.planAction}"
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST)
+        return
+    }
 
     if(plan?.hasLeafSteps())
     {
-      if(plan.leafSteps.findAll { it.action?.actionName == 'noop' }.size() == plan.leafStepsCount)
+      if(plan.leafSteps.findAll { it.action instanceof NoOpActionDescriptor }.size() == plan.leafStepsCount)
       {
         response.setStatus(HttpServletResponse.SC_NO_CONTENT,
                            'no plan created (only pending transitions)')
@@ -451,100 +445,6 @@ public class PlanController extends ControllerBase
     {
       response.sendError HttpServletResponse.SC_NOT_FOUND
     }
-  }
-
-  private Plan createStartAllPlan()
-  {
-    def args = [:]
-    args.system = request.system
-    args.fabric = request.fabric
-    return deploymentService.computeDeploymentPlan(args)
-  }
-
-  private Plan createStartAllPlan(IStep.Type type)
-  {
-    Plan plan = createStartAllPlan()
-    deploymentService.groupByInstance(plan, type, [instance: '*'])
-  }
-
-  private Plan createStopAllPlan()
-  {
-    def args = [:]
-    args.system = request.system
-    args.fabric = request.fabric
-    return deploymentService.computeUndeployPlans(args) { true }
-  }
-
-  private Plan createStopAllPlan(IStep.Type type)
-  {
-    Plan plan = createStopAllPlan()
-    deploymentService.groupByInstance(plan, type, [instance: '-*'])
-  }
-
-  private Plan createPlan(Plan startAllPlan, Plan stopAllPlan, String line)
-  {
-    IStep.Type planType = IStep.Type.SEQUENTIAL
-
-    if(line.startsWith('//'))
-    {
-      planType = IStep.Type.PARALLEL
-      line = line[2..-1]
-    }
-
-    def planBuilder = startAllPlan.createEmptyPlanBuilder()
-    planBuilder.name = line
-    def stepsBuilder = planBuilder.addSequentialSteps()
-    stepsBuilder.name = planBuilder.name
-
-    def entries = line.split(',')
-    entries.each { entry ->
-      def kv = entry.split('=')
-      def type = kv[0].trim()
-      def value = kv[1].trim()
-
-      def plan
-      if(value.startsWith('-'))
-      {
-        value = value[1..-1]
-        plan = stopAllPlan
-      }
-      else
-      {
-        if(value.startsWith('+'))
-          value = value[1..-1]
-        plan = startAllPlan
-      }
-
-      def steps = plan.leafSteps.findAll { LeafStep<ActionDescriptor> step ->
-        def adp = step.action.descriptorProperties
-
-        switch(type)
-        {
-          case 'host':
-            return adp.hostname == value
-
-          case 'appname':
-            return step.action.actionParams?.metadata?.container?.name == value
-
-          case 'instance':
-            def instance = "${adp.hostname}:${adp.mountPoint}".toString()
-            return instance == value
-
-          case 'cluster':
-            return step.action.actionParams?.metadata?.cluster == value
-
-          default:
-            return false
-        }
-      }
-
-      steps.each { LeafStep<ActionDescriptor> step ->
-        stepsBuilder.addLeafStep(step)
-      }
-    }
-
-    def plan = planBuilder.toPlan()
-    deploymentService.groupByInstance(plan, planType, [:])
   }
 }
 

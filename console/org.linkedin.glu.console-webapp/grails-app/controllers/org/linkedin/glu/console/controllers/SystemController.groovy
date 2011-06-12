@@ -22,11 +22,13 @@ import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 import org.linkedin.glu.console.domain.DbSystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.orchestration.engine.system.SystemService
+import org.linkedin.glu.orchestration.engine.planner.PlannerService
 
 class SystemController extends ControllerBase
 {
   AgentsService agentsService
   DeploymentService deploymentService
+  PlannerService plannerService
   SystemService systemService
 
   def beforeInterceptor = {
@@ -132,9 +134,9 @@ class SystemController extends ControllerBase
         params.name = "${type.capitalize()}: ${title}".toString()
 
         def plans =
-          deploymentService."compute${type.capitalize()}Plans"(params,
-                                                               [type: type,
-                                                               fabric: request.fabric.name])
+          plannerService."compute${type.capitalize()}Plans"(params,
+                                                            [type: type,
+                                                            fabric: request.fabric.name])
         if(plans)
           session.delta.addAll(plans)
 
@@ -175,9 +177,9 @@ class SystemController extends ControllerBase
         params.name = "${type.capitalize()}: ${params.title}".toString()
 
         def plans =
-          deploymentService."compute${type.capitalize()}Plans"(args,
-                                                               [type: type,
-                                                               name: args.name])
+          plannerService."compute${type.capitalize()}Plans"(args,
+                                                            [type: type,
+                                                            name: args.name])
         if(plans)
           session.delta.addAll(plans)
 
