@@ -28,7 +28,9 @@ import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * @author yan@pongasoft.com
@@ -118,6 +120,7 @@ public class SingleStepTransition extends SingleEntryTransition
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public void addSteps(ICompositeStepBuilder<ActionDescriptor> builder)
   {
     InternalSystemEntryDelta entryDelta = getSystemEntryDelta();
@@ -134,7 +137,17 @@ public class SingleStepTransition extends SingleEntryTransition
       if(!expectedEntry.isDefaultParent())
         ad.setParent(expectedEntry.getParent());
       ad.setScript(expectedEntry.getScript());
-      ad.setInitParameters((Map) expectedEntry.getInitParameters());
+      Map initParameters = (Map) expectedEntry.getInitParameters();
+      if(initParameters == null)
+        initParameters = new TreeMap();
+      else
+        initParameters = new TreeMap(initParameters);
+      if(!expectedEntry.getMetadata().isEmpty())
+        initParameters.put("metadata", expectedEntry.getMetadata());
+      if(expectedEntry.hasTags())
+        initParameters.put("tags", expectedEntry.getTags());
+      if(!initParameters.isEmpty())
+        ad.setInitParameters(initParameters);
       actionDescriptor = ad;
     }
     else

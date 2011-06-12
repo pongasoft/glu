@@ -82,6 +82,12 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
     return info.getURI()
   }
 
+  @Override
+  URI findAgentURI(String fabric, String agent)
+  {
+    return trackerService.getAgentInfo(fabric, agent)?.URI
+  }
+
   def getAllInfosWithAccuracy(Fabric fabric)
   {
     return trackerService.getAllInfosWithAccuracy(fabric)

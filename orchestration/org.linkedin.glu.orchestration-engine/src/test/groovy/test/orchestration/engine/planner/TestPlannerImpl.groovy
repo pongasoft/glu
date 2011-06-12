@@ -813,6 +813,39 @@ public class TestPlannerImpl extends GroovyTestCase
     assertEquals(2, p.leafStepsCount)
   }
 
+  /**
+   * Make sure that the plan generated also contains metadata and tags!
+   */
+  public void testMetadataAndTags()
+  {
+    Plan<ActionDescriptor> p = plan(Type.PARALLEL,
+                                    delta(m([agent: 'a1', mountPoint: '/m1', script: 's1', metadata: [m1: 'mv1'], tags: ['t1']],
+                                            [agent: 'a1', mountPoint: '/m2', script: 's1', initParameters: [i1: 'iv1'], metadata: [m1: 'mv1'], tags: ['t1']]),
+
+                                          m()))
+
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <parallel>
+    <sequential agent="a1" mountPoint="/m1">
+      <leaf agent="a1" fabric="f1" initParameters="{metadata={m1=mv1}, tags=[t1]}" mountPoint="/m1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="/m1" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="/m1" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="/m1" scriptAction="start" toState="running" />
+    </sequential>
+    <sequential agent="a1" mountPoint="/m2">
+      <leaf agent="a1" fabric="f1" initParameters="{i1=iv1, metadata={m1=mv1}, tags=[t1]}" mountPoint="/m2" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="/m2" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="/m2" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="/m2" scriptAction="start" toState="running" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(8, p.leafStepsCount)
+
+  }
+
 
   private SystemModel m(Map... entries)
   {
@@ -877,5 +910,11 @@ class ThrowExceptionAgentURIProvider implements AgentURIProvider
   URI getAgentURI(String fabric, String agent)
   {
     throw new NoSuchAgentException(agent)
+  }
+
+  @Override
+  URI findAgentURI(String fabric, String agent)
+  {
+    return null
   }
 }

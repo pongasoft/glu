@@ -118,6 +118,16 @@ class SystemModel implements MetadataProvider
     return _entries.values().collect { it }
   }
 
+  public <T extends Collection<String>> T getKeys(T keys)
+  {
+    if(keys == null)
+      return null
+
+    _entries.keySet().each { keys << it }
+
+    return keys
+  }
+
   def computeStats()
   {
     return computeStats(null)

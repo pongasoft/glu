@@ -30,4 +30,9 @@ public interface AgentURIProvider
    * @throws NoSuchAgentException if agent cannot be found
    */
   URI getAgentURI(String fabric, String agent) throws NoSuchAgentException;
+
+  /**
+   * @return the agent uri given the agent name or <code>null</code> if not found (no exception!)
+   */
+  URI findAgentURI(String fabric, String agent);
 }

@@ -19,7 +19,6 @@ package org.linkedin.glu.orchestration.engine.planner.impl;
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptorAdjuster;
 import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider;
-import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemEntryDelta;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemModelDelta;
@@ -253,12 +252,8 @@ public class TransitionPlan
     }
     if(_agentURIProvider != null)
     {
-      try
-      {
-        _agentURIProvider.getAgentURI(getSystemModelDelta().getFabric(),
-                                      entryDelta.getAgent());
-      }
-      catch(NoSuchAgentException e)
+      if(_agentURIProvider.findAgentURI(getSystemModelDelta().getFabric(),
+                                        entryDelta.getAgent()) == null)
       {
         return new MissingAgentTransition(this,
                                           key,

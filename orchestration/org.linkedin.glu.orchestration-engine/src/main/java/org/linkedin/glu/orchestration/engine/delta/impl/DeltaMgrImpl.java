@@ -23,6 +23,7 @@ import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueWithDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
+import org.linkedin.glu.provisioner.core.model.SystemFilter;
 import org.linkedin.glu.provisioner.core.model.SystemModel;
 import org.linkedin.groovy.util.state.StateMachine;
 import org.linkedin.util.annotations.Initializer;
@@ -90,8 +91,8 @@ public class DeltaMgrImpl implements DeltaMgr
                                                                          filteredCurrentModel);
 
     // 1. we get all the keys that will be part of the delta
-    Set<String> filteredKeys = SystemModel.filterKeys(filteredExpectedModel,
-                                                      filteredCurrentModel);
+    Set<String> filteredKeys = computeFilteredKeys(filteredExpectedModel,
+                                                   filteredCurrentModel);
 
     // 2. we compute the dependencies (on the unfiltered model) which may bring back some keys
     // that were filtered out in step 1.
@@ -137,6 +138,48 @@ public class DeltaMgrImpl implements DeltaMgr
     return systemModelDelta;
   }
 
+  /**
+   * Compute the set of keys that will be part of the delta: the filters set on the model will
+   * be use as filter
+   */
+  protected Set<String> computeFilteredKeys(SystemModel filteredExpectedModel,
+                                            SystemModel filteredCurrentModel)
+  {
+    Set<String> keys = new HashSet<String>();
+
+    SystemFilter currentModelFilters = filteredCurrentModel.getFilters();
+    SystemFilter expectedModelFilters = filteredExpectedModel.getFilters();
+
+    // 1. we make sure to exclude all entries from the current model where that were filtered
+    // out from the expected model
+    filteredCurrentModel = filteredCurrentModel.filterBy(expectedModelFilters);
+    Set<String> currentKeys = filteredCurrentModel.getKeys(new HashSet<String>());
+
+    // 2. we make sure to exclude all entries from the expected model where that were filtered
+    // out from the current model
+    filteredExpectedModel = filteredExpectedModel.filterBy(currentModelFilters);
+    Set<String> expectedKeys = filteredExpectedModel.getKeys(new HashSet<String>());
+
+    // if a filter was provided for the current model then we take only the keys from the
+    // current model (excluding the one not in the expected model!)
+    if(currentModelFilters != null)
+    {
+      for(String key : currentKeys)
+      {
+        if(expectedKeys.contains(key))
+          keys.add(key);
+      }
+    }
+    else
+    {
+      // otherwise we take keys from both
+      keys.addAll(currentKeys);
+      keys.addAll(expectedKeys);
+    }
+
+    return keys;
+  }
+
   protected void adjustDeltaFromDependencies(InternalSystemModelDelta systemModelDelta)
   {
     // we start from the parents
@@ -150,13 +193,14 @@ public class DeltaMgrImpl implements DeltaMgr
         systemModelDelta.findExpectedChildrenEntryDelta(key);
 
       String parentExpectedState = parentEntryDelta.getExpectedEntryState();
+      int parentExpectedDepth = computeDepth(stateMachine, parentExpectedState);
 
       for(InternalSystemEntryDelta childEntryDelta : expectedChildrenEntryDelta)
       {
-        int childDepth =
-          stateMachine.getDepth(childEntryDelta.getExpectedEntryState());
-        if(childDepth > stateMachine.getDepth(parentExpectedState))
-          parentExpectedState = childEntryDelta.getExpectedEntryState();
+        String childExpectedEntryState = childEntryDelta.getExpectedEntryState();
+        int childDepth = computeDepth(stateMachine, childExpectedEntryState);
+        if(childDepth > parentExpectedDepth)
+          parentExpectedState = childExpectedEntryState;
       }
 
       adjustDeltaFromDependencies(parentEntryDelta, parentExpectedState);
@@ -175,6 +219,14 @@ public class DeltaMgrImpl implements DeltaMgr
         }
       }
     }
+  }
+
+  private int computeDepth(StateMachine stateMachine, String state)
+  {
+    if(state == null)
+      return -1;
+    else
+      return stateMachine.getDepth(state);
   }
 
   protected void adjustDeltaFromDependencies(InternalSystemEntryDelta systemEntryDelta,

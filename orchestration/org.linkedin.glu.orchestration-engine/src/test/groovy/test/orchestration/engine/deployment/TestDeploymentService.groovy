@@ -54,15 +54,110 @@ public class TestDeploymentService extends GroovyTestCase
                                                                      fabricService: fabricService,
                                                                      agentsService: agentService)
   /**
+   * Test for bounce plan
+   */
+  public void testBouncePlan()
+  {
+    SystemModel expectedModel =
+      m(
+        [agent: 'a2', mountPoint: '/m1', script: 's1'],
+        [agent: 'a2', mountPoint: '/m2', script: 's1'],
+        [agent: 'a2', mountPoint: '/m3', script: 's1'],
+        [agent: 'a2', mountPoint: '/m4', script: 's1']
+      )
+
+    SystemModel currentSystemModel =
+      m(
+        [agent: 'a2', mountPoint: '/m1', script: 's1'],
+        [agent: 'a2', mountPoint: '/m2', script: 's1', entryState: 'stopped'],
+        [agent: 'a2', mountPoint: '/m3', script: 's1', entryState: 'installed'])
+
+    Plan<ActionDescriptor> p = bouncePlan(Type.PARALLEL, expectedModel, currentSystemModel)
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="bounce - PARALLEL">
+  <parallel>
+    <sequential agent="a2" mountPoint="/m1">
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="stop" toState="stopped" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="start" toState="running" />
+    </sequential>
+    <sequential agent="a2" mountPoint="/m2">
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="start" toState="running" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(3, p.leafStepsCount)
+  }
+
+  /**
+   * Test for redeploy plan
+   */
+  public void testRedeployPlan()
+  {
+    SystemModel expectedModel =
+      m(
+        [agent: 'a2', mountPoint: '/m1', script: 's1'],
+        [agent: 'a2', mountPoint: '/m2', script: 's1'],
+        [agent: 'a2', mountPoint: '/m3', script: 's1', entryState: 'installed']
+      )
+
+    SystemModel currentSystemModel =
+      m(
+        [agent: 'a2', mountPoint: '/m1', script: 's1'],
+        [agent: 'a2', mountPoint: '/m2', script: 's1', entryState: 'stopped'],
+        [agent: 'a2', mountPoint: '/m3', script: 's1'],
+        [agent: 'a2', mountPoint: '/m4', script: 's1'],
+      )
+
+    Plan<ActionDescriptor> p = redeployPlan(Type.PARALLEL, expectedModel, currentSystemModel)
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="redeploy - PARALLEL">
+  <parallel>
+    <sequential agent="a2" mountPoint="/m1">
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="stop" toState="stopped" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptLifecycle="uninstallScript" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="install" toState="installed" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="configure" toState="stopped" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="start" toState="running" />
+    </sequential>
+    <sequential agent="a2" mountPoint="/m2">
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptLifecycle="uninstallScript" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="install" toState="installed" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="configure" toState="stopped" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="start" toState="running" />
+    </sequential>
+    <sequential agent="a2" mountPoint="/m3">
+      <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptAction="stop" toState="stopped" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptLifecycle="uninstallScript" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m3" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptAction="install" toState="installed" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(21, p.leafStepsCount)
+  }
+
+  /**
    * No agent up upgrade
    */
   public void testAgentSelfUpgradeNoAgent()
   {
     SystemModel currentSystemModel = m()
 
-    Plan<ActionDescriptor> plan = upgradePlan(currentSystemModel,
-                                              ['a1', 'a2', 'a3'],
-                                              Type.PARALLEL)
+    Plan<ActionDescriptor> plan = upgradePlan(Type.PARALLEL,
+                                              currentSystemModel,
+                                              ['a1', 'a2', 'a3'])
 
     // no agent to upgrade! => no plan
     assertNull(plan)
@@ -81,12 +176,41 @@ public class TestDeploymentService extends GroovyTestCase
          initParameters: [newVersion: 'v0', agentTar: 'tar0'],
          entryState: 'prepared'])
 
-    Plan<ActionDescriptor> plan = upgradePlan(currentSystemModel,
-                                              ['a1', 'a2', 'a3'],
-                                              Type.PARALLEL)
+    Plan<ActionDescriptor> p = upgradePlan(Type.PARALLEL,
+                                           currentSystemModel,
+                                           ['a1', 'a2', 'a3'])
 
-    // TODO HIGH YP:  the plan generated is incorrect due to the 'bug' with transitions
-    println plan.toXml()
+    // TODO HIGH YP:  the plan generated is incorrect due to the 'bug' with transitions (a3 is incorrect)
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="self upgrade - PARALLEL">
+  <parallel>
+    <sequential agent="a1" mountPoint="/self/upgrade">
+      <leaf agent="a1" fabric="f1" initParameters="{newVersion=v1, agentTar=tar1}" mountPoint="/self/upgrade" script="{scriptClassName=org.linkedin.glu.agent.impl.script.AutoUpgradeScript}" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="/self/upgrade" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="/self/upgrade" scriptAction="prepare" toState="prepared" />
+      <leaf agent="a1" fabric="f1" mountPoint="/self/upgrade" scriptAction="commit" toState="upgraded" />
+      <leaf agent="a1" fabric="f1" mountPoint="/self/upgrade" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="/self/upgrade" scriptLifecycle="uninstallScript" />
+    </sequential>
+    <sequential agent="a2" mountPoint="/self/upgrade">
+      <leaf agent="a2" fabric="f1" initParameters="{newVersion=v1, agentTar=tar1}" mountPoint="/self/upgrade" script="{scriptClassName=org.linkedin.glu.agent.impl.script.AutoUpgradeScript}" scriptLifecycle="installScript" />
+      <leaf agent="a2" fabric="f1" mountPoint="/self/upgrade" scriptAction="install" toState="installed" />
+      <leaf agent="a2" fabric="f1" mountPoint="/self/upgrade" scriptAction="prepare" toState="prepared" />
+      <leaf agent="a2" fabric="f1" mountPoint="/self/upgrade" scriptAction="commit" toState="upgraded" />
+      <leaf agent="a2" fabric="f1" mountPoint="/self/upgrade" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a2" fabric="f1" mountPoint="/self/upgrade" scriptLifecycle="uninstallScript" />
+    </sequential>
+    <sequential agent="a3" mountPoint="/self/upgrade">
+      <leaf agent="a3" fabric="f1" mountPoint="/self/upgrade" scriptAction="commit" toState="upgraded" />
+      <leaf agent="a3" fabric="f1" mountPoint="/self/upgrade" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a3" fabric="f1" mountPoint="/self/upgrade" scriptLifecycle="uninstallScript" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(15, p.leafStepsCount)
+
+    println p.toXml()
   }
 
   /**
@@ -97,7 +221,7 @@ public class TestDeploymentService extends GroovyTestCase
     SystemModel expectedModel = m()
     SystemModel currentModel = m()
 
-    Plan<ActionDescriptor> plan = cleanupPlan(expectedModel, currentModel, Type.PARALLEL)
+    Plan<ActionDescriptor> plan = cleanupPlan(Type.PARALLEL, expectedModel, currentModel)
 
     assertNull(plan)
   }
@@ -120,7 +244,9 @@ public class TestDeploymentService extends GroovyTestCase
       initParameters: [newVersion: 'v0', agentTar: 'tar0'],
       entryState: 'upgraded'])
 
-    Plan<ActionDescriptor> p = cleanupPlan(expectedModel, currentModel, Type.PARALLEL)
+    Plan<ActionDescriptor> p = cleanupPlan(Type.PARALLEL,
+                                           expectedModel,
+                                           currentModel)
 
     assertEquals("""<?xml version="1.0"?>
 <plan fabric="f1" name=" - PARALLEL">
@@ -140,45 +266,70 @@ public class TestDeploymentService extends GroovyTestCase
     assertEquals(5, p.leafStepsCount)
   }
 
-  private Plan<ActionDescriptor> upgradePlan(SystemModel currentSystemModel,
-                                             Collection<String> agents,
-                                             Type type)
+  private Plan<ActionDescriptor> upgradePlan(Type type,
+                                             SystemModel currentSystemModel,
+                                             Collection<String> agents)
   {
-    currentModels[currentSystemModel.fabric] = currentSystemModel
-
     def params = [
       version: 'v1',
       coordinates: 'tar1',
       type: type,
       agents: agents,
+      name: 'self upgrade',
       fabric: fabricService.findFabric(currentSystemModel.fabric)
     ]
-    
-    Collection<Plan<ActionDescriptor>> plans =
-     deploymentService.computeAgentsUpgradePlan(params,
-                                                [name: 'self upgrade'])
-    if(plans.size() == 0)
-      return null;
 
-    return plans[0]
+    computePlan(type, null, currentSystemModel, params, "computeAgentsUpgradePlan")
   }
 
-  private Plan<ActionDescriptor> cleanupPlan(SystemModel expectedSystemModel,
-                                             SystemModel currentSystemModel,
-                                             Type type)
+  private Plan<ActionDescriptor> cleanupPlan(Type type,
+                                             SystemModel expectedSystemModel,
+                                             SystemModel currentSystemModel)
   {
-    currentModels[currentSystemModel.fabric] = currentSystemModel
-
-    Collection<Plan<ActionDescriptor>> plans =
-      deploymentService.computeAgentsCleanupUpgradePlan([system: expectedSystemModel,
-                                                        type: type],
-                                                        null)
-
-    if(plans.size() == 0)
-      return null;
-
-    return plans[0]
+    computePlan(type, m(), currentSystemModel, null, "computeAgentsCleanupUpgradePlan")
   }
+
+  private Plan<ActionDescriptor> bouncePlan(Type type,
+                                            SystemModel expectedSystemModel,
+                                            SystemModel currentSystemModel)
+  {
+    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'bounce'], "computeBouncePlans")
+  }
+
+  private Plan<ActionDescriptor> redeployPlan(Type type,
+                                              SystemModel expectedSystemModel,
+                                              SystemModel currentSystemModel)
+  {
+    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'redeploy'], "computeRedeployPlans")
+  }
+
+  private Plan<ActionDescriptor> computePlan(Type type,
+                                             SystemModel expectedSystemModel,
+                                             SystemModel currentSystemModel,
+                                             def params,
+                                             String computePlanName)
+  {
+    if(params == null)
+      params = [:]
+    params.type = type
+    params.system = expectedSystemModel
+    currentModels[currentSystemModel.fabric] = currentSystemModel
+    try
+    {
+      Collection<Plan<ActionDescriptor>> plans =
+        deploymentService."${computePlanName}"(params, null)
+
+      if(plans.size() == 0)
+        return null;
+
+      return plans[0]
+    }
+    finally
+    {
+      currentModels.remove(currentSystemModel.fabric)
+    }
+  }
+
 
   private SystemModel m(Map... entries)
   {

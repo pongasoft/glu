@@ -103,10 +103,32 @@ class DeploymentServiceImpl implements DeploymentService
                                                                     def metadata,
                                                                     Closure closure)
   {
+    computeDeploymentPlans(params, metadata, null, null, closure)
+  }
+
+  /**
+   * Compute deployment plans by doing the following:
+   * <ol>
+   *   <li>compute delta between expected model (params.system) and current model (computed)
+   *   <li>compute the deployment plan(s) (closure callback) (use params.type if a given type only
+   *       is required
+   *   <li>set various metadata on the plan(s) as well as the name
+   * </ol>
+   * @return a collection of plans (<code>null</code> if no expected model) which may be empty
+   */
+  private Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params,
+                                                                    def metadata,
+                                                                    def expectedModelFilter,
+                                                                    def currentModelFiter,
+                                                                    Closure closure)
+  {
     SystemModel expectedModel = params.system
 
     if(!expectedModel)
       return null
+
+    if(expectedModelFilter)
+      expectedModel = expectedModel.filterBy(expectedModelFilter)
 
     Fabric fabric = fabricService.findFabric(expectedModel.fabric)
 
@@ -114,6 +136,9 @@ class DeploymentServiceImpl implements DeploymentService
       throw new IllegalArgumentException("unknown fabric ${expectedModel.fabric}")
 
     SystemModel currentModel = agentsService.getCurrentSystemModel(fabric)
+
+    if(currentModelFiter)
+      currentModel = currentModel.filterBy(currentModelFiter)
 
     computeDeploymentPlans(params, expectedModel, currentModel, metadata, closure)
   }
@@ -198,24 +223,21 @@ class DeploymentServiceImpl implements DeploymentService
     }
   }
 
+  // we filter by entries where the current state is 'running' or 'stopped'
+  private def bounceCurrentModelFilter = { SystemEntry entry ->
+      entry.entryState == 'running' || entry.entryState == 'stopped'
+  }
+
   /**
    * Compute a bounce plan to bounce (= stop/start) containers.
    * @param metadata any metadata to add to the plan(s)
    */
   Collection<Plan<ActionDescriptor>> computeBouncePlans(params, def metadata)
   {
-    SystemModel expectedModel = params.system
-
-    if(!expectedModel)
-      return null
-
-    // we filter by entries where the 'expectedState' should be 'running'!
-    expectedModel = expectedModel.filterBy { SystemEntry entry ->
-      entry.entryState == 'running'
-    }
-    params.system = expectedModel
-
-    computeDeploymentPlans(params, metadata) { Type type, SystemModelDelta delta ->
+    computeDeploymentPlans(params,
+                           metadata,
+                           null,
+                           bounceCurrentModelFilter) { Type type, SystemModelDelta delta ->
       planner.computeTransitionPlan(type, delta, ['stopped', 'running'])
     }
   }
@@ -231,13 +253,22 @@ class DeploymentServiceImpl implements DeploymentService
     }
   }
 
+  // the purpose of this filter is to exclude entries that should not be deployed in the first
+  // place (should not be part of 'redeploy' plan!
+  private def redeployCurrentModelFilter = { SystemEntry entry ->
+      true
+  }
+
   /**
    * Compute a redeploy plan (= undeploy/deploy).
    * @param metadata any metadata to add to the plan(s)
    */
   Collection<Plan<ActionDescriptor>> computeRedeployPlans(params, def metadata)
   {
-    computeDeploymentPlans(params, metadata) { Type type, SystemModelDelta delta ->
+    computeDeploymentPlans(params,
+                           metadata,
+                           null,
+                           redeployCurrentModelFilter) { Type type, SystemModelDelta delta ->
       planner.computeTransitionPlan(type, delta, [null, '<expected>'])
     }
   }
@@ -251,17 +282,14 @@ class DeploymentServiceImpl implements DeploymentService
   {
     SystemModel currentModel = agentsService.getCurrentSystemModel(params.fabric)
     def agents = (params.agents ?: []) as Set
-    currentModel = currentModel.filterBy { SystemEntry entry ->
+    def filteredCurrentModel = currentModel.filterBy { SystemEntry entry ->
       agents.contains(entry.agent)
     }
 
     // we keep only the agents that are part of the current model!
     agents = new HashSet()
-    currentModel.each { SystemEntry entry ->
+    filteredCurrentModel.each { SystemEntry entry ->
       agents << entry.agent
-    }
-    currentModel = currentModel.filterBy { SystemEntry entry ->
-      entry.mountPoint == DeploymentService.AGENT_SELF_UPGRADE_MOUNT_POINT
     }
 
     SystemModel expectedModel = new SystemModel(fabric: currentModel.fabric)
@@ -277,9 +305,17 @@ class DeploymentServiceImpl implements DeploymentService
       expectedModel.addEntry(entry)
     }
 
+    expectedModel = expectedModel.filterBy { SystemEntry entry ->
+      entry.mountPoint == DeploymentService.AGENT_SELF_UPGRADE_MOUNT_POINT
+    }
+
     computeDeploymentPlans(params, expectedModel, currentModel, metadata) { Type type, SystemModelDelta delta ->
       planner.computeTransitionPlan(type, delta, ['<expected>', null])
     }
+  }
+
+  private def agentsCleanupUpgradeExpectedModelFilter = { SystemEntry entry ->
+      entry.mountPoint == DeploymentService.AGENT_SELF_UPGRADE_MOUNT_POINT
   }
 
   /**
@@ -289,18 +325,12 @@ class DeploymentServiceImpl implements DeploymentService
   @Override
   Collection<Plan<ActionDescriptor>> computeAgentsCleanupUpgradePlan(params, def metadata)
   {
-    SystemModel expectedModel = params.system
-
-    if(!expectedModel)
-      return null
-
-    // we filter by entries with only self upgrade mountpoint
-    expectedModel = expectedModel.filterBy { SystemEntry entry ->
-      entry.mountPoint == DeploymentService.AGENT_SELF_UPGRADE_MOUNT_POINT
+    computeDeploymentPlans(params,
+                           metadata,
+                           agentsCleanupUpgradeExpectedModelFilter,
+                           null) { Type type, SystemModelDelta delta ->
+      planner.computeDeploymentPlan(type, delta)
     }
-    params.system = expectedModel
-
-    computeDeployPlans(params, metadata)
   }
 
   /**
