@@ -1,6 +1,20 @@
 Latest changes
 ==============
 
+3.0.0.RC1 (2011/06/12)
+----------------------
+* Implemented `glu-63 <https://github.com/linkedin/glu/issues/63>`_: `Handle parent/child relationship in the orchestration engine/console`
+* Fixed `glu-21 <https://github.com/linkedin/glu/issues/21>`_: `The model should allow for expressing which state is desired`
+* Fixed `glu-33 <https://github.com/linkedin/glu/issues/33>`_: `Mountpoint disappears from agent view when not in model`
+* Fixed `glu-18 <https://github.com/linkedin/glu/issues/18>`_: `Grails Runtime Exception (500) when viewing a deployment status` (thanks to Ran!)
+
+This is a pretty big release (hence the bump in the numbering): it contains a full rewrite of the delta, planner and deployer to:
+
+* match the documentation in terms of concepts
+* implement the new features: parent/child relationship and any entry state
+
+The delta is now a first class citizen and a new rest API allows to access it: ``/model/delta``
+
 2.4.2 (2011/05/27)
 ------------------
 * Fixed `glu-64 <https://github.com/linkedin/glu/issues/64>`_: `Concurrent deployment of ivy artifacts causes wrong artifact to be downloaded`
