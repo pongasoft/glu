@@ -289,7 +289,6 @@ public class PlanController extends ControllerBase
     def args = [:]
     args.system = request.system
     args.fabric = request.fabric
-    args.name = params.systemFilter ?: 'all'
 
     try
     {
@@ -304,7 +303,7 @@ public class PlanController extends ControllerBase
 
     Plan plan
 
-    def metadata = [origin: 'rest', action: params.planAction, filter: args.name]
+    def metadata = [origin: 'rest', action: params.planAction, filter: params.systemFilter ?: 'all']
 
     switch(params.planAction)
     {
