@@ -25,6 +25,7 @@ import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import java.security.AccessControlException
 import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
+import org.linkedin.glu.provisioner.core.model.SystemModel
 
 /**
  * @author ypujante@linkedin.com
@@ -148,6 +149,9 @@ class AgentsController extends ControllerBase
 
       def mountPoints = [] as Set
       system.each { mountPoints << it.mountPoint }
+
+      SystemModel currentModel = agentsService.getCurrentSystemModel(request.fabric)
+      currentModel.each { mountPoints << it.mountPoint }
 
       model = computeAgentModel(request.fabric,
                                 agent,
