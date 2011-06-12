@@ -26,6 +26,9 @@ import org.linkedin.glu.provisioner.core.model.SystemFilter
 import org.linkedin.glu.provisioner.core.model.LogicSystemFilterChain
 import org.linkedin.glu.orchestration.engine.fabric.FabricService
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta.DeltaState
+import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
+import org.linkedin.glu.utils.core.Externable
 
 class DeltaServiceImpl implements DeltaService
 {
@@ -40,6 +43,87 @@ class DeltaServiceImpl implements DeltaService
 
   @Initializable
   boolean notRunningOverridesVersionMismatch = false
+
+  @Override
+  String computeDeltaAsJSON(def params)
+  {
+    SystemModel expectedModel = params.expectedModel
+
+    if(!expectedModel)
+      return null
+
+    SystemModel currentModel = params.currentModel
+
+    if(currentModel == null)
+    {
+      Fabric fabric = fabricService.findFabric(expectedModel.fabric)
+
+      if(!fabric)
+        throw new IllegalArgumentException("unknown fabric ${expectedModel.fabric}")
+
+      currentModel = agentsService.getCurrentSystemModel(fabric)
+    }
+
+    SystemModelDelta delta = deltaMgr.computeDelta(expectedModel, currentModel)
+
+    boolean flatten = params.flatten?.toString() == "true"
+
+    def map
+
+    if(flatten)
+      map = delta.flatten(new TreeMap())
+    else
+    {
+      map = new TreeMap()
+      delta.keys.each { String key ->
+        map[key] = delta.findEntryDelta(key)
+      }
+    }
+
+    // filter by error only if necessary
+    boolean errorsOnly = params.errorsOnly?.toString() == "true"
+    if(errorsOnly)
+      map = map.findAll {k, v -> v.deltaState != DeltaState.OK}
+
+    if(!flatten)
+    {
+      map = GroovyCollectionsUtils.collectKey(map, new TreeMap()) { String key, SystemEntryDelta sed ->
+        def res = GroovyCollectionsUtils.collectKey(sed.values, new TreeMap()) { String valueKey, SystemEntryValue sev ->
+          if(sev.hasDelta())
+            return [ev: toExternalValue(sev.expectedValue), cv: toExternalValue(sev.currentValue)]
+          else
+            return toExternalValue(sev.expectedValue)
+        }
+        if(sed.hasErrorDelta())
+          res.errorValueKeys = sed.getErrorValueKeys(new TreeSet())
+        res
+      }
+    }
+    
+    // build map for json
+    map = [
+      accuracy: currentModel.metadata.accuracy,
+      delta: map
+    ]
+
+    def jsonDelta =  JsonUtils.toJSON(map)
+
+    boolean prettyPrint = params.prettyPrint?.toString() == "true"
+    if(prettyPrint)
+      jsonDelta = jsonDelta.toString(2)
+    else
+      jsonDelta = jsonDelta.toString()
+
+    return jsonDelta
+  }
+
+  protected Object toExternalValue(Object value)
+  {
+    if(value instanceof Externable)
+      return value.toExternalRepresentation()
+    return value
+  }
+
 
   Map computeDelta(SystemModel expectedModel)
   {

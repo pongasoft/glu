@@ -198,7 +198,7 @@ class UrlMappings
     /***
      * delta
      */
-    name restDelta: "/rest/v1/$fabric/delta"(controller: 'delta') {
+    name restDelta: "/rest/v1/$fabric/model/delta"(controller: 'delta') {
       action = [GET: 'rest_get_delta']
     }
 

@@ -36,24 +36,12 @@ class DeltaController extends ControllerBase
    * Delta from
    */
   def rest_get_delta = {
-    def delta = deltaService.computeDelta(request.system)
+    params.expectedModel = request.system
 
-    // curl -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/delta?errorsOnly=true"
-    if(params.errorsOnly?.toString() == 'true')
-    {
-      delta.delta = delta.delta.findAll { entry ->
-        entry.state != DeltaState.OK
-      }
-    }
+    // curl -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/model/delta?errorsOnly=true"
+    // curl -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/model/delta?prettyPrint=true"
+    // curl -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/model/delta?flatten=true"
 
-    delta = JsonUtils.toJSON(delta)
-
-    // curl -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/delta?prettyPrint=true"
-    if(params.prettyPrint?.toString() == 'true')
-      delta = delta.toString(2)
-    else
-      delta = delta.toString()
-
-    render delta
+    render deltaService.computeDeltaAsJSON(params)
   }
 }

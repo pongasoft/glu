@@ -109,6 +109,10 @@ public interface SystemEntryDelta
   Set<String> getErrorValueKeys();
 
   /**
+   * @return all the keys where the value has a delta which triggers an error  */
+  <T extends Set<String>> T getErrorValueKeys(T set);
+
+  /**
    * This call will return a non <code>null</code> result iff there is a value which has a delta
    * part of the error or in other word if key belongs to the set returned by
    * {@link #getErrorValueKeys()}

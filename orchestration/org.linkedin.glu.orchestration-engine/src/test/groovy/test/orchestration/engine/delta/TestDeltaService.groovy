@@ -1089,6 +1089,195 @@ class TestDeltaService extends GroovyTestCase
     assertEqualsIgnoreType(expectedDelta, deltaService.computeDelta(expectedSystem, currentSystem))
   }
 
+  public void testComputeDeltaAsJSON()
+  {
+    String delta
+
+    SystemModel expectedModel =
+      m([agent: 'a1', mountPoint: '/m0', script: 's1'],
+        [agent: 'a1', mountPoint: '/m1', script: 's1'],
+        [agent: 'a1', mountPoint: '/m2', script: 's2'],
+        [agent: 'a1', mountPoint: '/m3', script: 's2', initParameters: [ip1: "iv1"]])
+
+    SystemModel currentModel =
+      m([agent: 'a1', mountPoint: '/m0', script: 's1'],
+        [agent: 'a1', mountPoint: '/m2', script: 's1'],
+        [agent: 'a1', mountPoint: '/m3', script: 's1', initParameters: [ip1: "iv2"]])
+
+    delta = jsonDelta(expectedModel, currentModel, [:])
+
+    assertEquals("""{"delta": {
+  "a1:/m0": {
+    "agent": "a1",
+    "entryState": "running",
+    "key": "a1:/m0",
+    "mountPoint": "/m0",
+    "script": "s1",
+    "state": "OK",
+    "status": "expectedState",
+    "statusInfo": "running"
+  },
+  "a1:/m1": {
+    "agent": {"ev": "a1"},
+    "entryState": {"ev": "running"},
+    "errorValueKeys": [
+      "entryState",
+      "script"
+    ],
+    "key": {"ev": "a1:/m1"},
+    "mountPoint": {"ev": "/m1"},
+    "script": {"ev": "s1"},
+    "state": "ERROR",
+    "status": "notDeployed",
+    "statusInfo": "NOT deployed"
+  },
+  "a1:/m2": {
+    "agent": "a1",
+    "entryState": "running",
+    "errorValueKeys": ["script"],
+    "key": "a1:/m2",
+    "mountPoint": "/m2",
+    "script": {
+      "cv": "s1",
+      "ev": "s2"
+    },
+    "state": "ERROR",
+    "status": "delta",
+    "statusInfo": "script:[s2!=s1]"
+  },
+  "a1:/m3": {
+    "agent": "a1",
+    "entryState": "running",
+    "errorValueKeys": [
+      "initParameters.ip1",
+      "script"
+    ],
+    "initParameters.ip1": {
+      "cv": "iv2",
+      "ev": "iv1"
+    },
+    "key": "a1:/m3",
+    "mountPoint": "/m3",
+    "script": {
+      "cv": "s1",
+      "ev": "s2"
+    },
+    "state": "ERROR",
+    "status": "delta",
+    "statusInfo": [
+      "initParameters.ip1:[iv1!=iv2]",
+      "script:[s2!=s1]"
+    ]
+  }
+}}""", delta)
+
+    delta = jsonDelta(expectedModel, currentModel, [errorsOnly: true])
+
+    assertEquals("""{"delta": {
+  "a1:/m1": {
+    "agent": {"ev": "a1"},
+    "entryState": {"ev": "running"},
+    "errorValueKeys": [
+      "entryState",
+      "script"
+    ],
+    "key": {"ev": "a1:/m1"},
+    "mountPoint": {"ev": "/m1"},
+    "script": {"ev": "s1"},
+    "state": "ERROR",
+    "status": "notDeployed",
+    "statusInfo": "NOT deployed"
+  },
+  "a1:/m2": {
+    "agent": "a1",
+    "entryState": "running",
+    "errorValueKeys": ["script"],
+    "key": "a1:/m2",
+    "mountPoint": "/m2",
+    "script": {
+      "cv": "s1",
+      "ev": "s2"
+    },
+    "state": "ERROR",
+    "status": "delta",
+    "statusInfo": "script:[s2!=s1]"
+  },
+  "a1:/m3": {
+    "agent": "a1",
+    "entryState": "running",
+    "errorValueKeys": [
+      "initParameters.ip1",
+      "script"
+    ],
+    "initParameters.ip1": {
+      "cv": "iv2",
+      "ev": "iv1"
+    },
+    "key": "a1:/m3",
+    "mountPoint": "/m3",
+    "script": {
+      "cv": "s1",
+      "ev": "s2"
+    },
+    "state": "ERROR",
+    "status": "delta",
+    "statusInfo": [
+      "initParameters.ip1:[iv1!=iv2]",
+      "script:[s2!=s1]"
+    ]
+  }
+}}""", delta)
+
+    delta = jsonDelta(expectedModel, currentModel, [flatten: true])
+
+    assertEquals("""{"delta": {
+  "a1:/m0": {
+    "agent": "a1",
+    "entryState": "running",
+    "key": "a1:/m0",
+    "mountPoint": "/m0",
+    "script": "s1",
+    "state": "OK",
+    "status": "expectedState",
+    "statusInfo": "running"
+  },
+  "a1:/m1": {
+    "agent": "a1",
+    "entryState": "running",
+    "key": "a1:/m1",
+    "mountPoint": "/m1",
+    "script": "s1",
+    "state": "ERROR",
+    "status": "notDeployed",
+    "statusInfo": "NOT deployed"
+  },
+  "a1:/m2": {
+    "agent": "a1",
+    "entryState": "running",
+    "key": "a1:/m2",
+    "mountPoint": "/m2",
+    "script": "s2",
+    "state": "ERROR",
+    "status": "delta",
+    "statusInfo": "script:[s2!=s1]"
+  },
+  "a1:/m3": {
+    "agent": "a1",
+    "entryState": "running",
+    "initParameters.ip1": "iv1",
+    "key": "a1:/m3",
+    "mountPoint": "/m3",
+    "script": "s2",
+    "state": "ERROR",
+    "status": "delta",
+    "statusInfo": [
+      "initParameters.ip1:[iv1!=iv2]",
+      "script:[s2!=s1]"
+    ]
+  }
+}}""", delta)
+  }
+
   private SystemModel toSystem(Map system, String currentState)
   {
     def entries = []
@@ -1198,4 +1387,24 @@ class TestDeltaService extends GroovyTestCase
     assertTrue("expected <${o1}> but was <${o2}>", GroovyCollectionsUtils.compareIgnoreType(o1, o2))
   }
 
+  private String jsonDelta(SystemModel expectedModel, SystemModel currentModel, params)
+  {
+    params.expectedModel = expectedModel
+    params.currentModel = currentModel
+    params.prettyPrint = true
+
+    deltaService.computeDeltaAsJSON(params)
+  }
+
+  private SystemModel m(Map... entries)
+  {
+    SystemModel model = new SystemModel(fabric: "f1")
+
+
+    entries.each {
+      model.addEntry(SystemEntry.fromExternalRepresentation(it))
+    }
+
+    return model
+  }
 }

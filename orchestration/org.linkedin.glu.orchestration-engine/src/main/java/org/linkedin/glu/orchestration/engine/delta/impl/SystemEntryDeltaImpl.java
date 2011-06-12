@@ -217,6 +217,15 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
   }
 
   @Override
+  public <T extends Set<String>> T getErrorValueKeys(T set)
+  {
+    if(set == null)
+      return null;
+    set.addAll((getErrorValueKeys()));
+    return set;
+  }
+
+  @Override
   public boolean hasErrorDelta()
   {
     return !_errorValueKeys.isEmpty();

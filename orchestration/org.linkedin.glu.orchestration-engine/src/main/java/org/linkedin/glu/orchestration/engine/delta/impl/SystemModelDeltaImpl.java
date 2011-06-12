@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -250,6 +251,18 @@ public class SystemModelDeltaImpl implements InternalSystemModelDelta
         res.add(findAnyEntryDelta(child));
       }
       return res;
+    }
+  }
+
+  @Override
+  public void removeNonEmptyAgents(Set<String> nonEmptyAgents)
+  {
+    Iterator<InternalSystemEntryDelta> iter = _deltas.values().iterator();
+    while(iter.hasNext())
+    {
+      InternalSystemEntryDelta entryDelta = iter.next();
+      if(entryDelta.isEmptyAgent() && nonEmptyAgents.contains(entryDelta.getAgent()))
+        iter.remove();
     }
   }
 

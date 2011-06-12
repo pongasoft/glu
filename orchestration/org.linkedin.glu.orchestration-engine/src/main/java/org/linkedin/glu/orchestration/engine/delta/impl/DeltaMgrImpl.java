@@ -87,6 +87,8 @@ public class DeltaMgrImpl implements DeltaMgr
     if(filteredExpectedModel == null || filteredCurrentModel == null)
       return null;
 
+    Set<String> nonEmptyAgents = new HashSet<String>();
+
     InternalSystemModelDelta systemModelDelta = new SystemModelDeltaImpl(filteredExpectedModel,
                                                                          filteredCurrentModel);
 
@@ -127,10 +129,15 @@ public class DeltaMgrImpl implements DeltaMgr
                                  currentEntry,
                                  !filteredKeys.contains(key));
 
+      if(!delta.isEmptyAgent())
+        nonEmptyAgents.add(delta.getAgent());
+
       computeSystemEntryDelta(delta);
 
       systemModelDelta.setEntryDelta(delta);
     }
+
+    systemModelDelta.removeNonEmptyAgents(nonEmptyAgents);
 
     // 5. we adjust the delta based on the dependencies
     adjustDeltaFromDependencies(systemModelDelta);

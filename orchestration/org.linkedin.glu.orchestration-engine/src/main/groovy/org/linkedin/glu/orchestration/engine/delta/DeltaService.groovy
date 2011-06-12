@@ -21,6 +21,16 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 interface DeltaService
 {
   /**
+   * @params.expectedModel expected model
+   * @params.currentModel current model (<code>null</code> means compute it)
+   * @params.errorsOnly filter to show only errors (<code>true/false</code>)
+   * @params.prettyPrint if json should be pretty printed (<code>true/false</code>)
+   * @params.flatten flatten the model (<code>true/false</code>)
+   * @return json representation of the delta
+   */
+  String computeDeltaAsJSON(params)
+
+  /**
    * Computes the delta between the expected model and the current one (which will be computed)
    * In this version the delta is a set
    * @return a map with 2 entries: <code>accuracy</code> and <code>delta</code>.

@@ -41,4 +41,10 @@ public interface InternalSystemModelDelta extends SystemModelDelta
   /* dependencies (setter) */
   void setExpectedDependencies(EntryDependencies expectedDependencies);
   void setCurrentDependencies(EntryDependencies currentDependencies);
+
+  /**
+   * Remove all the entries referring to an an empty agent (which is not really empty)
+   * @param nonEmptyAgents
+   */
+  void removeNonEmptyAgents(Set<String> nonEmptyAgents);
 }
