@@ -39,7 +39,7 @@ class AgentFactoryImpl implements AgentFactory
   private final Integer _agentPort
 
   @Initializable
-  Timespan connectionTimeout = Timespan.parse('1s')
+  Timespan connectionTimeout = Timespan.parse('30s')
 
   AgentFactoryImpl(Map<String, String> paths,
                    Integer agentPort,

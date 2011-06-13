@@ -36,6 +36,11 @@
 
       </map>
     </constructor-arg>
+    <property name="connectionTimeout">
+      <bean class="org.linkedin.util.clock.Timespan" factory-method="parse">
+        <constructor-arg value="${console.to.agent.connectionTimeout}"/>
+      </bean>
+    </property>
   </bean>
 
    <bean id="encryptionKeysProvider"
