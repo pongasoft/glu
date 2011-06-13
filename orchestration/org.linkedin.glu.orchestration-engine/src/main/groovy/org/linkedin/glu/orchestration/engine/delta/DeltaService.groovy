@@ -38,6 +38,12 @@ interface DeltaService
   Map computeDelta(SystemModel expectedModel)
 
   /**
+   * Computes the raw delta between the expected model and the current one (which will be computed)
+   * @return a map with 2 entries <code>[accuracy: accuracy, delta: SystemModelDelta]</code>
+   */
+  Map computeRawDelta(SystemModel expectedModel)
+
+  /**
    * This method used to be in <code>DashboardController</code> and as been moved here to
    * be able to share/test more easily
    *

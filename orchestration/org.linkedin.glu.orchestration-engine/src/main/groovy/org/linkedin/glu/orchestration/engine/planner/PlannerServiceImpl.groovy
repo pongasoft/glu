@@ -141,7 +141,7 @@ class PlannerServiceImpl implements PlannerService
 
     Collection<Type> types = []
     if(params.type)
-      types << params.type
+      types << Type.valueOf(params.type.toString())
     else
       types = [Type.SEQUENTIAL, Type.PARALLEL]
 
@@ -166,6 +166,9 @@ class PlannerServiceImpl implements PlannerService
       }
       name = "${name} - ${type}".toString()
       plan.name = name
+
+      if(!plan.step?.metadata)
+        plan.step?.metadata?.name = name
 
       return plan
     }.findAll { Plan plan -> plan.hasLeafSteps() }

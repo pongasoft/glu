@@ -14,9 +14,10 @@
   - the License.
   --}%
 
+<input type="hidden" id="planId" value="${plan.id}"/>
 <dl class="plan">
-  <dt>${delta.name.encodeAsHTML()}</dt>
+  <dt>${plan.name.encodeAsHTML()} [${plan.leafStepsCount}]</dt>
   <dd>
-    <cl:renderStep step="${delta.step}"/>
+    <cl:renderStep step="${plan.step}"/>
   </dd>
 </dl>

@@ -58,13 +58,7 @@
   </div>
   <g:include controller="dashboard" action="renderDelta" params="[groupBy: params.groupBy]"/>
 
-  <g:render template="/plan/selectDelta" model="[delta: delta, title: 'Deploy: ' + params.title]"/>
-
-  <g:render template="/plan/selectDelta" model="[delta: bounce, title: 'Bounce: ' + params.title ]"/>
-
-  <g:render template="/plan/selectDelta" model="[delta: redeploy, title: 'Redeploy: ' + params.title]"/>
-
-  <g:render template="/plan/selectDelta" model="[delta: undeploy, title: 'Undeploy: ' + params.title]"/>
+  <g:render template="/plan/selectPlan" model="[title: title, filter: filter, hasDelta: hasDelta]"/>
 
   <g:if test="${missingAgents}">
     <h2>Missing agents [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h2>

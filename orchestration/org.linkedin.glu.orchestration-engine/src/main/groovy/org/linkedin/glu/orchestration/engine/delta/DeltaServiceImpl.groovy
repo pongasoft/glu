@@ -143,6 +143,25 @@ class DeltaServiceImpl implements DeltaService
     ]
   }
 
+  @Override
+  Map computeRawDelta(SystemModel expectedModel)
+  {
+    if(!expectedModel)
+      return null
+
+    Fabric fabric = fabricService.findFabric(expectedModel.fabric)
+
+    if(!fabric)
+      throw new IllegalArgumentException("unknown fabric ${expectedModel.fabric}")
+
+    SystemModel currentModel = agentsService.getCurrentSystemModel(fabric)
+
+    [
+        delta: deltaMgr.computeDelta(expectedModel, currentModel),
+        accuracy: currentModel.metadata.accuracy
+    ]
+  }
+
   Collection<Map<String, Object>> computeDelta(SystemModel expectedModel,
                                                SystemModel currentModel)
   {

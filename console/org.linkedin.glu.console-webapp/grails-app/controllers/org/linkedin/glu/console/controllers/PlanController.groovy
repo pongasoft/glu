@@ -33,6 +33,9 @@ import org.linkedin.util.clock.SystemClock
 import org.linkedin.glu.orchestration.engine.deployment.CurrentDeployment
 import org.linkedin.glu.orchestration.engine.planner.PlannerService
 import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor
+import org.linkedin.glu.provisioner.plan.api.IStep.Type
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
+import org.linkedin.groovy.util.json.JsonUtils
 
 /**
  * @author ypujante@linkedin.com */
@@ -59,11 +62,11 @@ public class PlanController extends ControllerBase
    * View the plan (expect id)
    */
   def view = {
-    def plan = session.delta?.find { it.id == params.id }
+    def plan = session.plan?.find { it.id == params.id }
 
     if(plan)
     {
-      [delta: plan]
+      [plan: plan]
     }
     else
     {
@@ -79,7 +82,7 @@ public class PlanController extends ControllerBase
 
     if(plan)
     {
-      session.delta = [plan]
+      session.plan = [plan]
 
       redirect(action: 'view', id: plan.id)
     }
@@ -98,7 +101,7 @@ public class PlanController extends ControllerBase
 
     if(plan)
     {
-      session.delta = null
+      session.plan = null
 
       CurrentDeployment currentDeployment =
         deploymentService.executeDeploymentPlan(request.system,
@@ -115,16 +118,37 @@ public class PlanController extends ControllerBase
     }
   }
 
-
   /**
-   * Renders a delta
+   * Create a plan
    */
-  def renderDelta = {
-    def plan = session.delta.find { it.id == params.id }
-    if(plan)
-      render(template: 'delta', model: [delta: plan])
+  def create = {
+
+    def args = params
+    if(params.json)
+    {
+      args = JsonUtils.fromJSON(params.json)
+    }
+
+    if(args.systemFilter)
+      args.system = request.system.filterBy(args.systemFilter)
     else
-      render 'not found'
+      args.system = request.system
+    args.type = args.stepType ?: Type.SEQUENTIAL
+
+    if(args.planType)
+    {
+      Plan<ActionDescriptor> plan =
+        plannerService."compute${args.planType.capitalize()}Plan"(args, null)
+      if(plan?.hasLeafSteps())
+      {
+        session.plan = plan
+        render(template: 'plan', model: [plan: plan])
+      }
+      else
+        render "no plan"
+    }
+    else
+      render "choose a plan"
   }
 
   /**
@@ -249,7 +273,7 @@ public class PlanController extends ControllerBase
    */
   private Plan doFilterPlan(params)
   {
-    Plan plan = session.delta.find { it.id == params.id }
+    Plan plan = session.plan.find { it.id == params.id }
 
     if(plan)
     {

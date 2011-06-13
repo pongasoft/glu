@@ -47,7 +47,7 @@ class UrlMappings
     "/plan/renderDeploymentDetails/$id?"(controller: 'plan', action: 'renderDeploymentDetails') { __nvbe = 'Plans' }
     "/plan/renderDeployments"(controller: 'plan', action: 'renderDeployments') { __nvbe = 'Plans' }
     "/plan/archived/$id?"(controller: 'plan', action: 'archived') { __nvbe = 'Plans' }
-    "/plan/renderDelta/$id?"(controller: 'plan', action: 'renderDelta') { __nvbe = 'Plans' }
+    "/plan/create"(controller: 'plan', action: 'create') { __nvbe = 'Plans' }
 
     // fabric
     "/fabric/select/$id?"(controller: 'fabric', action: 'select') { __nvbe = 'Admin' }

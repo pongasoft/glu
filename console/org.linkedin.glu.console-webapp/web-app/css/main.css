@@ -286,3 +286,7 @@ ul.tags.with-links a:link, ul.tags.with-links a:visited {
 ul.tags.with-links a:hover {
   text-decoration: none;
 }
+
+#select-plan h1.hasDelta {
+  color: red;
+}

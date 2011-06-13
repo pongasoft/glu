@@ -26,6 +26,7 @@ import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.orchestration.engine.planner.PlannerService
+import org.linkedin.glu.orchestration.engine.delta.DeltaService
 
 /**
  * @author ypujante@linkedin.com
@@ -34,6 +35,7 @@ class AgentsController extends ControllerBase
 {
   AgentsService agentsService
   PlannerService plannerService
+  DeltaService deltaService
 
   def beforeInterceptor = {
     // we make sure that the fabric is always set before executing any action
@@ -76,7 +78,7 @@ class AgentsController extends ControllerBase
 
     if(plan)
     {
-      session.delta = [plan]
+      session.plan = [plan]
       redirect(controller: 'plan', action: 'view', id: plan.id)
     }
     else
@@ -98,7 +100,7 @@ class AgentsController extends ControllerBase
 
     if(plan)
     {
-      session.delta = [plan]
+      session.plan = [plan]
       redirect(controller: 'plan', action: 'view', id: plan.id)
     }
     else
@@ -117,34 +119,13 @@ class AgentsController extends ControllerBase
     def model = [:]
     def allPlans = [:]
 
-    def title = "agent [${params.id}]"
-    
+    def title = "agent [${params.id}]".toString()
+    def filter = "agent='${params.id}'".toString()
+
+    def system = request.system.filterBy(filter)
+
     if(agent)
     {
-      params.name = title
-
-      def system = request.system
-      system = system?.filterBy("agent='${params.id}'".toString())
-
-      request.system = system
-      params.system = system
-
-
-      session.delta = []
-
-      ['deploy', 'bounce', 'redeploy', 'undeploy'].each { type ->
-        params.name = "${type.capitalize()}: ${title}".toString()
-
-        def plans =
-          plannerService."compute${type.capitalize()}Plans"(params,
-                                                            [type: type,
-                                                            agent: params.id])
-        if(plans)
-          session.delta.addAll(plans)
-
-        allPlans[type] = plans
-      }
-
       def mountPoints = [] as Set
       system.each { mountPoints << it.mountPoint }
 
@@ -159,11 +140,9 @@ class AgentsController extends ControllerBase
 
     return [
       model: model,
-      delta: allPlans.deploy,
-      bounce: allPlans.bounce,
-      redeploy: allPlans.redeploy,
-      undeploy: allPlans.undeploy,
-      title: title
+      title: title,
+      filter: filter,
+      hasDelta: deltaService.computeRawDelta(system).delta?.hasErrorDelta()
     ]
   }
 
@@ -322,7 +301,7 @@ class AgentsController extends ControllerBase
       def plans = closure(params, metadata)
       if(plans)
       {
-        session.delta = plans
+        session.plan = plans
         redirect(controller: 'plan', action: 'view', id: plans[0].id)
       }
       else

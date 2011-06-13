@@ -119,13 +119,7 @@
     </div>
   </g:each>
 
-  <g:render template="/plan/selectDelta" model="[delta: delta, title: 'Delta: ' + title]"/>
-
-  <g:render template="/plan/selectDelta" model="[delta: bounce, title: 'Bounce: ' + title]"/>
-
-  <g:render template="/plan/selectDelta" model="[delta: redeploy, title: 'Redeploy: ' + title]"/>
-
-  <g:render template="/plan/selectDelta" model="[delta: undeploy, title: 'Undeploy: ' + title]"/>
+  <g:render template="/plan/selectPlan" model="[title: title, filter: filter, hasDelta: hasDelta]"/>
 
 </g:if>
 <g:else>

@@ -23,6 +23,7 @@ import org.linkedin.glu.console.domain.DbSystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.orchestration.engine.planner.PlannerService
+import org.linkedin.glu.orchestration.engine.delta.DeltaService
 
 class SystemController extends ControllerBase
 {
@@ -30,6 +31,7 @@ class SystemController extends ControllerBase
   DeploymentService deploymentService
   PlannerService plannerService
   SystemService systemService
+  DeltaService deltaService
 
   def beforeInterceptor = {
     // we make sure that the fabric is always set before executing any action
@@ -122,35 +124,13 @@ class SystemController extends ControllerBase
     {
       def title = "Fabric [${request.fabric}]"
 
-      params.system = request.system
-
       def missingAgents = systemService.getMissingAgents(request.fabric, request.system)
 
-      def allPlans = [:]
-
-      session.delta = []
-
-      ['deploy', 'bounce', 'redeploy', 'undeploy'].each { type ->
-        params.name = "${type.capitalize()}: ${title}".toString()
-
-        def plans =
-          plannerService."compute${type.capitalize()}Plans"(params,
-                                                            [type: type,
-                                                            fabric: request.fabric.name])
-        if(plans)
-          session.delta.addAll(plans)
-
-        allPlans[type] = plans
-      }
-
       [
-          delta: allPlans.deploy,
-          bounce: allPlans.bounce,
-          redeploy: allPlans.redeploy,
-          undeploy: allPlans.undeploy,
-          title: title,
-          executingDeploymentPlan: deploymentService.isExecutingDeploymentPlan(request.fabric.name),
-          missingAgents: missingAgents
+        title: title,
+        hasDelta: deltaService.computeRawDelta(request.system).delta?.hasErrorDelta(),
+        executingDeploymentPlan: deploymentService.isExecutingDeploymentPlan(request.fabric.name),
+        missingAgents: missingAgents
       ]
     }
   }
@@ -161,36 +141,12 @@ class SystemController extends ControllerBase
   def filter = {
     if(request.system)
     {
-      session.delta = []
-
       def missingAgents = systemService.getMissingAgents(request.fabric, request.system)
 
-      def args = [:]
-      args.system = request.system
-      args.name = params.title
-
-      def allPlans = [:]
-
-      session.delta = []
-
-      ['deploy', 'bounce', 'redeploy', 'undeploy'].each { type ->
-        params.name = "${type.capitalize()}: ${params.title}".toString()
-
-        def plans =
-          plannerService."compute${type.capitalize()}Plans"(args,
-                                                            [type: type,
-                                                            name: args.name])
-        if(plans)
-          session.delta.addAll(plans)
-
-        allPlans[type] = plans
-      }
-
       [
-        delta: allPlans.deploy,
-        bounce: allPlans.bounce,
-        redeploy: allPlans.redeploy,
-        undeploy: allPlans.undeploy,
+        title: params.title,
+        filter: params.systemFilter,
+        hasDelta: deltaService.computeRawDelta(request.system).delta?.hasErrorDelta(),
         missingAgents: missingAgents
       ]
     }
