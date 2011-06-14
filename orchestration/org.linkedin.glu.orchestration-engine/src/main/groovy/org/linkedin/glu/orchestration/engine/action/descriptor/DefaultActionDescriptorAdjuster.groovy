@@ -16,6 +16,8 @@
 
 package org.linkedin.glu.orchestration.engine.action.descriptor
 
+import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemModelDelta
+
 /**
  * @author yan@pongasoft.com */
 public class DefaultActionDescriptorAdjuster implements ActionDescriptorAdjuster
@@ -24,7 +26,8 @@ public class DefaultActionDescriptorAdjuster implements ActionDescriptorAdjuster
     new DefaultActionDescriptorAdjuster();
 
   @Override
-  InternalActionDescriptor adjustDescriptor(InternalActionDescriptor actionDescriptor)
+  InternalActionDescriptor adjustDescriptor(InternalSystemModelDelta systemModelDelta,
+                                            InternalActionDescriptor actionDescriptor)
   {
     // uses groovy dynamic method dispatching to call the appropriate method
     adjust(actionDescriptor)

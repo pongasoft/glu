@@ -35,8 +35,8 @@ import org.linkedin.glu.orchestration.engine.planner.PlannerServiceImpl
 public class TestPlannerService extends GroovyTestCase
 {
   // setting a noop action descriptor adjuster to not have to deal with names
-  ActionDescriptorAdjuster actionDescriptorAdjuster = {
-    return it
+  ActionDescriptorAdjuster actionDescriptorAdjuster = { smd, ad ->
+    return ad
   } as ActionDescriptorAdjuster
   PlannerImpl planner = new PlannerImpl(actionDescriptorAdjuster: actionDescriptorAdjuster)
   DeltaMgrImpl deltaMgr = new DeltaMgrImpl()
@@ -77,7 +77,7 @@ public class TestPlannerService extends GroovyTestCase
 
     assertEquals("""<?xml version="1.0"?>
 <plan fabric="f1" name="bounce - PARALLEL">
-  <parallel>
+  <parallel name="bounce - PARALLEL">
     <sequential agent="a2" mountPoint="/m1">
       <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="stop" toState="stopped" />
       <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="start" toState="running" />
@@ -115,7 +115,7 @@ public class TestPlannerService extends GroovyTestCase
 
     assertEquals("""<?xml version="1.0"?>
 <plan fabric="f1" name="redeploy - PARALLEL">
-  <parallel>
+  <parallel name="redeploy - PARALLEL">
     <sequential agent="a2" mountPoint="/m1">
       <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="stop" toState="stopped" />
       <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="unconfigure" toState="installed" />
@@ -184,7 +184,7 @@ public class TestPlannerService extends GroovyTestCase
     // TODO HIGH YP:  the plan generated is incorrect due to the 'bug' with transitions (a3 is incorrect)
     assertEquals("""<?xml version="1.0"?>
 <plan fabric="f1" name="self upgrade - PARALLEL">
-  <parallel>
+  <parallel name="self upgrade - PARALLEL">
     <sequential agent="a1" mountPoint="/self/upgrade">
       <leaf agent="a1" fabric="f1" initParameters="{agentTar=tar1, newVersion=v1}" mountPoint="/self/upgrade" script="{scriptClassName=org.linkedin.glu.agent.impl.script.AutoUpgradeScript}" scriptLifecycle="installScript" />
       <leaf agent="a1" fabric="f1" mountPoint="/self/upgrade" scriptAction="install" toState="installed" />
@@ -251,7 +251,7 @@ public class TestPlannerService extends GroovyTestCase
 
     assertEquals("""<?xml version="1.0"?>
 <plan fabric="f1" name=" - PARALLEL">
-  <parallel>
+  <parallel name=" - PARALLEL">
     <sequential agent="a3" mountPoint="/self/upgrade">
       <leaf agent="a3" fabric="f1" mountPoint="/self/upgrade" scriptAction="rollback" toState="installed" />
       <leaf agent="a3" fabric="f1" mountPoint="/self/upgrade" scriptAction="uninstall" toState="NONE" />

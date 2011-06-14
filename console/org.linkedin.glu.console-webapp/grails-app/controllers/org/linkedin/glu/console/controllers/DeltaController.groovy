@@ -21,7 +21,7 @@ import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta.DeltaState
 
 /**
- * @author ypujante@linkedin.com
+ * @author yan@pongasoft.com
  */
 class DeltaController extends ControllerBase
 {

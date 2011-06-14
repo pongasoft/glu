@@ -36,9 +36,9 @@ import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptorA
  * @author yan@pongasoft.com */
 public class TestPlannerImpl extends GroovyTestCase
 {
-  // setting a noop action descriptor adjuster to not have to deal with names
-  ActionDescriptorAdjuster actionDescriptorAdjuster = {
-    return it
+  // setting a noop action descriptor adjuster to not have to deal with namesdelt
+  ActionDescriptorAdjuster actionDescriptorAdjuster = { smd, ad ->
+    return ad
   } as ActionDescriptorAdjuster
   PlannerImpl planner = new PlannerImpl(actionDescriptorAdjuster: actionDescriptorAdjuster)
   DeltaMgr deltaMgr = new DeltaMgrImpl()

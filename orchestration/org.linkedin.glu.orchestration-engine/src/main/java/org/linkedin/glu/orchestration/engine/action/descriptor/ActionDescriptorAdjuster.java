@@ -16,6 +16,8 @@
 
 package org.linkedin.glu.orchestration.engine.action.descriptor;
 
+import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemModelDelta;
+
 /**
  * @author yan@pongasoft.com
  */
@@ -25,9 +27,9 @@ public interface ActionDescriptorAdjuster
    * Allows you to adjusts the descriptor including changing it entirely if you want to return
    * a different one (not recommended though).
    *
-   * @param actionDescriptor
    * @return if you return <code>null</code>, then it will be removed from the generated plan
    *         entirely (do this at your own risks!).
    */
-  InternalActionDescriptor adjustDescriptor(InternalActionDescriptor actionDescriptor);
+  InternalActionDescriptor adjustDescriptor(InternalSystemModelDelta systemModelDelta,
+                                            InternalActionDescriptor actionDescriptor);
 }

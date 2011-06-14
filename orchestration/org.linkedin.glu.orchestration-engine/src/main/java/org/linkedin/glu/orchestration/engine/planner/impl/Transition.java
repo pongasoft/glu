@@ -200,7 +200,8 @@ public abstract class Transition
    */
   protected LeafStep<ActionDescriptor> buildStep(InternalActionDescriptor actionDescriptor)
   {
-    actionDescriptor = getActionDescriptorAdjuster().adjustDescriptor(actionDescriptor);
+    actionDescriptor = getActionDescriptorAdjuster().adjustDescriptor(getSystemModelDelta(),
+                                                                      actionDescriptor);
 
     if(actionDescriptor != null)
     {
