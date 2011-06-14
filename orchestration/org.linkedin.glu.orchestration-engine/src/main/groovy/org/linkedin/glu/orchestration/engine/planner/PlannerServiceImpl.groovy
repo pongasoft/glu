@@ -48,6 +48,9 @@ class PlannerServiceImpl implements PlannerService
   @Initializable(required = true)
   Planner planner
 
+  @Initializable
+  String autoUpgradeScriptClassname = 'org.linkedin.glu.agent.impl.script.AutoUpgradeScript'
+
   /**
    * Compute deployment plans between the system provided (params.system) and the current
    * system.
@@ -288,7 +291,7 @@ class PlannerServiceImpl implements PlannerService
       SystemEntry entry = new SystemEntry(agent: agent,
                                           mountPoint: PlannerService.AGENT_SELF_UPGRADE_MOUNT_POINT,
                                           entryState: 'upgraded')
-      entry.script = [scriptClassName: "org.linkedin.glu.agent.impl.script.AutoUpgradeScript"]
+      entry.script = [scriptClassName: autoUpgradeScriptClassname]
       entry.initParameters = [
         newVersion: params.version,
         agentTar: params.coordinates,

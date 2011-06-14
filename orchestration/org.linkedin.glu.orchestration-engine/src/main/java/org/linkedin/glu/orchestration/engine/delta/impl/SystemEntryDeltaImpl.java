@@ -268,6 +268,18 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
   }
 
   @Override
+  public <T> T findExpectedOrCurrentValue(String key)
+  {
+    SystemEntryValue<T> value = findValue(key);
+    if(value == null)
+      return null;
+    if(value.getExpectedValue() != null)
+      return value.getExpectedValue();
+    else
+      return value.getCurrentValue();
+  }
+
+  @Override
   public void setErrorValue(String key)
   {
     if(findValueWithDelta(key) == null)

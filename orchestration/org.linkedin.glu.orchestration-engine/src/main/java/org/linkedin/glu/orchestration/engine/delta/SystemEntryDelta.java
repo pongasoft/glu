@@ -101,6 +101,12 @@ public interface SystemEntryDelta
   <T> T findValueWithNoDelta(String key);
 
   /**
+   * @return the expected value given the key. If <code>null</code> returns the current value
+   *         (<code>null</code> is returned if neither value is present)
+   */
+  <T> T findExpectedOrCurrentValue(String key);
+
+  /**
    * @return all the keys where the value has a delta */
   Set<String> getDeltaValueKeys();
 
