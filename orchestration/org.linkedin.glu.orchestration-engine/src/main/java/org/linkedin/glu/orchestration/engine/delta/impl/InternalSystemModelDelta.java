@@ -38,9 +38,9 @@ public interface InternalSystemModelDelta extends SystemModelDelta
   Collection<InternalSystemEntryDelta> findExpectedChildrenEntryDelta(String key);
   Collection<InternalSystemEntryDelta> findCurrentChildrenEntryDelta(String key);
 
-  /* dependencies (setter) */
-  void setExpectedDependencies(EntryDependencies expectedDependencies);
-  void setCurrentDependencies(EntryDependencies currentDependencies);
+  /* dependencies */
+  EntryDependencies getExpectedDependencies();
+  EntryDependencies getCurrentDependencies();
 
   /**
    * Remove all the entries referring to an an empty agent (which is not really empty)

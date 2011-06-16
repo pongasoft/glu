@@ -20,9 +20,6 @@ import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
 import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor;
 import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * @author yan@pongasoft.com
  */
@@ -31,7 +28,7 @@ public class MissingAgentTransition extends SingleStepTransition implements Skip
   /**
    * Constructor
    */
-  public MissingAgentTransition(TransitionPlan transitionPlan,
+  public MissingAgentTransition(SingleDeltaTransitionPlan transitionPlan,
                                 String key,
                                 String entryKey,
                                 String action,

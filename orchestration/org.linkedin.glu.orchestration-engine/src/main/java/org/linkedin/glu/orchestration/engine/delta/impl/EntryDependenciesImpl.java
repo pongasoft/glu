@@ -44,6 +44,18 @@ public class EntryDependenciesImpl implements EntryDependencies
   }
 
   @Override
+  public DependencyType getDependencyType(String key)
+  {
+    if(_parents.containsKey(key))
+      return DependencyType.PARENT;
+
+    if(_children.containsKey(key))
+      return DependencyType.CHILD;
+
+    return DependencyType.NONE;
+  }
+
+  @Override
   public String findParent(String key)
   {
     return _parents.get(key);
@@ -84,6 +96,7 @@ public class EntryDependenciesImpl implements EntryDependencies
 
     entriesWithDependency.addAll(getEntriesWithParents());
     entriesWithDependency.addAll(getEntriesWithChildren());
+    
     return entriesWithDependency;
   }
 

@@ -20,9 +20,6 @@ import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
 import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor;
 import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * @author yan@pongasoft.com
  */
@@ -33,7 +30,7 @@ public class AlreadyInTransition extends SingleStepTransition implements Skippab
   /**
    * Constructor
    */
-  public AlreadyInTransition(TransitionPlan transitionPlan,
+  public AlreadyInTransition(SingleDeltaTransitionPlan transitionPlan,
                              String key,
                              String entryKey,
                              String action,

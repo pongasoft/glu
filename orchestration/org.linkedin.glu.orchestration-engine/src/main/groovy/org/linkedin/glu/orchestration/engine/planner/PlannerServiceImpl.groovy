@@ -21,7 +21,6 @@ package org.linkedin.glu.orchestration.engine.planner
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.glu.orchestration.engine.delta.DeltaMgr
-import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.orchestration.engine.fabric.FabricService
 import org.linkedin.glu.provisioner.core.model.SystemEntry
@@ -57,9 +56,7 @@ class PlannerServiceImpl implements PlannerService
    */
   Collection<Plan<ActionDescriptor>> computeDeployPlans(params, def metadata)
   {
-    computeDeploymentPlans(params, metadata) { Type type, SystemModelDelta delta ->
-      planner.computeDeploymentPlan(type, delta)
-    }
+    computeDeploymentPlans(params, metadata, null)
   }
 
   @Override
@@ -81,9 +78,9 @@ class PlannerServiceImpl implements PlannerService
    */
   private Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params,
                                                                     def metadata,
-                                                                    Closure closure)
+                                                                    Collection<String> toStates)
   {
-    computeDeploymentPlans(params, metadata, null, null, closure)
+    computeDeploymentPlans(params, metadata, null, null, toStates)
   }
 
   /**
@@ -100,7 +97,7 @@ class PlannerServiceImpl implements PlannerService
                                                                     def metadata,
                                                                     def expectedModelFilter,
                                                                     def currentModelFiter,
-                                                                    Closure closure)
+                                                                    Collection<String> toStates)
   {
     SystemModel expectedModel = params.system
 
@@ -120,7 +117,7 @@ class PlannerServiceImpl implements PlannerService
     if(currentModelFiter)
       currentModel = currentModel.filterBy(currentModelFiter)
 
-    computeDeploymentPlans(params, expectedModel, currentModel, metadata, closure)
+    computeDeploymentPlans(params, expectedModel, currentModel, metadata, toStates)
   }
 
   /**
@@ -137,10 +134,17 @@ class PlannerServiceImpl implements PlannerService
                                                                     SystemModel expectedModel,
                                                                     SystemModel currentModel,
                                                                     def metadata,
-                                                                    Closure closure)
+                                                                    Collection<String> toStates)
   {
-    // 1. compute delta between expectedModel and currentModel
-    SystemModelDelta delta = deltaMgr.computeDelta(expectedModel, currentModel)
+    // 1. compute delta
+    def delta
+    if(toStates)
+      delta = deltaMgr.computeDeltas(expectedModel, currentModel, toStates)
+    else
+      delta = deltaMgr.computeDelta(expectedModel, currentModel)
+
+    // 2. compute the transition plan
+    TransitionPlan<ActionDescriptor> transitionPlan = planner.computeTransitionPlan(delta)
 
     Collection<Type> types = []
     if(params.type)
@@ -152,10 +156,10 @@ class PlannerServiceImpl implements PlannerService
       metadata = [:]
 
     types.collect { Type type ->
-      // 2. compute the deployment plan for the delta (and the given type)
-      Plan<ActionDescriptor> plan = closure(type, delta)
+      // 3. compute the deployment plan the given type
+      Plan<ActionDescriptor> plan = transitionPlan.buildPlan(type)
 
-      // 3. set name and metadata for the plan
+      // 4. set name and metadata for the plan
       plan.setMetadata('fabric', expectedModel.fabric)
       plan.setMetadata('systemId', expectedModel.id)
       plan.setMetadata(metadata)
@@ -183,9 +187,7 @@ class PlannerServiceImpl implements PlannerService
    */
   Collection<Plan<ActionDescriptor>> computeTransitionPlans(params, def metadata)
   {
-    computeDeploymentPlans(params, metadata) { Type type, SystemModelDelta delta ->
-      planner.computeTransitionPlan(type, delta, [params.state])
-    }
+    computeDeploymentPlans(params, metadata, [params.state])
   }
 
   @Override
@@ -209,9 +211,8 @@ class PlannerServiceImpl implements PlannerService
     computeDeploymentPlans(params,
                            metadata,
                            null,
-                           bounceCurrentModelFilter) { Type type, SystemModelDelta delta ->
-      planner.computeTransitionPlan(type, delta, ['stopped', 'running'])
-    }
+                           bounceCurrentModelFilter,
+                           ['stopped', 'running'])
   }
 
   @Override
@@ -227,9 +228,7 @@ class PlannerServiceImpl implements PlannerService
    */
   Collection<Plan<ActionDescriptor>> computeUndeployPlans(params, def metadata)
   {
-    computeDeploymentPlans(params, metadata) { Type type, SystemModelDelta delta ->
-      planner.computeTransitionPlan(type, delta, [null])
-    }
+    computeDeploymentPlans(params, metadata, [null])
   }
 
   @Override
@@ -254,9 +253,8 @@ class PlannerServiceImpl implements PlannerService
     computeDeploymentPlans(params,
                            metadata,
                            null,
-                           redeployCurrentModelFilter) { Type type, SystemModelDelta delta ->
-      planner.computeTransitionPlan(type, delta, [null, '<expected>'])
-    }
+                           redeployCurrentModelFilter,
+                           [null, '<expected>'])
   }
 
   @Override
@@ -306,9 +304,8 @@ class PlannerServiceImpl implements PlannerService
     toSinglePlan(computeDeploymentPlans(params,
                                         expectedModel,
                                         currentModel,
-                                        metadata) { Type type, SystemModelDelta delta ->
-      planner.computeTransitionPlan(type, delta, ['<expected>', null])
-    })
+                                        metadata,
+                                        ['<expected>', null]))
   }
 
   private def agentsCleanupUpgradeExpectedModelFilter = { SystemEntry entry ->
@@ -326,9 +323,8 @@ class PlannerServiceImpl implements PlannerService
     toSinglePlan(computeDeploymentPlans(params,
                                         metadata,
                                         agentsCleanupUpgradeExpectedModelFilter,
-                                        null) { Type type, SystemModelDelta delta ->
-      planner.computeDeploymentPlan(type, delta)
-    })
+                                        null,
+                                        null))
   }
 
   protected Plan<ActionDescriptor> toSinglePlan(Collection<Plan<ActionDescriptor>> plans)

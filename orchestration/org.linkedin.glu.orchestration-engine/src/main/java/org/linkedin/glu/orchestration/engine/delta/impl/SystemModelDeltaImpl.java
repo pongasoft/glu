@@ -190,16 +190,26 @@ public class SystemModelDeltaImpl implements InternalSystemModelDelta
     return flattenInto;
   }
 
-  @Override
   public void setExpectedDependencies(EntryDependencies expectedDependencies)
   {
     _expectedDependencies = expectedDependencies;
   }
 
-  @Override
   public void setCurrentDependencies(EntryDependencies currentDependencies)
   {
     _currentDependencies = currentDependencies;
+  }
+
+  @Override
+  public EntryDependencies getExpectedDependencies()
+  {
+    return _expectedDependencies;
+  }
+
+  @Override
+  public EntryDependencies getCurrentDependencies()
+  {
+    return _currentDependencies;
   }
 
   @Override

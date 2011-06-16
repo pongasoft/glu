@@ -34,7 +34,7 @@ import java.util.Set;
  */
 public abstract class Transition
 {
-  private final TransitionPlan _transitionPlan;
+  private final SingleDeltaTransitionPlan _transitionPlan;
   private final String _key;
 
   private boolean _virtual = true;
@@ -50,22 +50,33 @@ public abstract class Transition
     @Override
     public int compare(Transition t1, Transition t2)
     {
-      return LangUtils.compare(t1.getKey(), t2.getKey());
+      int res = LangUtils.compare(t1.getKey(), t2.getKey());
+      if(res == 0)
+      {
+        res = LangUtils.compare(t1.getTransitionPlanSequenceNumber(),
+                                t2.getTransitionPlanSequenceNumber());
+      }
+      return res;
     }
   }
 
   /**
    * Constructor
    */
-  public Transition(TransitionPlan transitionPlan, String key)
+  public Transition(SingleDeltaTransitionPlan transitionPlan, String key)
   {
     _transitionPlan = transitionPlan;
     _key = key;
   }
 
-  public TransitionPlan getTransitionPlan()
+  public SingleDeltaTransitionPlan getTransitionPlan()
   {
     return _transitionPlan;
+  }
+
+  public int getTransitionPlanSequenceNumber()
+  {
+    return _transitionPlan.getSequenceNumber();
   }
 
   public InternalSystemModelDelta getSystemModelDelta()

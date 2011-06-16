@@ -28,7 +28,6 @@ import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -46,7 +45,7 @@ public class SingleStepTransition extends SingleEntryTransition
   /**
    * Constructor
    */
-  public SingleStepTransition(TransitionPlan transitionPlan,
+  public SingleStepTransition(SingleDeltaTransitionPlan transitionPlan,
                               String key,
                               String entryKey,
                               String action,

@@ -31,7 +31,7 @@ public class MultiStepsSingleEntryTransition extends SingleEntryTransition
   /**
    * Constructor
    */
-  public MultiStepsSingleEntryTransition(TransitionPlan transitionPlan,
+  public MultiStepsSingleEntryTransition(SingleDeltaTransitionPlan transitionPlan,
                                          String key,
                                          String entryKey,
                                          Collection<Transition> transitions)

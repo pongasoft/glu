@@ -29,7 +29,7 @@ public abstract class SingleEntryTransition extends Transition
   /**
    * Constructor
    */
-  public SingleEntryTransition(TransitionPlan transitionPlan, String key, String entryKey)
+  public SingleEntryTransition(SingleDeltaTransitionPlan transitionPlan, String key, String entryKey)
   {
     super(transitionPlan, key);
     _entryKey = entryKey;
@@ -63,5 +63,35 @@ public abstract class SingleEntryTransition extends Transition
     actionDescriptor.setValue("mountPoint", getMountPoint());
 
     return actionDescriptor;
+  }
+
+  public SingleEntryTransition findLastTransition()
+  {
+    for(Transition transition : getExecuteBefore())
+    {
+      if(transition instanceof SingleEntryTransition)
+      {
+        SingleEntryTransition set = (SingleEntryTransition) transition;
+        if(getEntryKey().equals(set.getEntryKey()))
+          return set.findLastTransition();
+      }
+    }
+    
+    return this;
+  }
+
+  public SingleEntryTransition findFirstTransition()
+  {
+    for(Transition transition : getExecuteAfter())
+    {
+      if(transition instanceof SingleEntryTransition)
+      {
+        SingleEntryTransition set = (SingleEntryTransition) transition;
+        if(getEntryKey().equals(set.getEntryKey()))
+          return set.findFirstTransition();
+      }
+    }
+
+    return this;
   }
 }

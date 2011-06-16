@@ -21,6 +21,7 @@ import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
 import org.linkedin.glu.utils.tags.ReadOnlyTaggeable
+import org.linkedin.util.lang.LangUtils
 
 /**
  * @author ypujante@linkedin.com */
@@ -192,6 +193,13 @@ class SystemEntry implements ReadOnlyTaggeable, MetadataProvider
     destMap.key = key
     destMap.entryState = getEntryState() // not part of er if <code>null</code>
     return destMap
+  }
+
+  public SystemEntry clone()
+  {
+    def ext = toExternalRepresentation()
+    ext = LangUtils.deepClone(ext)
+    return fromExternalRepresentation(ext)
   }
 
   static SystemEntry fromExternalRepresentation(def er)

@@ -25,6 +25,20 @@ import java.util.Set;
  */
 public interface EntryDependencies
 {
+  enum DependencyType
+  {
+    PARENT,
+    CHILD,
+    NONE
+  }
+
+  /**
+   * @return the type of dependency this key is in or in other words which <code>find*</code>
+   * method to call witout returning <code>null</code>. Note that this method returns <code>NONE</code>
+   * whether the key exists or is not in a parent/child relationship.
+   */
+  DependencyType getDependencyType(String key);
+
   /**
    * @return the parent of the entry if there is any, <code>null</code> otherwise
    */

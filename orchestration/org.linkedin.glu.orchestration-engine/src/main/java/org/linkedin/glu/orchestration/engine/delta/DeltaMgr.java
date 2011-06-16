@@ -18,10 +18,25 @@ package org.linkedin.glu.orchestration.engine.delta;
 
 import org.linkedin.glu.provisioner.core.model.SystemModel;
 
+import java.util.Collection;
+
 /**
  * @author yan@pongasoft.com
  */
 public interface DeltaMgr
 {
+  /**
+   * Computes the delta between the 2 models
+   */
   SystemModelDelta computeDelta(SystemModel expectedModel, SystemModel currentModel);
+
+  /**
+   * Computes N deltas to go from state to state. If <code>state==null</code> it means empty
+   * system, if <code>state==<expected></code> it means <code>expectedModel</code>.
+   *
+   * @return a collection of deltas (same size as <code>toStates</code>)
+   */
+  Collection<SystemModelDelta> computeDeltas(SystemModel expectedModel,
+                                             SystemModel currentModel,
+                                             Collection<String> toStates);
 }

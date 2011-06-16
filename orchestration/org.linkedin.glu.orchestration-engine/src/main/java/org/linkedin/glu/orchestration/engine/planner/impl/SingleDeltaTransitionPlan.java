@@ -22,10 +22,9 @@ import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemEntryDelta;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemModelDelta;
-import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
+import org.linkedin.glu.orchestration.engine.planner.TransitionPlan;
 import org.linkedin.glu.provisioner.plan.api.IStep;
 import org.linkedin.glu.provisioner.plan.api.Plan;
-import org.linkedin.glu.provisioner.plan.api.PlanBuilder;
 import org.linkedin.groovy.util.state.StateMachine;
 import org.linkedin.util.lang.LangUtils;
 
@@ -35,15 +34,12 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * @author yan@pongasoft.com
  */
-public class TransitionPlan
+public class SingleDeltaTransitionPlan implements TransitionPlan<ActionDescriptor>
 {
   public enum ActionFromStatus
   {
@@ -60,19 +56,37 @@ public class TransitionPlan
   private final AgentURIProvider _agentURIProvider;
   private final ActionDescriptorAdjuster _actionDescriptorAdjuster;
   private final Map<String, Transition> _transitions = new HashMap<String, Transition>();
+  private final int _sequenceNumber;
 
-  private boolean _postProcessed = false;
+  private TransitionPlan<ActionDescriptor> _transitionPlan;
 
   /**
    * Constructor
    */
-  public TransitionPlan(InternalSystemModelDelta systemModelDelta,
-                        AgentURIProvider agentURIProvider,
-                        ActionDescriptorAdjuster actionDescriptorAdjuster)
+  public SingleDeltaTransitionPlan(InternalSystemModelDelta systemModelDelta,
+                                   AgentURIProvider agentURIProvider,
+                                   ActionDescriptorAdjuster actionDescriptorAdjuster)
+  {
+    this(systemModelDelta, agentURIProvider, actionDescriptorAdjuster, 0);
+  }
+
+  /**
+   * Constructor
+   */
+  public SingleDeltaTransitionPlan(InternalSystemModelDelta systemModelDelta,
+                                   AgentURIProvider agentURIProvider,
+                                   ActionDescriptorAdjuster actionDescriptorAdjuster,
+                                   int sequenceNumber)
   {
     _systemModelDelta = systemModelDelta;
     _agentURIProvider = agentURIProvider;
     _actionDescriptorAdjuster = actionDescriptorAdjuster;
+    _sequenceNumber = sequenceNumber;
+  }
+
+  public int getSequenceNumber()
+  {
+    return _sequenceNumber;
   }
 
   public InternalSystemModelDelta getSystemModelDelta()
@@ -95,118 +109,60 @@ public class TransitionPlan
     return _transitions;
   }
 
-  public Plan<ActionDescriptor> buildPlan(IStep.Type type)
+  public TransitionPlan<ActionDescriptor> getTransitionPlan()
   {
-    postProcess();
-    
-    PlanBuilder<ActionDescriptor> builder = new PlanBuilder<ActionDescriptor>();
-
-    if(isMultiStepsOnly())
-    {
-      ICompositeStepBuilder<ActionDescriptor> stepBuilder = builder.addCompositeSteps(type);
-      for(String key : new TreeSet<String>(_transitions.keySet()))
-      {
-        Transition transition = _transitions.get(key);
-        transition.addSteps(stepBuilder);
-      }
-    }
-    else
-    {
-      ICompositeStepBuilder<ActionDescriptor> stepBuilder = builder.addSequentialSteps();
-
-      Set<Transition> roots =
-        findRoots(new TreeSet<Transition>(Transition.TransitionComparator.INSTANCE));
-
-      addSteps(stepBuilder, type, roots, 0, new HashSet<Transition>());
-    }
-
-
-    return builder.toPlan();
+    if(_transitionPlan == null)
+      _transitionPlan = new TransitionPlanImpl(new HashSet<Transition>(_transitions.values()));
+    return _transitionPlan;
   }
 
-  private boolean isMultiStepsOnly()
+  /**
+   * @return a map where the key is entry key and the value is the 'last' transition executed for
+   * this entry key
+   */
+  public Map<String, SingleEntryTransition> getLastTransitions()
   {
+    Map<String, SingleEntryTransition> lastTransitions =
+      new HashMap<String, SingleEntryTransition>();
+
     for(Transition transition : _transitions.values())
     {
-      if(!(transition instanceof MultiStepsSingleEntryTransition))
-        return false;
-    }
-
-    return true;
-  }
-
-  public Set<Transition> findRoots(Set<Transition> roots)
-  {
-    Map<String, Transition> transitions = getTransitions();
-
-    for(Transition transition : transitions.values())
-    {
-      if(transition.isRoot())
+      if(transition instanceof SingleEntryTransition)
       {
-        roots.add(transition);
+        SingleEntryTransition set = (SingleEntryTransition) transition;
+        if(!lastTransitions.containsKey(set.getEntryKey()))
+          lastTransitions.put(set.getEntryKey(), set.findLastTransition());
       }
     }
 
-    return roots;
+    return lastTransitions;
   }
 
-  private void addSteps(ICompositeStepBuilder<ActionDescriptor> stepBuilder,
-                        IStep.Type type,
-                        Set<Transition> transitions,
-                        int depth,
-                        Set<Transition> alreadyProcessed)
+  /**
+   * @return a map where the key is entry key and the value is the 'first' transition executed for
+   * this entry key
+   */
+  public Map<String, SingleEntryTransition> getFirstTransitions()
   {
-    if(transitions.size() == 0)
-      return;
+    Map<String, SingleEntryTransition> firstTransitions =
+      new HashMap<String, SingleEntryTransition>();
 
-    ICompositeStepBuilder<ActionDescriptor> depthBuilder = stepBuilder.addCompositeSteps(type);
-    depthBuilder.setMetadata("depth", depth);
-
-    Set<Transition> nextTransitions =
-      new TreeSet<Transition>(Transition.TransitionComparator.INSTANCE);
-
-    for(Transition transition : transitions)
+    for(Transition transition : _transitions.values())
     {
-      if(!alreadyProcessed.contains(transition))
+      if(transition instanceof SingleEntryTransition)
       {
-        // if transition should be skip then all following transition will be skipped as well
-        if(transition.shouldSkip())
-        {
-          transition.addSteps(depthBuilder);
-          alreadyProcessed.add(transition);
-        }
-        else
-        {
-          // make sure that all 'before' steps have been completed
-          if(checkExecuteBefore(transition, alreadyProcessed))
-          {
-            alreadyProcessed.add(transition);
-            transition.addSteps(depthBuilder);
-            for(Transition t : transition.getExecuteBefore())
-            {
-              nextTransitions.add(t);
-            }
-          }
-          else
-          {
-            // no they have not => add for next iteration
-            nextTransitions.add(transition);
-          }
-        }
+        SingleEntryTransition set = (SingleEntryTransition) transition;
+        if(!firstTransitions.containsKey(set.getEntryKey()))
+          firstTransitions.put(set.getEntryKey(), set.findFirstTransition());
       }
     }
 
-    addSteps(stepBuilder, type, nextTransitions, depth + 1, alreadyProcessed);
+    return firstTransitions;
   }
 
-  private boolean checkExecuteBefore(Transition transition, Set<Transition> alreadyProcessed)
+  public Plan<ActionDescriptor> buildPlan(IStep.Type type)
   {
-    for(Transition t : transition.getExecuteAfter())
-    {
-      if(!alreadyProcessed.contains(t))
-        return false;
-    }
-    return true;
+    return getTransitionPlan().buildPlan(type);
   }
 
   /**
@@ -220,7 +176,7 @@ public class TransitionPlan
   {
     String entryKey = entryDelta.getKey();
     String key = SingleStepTransition.computeTransitionKey(entryKey, action);
-    Transition transition = findTransition(entryDelta, key);
+    Transition transition = _transitions.get(key);
     if(transition == null)
     {
       transition = createTransition(entryDelta, key, action, toState);
@@ -266,68 +222,6 @@ public class TransitionPlan
     return new SingleStepTransition(this, key, entryDelta.getKey(), action, toState);
   }
 
-  protected Transition findTransition(InternalSystemEntryDelta entryDelta, String key)
-  {
-    Transition transition = _transitions.get(entryDelta.getAgent());
-    if(transition != null)
-      return transition;
-
-    String entryKey = entryDelta.getKey();
-
-    transition = _transitions.get(entryKey);
-    if(transition != null)
-      return transition;
-
-    return _transitions.get(key);
-  }
-
-  protected void filterVirtual()
-  {
-
-    for(Transition transition : _transitions.values())
-    {
-      Iterator<Transition> iter = transition.getExecuteAfter().iterator();
-      while(iter.hasNext())
-      {
-        if(iter.next().isVirtual())
-          iter.remove();
-      }
-
-      iter = transition.getExecuteBefore().iterator();
-      while(iter.hasNext())
-      {
-        if(iter.next().isVirtual())
-          iter.remove();
-      }
-    }
-
-    Iterator<Map.Entry<String,Transition>> iter = _transitions.entrySet().iterator();
-    while(iter.hasNext())
-    {
-      Map.Entry<String, Transition> entry = iter.next();
-      if(entry.getValue().isVirtual())
-        iter.remove();
-    }
-  }
-
-  protected void optimizeMultiSteps()
-  {
-    Set<Transition> roots = findRoots(new HashSet<Transition>());
-
-    for(Transition root : roots)
-    {
-      MultiStepsSingleEntryTransition mset = root.convertToMultiSteps();
-      if(mset != null)
-      {
-        for(Transition transition : mset.getTransitions())
-        {
-          _transitions.remove(transition.getKey());
-        }
-        _transitions.put(mset.getKey(), mset);
-      }
-    }
-  }
-
   protected Transition addTransition(InternalSystemEntryDelta entryDelta,
                                      String action,
                                      String toState,
@@ -359,17 +253,6 @@ public class TransitionPlan
     return transition;
   }
 
-  private void postProcess()
-  {
-    if(_postProcessed)
-      return;
-
-    filterVirtual();
-    optimizeMultiSteps();
-
-    _postProcessed = true;
-  }
-
   /**
    * Compute the transitions necessary to fix the delta
    */
@@ -382,26 +265,6 @@ public class TransitionPlan
     while(!_entriesToProcess.isEmpty())
     {
       processEntryDelta(_systemModelDelta.findAnyEntryDelta(_entriesToProcess.poll()));
-    }
-  }
-
-  /**
-   * Computes the transitions to go from state to state
-   *
-   * @param toStates which states to process
-   */
-  public void computeTransitions(Collection<String> toStates)
-  {
-    _entriesToProcess = new ArrayDeque<String>();
-
-    _systemModelDelta.getKeys(_entriesToProcess);
-
-    while(!_entriesToProcess.isEmpty())
-    {
-      InternalSystemEntryDelta entryDelta =
-        _systemModelDelta.findAnyEntryDelta(_entriesToProcess.poll());
-      if(!entryDelta.isEmptyAgent())
-        processEntryTransition(entryDelta, toStates);
     }
   }
 

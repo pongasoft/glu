@@ -428,6 +428,11 @@ class SystemModel implements MetadataProvider
 
   def toExternalRepresentation()
   {
+    toExternalRepresentation(true)
+  }
+
+  def toExternalRepresentation(boolean includeEntries)
+  {
     def map = [
       id: id,
       fabric: fabric
@@ -436,7 +441,7 @@ class SystemModel implements MetadataProvider
     if(metadata)
       map.metadata = metadata
 
-    if(_entries)
+    if(includeEntries && _entries)
       map.entries = findEntries().collect { it.toExternalRepresentation() }
 
     if(!_agentTags.isEmpty())
@@ -452,6 +457,13 @@ class SystemModel implements MetadataProvider
   public SystemModel clone()
   {
     def ext = toExternalRepresentation()
+    ext = LangUtils.deepClone(ext)
+    return SystemModel.fromExternalRepresentation(ext)
+  }
+
+  public SystemModel cloneNoEntries()
+  {
+    def ext = toExternalRepresentation(false)
     ext = LangUtils.deepClone(ext)
     return SystemModel.fromExternalRepresentation(ext)
   }

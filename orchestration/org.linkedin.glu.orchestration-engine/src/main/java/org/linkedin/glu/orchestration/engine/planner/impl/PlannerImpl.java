@@ -22,11 +22,14 @@ import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider;
 import org.linkedin.glu.orchestration.engine.action.descriptor.DefaultActionDescriptorAdjuster;
 import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemModelDelta;
+import org.linkedin.glu.orchestration.engine.planner.TransitionPlan;
 import org.linkedin.glu.orchestration.engine.planner.Planner;
+import org.linkedin.glu.provisioner.core.model.SystemModel;
 import org.linkedin.glu.provisioner.plan.api.IStep;
 import org.linkedin.glu.provisioner.plan.api.Plan;
 import org.linkedin.util.annotations.Initializer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -75,17 +78,71 @@ public class PlannerImpl implements Planner
   public Plan<ActionDescriptor> computeDeploymentPlan(IStep.Type type,
                                                       SystemModelDelta systemModelDelta)
   {
+    TransitionPlan<ActionDescriptor> transitionPlan = computeTransitionPlan(systemModelDelta);
+
+    if(transitionPlan == null)
+      return null;
+
+    return transitionPlan.buildPlan(type);
+  }
+
+  @Override
+  public TransitionPlan<ActionDescriptor> computeTransitionPlan(SystemModelDelta systemModelDelta)
+  {
     if(systemModelDelta == null)
       return null;
 
-    TransitionPlan transitionPlan =
-      new TransitionPlan((InternalSystemModelDelta) systemModelDelta,
-                         _agentURIProvider,
-                         _actionDescriptorAdjuster);
+    SingleDeltaTransitionPlan transitionPlan =
+      new SingleDeltaTransitionPlan((InternalSystemModelDelta) systemModelDelta,
+                                    _agentURIProvider,
+                                    _actionDescriptorAdjuster);
 
     transitionPlan.computeTransitionsToFixDelta();
 
-    return transitionPlan.buildPlan(type);
+    return transitionPlan;
+  }
+
+  @Override
+  public TransitionPlan<ActionDescriptor> computeTransitionPlan(Collection<SystemModelDelta> deltas)
+  {
+    if(deltas == null || deltas.size() == 0)
+      return null;
+
+    if(deltas.size() == 1)
+      return computeTransitionPlan(deltas.iterator().next());
+
+    // sanity check
+    SystemModel sm = null;
+    for(SystemModelDelta delta : deltas)
+    {
+      if(sm == null)
+        sm = delta.getExpectedSystemModel();
+      else
+      {
+        if(!sm.equals(delta.getCurrentSystemModel()))
+          throw new IllegalArgumentException("previous expected model must be current model");
+        else
+          sm = delta.getExpectedSystemModel();
+      }
+    }
+
+    Collection<SingleDeltaTransitionPlan> transitionPlans =
+      new ArrayList<SingleDeltaTransitionPlan>(deltas.size());
+
+    int sequenceNumber = 0;
+
+    for(SystemModelDelta delta : deltas)
+    {
+      SingleDeltaTransitionPlan transitionPlan =
+        new SingleDeltaTransitionPlan((InternalSystemModelDelta) delta,
+                                      _agentURIProvider,
+                                      _actionDescriptorAdjuster,
+                                      sequenceNumber++);
+      transitionPlan.computeTransitionsToFixDelta();
+      transitionPlans.add(transitionPlan);
+    }
+
+    return new MultiDeltaTransitionPlan(transitionPlans);
   }
 
   @Override
@@ -93,16 +150,6 @@ public class PlannerImpl implements Planner
                                                       SystemModelDelta systemModelDelta,
                                                       Collection<String> toStates)
   {
-    if(systemModelDelta == null)
-      return null;
-
-    TransitionPlan transitionPlan =
-      new TransitionPlan((InternalSystemModelDelta) systemModelDelta,
-                         _agentURIProvider,
-                         _actionDescriptorAdjuster);
-
-    transitionPlan.computeTransitions(toStates);
-
-    return transitionPlan.buildPlan(type);
+    throw new RuntimeException("not implemented anymore");
   }
 }

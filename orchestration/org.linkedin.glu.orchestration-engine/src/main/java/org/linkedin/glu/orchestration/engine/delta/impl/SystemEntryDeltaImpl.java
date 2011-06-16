@@ -85,8 +85,8 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
       _values.put(ERROR_KEY, new SystemEntryValueNoDelta<Object>(error));
     _isFilteredOut = isFilteredOut;
     // when the entry is filtered out, the 'expected' state should be the 'current' state
-    if(_isFilteredOut)
-      setValue(ENTRY_STATE_KEY, this.<Object>findCurrentValue(ENTRY_STATE_KEY));
+//    if(_isFilteredOut)
+//      setValue(ENTRY_STATE_KEY, this.<Object>findCurrentValue(ENTRY_STATE_KEY));
   }
 
   @SuppressWarnings("unchecked")

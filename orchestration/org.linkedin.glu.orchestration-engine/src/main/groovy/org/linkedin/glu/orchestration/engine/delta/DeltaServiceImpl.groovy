@@ -44,27 +44,37 @@ class DeltaServiceImpl implements DeltaService
   @Initializable
   boolean notRunningOverridesVersionMismatch = false
 
+  String prettyPrint(SystemModelDelta delta)
+  {
+    computeDeltaAsJSON([delta: delta, prettyPrint: true])
+  }
+
   @Override
   String computeDeltaAsJSON(def params)
   {
-    SystemModel expectedModel = params.expectedModel
+    SystemModelDelta delta = params.delta
 
-    if(!expectedModel)
-      return null
-
-    SystemModel currentModel = params.currentModel
-
-    if(currentModel == null)
+    if(!delta)
     {
-      Fabric fabric = fabricService.findFabric(expectedModel.fabric)
+      SystemModel expectedModel = params.expectedModel
 
-      if(!fabric)
-        throw new IllegalArgumentException("unknown fabric ${expectedModel.fabric}")
+      if(!expectedModel)
+        return null
 
-      currentModel = agentsService.getCurrentSystemModel(fabric)
+      SystemModel currentModel = params.currentModel
+
+      if(currentModel == null)
+      {
+        Fabric fabric = fabricService.findFabric(expectedModel.fabric)
+
+        if(!fabric)
+          throw new IllegalArgumentException("unknown fabric ${expectedModel.fabric}")
+
+        currentModel = agentsService.getCurrentSystemModel(fabric)
+      }
+
+      delta = deltaMgr.computeDelta(expectedModel, currentModel)
     }
-
-    SystemModelDelta delta = deltaMgr.computeDelta(expectedModel, currentModel)
 
     boolean flatten = params.flatten?.toString() == "true"
 
@@ -102,7 +112,7 @@ class DeltaServiceImpl implements DeltaService
     
     // build map for json
     map = [
-      accuracy: currentModel.metadata.accuracy,
+      accuracy: delta.currentSystemModel.metadata.accuracy,
       delta: map
     ]
 
