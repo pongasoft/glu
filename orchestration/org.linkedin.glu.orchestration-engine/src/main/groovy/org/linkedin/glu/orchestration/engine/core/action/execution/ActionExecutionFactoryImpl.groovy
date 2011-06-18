@@ -65,9 +65,9 @@ public class ActionExecutionFactoryImpl implements ActionExecutionFactory
   @Initializable(required = false)
   Timespan agentRecoveryTimeout = Timespan.parse('5s')
 
-  // wait for 5s (default) for the agent to restart
+  // wait for 10s (default) for the agent to restart
   @Initializable(required = false)
-  Timespan selfUpgradeWaitForRestartTimeout = Timespan.parse("5s")
+  Timespan selfUpgradeWaitForRestartTimeout = Timespan.parse("10s")
 
   /**
    * when a communication exception is detected with the agent, it will retry a certain number of

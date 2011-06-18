@@ -113,7 +113,8 @@ start()
     
     # Save PID
     echo $! > $PID_FILE
-    
+    echo $! > $PID_FILE_UPGRADE
+
     echo "Started $APP_NAME - PID [`cat $PID_FILE`]"
   fi
   
@@ -306,6 +307,8 @@ if [ -f $GLU_USER_CONFIG_DIR/post_master_conf.sh ]; then
 fi
 
 PID_FILE=$LOG_DIR/$APP_NAME.pid
+# due to a bug in upgrade script we need to write this file as well! (glu-73)
+PID_FILE_UPGRADE=$LOG_DIR/glu-agent.pid
 
 # correct the index so the command argument is always $1
 shift $(($OPTIND - 1)) 
