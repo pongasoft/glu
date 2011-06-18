@@ -17,6 +17,7 @@
 package org.linkedin.glu.orchestration.engine.delta.impl;
 
 import org.linkedin.glu.orchestration.engine.delta.DeltaMgr;
+import org.linkedin.glu.orchestration.engine.delta.DeltaSystemModelFilter;
 import org.linkedin.glu.orchestration.engine.delta.MultipleDeltaStatusInfo;
 import org.linkedin.glu.orchestration.engine.delta.SingleDeltaStatusInfo;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
@@ -78,17 +79,23 @@ public class DeltaMgrImpl implements DeltaMgr, InternalDeltaProcessor
 
   @Override
   public SystemModelDelta computeDelta(SystemModel filteredExpectedModel,
-                                       SystemModel filteredCurrentModel)
+                                       SystemModel filteredCurrentModel,
+                                       DeltaSystemModelFilter filter)
   {
-    return new SingleDeltaBuilder(this, filteredExpectedModel, filteredCurrentModel).build();
+    SingleDeltaBuilder builder =
+      new SingleDeltaBuilder(this, filteredExpectedModel, filteredCurrentModel, filter);
+    return builder.build();
   }
 
   @Override
-  public Collection<SystemModelDelta> computeDeltas(SystemModel expectedModel,
-                                                    SystemModel currentModel,
-                                                    Collection<String> toStates)
+  public Collection<SystemModelDelta> computeDeltas(SystemModel filteredExpectedModel,
+                                                    SystemModel filteredCurrentModel,
+                                                    Collection<String> toStates,
+                                                    DeltaSystemModelFilter filter)
   {
-    return new MultiDeltaBuilder(this, expectedModel, currentModel, toStates).build();
+    MultiDeltaBuilder builder =
+      new MultiDeltaBuilder(this, filteredExpectedModel, filteredCurrentModel, toStates, filter);
+    return builder.build();
   }
 
   @Override

@@ -73,7 +73,7 @@ class DeltaServiceImpl implements DeltaService
         currentModel = agentsService.getCurrentSystemModel(fabric)
       }
 
-      delta = deltaMgr.computeDelta(expectedModel, currentModel)
+      delta = deltaMgr.computeDelta(expectedModel, currentModel, null)
     }
 
     boolean flatten = params.flatten?.toString() == "true"
@@ -167,7 +167,7 @@ class DeltaServiceImpl implements DeltaService
     SystemModel currentModel = agentsService.getCurrentSystemModel(fabric)
 
     [
-        delta: deltaMgr.computeDelta(expectedModel, currentModel),
+        delta: deltaMgr.computeDelta(expectedModel, currentModel, null),
         accuracy: currentModel.metadata.accuracy
     ]
   }
@@ -175,7 +175,7 @@ class DeltaServiceImpl implements DeltaService
   Collection<Map<String, Object>> computeDelta(SystemModel expectedModel,
                                                SystemModel currentModel)
   {
-    SystemModelDelta delta = deltaMgr.computeDelta(expectedModel, currentModel)
+    SystemModelDelta delta = deltaMgr.computeDelta(expectedModel, currentModel, null)
 
     Collection<Map<String, Object>> flattenedDelta =
       delta.flatten(new TreeMap<String, Map<String, Object>>()).values()

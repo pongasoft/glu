@@ -28,6 +28,10 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.util.annotations.Initializable
+import org.linkedin.glu.orchestration.engine.delta.DeltaSystemModelFilter
+import org.linkedin.glu.orchestration.engine.delta.impl.BounceDeltaSystemModelFilter
+import org.linkedin.glu.orchestration.engine.delta.CurrentOnlyDeltaSystemModelFilter
+import org.linkedin.glu.orchestration.engine.delta.impl.RedeployDeltaSystemModelFilter
 
 /**
  * System service.
@@ -80,7 +84,7 @@ class PlannerServiceImpl implements PlannerService
                                                                     def metadata,
                                                                     Collection<String> toStates)
   {
-    computeDeploymentPlans(params, metadata, null, null, toStates)
+    computeDeploymentPlans(params, metadata, null, null, null, toStates)
   }
 
   /**
@@ -97,6 +101,7 @@ class PlannerServiceImpl implements PlannerService
                                                                     def metadata,
                                                                     def expectedModelFilter,
                                                                     def currentModelFiter,
+                                                                    DeltaSystemModelFilter filter,
                                                                     Collection<String> toStates)
   {
     SystemModel expectedModel = params.system
@@ -117,7 +122,7 @@ class PlannerServiceImpl implements PlannerService
     if(currentModelFiter)
       currentModel = currentModel.filterBy(currentModelFiter)
 
-    computeDeploymentPlans(params, expectedModel, currentModel, metadata, toStates)
+    computeDeploymentPlans(params, expectedModel, currentModel, filter, metadata, toStates)
   }
 
   /**
@@ -133,15 +138,16 @@ class PlannerServiceImpl implements PlannerService
   private Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params,
                                                                     SystemModel expectedModel,
                                                                     SystemModel currentModel,
+                                                                    DeltaSystemModelFilter filter,
                                                                     def metadata,
                                                                     Collection<String> toStates)
   {
     // 1. compute delta
     def delta
     if(toStates)
-      delta = deltaMgr.computeDeltas(expectedModel, currentModel, toStates)
+      delta = deltaMgr.computeDeltas(expectedModel, currentModel, toStates, filter)
     else
-      delta = deltaMgr.computeDelta(expectedModel, currentModel)
+      delta = deltaMgr.computeDelta(expectedModel, currentModel, filter)
 
     // 2. compute the transition plan
     TransitionPlan<ActionDescriptor> transitionPlan = planner.computeTransitionPlan(delta)
@@ -197,21 +203,21 @@ class PlannerServiceImpl implements PlannerService
     return toSinglePlan(computeTransitionPlans(params, metadata))
   }
 
-  // we filter by entries where the current state is 'running' or 'stopped'
-  private def bounceCurrentModelFilter = { SystemEntry entry ->
-      entry.entryState == 'running' || entry.entryState == 'stopped'
-  }
-
   /**
    * Compute a bounce plan to bounce (= stop/start) containers.
    * @param metadata any metadata to add to the plan(s)
    */
   Collection<Plan<ActionDescriptor>> computeBouncePlans(params, def metadata)
   {
+    DeltaSystemModelFilter filter = new BounceDeltaSystemModelFilter(params.system.filters)
+
+    params.system = params.system.unfilter()
+
     computeDeploymentPlans(params,
                            metadata,
                            null,
-                           bounceCurrentModelFilter,
+                           null,
+                           filter,
                            ['stopped', 'running'])
   }
 
@@ -228,7 +234,12 @@ class PlannerServiceImpl implements PlannerService
    */
   Collection<Plan<ActionDescriptor>> computeUndeployPlans(params, def metadata)
   {
-    computeDeploymentPlans(params, metadata, [null])
+    computeDeploymentPlans(params,
+                           metadata,
+                           null,
+                           null,
+                           null,
+                           [null])
   }
 
   @Override
@@ -238,22 +249,22 @@ class PlannerServiceImpl implements PlannerService
     return toSinglePlan(computeUndeployPlans(params, metadata))
   }
 
-  // the purpose of this filter is to exclude entries that should not be deployed in the first
-  // place (should not be part of 'redeploy' plan!
-  private def redeployCurrentModelFilter = { SystemEntry entry ->
-      true
-  }
-
   /**
    * Compute a redeploy plan (= undeploy/deploy).
    * @param metadata any metadata to add to the plan(s)
    */
   Collection<Plan<ActionDescriptor>> computeRedeployPlans(params, def metadata)
   {
+    RedeployDeltaSystemModelFilter filter =
+      new RedeployDeltaSystemModelFilter(params.system.filters)
+
+    params.system = params.system.unfilter()
+
     computeDeploymentPlans(params,
                            metadata,
                            null,
-                           redeployCurrentModelFilter,
+                           null,
+                           filter,
                            [null, '<expected>'])
   }
 
@@ -304,6 +315,7 @@ class PlannerServiceImpl implements PlannerService
     toSinglePlan(computeDeploymentPlans(params,
                                         expectedModel,
                                         currentModel,
+                                        null,
                                         metadata,
                                         ['<expected>', null]))
   }
@@ -323,6 +335,7 @@ class PlannerServiceImpl implements PlannerService
     toSinglePlan(computeDeploymentPlans(params,
                                         metadata,
                                         agentsCleanupUpgradeExpectedModelFilter,
+                                        null,
                                         null,
                                         null))
   }

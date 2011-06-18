@@ -92,6 +92,73 @@ public class TestPlannerService extends GroovyTestCase
   }
 
   /**
+   * Test for bounce plan when transition
+   */
+  public void testBouncePlanWithTransition()
+  {
+    SystemModel expectedModel =
+      m(
+        [agent: 'a2', mountPoint: '/m1', script: 's1'],
+        [agent: 'a2', mountPoint: '/m2', script: 's1'],
+        [agent: 'a2', mountPoint: '/m3', script: 's1'],
+        [agent: 'a2', mountPoint: '/m4', script: 's1']
+      )
+
+    SystemModel currentSystemModel =
+      m(
+        [agent: 'a2', mountPoint: '/m1', script: 's1', metadata: [transitionState: 'installed->stopped']],
+        [agent: 'a2', mountPoint: '/m2', script: 's1'])
+
+    Plan<ActionDescriptor> p = bouncePlan(Type.PARALLEL, expectedModel, currentSystemModel)
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="bounce - PARALLEL">
+  <parallel name="bounce - PARALLEL">
+    <sequential agent="a2" mountPoint="/m1">
+      <leaf action="noop" agent="a2" fabric="f1" mountPoint="/m1" reason="alreadyInTransition" transitionState="installed-&gt;stopped" />
+    </sequential>
+    <sequential agent="a2" mountPoint="/m2">
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="stop" toState="stopped" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="start" toState="running" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(3, p.leafStepsCount)
+  }
+
+  public void testBounceWithTags()
+  {
+    Plan<ActionDescriptor> p
+
+    SystemModel expectedModel =
+      m(
+        [agent: 'a2', mountPoint: '/m1', script: 's1'],
+        [agent: 'a2', mountPoint: '/m2', script: 's1', tags: ['t1']],
+      ).filterBy("tags='t1'")
+
+    SystemModel currentModel =
+      m(
+        [agent: 'a2', mountPoint: '/m1', script: 's1'],
+        [agent: 'a2', mountPoint: '/m2', script: 's1'],
+        )
+
+    p = bouncePlan(Type.PARALLEL, expectedModel, currentModel)
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="bounce - PARALLEL">
+  <parallel name="bounce - PARALLEL">
+    <sequential agent="a2" mountPoint="/m2">
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="stop" toState="stopped" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="start" toState="running" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(2, p.leafStepsCount)
+  }
+
+  /**
    * Test for redeploy plan
    */
   public void testRedeployPlan()

@@ -16,8 +16,9 @@
 
 package org.linkedin.glu.orchestration.engine.delta.impl;
 
-import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
+import org.linkedin.glu.orchestration.engine.delta.DeltaSystemModelFilter;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
+import org.linkedin.glu.provisioner.core.model.SystemFilter;
 import org.linkedin.glu.provisioner.core.model.SystemModel;
 import org.linkedin.groovy.util.state.StateMachine;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ import java.util.Set;
 /**
  * @author yan@pongasoft.com
  */
-public class SingleDeltaBuilder extends DeltaBuilder
+public class SingleDeltaBuilder
 {
   public static final String MODULE = SingleDeltaBuilder.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
@@ -39,9 +40,14 @@ public class SingleDeltaBuilder extends DeltaBuilder
   private final InternalSystemModelDelta _systemModelDelta;
   private boolean _systemModelDeltaBuilt = false;
 
+  private final SystemModel _filteredExpectedModel;
+  private final SystemModel _filteredCurrentModel;
+  private final DeltaSystemModelFilter _deltaSystemModelFilter;
+
   private SystemModel _unfilteredExpectedModel;
   private SystemModel _unfilteredCurrentModel;
 
+  private Set<String> _filteredKeys;
   private Set<String> _deltaKeys;
   private Set<String> _parentKeys;
   private HashSet<String> _nonEmptyAgents;
@@ -51,10 +57,14 @@ public class SingleDeltaBuilder extends DeltaBuilder
    */
   public SingleDeltaBuilder(InternalDeltaProcessor deltaProcessor,
                             SystemModel filteredExpectedModel,
-                            SystemModel filteredCurrentModel)
+                            SystemModel filteredCurrentModel,
+                            DeltaSystemModelFilter deltaSystemModelFilter)
   {
-    super(filteredExpectedModel, filteredCurrentModel);
+    _filteredExpectedModel = filteredExpectedModel;
+    _filteredCurrentModel = filteredCurrentModel;
+
     _deltaProcessor = deltaProcessor;
+    _deltaSystemModelFilter = deltaSystemModelFilter;
     if(_filteredExpectedModel != null && _filteredCurrentModel != null)
     {
       SystemModelDeltaImpl delta =
@@ -65,6 +75,36 @@ public class SingleDeltaBuilder extends DeltaBuilder
     }
     else
       _systemModelDelta = null;
+  }
+
+  public SystemModel getFilteredCurrentModel()
+  {
+    return _filteredCurrentModel;
+  }
+
+  public SystemModel getFilteredExpectedModel()
+  {
+    return _filteredExpectedModel;
+  }
+
+  public DeltaSystemModelFilter getDeltaSystemModelFilter()
+  {
+    return _deltaSystemModelFilter;
+  }
+
+  public Set<String> getFilteredKeys()
+  {
+    if(_filteredKeys == null)
+      _filteredKeys = computeFilteredKeys(_filteredExpectedModel,
+                                          _filteredCurrentModel,
+                                          _deltaSystemModelFilter);
+
+    return _filteredKeys;
+  }
+
+  public void setFilteredKeys(Set<String> filteredKeys)
+  {
+    _filteredKeys = filteredKeys;
   }
 
   public InternalDeltaProcessor getDeltaProcessor()
@@ -242,6 +282,47 @@ public class SingleDeltaBuilder extends DeltaBuilder
       return -1;
     else
       return stateMachine.getDepth(state);
+  }
+
+  /**
+   * Compute the set of keys that will be part of the delta: the filters set on the model will
+   * be used as filter
+   */
+  public static Set<String> computeFilteredKeys(SystemModel filteredExpectedModel,
+                                                SystemModel filteredCurrentModel,
+                                                DeltaSystemModelFilter deltaSystemModelFilter)
+  {
+    Set<String> allKeys = new HashSet<String>();
+
+    SystemFilter currentModelFilters = filteredCurrentModel.getFilters();
+    SystemFilter expectedModelFilters = filteredExpectedModel.getFilters();
+
+    // 1. we make sure to exclude all entries from the current model where that were filtered
+    // out from the expected model
+    filteredCurrentModel = filteredCurrentModel.filterBy(expectedModelFilters);
+    filteredCurrentModel.getKeys(allKeys);
+
+    // 2. we make sure to exclude all entries from the expected model where that were filtered
+    // out from the current model
+    filteredExpectedModel = filteredExpectedModel.filterBy(currentModelFilters);
+    filteredExpectedModel.getKeys(allKeys);
+
+    // if a filter was provided we use it
+    if(deltaSystemModelFilter != null)
+    {
+      Set<String> filteredKeys = new HashSet<String>();
+      for(String entryKey : allKeys)
+      {
+        if(deltaSystemModelFilter.filter(filteredExpectedModel.findEntry(entryKey),
+                                         filteredCurrentModel.findEntry(entryKey)))
+        {
+          filteredKeys.add(entryKey);
+        }
+      }
+      allKeys = filteredKeys;
+    }
+
+    return allKeys;
   }
 
 }

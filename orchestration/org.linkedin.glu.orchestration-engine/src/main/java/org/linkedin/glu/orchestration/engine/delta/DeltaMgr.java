@@ -28,7 +28,9 @@ public interface DeltaMgr
   /**
    * Computes the delta between the 2 models
    */
-  SystemModelDelta computeDelta(SystemModel expectedModel, SystemModel currentModel);
+  SystemModelDelta computeDelta(SystemModel expectedModel,
+                                SystemModel currentModel,
+                                DeltaSystemModelFilter filter);
 
   /**
    * Computes N deltas to go from state to state. If <code>state==null</code> it means empty
@@ -38,5 +40,6 @@ public interface DeltaMgr
    */
   Collection<SystemModelDelta> computeDeltas(SystemModel expectedModel,
                                              SystemModel currentModel,
-                                             Collection<String> toStates);
+                                             Collection<String> toStates,
+                                             DeltaSystemModelFilter filter);
 }

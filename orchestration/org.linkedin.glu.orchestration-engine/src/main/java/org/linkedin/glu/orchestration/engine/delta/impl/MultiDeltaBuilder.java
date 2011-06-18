@@ -16,6 +16,8 @@
 
 package org.linkedin.glu.orchestration.engine.delta.impl;
 
+import org.linkedin.glu.orchestration.engine.delta.DeltaSystemModelFilter;
+import org.linkedin.glu.orchestration.engine.delta.SystemEntryKeyDeltaSystemModelFilter;
 import org.linkedin.glu.orchestration.engine.delta.SystemModelDelta;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
 import org.linkedin.glu.provisioner.core.model.SystemModel;
@@ -43,14 +45,16 @@ public class MultiDeltaBuilder
   public MultiDeltaBuilder(InternalDeltaProcessor deltaProcessor,
                            SystemModel filteredExpectedModel,
                            SystemModel filteredCurrentModel,
-                           Collection<String> toStates)
+                           Collection<String> toStates,
+                           DeltaSystemModelFilter deltaSystemModelFilter)
   {
     _deltaProcessor = deltaProcessor;
     _toStates = toStates;
     if(filteredExpectedModel != null && filteredCurrentModel != null)
       _originalDelta = new SingleDeltaBuilder(deltaProcessor,
                                               filteredExpectedModel,
-                                              filteredCurrentModel);
+                                              filteredCurrentModel,
+                                              deltaSystemModelFilter);
     else
       _originalDelta = null;
   }
@@ -97,8 +101,8 @@ public class MultiDeltaBuilder
 
     _latestDelta = new SingleDeltaBuilder(_deltaProcessor,
                                           getOriginalUnfilteredCurrentModel(),
-                                          getOriginalUnfilteredCurrentModel());
-    _latestDelta.setFilteredKeys(getOriginalDelta().getFilteredKeys());
+                                          getOriginalUnfilteredCurrentModel(),
+                                          new SystemEntryKeyDeltaSystemModelFilter(getOriginalDelta().getFilteredKeys()));
 
     for(String state : _toStates)
     {
@@ -109,9 +113,8 @@ public class MultiDeltaBuilder
       _latestDelta =
         new SingleDeltaBuilder(_deltaProcessor,
                                newExpectedModel,
-                               _latestDelta.getUnfilteredExpectedModel());
-
-      _latestDelta.setFilteredKeys(_newFilteredKeys);
+                               _latestDelta.getUnfilteredExpectedModel(),
+                               new SystemEntryKeyDeltaSystemModelFilter(_newFilteredKeys));
 
       SystemModelDelta delta = _latestDelta.build();
 
@@ -127,7 +130,11 @@ public class MultiDeltaBuilder
   private SystemModel createNewExpectedModel(String state)
   {
     if("<expected>".equals(state))
-      return getOriginalUnfilteredExpectedModel().clone();
+    {
+      SystemModel systemModel = getOriginalUnfilteredExpectedModel().clone();
+      _newFilteredKeys.addAll(getOriginalDelta().getFilteredKeys());
+      return systemModel;
+    }
 
     SystemModel newExpectedModel = _latestDelta.getUnfilteredExpectedModel().cloneNoEntries();
 

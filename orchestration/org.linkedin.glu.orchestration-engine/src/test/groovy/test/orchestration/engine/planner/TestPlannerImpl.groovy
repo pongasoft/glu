@@ -499,7 +499,7 @@ public class TestPlannerImpl extends GroovyTestCase
 
   private SystemModelDelta delta(SystemModel expected, SystemModel current)
   {
-    deltaMgr.computeDelta(expected, current)
+    deltaMgr.computeDelta(expected, current, null)
   }
 
   private Plan<ActionDescriptor> plan(Type type, SystemModelDelta delta)
