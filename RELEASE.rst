@@ -1,6 +1,12 @@
 Latest changes
 ==============
 
+3.0.0.RC2 (2011/06/18)
+----------------------
+* Fixed `glu-71 <https://github.com/linkedin/glu/issues/71>`_: `Fix plan when bouncing parent/child`
+* Fixed `glu-72 <https://github.com/linkedin/glu/issues/72>`_: `Console times out while talking to agent`
+* Fixed `glu-73 <https://github.com/linkedin/glu/issues/73>`_: `Agent upgrade broken due to pid file invalid`
+
 3.0.0.RC1 (2011/06/12)
 ----------------------
 * Implemented `glu-63 <https://github.com/linkedin/glu/issues/63>`_: `Handle parent/child relationship in the orchestration engine/console`
