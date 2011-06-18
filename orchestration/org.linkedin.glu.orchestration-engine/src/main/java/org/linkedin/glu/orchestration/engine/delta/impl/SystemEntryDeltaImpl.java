@@ -226,7 +226,7 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
   }
 
   @Override
-  public boolean hasErrorDelta()
+  public boolean hasErrorValue()
   {
     return !_errorValueKeys.isEmpty();
   }

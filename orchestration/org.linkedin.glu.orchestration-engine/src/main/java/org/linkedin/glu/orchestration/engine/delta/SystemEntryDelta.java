@@ -130,7 +130,7 @@ public interface SystemEntryDelta
    * @return <code>true</code> if this entry is in error because of a delta or in other word
    * this call will return <code>true</code> iff {@link #getErrorValueKeys()} is not empty
    */
-  boolean hasErrorDelta();
+  boolean hasErrorValue();
 
   /**
    * @return the delta for parent (<code>null</code> if no delta!)

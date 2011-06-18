@@ -104,7 +104,7 @@ class DeltaServiceImpl implements DeltaService
           else
             return toExternalValue(sev.expectedValue)
         }
-        if(sed.hasErrorDelta())
+        if(sed.hasErrorValue())
           res.errorValueKeys = sed.getErrorValueKeys(new TreeSet())
         res
       }

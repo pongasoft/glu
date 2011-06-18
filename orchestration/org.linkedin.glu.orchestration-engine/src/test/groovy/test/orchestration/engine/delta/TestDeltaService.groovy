@@ -24,6 +24,7 @@ import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl
 import org.linkedin.glu.orchestration.engine.delta.impl.DeltaMgrImpl
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta.DeltaState
+import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 
 class TestDeltaService extends GroovyTestCase
 {
@@ -1276,6 +1277,135 @@ class TestDeltaService extends GroovyTestCase
     ]
   }
 }}""", delta)
+  }
+
+  public void testParentChildDeltaWithFilter()
+  {
+    String expectedModelString = """{
+  "agentTags": {"agent-1": ["a:tag1"]},
+  "entries": [
+    {
+      "agent": "agent-1",
+      "mountPoint": "/c1",
+      "parent": "/p1",
+      "script": "file:/tmp/ChildGluScript.groovy",
+      "tags": []
+    },
+    {
+      "agent": "agent-1",
+      "mountPoint": "/c2",
+      "parent": "/p1",
+      "script": "file:/tmp/ChildGluScript.groovy",
+      "tags": []
+    },
+    {
+      "agent": "agent-1",
+      "initParameters": {"foo": "bar"},
+      "mountPoint": "/p1",
+      "script": "file:/tmp/ParentGluScript.groovy",
+      "tags": []
+    },
+    {
+      "agent": "agent-1",
+      "mountPoint": "/p2",
+      "script": "file:/tmp/ParentGluScript.groovy",
+      "tags": []
+    }
+  ],
+  "fabric": "glu-dev-1",
+  "id": "9583ae021e15c99d0d59ab93e807f281c20d3699",
+  "metadata": {"product": {
+    "product1": {
+      "name": "product1",
+      "version": "1.0.0"
+    },
+    "product2": {
+      "name": "product2",
+      "version": "2.0.0"
+    }
+  }}
+}"""
+
+    String currentModelString = """{
+  "entries": [
+    {
+      "agent": "agent-1",
+      "entryState": "running",
+      "metadata": {
+        "currentState": "running",
+        "modifiedTime": 1308414678502,
+        "scriptState": {
+          "script": {},
+          "stateMachine": {"currentState": "running"}
+        }
+      },
+      "mountPoint": "/c1",
+      "parent": "/p1",
+      "script": "file:/tmp/ChildGluScript.groovy",
+      "tags": ["a:tag1"]
+    },
+    {
+      "agent": "agent-1",
+      "entryState": "running",
+      "metadata": {
+        "currentState": "running",
+        "modifiedTime": 1308414612227,
+        "scriptState": {
+          "script": {},
+          "stateMachine": {"currentState": "running"}
+        }
+      },
+      "mountPoint": "/c2",
+      "parent": "/p2",
+      "script": "file:/tmp/ChildGluScript.groovy",
+      "tags": ["a:tag1"]
+    },
+    {
+      "agent": "agent-1",
+      "entryState": "running",
+      "metadata": {
+        "currentState": "running",
+        "modifiedTime": 1308414678275,
+        "scriptState": {
+          "script": {},
+          "stateMachine": {"currentState": "running"}
+        }
+      },
+      "mountPoint": "/p1",
+      "script": "file:/tmp/ParentGluScript.groovy",
+      "tags": ["a:tag1"]
+    },
+    {
+      "agent": "agent-1",
+      "entryState": "running",
+      "metadata": {
+        "currentState": "running",
+        "modifiedTime": 1308414612061,
+        "scriptState": {
+          "script": {},
+          "stateMachine": {"currentState": "running"}
+        }
+      },
+      "mountPoint": "/p2",
+      "script": "file:/tmp/ParentGluScript.groovy",
+      "tags": ["a:tag1"]
+    }
+  ],
+  "fabric": "glu-dev-1",
+  "metadata": {"accuracy": "ACCURATE"}
+}"""
+
+    String filter = "mountPoint='/c1'"
+
+    SystemModel expectedModel = JSONSystemModelSerializer.INSTANCE.deserialize(expectedModelString)
+    SystemModel currentModel = JSONSystemModelSerializer.INSTANCE.deserialize(currentModelString)
+
+
+    def delta = deltaMgr.computeDelta(expectedModel.filterBy(filter),
+                                      currentModel,
+                                      null)
+
+    assertTrue(delta.hasErrorDelta())
   }
 
   private SystemModel toSystem(Map system, String currentState)

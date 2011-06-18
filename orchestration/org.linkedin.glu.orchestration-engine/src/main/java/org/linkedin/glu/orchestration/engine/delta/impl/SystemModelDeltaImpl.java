@@ -135,7 +135,7 @@ public class SystemModelDeltaImpl implements InternalSystemModelDelta
   {
     for(InternalSystemEntryDelta delta : _deltas.values())
     {
-      if(!delta.isFilteredOut() && delta.hasErrorDelta())
+      if(!delta.isFilteredOut() && delta.getDeltaState() == SystemEntryDelta.DeltaState.ERROR)
         return true;
     }
     

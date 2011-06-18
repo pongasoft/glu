@@ -159,7 +159,7 @@ public class DeltaMgrImpl implements DeltaMgr, InternalDeltaProcessor
       return;
 
     // in case there is a delta
-    if(sed.hasErrorDelta())
+    if(sed.hasErrorValue())
     {
       sed.setDeltaState(SystemEntryDelta.DeltaState.ERROR);
 
