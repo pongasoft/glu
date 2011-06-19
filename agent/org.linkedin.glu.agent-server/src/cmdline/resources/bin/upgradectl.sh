@@ -21,7 +21,7 @@ cd $BASEDIR
 
 VERSION_FILE=$BASEDIR/version.txt
 AGENTCTL=$BASEDIR/bin/agentctl.sh
-PID_FILE=$BASEDIR/data/logs/org.linkedin.glu.agent-server.pid
+PID_FILE=$BASEDIR/data/logs/glu-agent.pid
 
 # versions
 CURRENT_VERSION=`cat $VERSION_FILE`

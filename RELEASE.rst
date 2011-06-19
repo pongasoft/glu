@@ -1,6 +1,10 @@
 Latest changes
 ==============
 
+3.0.0.RC3 (2011/06/19)
+----------------------
+* Fixed `glu-73 <https://github.com/linkedin/glu/issues/73>`_: `Agent upgrade broken due to pid file invalid`
+
 3.0.0.RC2 (2011/06/18)
 ----------------------
 * Fixed `glu-71 <https://github.com/linkedin/glu/issues/71>`_: `Fix plan when bouncing parent/child`
