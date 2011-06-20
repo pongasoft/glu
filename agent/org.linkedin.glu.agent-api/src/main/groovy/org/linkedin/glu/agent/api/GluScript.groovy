@@ -63,4 +63,14 @@ public interface GluScript
    * @see Timers
    */
   Timers getTimers()
+
+  /**
+   * @return the parent of this glu script (<code>null</code> when root script)
+   */
+  GluScript getParent()
+
+  /**
+   * @return the children of this glu script
+   */
+  Collection<GluScript> getChildren()
 }

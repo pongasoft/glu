@@ -1,29 +1,33 @@
 Latest changes
 ==============
 
-3.0.0.RC3 (2011/06/19)
-----------------------
-* Fixed `glu-73 <https://github.com/linkedin/glu/issues/73>`_: `Agent upgrade broken due to pid file invalid`
+3.0.0 (2011/06/xx)
+------------------
 
-3.0.0.RC2 (2011/06/18)
-----------------------
+What is new in 3.0.0 ?
+^^^^^^^^^^^^^^^^^^^^^^
+
+3.0.0 adds the following features:
+
+* :ref:`parent/child relationship <static-model-entries-parent>` which adds the capability of decoupling the lifecycle of a parent and a child 
+  (typical examples being deploying a webapp inside a webapp container or deploying a bundle in an OSGi container)
+* define the desired state of an entry in the model (:ref:`entryState <static-model-entries-entryState>`) which, for example, allows you to deploy an 
+  application without starting it
+* The console is no longer precomputing the various plans (deploy, bounce, undeploy and redeploy) and they are now computed on demand only
+* The delta is now a first class citizen and a new rest API allows to :ref:`access it <goe-rest-api-get-model-delta>`
+* The core of the orchestration engine (delta, planner and deployer) has been fully rewritten to offer those new capabilities (now in java
+  which should provide some performance improvements over groovy).
+
+List of tickets
+^^^^^^^^^^^^^^^
+
+* Fixed `glu-18 <https://github.com/linkedin/glu/issues/18>`_: `Grails Runtime Exception (500) when viewing a deployment status` (thanks to Ran!)
+* Fixed `glu-21 <https://github.com/linkedin/glu/issues/21>`_: `The model should allow for expressing which state is desired`
+* Fixed `glu-33 <https://github.com/linkedin/glu/issues/33>`_: `Mountpoint disappears from agent view when not in model`
+* Implemented `glu-63 <https://github.com/linkedin/glu/issues/63>`_: `Handle parent/child relationship in the orchestration engine/console`
 * Fixed `glu-71 <https://github.com/linkedin/glu/issues/71>`_: `Fix plan when bouncing parent/child`
 * Fixed `glu-72 <https://github.com/linkedin/glu/issues/72>`_: `Console times out while talking to agent`
 * Fixed `glu-73 <https://github.com/linkedin/glu/issues/73>`_: `Agent upgrade broken due to pid file invalid`
-
-3.0.0.RC1 (2011/06/12)
-----------------------
-* Implemented `glu-63 <https://github.com/linkedin/glu/issues/63>`_: `Handle parent/child relationship in the orchestration engine/console`
-* Fixed `glu-21 <https://github.com/linkedin/glu/issues/21>`_: `The model should allow for expressing which state is desired`
-* Fixed `glu-33 <https://github.com/linkedin/glu/issues/33>`_: `Mountpoint disappears from agent view when not in model`
-* Fixed `glu-18 <https://github.com/linkedin/glu/issues/18>`_: `Grails Runtime Exception (500) when viewing a deployment status` (thanks to Ran!)
-
-This is a pretty big release (hence the bump in the numbering): it contains a full rewrite of the delta, planner and deployer to:
-
-* match the documentation in terms of concepts
-* implement the new features: parent/child relationship and any entry state
-
-The delta is now a first class citizen and a new rest API allows to access it: ``/model/delta``
 
 2.4.2 (2011/05/27)
 ------------------

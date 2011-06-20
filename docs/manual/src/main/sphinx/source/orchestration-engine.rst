@@ -373,84 +373,244 @@ The security model is simply implementing http basic authorization: every reques
 
 API
 ^^^
-Main URI: ``/console/rest/v1/<fabric>`` (all the URIs in the following tables starts with the main URI)
+Main URI: ``/console/rest/v1/<fabric>`` (all the URIs in the following table start with the main URI)
 
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|Method     |URI                                        |Description         |Request                                             |Response                                                    |
-+===========+===========================================+====================+====================================================+============================================================+
-|``GET``    |``/plans``                                 |List all the plans  |N/A                                                 |TBD                                                         |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``POST``   |``/plans``                                 |Create a plan       |view details below for the content of body of the   |* ``201`` (``CREATED``) with ``Location`` header to access  |
-|           |                                           |                    |``POST``                                            |  the plan (``/plan/ <planId>``)                            |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |                                                    |* ``204`` (``NO CONTENT``) when no plan created because     |
-|           |                                           |                    |                                                    |  there is nothing to do                                    |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``GET``    |``/plan/<planId>``                         |View the plan (as an|N/A                                                 |* ``200`` (``OK``) with an xml representation of the plan   |
-|           |                                           |xml document)       |                                                    |                                                            |
-|           |                                           |                    |                                                    |* ``404`` (``NOT_FOUND``) if no such plan                   |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``POST``   |``/plan/<planId>/execution``               |Executes the plan   |N/A                                                 |* ``201`` (``CREATED``) with ``Location`` header to access  |
-|           |                                           |                    |                                                    |  the plan execution (``/plan/ <planId>/ execution/         |
-|           |                                           |                    |                                                    |  <executionId>``).                                         |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |                                                    |.. note:: it is a non blocking call and it returns right    |
-|           |                                           |                    |                                                    |    away and you can check the progress thus allowing to    |
-|           |                                           |                    |                                                    |    have a progress bar!                                    |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |                                                    |* ``404`` (``NOT_FOUND``) if no such plan                   |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``HEAD``   |``/plan/<planId>/execution/<executionId>`` |Returns the status  |N/A                                                 |* ``200`` (``OK``) with ``X-LinkedIn-GLU-Completion`` header|
-|           |                                           |of the execution    |                                                    |  with value:                                               |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |                                                    |  a. if plan non completed, percentage completion (ex:      |
-|           |                                           |                    |                                                    |  ``87``)                                                   |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |                                                    |  b. if completed: ``100:<completion status>`` (ex:         |
-|           |                                           |                    |                                                    |  ``100:FAILED`` or ``100:COMPLETED``)                      |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |                                                    |* ``404`` (``NOT_FOUND``) if no such execution              |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``GET``    |``/plan/<planId>/execution/<executionId>`` |Returns the         |N/A                                                 |* ``200`` (``OK``) with an xml representation of the        |
-|           |                                           |execution as an xml |                                                    |  execution (equivalent to the view in the console)         |
-|           |                                           |document            |                                                    |                                                            |
-|           |                                           |                    |                                                    |* ``404`` (``NOT_FOUND``) if no such execution              |
-|           |                                           |                    |                                                    |                                                            |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``DELETE`` |``/plan/<planId>/execution/<executionId>`` |Aborts the execution|N/A                                                 |TBD                                                         |
-|           |                                           |                    |                                                    |                                                            |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``POST``   |``/model/static``                          |Loads the (desired) |Body can be of 2 types depending on the             |* ``201`` (``CREATED``) when loaded successfully            |
-|           |                                           |model in the console|``Content-Type`` header:                            |                                                            |
-|           |                                           |                    |                                                    |* ``204`` (``NO_CONTENT``) if model was loaded successfully |
-|           |                                           |                    |``application/x-www-form-urlencoded`` then body     |  and is equal to the previous one                          |
-|           |                                           |                    |should contain ``modelUrl=xxx`` with the url        |                                                            |
-|           |                                           |                    |pointing to the model (the console will 'download'  |* ``400`` (``BAD_REQUEST``) if the model is not valid       |
-|           |                                           |                    |it)                                                 |  (should be a properly json formatted document)            |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |``text/json`` then body should be the model itself  |* ``404`` (``NOT_FOUND``) when error (note error handling   |
-|           |                                           |                    |(`example <https://gist.github.com/755981>`_)       |  needs to be revisited)                                    |
-|           |                                           |                    |                                                    |                                                            |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``GET``    |``/model/static``                          |Retrieves the       |optional request parameters:                        |* ``200`` (``OK``) with a json representation of the model  |
-|           |                                           |current loaded model|                                                    |                                                            |
-|           |                                           |(aka 'desired'      |``prettyPrint=true`` for human readable output      |                                                            |
-|           |                                           |state)              |                                                    |                                                            |
-|           |                                           |                    |``systemFilter=...`` for filtering (see             |                                                            |
-|           |                                           |                    |:ref:`goe-filter-syntax` for the syntax)            |                                                            |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``GET``    |``/model/live``                            |Retrieves the       |optional request parameters:                        |* ``200`` (``OK``) with a json representation of the live   |
-|           |                                           |current live model  |                                                    |  model                                                     |
-|           |                                           |coming from         |``prettyPrint=true`` for human readable output      |                                                            |
-|           |                                           |ZooKeeper (aka      |                                                    |.. note:: the metadata contains information like            |
-|           |                                           |current state)      |``systemFilter=...`` for filtering (see             |   ``currentState``                                         |
-|           |                                           |                    |:ref:`goe-filter-syntax` for the syntax)            |                                                            |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
++-----------+-------------------------------------------+----------------------------------+-------------------------------------+
+|Method     |URI                                        |Description                       |Details                              |
++===========+===========================================+==================================+=====================================+
+|``GET``    |``/plans``                                 |List all the plans                |Coming soon.                         |
++-----------+-------------------------------------------+----------------------------------+-------------------------------------+
+|``POST``   |``/plans``                                 |Create a plan                     |:ref:`view                           |
+|           |                                           |                                  |<goe-rest-api-post-plan>`            |
++-----------+-------------------------------------------+----------------------------------+-------------------------------------+
+|``GET``    |``/plan/<planId>``                         |View the plan (as an xml document)|:ref:`view <goe-rest-api-get-plan>`  |
+|           |                                           |                                  |                                     |
++-----------+-------------------------------------------+----------------------------------+-------------------------------------+
+|``POST``   |``/plan/<planId>/execution``               |Executes the plan                 |:ref:`view                           |
+|           |                                           |                                  |<goe-rest-api-post-plan-execution>`  |
++-----------+-------------------------------------------+----------------------------------+-------------------------------------+
+|``HEAD``   |``/plan/<planId>/execution/<executionId>`` |Returns the status of the         |:ref:`view                           |
+|           |                                           |execution                         |<goe-rest-api-head-plan-execution>`  |
++-----------+-------------------------------------------+----------------------------------+-------------------------------------+
+|``GET``    |``/plan/<planId>/execution/<executionId>`` |Returns the execution as an xml   |:ref:`view                           |
+|           |                                           |document                          |<goe-rest-api-get-plan-execution>`   |
+|           |                                           |                                  |                                     |
++-----------+-------------------------------------------+----------------------------------+-------------------------------------+
+|``DELETE`` |``/plan/<planId>/execution/<executionId>`` |Aborts the execution              |:ref:`view                           |
+|           |                                           |                                  |<goe-rest-api-delete-plan-execution>`|
++-----------+-------------------------------------------+----------------------------------+-------------------------------------+
+|``POST``   |``/model/static``                          |Loads the (desired) model in the  |:ref:`view                           |
+|           |                                           |console                           |<goe-rest-api-post-model-static>`    |
++-----------+-------------------------------------------+----------------------------------+-------------------------------------+
+|``GET``    |``/model/static``                          |Retrieves the current loaded model|:ref:`view                           |
+|           |                                           |(aka 'desired' state)             |<goe-rest-api-get-model-static>`     |
+|           |                                           |                                  |                                     |
+|           |                                           |                                  |                                     |
++-----------+-------------------------------------------+----------------------------------+-------------------------------------+
+|``GET``    |``/model/live``                            |Retrieves the current live model  |:ref:`view                           |
+|           |                                           |coming from ZooKeeper (aka current|<goe-rest-api-get-model-live>`       |
+|           |                                           |state)                            |                                     |
+|           |                                           |                                  |                                     |
+|           |                                           |                                  |                                     |
++-----------+-------------------------------------------+----------------------------------+-------------------------------------+
+|``GET``    |``/model/delta``                           |Retrieves the delta between static|:ref:`view                           |
+|           |                                           |model and live model              |<goe-rest-api-get-model-delta>`      |
+|           |                                           |                                  |                                     |
+|           |                                           |                                  |                                     |
+|           |                                           |                                  |                                     |
++-----------+-------------------------------------------+----------------------------------+-------------------------------------+
+
+
+.. _goe-rest-api-post-plan:
+
+Create deployment plan
+""""""""""""""""""""""
+
+* Description: Create a plan.
+
+* Request: ``POST /plans``
+
+  * view details :ref:`below <goe-rest-api-representing-a-plan>` for the content of body of the ``POST``
+
+* Response: 
+
+  * ``201`` (``CREATED``) with ``Location`` header to access the plan (``/plan/<planId>``)
+  * ``204`` (``NO CONTENT``) when no plan created because there is nothing to do
+
+.. _goe-rest-api-get-plan:
+
+View a deployment plan
+""""""""""""""""""""""
+
+* Description: View the plan (as an xml document)
+
+* Request: ``GET /plan``
+
+  * N/A
+
+* Response:
+
+  * ``200`` (``OK``) with an xml representation of the plan
+  * ``404`` (``NOT_FOUND``) if no such plan
+
+.. _goe-rest-api-post-plan-execution:
+
+Execute a deployment plan
+"""""""""""""""""""""""""
+
+* Description: Execute the plan.
+
+* Request: ``POST /plan/<planId>/execution``
+
+  * N/A
+
+* Response:
+
+  * ``201`` (``CREATED``) with ``Location`` header to access the plan execution (``/plan/<planId>/ execution/<executionId>``).                                         
+
+    .. note:: it is a non blocking call and it returns right away and you can check the progress thus allowing to have a progress bar!
+
+  * ``404`` (``NOT_FOUND``) if no such plan
+
+.. _goe-rest-api-head-plan-execution:
+
+Check status of plan execution
+""""""""""""""""""""""""""""""
+
+* Description: Return the status of the execution.
+
+* Request: ``HEAD /plan/<planId>/ execution/<executionId>``
+
+  * N/A
+
+* Response:
+
+  * ``200`` (``OK``) with ``X-LinkedIn-GLU-Completion`` header with value:
+
+    a. if plan non completed, percentage completion (ex: ``87``)
+
+    b. if completed: ``100:<completion status>`` (ex: ``100:FAILED`` or ``100:COMPLETED``)
+
+  * ``404`` (``NOT_FOUND``) if no such execution
+
+.. _goe-rest-api-get-plan-execution:
+
+View execution plan
+"""""""""""""""""""
+
+* Description: Return the execution as an xml document.
+
+* Request: ``GET /plan/<planId>/ execution/<executionId>``
+
+  * N/A
+
+* Response:
+
+  * ``200`` (``OK``) with an xml representation of the execution (equivalent to the view in the console)
+  * ``404`` (``NOT_FOUND``) if no such execution
+
+.. _goe-rest-api-delete-plan-execution:
+
+Abort execution plan
+""""""""""""""""""""
+
+* Description: Abort the execution.
+
+* Request: ``DELETE /plan/<planId>/ execution/<executionId>``
+
+  * N/A
+
+* Response:
+
+  * TBD
+
+.. _goe-rest-api-post-model-static:
+
+Load static model
+"""""""""""""""""
+
+* Description: Load the (desired) model in the console.
+
+* Request: ``POST /model/static``
+
+  Body can be of 2 types depending on the ``Content-Type`` header:
+
+  1. ``application/x-www-form-urlencoded`` then body should contain ``modelUrl=xxx`` with the url pointing to the model (the console will 'download' it)
+  2. ``text/json`` then body should be the model itself (`example <https://gist.github.com/755981>`_)
+
+* Response:
+
+  * ``201`` (``CREATED``) when loaded successfully
+  * ``204`` (``NO_CONTENT``) if model was loaded successfully and is equal to the previous one
+  * ``400`` (``BAD_REQUEST``) if the model is not valid (should be a properly json formatted document)
+  * ``404`` (``NOT_FOUND``) when error (note error handling needs to be revisited)
+
+.. _goe-rest-api-get-model-static:
+
+View static model
+"""""""""""""""""
+
+* Description: Retrieve the current loaded model (aka *expected* state).
+
+  .. note:: this is what you loaded using ``POST /model/static``
+
+* Request: ``GET /model/static``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+  * ``systemFilter=...`` for filtering (see :ref:`goe-filter-syntax` for the syntax)
+
+* Response:  
+
+  * ``200`` (``OK``) with a json representation of the model
+
+.. _goe-rest-api-get-model-live:
+
+View live model
+"""""""""""""""
+
+* Description: Retrieve the current live model coming from ZooKeeper (aka *current* state).
+
+* Request: ``GET /model/live``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+  * ``systemFilter=...`` for filtering (see :ref:`goe-filter-syntax` for the syntax)
+
+* Response:
+
+  * ``200`` (``OK``) with a json representation of the live model
+
+    .. note:: the metadata contains information like ``currentState``
+
+.. _goe-rest-api-get-model-delta:
+
+View delta
+""""""""""
+
+* Description: Retrieve the delta (similar to what can be seen on the dashboard) which is the difference between the static and live model (expected vs current)
+
+* Request: ``GET /model/delta``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+  * ``systemFilter=...`` for filtering (see :ref:`goe-filter-syntax` for the syntax)
+  * ``errorsOnly=true`` filter to show only errors 
+  * ``flatten=true`` flatten the output (similar to dashboard view) 
+
+* Response:
+
+  * ``200`` (``OK``) with a json representation of the delta
 
 API Examples
 ^^^^^^^^^^^^
 * Sending the model to glu in `java <https://gist.github.com/756465>`_
 * `Python example <https://github.com/linkedin/glu/blob/REL_1.5.0/console/org.linkedin.glu.console-cli/src/cmdline/resources/lib/python/gluconsole/rest.py>`_ (part of the cli)
+
+.. _goe-rest-api-representing-a-plan:
 
 Representing a plan
 -------------------

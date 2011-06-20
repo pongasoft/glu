@@ -31,6 +31,8 @@ A glu script is a groovy class which contains a set of closures where the name o
 
 .. tip:: The code of each closure can be any arbitrary groovy/java code but remember that the agent offers :ref:`some capabilities <agent-capabitites>` to help you in writing more concise code.
 
+.. _glu-script-state-machine:
+
 State machine
 -------------
 Each glu script is backed by a state machine which is an instance of ``org.linkedin.groovy.util.state.StateMachine`` (`StateMachine api <https://github.com/linkedin/linkedin-utils/blob/master/org.linkedin.util-groovy/src/main/groovy/org/linkedin/groovy/util/state/StateMachine.groovy>`_). The default state machine is the following:
@@ -82,6 +84,35 @@ As described in the section :ref:`agent-capabitites`, a glu script can use all t
 
 .. tip:: 
    Implicitely (at runtime), all glu scripts implement the `GluScript <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-impl/src/main/groovy/org/linkedin/glu/agent/impl/GluScript.groovy>`_ interface.
+
+Table of all the properties usable from a ``GluScript``:
+
++---------------------------------------------------+---------------------------------------------------------+
+|Name                                               |Usage                                                    |
++===================================================+=========================================================+
+|:ref:`children <agent-capabilities-children>`      |Access to the children of this glu script                |
++---------------------------------------------------+---------------------------------------------------------+
+|:ref:`log <agent-capabilities-log>`                |Write log messages in agent log file                     |
++---------------------------------------------------+---------------------------------------------------------+
+|:ref:`mountPoint <agent-capabilities-mountPoint>`  |The mountPoint on which this script was *mounted*        |
++---------------------------------------------------+---------------------------------------------------------+
+|:ref:`params <agent-capabilities-params>`          |Access to the model :ref:`initParameters                 |
+|                                                   |<static-model-entries-initParameters>` section           |
++---------------------------------------------------+---------------------------------------------------------+
+|:ref:`parent <agent-capabilities-parent>`          |Access to the parent glu script                          |
++---------------------------------------------------+---------------------------------------------------------+
+|:ref:`shell <agent-capabilities-shell>`            |Access to all shell like capabilities (mv, ls, etc...)   |
++---------------------------------------------------+---------------------------------------------------------+
+|:ref:`shell.env <agent-capabilities-shell-env>`    |Access to environment variables set at agent boot time   |
++---------------------------------------------------+---------------------------------------------------------+
+|:ref:`stateManager                                 |Manage/Query the state                                   |
+|<agent-capabilities-stateManager>`                 |                                                         |
++---------------------------------------------------+---------------------------------------------------------+
+|:ref:`state <agent-capabilities-state>`            |Shortcut to current state                                |
++---------------------------------------------------+---------------------------------------------------------+
+|:ref:`timers <agent-capabilities-timers>`          |Schedule/Cancel timers                                   |
++---------------------------------------------------+---------------------------------------------------------+
+
 
 Conventions
 -----------

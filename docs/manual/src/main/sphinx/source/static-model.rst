@@ -39,10 +39,26 @@ The most basic structure of the model is the following::
     "fabric": "glu-dev-1",
     "metadata": {}
     "agentTags": {},
-    "entries": [],
+    "entries": []
   }
 
 .. note:: The model is internally represented by the `SystemModel <https://github.com/linkedin/glu/blob/master/provisioner/org.linkedin.glu.provisioner-core/src/main/groovy/org/linkedin/glu/provisioner/core/model/SystemModel.groovy>`_ (groovy) class.
+
+Table of possible values:
+
++-------------------------------------------+---------+
+|Name                                       |Required |
++===========================================+=========+
+|:ref:`agentTags <static-model-agentTags>`  |No       |
++-------------------------------------------+---------+
+|:ref:`entries <static-model-entries>`      |No       |
++-------------------------------------------+---------+
+|:ref:`fabric <static-model-fabric>`        |Yes      |
++-------------------------------------------+---------+
+|:ref:`metadata <static-model-metadata>`    |No       |
++-------------------------------------------+---------+
+
+.. _static-model-fabric:
 
 ``fabric``
 ^^^^^^^^^^
@@ -51,10 +67,14 @@ The fabric section is required and specifies which :term:`fabric` this model is 
 
 .. note:: if you have more than 1 fabric, you need to have 1 model for each one of them 
 
+.. _static-model-metadata:
+
 ``metadata``
 ^^^^^^^^^^^^
 
 This section is of type :term:`metadata` and can contain any kind of information you want to store alongside your model. One way to think about it is `structured comments`. The console can be configured to display and/or use some of this information (TODO: add link). 
+
+.. _static-model-agentTags:
 
 ``agentTags``
 ^^^^^^^^^^^^^
@@ -73,7 +93,9 @@ Example::
     "agent-2": ["large-instance", "linux"]
   },
 
-.. tip:: ``agentTags`` are no more than a shortcut to assign the same set of tags to all entries assigned to the agent (see :ref:`static-model-entry-tags`)
+.. tip:: ``agentTags`` are no more than a shortcut to assign the same set of tags to all entries assigned to the agent (see :ref:`static-model-entries-tags`)
+
+.. _static-model-entries:
 
 ``entries``
 ^^^^^^^^^^^
@@ -86,6 +108,8 @@ This section is an array of entries. An entry describes where a particular insta
 
     "script": "http://repository.prod/scripts/webapp-deploy-1.0.0.groovy",
     "initParameters": {},
+    "entryState": "running",
+    "parent": "/",
     "metadata": {},
     "tags": []
   }
@@ -95,9 +119,36 @@ This section is an array of entries. An entry describes where a particular insta
 .. tip:: If you check :ref:`agent-glu-script-engine`, you will be able to understand better why an entry is defined this way:
 
    * ``agent`` represents which agent to talk to
-   * ``mountPoint``, ``script`` and ``initParameters`` are the parameters provided to the ``installScript`` api
+   * ``mountPoint``, ``script``, ``parent`` and ``initParameters`` are the parameters provided to the ``installScript`` api
    
    .. note:: ``tags`` are only used in the console
+
+Table of possible values:
+
++--------------------------------------------------+----------+
+|Name                                              |Required  |
++==================================================+==========+
+|:ref:`agent <static-model-entries-agent>`         |Yes       |
++--------------------------------------------------+----------+
+|:ref:`entryState                                  |No        |
+|<static-model-entries-entryState>`                |          |
++--------------------------------------------------+----------+
+|:ref:`initParameters                              |No        |
+|<static-model-entries-initParameters>`            |          |
++--------------------------------------------------+----------+
+|:ref:`metadata <static-model-entries-metadata>`   |No        |
++--------------------------------------------------+----------+
+|:ref:`mountPoint                                  |Yes       |
+|<static-model-entries-mountPoint>`                |          |
++--------------------------------------------------+----------+
+|:ref:`parent <static-model-entries-parent>`       |No        |
++--------------------------------------------------+----------+
+|:ref:`script <static-model-entries-script>`       |Yes       |
++--------------------------------------------------+----------+
+|:ref:`tags <static-model-entries-tags>`           |No        |
++--------------------------------------------------+----------+
+
+.. _static-model-entries-agent:
 
 ``agent``
 """""""""
@@ -106,6 +157,7 @@ This section describe on which agent the application needs to be installed.
 
 .. note:: This has to be the name of the agent as defined by :ref:`agent-fabric-and-name`. In most cases the name of the agent is the hostname, but since it is configurable, it may be different. This is so that it is possible to start more than one agent on a single node (which is very useful for development purposes).
 
+.. _static-model-entries-mountPoint:
 
 ``mountPoint``
 """"""""""""""
@@ -114,10 +166,14 @@ The :term:`mount point` represents a unique key on the agent. You can reuse the 
 
 .. tip:: This value is predominently displayed in the console so in general it is better to give it a very meaningful value. For example ``/search/i001`` describes the fact that it is the *search* application, instance *001*. You are of course free to use whichever convention you would like.
 
+.. _static-model-entries-script:
+
 ``script``
 """"""""""
 
 This section should be a URI pointing to the :doc:`glu script <glu-script>` that will be used to deploy the application.
+
+.. _static-model-entries-initParameters:
 
 ``initParameters``
 """"""""""""""""""
@@ -128,7 +184,7 @@ This section describes the initialization parameters that are going to be provid
        "container": {
          "skeleton": "http://repository.prod/tgzs/jetty-7.2.2.v20101205.tgz",
          "config": "http://repository.prod/configs/search-container-config-2.1.0.json",
-         "port": 8080,
+         "port": 8080
        },
        "webapp": {
          "war": "http://repository.prod/wars/search-2.1.0.war",
@@ -139,6 +195,63 @@ This section describes the initialization parameters that are going to be provid
 
 .. tip:: The values you use in this section are used to compute the :term:`delta`! This is how the orchestration engine determines that an application needs to be upgraded (because the version has changed)!
 
+.. _static-model-entries-parent:
+
+``parent``
+""""""""""
+
+.. sidebar:: Usage
+
+   The typical usage of the parent/child relationship feature is to define a tight relationship between 2 entries deployed on the same node.
+
+This section is optional and will default to ``/`` if not provided. The value must be pointing to another ``mountPoint`` on the **same** agent. You use it for defining a parent/child relationship between 2 entries.
+
+In the tutorial (and in the example above), we have 1 entry defining a webapp container and its webapp(s). When defined this way, it means that whenever you take an action on the entry (``deploy``, ``bounce``, etc...) it affects the entire container and webapps. It may or may not be the desired effect. By using the parent/child relationship you can decouple the actions while still maintaining the fact that it does not make sense to deploy a webapp without its container! Example::
+
+    "entries": [
+      {
+	"agent": "agent-1",
+	"mountPoint": "/container",
+	"script": "http://repository.prod/scripts/webapp-container-1.0.0.groovy",
+        "initParameters": {
+	  "skeleton": "http://repository.prod/tgzs/jetty-7.2.2.v20101205.tgz",
+	  "config": "http://repository.prod/configs/search-container-config-2.1.0.json",
+	  "port": 8080
+        }
+      },
+      {
+	"agent": "agent-1",
+	"mountPoint": "/webapp1",
+        "parent": "/container",
+	"script": "http://repository.prod/scripts/webapp-1.0.0.groovy",
+        "initParameters": {
+	  "war": "http://repository.prod/wars/search-2.1.0.war",
+	  "contextPath": "/",
+	  "config": "http://repository.prod/configs/search-config-2.1.0.json"
+        }
+      }
+    ],
+
+In this example, you can see how the 2 entries are defined, the second one defining a ``parent`` section pointing to the other entry. By defining it this way, the child (or children) can be independently upgraded without ever restarting the container (which may be very useful if your container hosts multiple webapps).
+
+.. note:: You are not limited to one child! You can have as many as you want.
+
+.. tip:: Another example of the parent/child relationship usage would be an OSGi container (parent) and its bundles (children).
+
+.. _static-model-entries-entryState:
+
+``entryState``
+""""""""""""""
+.. sidebar:: Usage
+
+   The typical usage of not using the default value for ``entryState`` is to define an entry that should be deployed but not started in which case the value would be ``stopped``. For example you want to deploy a webapp (meaning having all the bits downloaded and installed on the node) but not start it yet.
+
+This section defines in which state (of the :ref:`state machine <glu-script-state-machine>`) it should be deployed at. By default, it is set to ``running`` (this field is optional and most of the time you don't need to enter a value). Other valid states for the (standard) state machines are ``installed`` and ``stopped``.
+
+.. note:: If you use ``entryState`` and ``parent`` the actual state may defer from what you express as the children needs to be taken into account for the computation of the actual *desired* state.
+
+.. _static-model-entries-metadata:
+
 ``metadata``
 """"""""""""
 
@@ -146,7 +259,7 @@ This section is of type :term:`metadata` and can contain any kind of information
 
 .. note:: unlike the ``initParameters`` section, ``metadata`` is **not** used to compute the delta.
 
-.. _static-model-entry-tags:
+.. _static-model-entries-tags:
 
 ``tags``
 """"""""

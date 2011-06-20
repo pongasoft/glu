@@ -30,13 +30,17 @@ import java.util.concurrent.ExecutionException
 import org.linkedin.util.lifecycle.Shutdownable
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.util.lifecycle.Startable
+import org.linkedin.glu.agent.api.GluScript
+import org.linkedin.glu.agent.api.Shell
+import org.linkedin.glu.agent.api.StateManager
+import org.linkedin.glu.agent.api.Timers
 
 /**
  * A script node (recursive structure)
  *
  * @author ypujante@linkedin.com
  */
-def class ScriptNode implements Shutdownable, Startable
+def class ScriptNode implements Shutdownable, Startable, GluScript
 {
   private final ScriptState _scriptState
   private final ScriptExecution _scriptExecution
@@ -84,9 +88,45 @@ def class ScriptNode implements Shutdownable, Startable
     return mountPoint.toString()
   }
 
-  def getLog()
+  Logger getLog()
   {
     return _log
+  }
+
+  @Override
+  Shell getShell()
+  {
+    script."shell"
+  }
+
+  @Override
+  Map getParams()
+  {
+    script."params"
+  }
+
+  @Override
+  StateManager getStateManager()
+  {
+    script."stateManager"
+  }
+
+  @Override
+  Timers getTimers()
+  {
+    script."timers"
+  }
+
+  @Override
+  Collection<GluScript> getChildren()
+  {
+    script."children"
+  }
+
+  @Override
+  GluScript getParent()
+  {
+    script."parent"
   }
 
   def getScriptDefinition()
@@ -155,17 +195,17 @@ def class ScriptNode implements Shutdownable, Startable
     }
   }
 
-  def getMountPoint()
+  MountPoint getMountPoint()
   {
     return scriptDefinition.mountPoint
   }
 
-  def getParent()
+  MountPoint getParentMountPoint()
   {
     return scriptDefinition.parent
   }
 
-  def getChildren()
+  Collection<MountPoint> getChildrenMountPoints()
   {
     synchronized(_children) {
       return _children.collect { it }
