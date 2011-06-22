@@ -113,6 +113,56 @@ Table of all the properties usable from a ``GluScript``:
 |:ref:`timers <agent-capabilities-timers>`          |Schedule/Cancel timers                                   |
 +---------------------------------------------------+---------------------------------------------------------+
 
+.. _glu-script-parent-script:
+
+Parent Script
+-------------
+When you define the parent glu script (for use in the :ref:`static model <static-model-entries-parent>`), you **must** add the following closure to the glu script::
+
+   def createChild = { args ->
+     return args.script
+   }
+
+This closure takes a map with 3 arguments:
+
+* ``mountPoint``: the mountPoint on which the child script will be mounted
+* ``script``: the raw child script just after it has been instantiated
+* ``initParameters``: the init parameters that will be provided to the child
+
+This closure **must** return the actual script to use. In its simplest form, the closure does nothing besides returning the script itself untouched.
+
+.. tip:: This closure allows you to customize the child including returning a completely different one!
+   For example::
+
+	class JettyParentGluScript
+        {
+          def deployHotDir
+
+          def install = { 
+            deployHotDir = ... // compute hot dir
+          }
+
+          def createChild = { args ->
+            args.script.deployHotDir = deployHotDir // 'inject' deployHotDir in child
+            return args.script
+          }
+        }
+
+In addition to this required closure, you *may* define 3 others to do custom work::
+
+   def onChildAdded = { args -> // child
+     // note that the child you are getting here is different from the script you got in createChild
+     // in createChild you get literally the instance of the class of the script
+     // in onChildAdded you get an instance of GluScript which is the wrapped script
+   }
+
+   // symmetric of onChildAdded
+   def onChildRemoved = { args -> // child
+   }
+
+   // symmetric of createChild
+   def destroyChild = { args -> // mountPoint, script
+   }
 
 Conventions
 -----------

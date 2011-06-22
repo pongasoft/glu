@@ -238,6 +238,8 @@ In this example, you can see how the 2 entries are defined, the second one defin
 
 .. tip:: Another example of the parent/child relationship usage would be an OSGi container (parent) and its bundles (children).
 
+.. warning:: Make sure to read the parent script requirements in the ":ref:`glu-script-parent-script`" section.
+
 .. _static-model-entries-entryState:
 
 ``entryState``

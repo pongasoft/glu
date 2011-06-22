@@ -278,7 +278,7 @@ def class ScriptManagerImpl implements ScriptManager
   {
     mountPoint = MountPoint.create(mountPoint)
 
-    def node = findScript(mountPoint)
+    ScriptNode node = findScript(mountPoint)
     if(node)
     {
       synchronized(this)
@@ -319,7 +319,7 @@ def class ScriptManagerImpl implements ScriptManager
         }
 
         // we destroy the child
-        findScript(node.parentMountPoint).removeChild(node.mountPoint)
+        findScript(node.parentMountPoint).removeChild(node)
 
         // we clean up the temp space
         node.shell.rmdirs(node.shell.fileSystem.tmpRoot)

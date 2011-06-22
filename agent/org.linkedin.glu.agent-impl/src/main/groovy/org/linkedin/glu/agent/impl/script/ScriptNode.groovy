@@ -164,7 +164,7 @@ def class ScriptNode implements Shutdownable, Startable, GluScript
 
         if(script.hasProperty('onChildAdded'))
         {
-          script.onChildAdded(mountPoint: childMountPoint, child: child)
+          script.onChildAdded(child: child)
         }
 
         return child
@@ -176,22 +176,22 @@ def class ScriptNode implements Shutdownable, Startable, GluScript
     }
   }
 
-  def removeChild(MountPoint childMountPoint)
+  def removeChild(ScriptNode child)
   {
     synchronized(_children) {
-      assert _children.contains(childMountPoint)
+      assert _children.contains(child.mountPoint)
 
       if(script.hasProperty('onChildRemoved'))
       {
-        script.onChildRemoved(mountPoint: childMountPoint)
+        script.onChildRemoved(child: child)
       }
 
       if(script.hasProperty('destroyChild'))
       {
-        script.destroyChild(mountPoint: childMountPoint)
+        script.destroyChild(mountPoint: child.mountPoint, script: child.script)
       }
 
-      _children.remove(childMountPoint)
+      _children.remove(child.mountPoint)
     }
   }
 
