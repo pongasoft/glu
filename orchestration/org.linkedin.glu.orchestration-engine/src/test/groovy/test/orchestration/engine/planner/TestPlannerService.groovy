@@ -703,6 +703,37 @@ public class TestPlannerService extends GroovyTestCase
   }
 
   /**
+   * Test for redeploy for parent/child (child fully undeployed first)
+   */
+  public void testRedeployPlanWithParentChildWithChildFilter2()
+  {
+    Plan<ActionDescriptor> p
+
+    // redeploy (child only through filter => parent not included)
+    p = redeployPlan(Type.PARALLEL,
+                     m([agent: 'a1', mountPoint: 'p1', script: 's1'],
+                       [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1'],
+                       [agent: 'a1', mountPoint: 'c2', parent: 'p1', script: 's1']).filterBy(childFilter),
+
+                     m([agent: 'a1', mountPoint: 'p1', script: 's1'],
+                       [agent: 'a1', mountPoint: 'c2', parent: 'p1', script: 's1']))
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="redeploy - PARALLEL">
+  <parallel name="redeploy - PARALLEL">
+    <sequential agent="a1" mountPoint="c1">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" parent="p1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="start" toState="running" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(4, p.leafStepsCount)
+  }
+
+  /**
    * Test for redeploy for parent/child
    */
   public void testRedeployPlanWithParentChildWithParentFilter()

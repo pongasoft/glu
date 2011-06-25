@@ -162,6 +162,10 @@ public class SingleDeltaBuilder
     return _parentKeys;
   }
 
+  public void setParentKeys(Set<String> parentKeys)
+  {
+    _parentKeys = parentKeys;
+  }
 
   /**
    * Builds and return the delta
