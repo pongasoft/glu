@@ -22,7 +22,7 @@ package org.linkedin.glu.orchestration.engine.delta;
 public interface SystemEntryValue<T>
 {
   /**
-   * @return <code>true</code> if {@link #getExpectedValue()} and {@link @getCurrentValue()} are
+   * @return <code>true</code> if {@link #getExpectedValue()} and {@link #getCurrentValue()} are
    *         different
    */
   boolean hasDelta();

@@ -36,5 +36,6 @@ Quick Links
 3. [Tutorial (latest)](http://linkedin.github.com/glu/docs/latest/html/tutorial.html)
 4. [Source code](http://www.github.com/linkedin/glu)
 5. [Forum / Questions / Help](http://glu.977617.n3.nabble.com/)
-6. [Issues / Tasks](https://github.com/linkedin/glu/issues)
-7. [Latest Changes](http://linkedin.github.com/glu/docs/latest/html/RELEASE.html)
+6. [Video (July 2011)](http://devops.com/2011/07/09/glu-deployment-automation-video/)
+7. [Issues / Tasks](https://github.com/linkedin/glu/issues)
+8. [Latest Changes](http://linkedin.github.com/glu/docs/latest/html/RELEASE.html)
