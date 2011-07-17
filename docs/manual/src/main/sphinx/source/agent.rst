@@ -166,8 +166,8 @@ REST API::
 
 .. note:: you cannot uninstall the script unless the state machine allows you do to so. If you are in state ``running`` you first need to run ``stop``, ``unconfigure`` and ``uninstall``. There is a way to force uninstall irrelevant of the state of the state machine:
 
-Foce uninstall
-""""""""""""""
+Force uninstall
+"""""""""""""""
 
 Groovy API (force uninstall)::
 
