@@ -53,6 +53,11 @@ task doc << {
   ant.exec(executable: 'make', dir: sphinxDir, failonerror: true) {
     arg(line: 'html')
   }
+
+  // cleanup what we don't need/want
+  ant.delete(dir: new File(htmlDocDir, '_sources'))
+
+  ant.delete(file: new File(htmlDocDir, 'searchindex.js'))
 }
 
 /**
