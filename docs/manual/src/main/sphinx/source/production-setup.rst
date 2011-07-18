@@ -17,6 +17,13 @@ Production Setup
 
 This document describes how to setup glu for production.
 
+Requirements
+------------
+Currently glu requires a UNIX like platform (tested on Mac OS X and Solaris) and Java 1.6.
+
+.. warning::
+   Due to a `bug with OpenJDK <https://github.com/linkedin/glu/issues/74>`_ glu currently requires the Sun Java VM.
+
 Step 1: Download
 ----------------
 

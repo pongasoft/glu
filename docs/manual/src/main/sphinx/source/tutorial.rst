@@ -36,6 +36,12 @@ During this tutorial you are going to deploy 3 jetty containers running 4 webapp
     webapp3:   9003
     zookeeper: 2181
 
+Requirements
+------------
+Currently glu requires a UNIX like platform (tested on Mac OS X and Solaris) and Java 1.6.
+
+.. warning::
+   Due to a `bug with OpenJDK <https://github.com/linkedin/glu/issues/74>`_ glu currently requires the Sun Java VM.
 
 Install the tutorial
 --------------------
