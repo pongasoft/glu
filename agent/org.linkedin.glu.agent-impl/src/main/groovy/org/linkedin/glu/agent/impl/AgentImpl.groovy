@@ -38,6 +38,8 @@ import org.linkedin.util.clock.Timespan
 import org.linkedin.glu.agent.api.TimeOutException
 import org.linkedin.glu.utils.tags.Taggeable
 import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
+import org.linkedin.glu.agent.impl.script.ScriptNode
+import java.util.concurrent.ExecutionException
 
 /**
  * The main implementation of the agent
@@ -330,6 +332,10 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
         }
         return res
       }
+      catch(ExecutionException e)
+      {
+        throw e.cause
+      }
       catch (TimeoutException e)
       {
         if(log.isDebugEnabled())
@@ -596,5 +602,13 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
     {
       throw new AgentException('unexpected exception', th)
     }
+  }
+
+  /**
+   * @return a script previously installed (or <code>null</code> if not found)
+   */
+  ScriptNode findScript(mountPoint)
+  {
+    return _scriptManager.findScript(mountPoint)
   }
 }

@@ -20,8 +20,6 @@ package org.linkedin.glu.agent.impl.script
 
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.impl.storage.Storage
-import org.slf4j.Logger
-import org.linkedin.glu.agent.api.FutureExecution
 
 /**
  * The purpose of this class is to keep track and record the state of the script manager
@@ -34,7 +32,7 @@ def class StateKeeperScriptManager implements ScriptManager
   public static final String MODULE = StateKeeperScriptManager.class.getName();
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
-  private final ScriptManager _scriptManager
+  private final @Delegate ScriptManager _scriptManager
   private final Storage _storage
 
   StateKeeperScriptManager(args)
@@ -143,65 +141,6 @@ def class StateKeeperScriptManager implements ScriptManager
   {
     _scriptManager.uninstallScript(mountPoint, force)
     _storage.clearState(MountPoint.create(mountPoint))
-  }
-
-  FutureExecution executeAction(args)
-  {
-    return _scriptManager.executeAction(args);
-  }
-
-  boolean interruptAction(args)
-  {
-    return _scriptManager.interruptAction(args)
-  }
-
-
-  def executeCall(args)
-  {
-    return _scriptManager.executeCall(args)
-  }
-
-  Logger findLog(mountPoint)
-  {
-    return _scriptManager.findLog(mountPoint)
-  }
-
-  /**
-   * Clears the error of the script mounted at the provided mount point
-   */
-  void clearError(mountPoint)
-  {
-    _scriptManager.clearError(mountPoint)
-  }
-
-  public getMountPoints()
-  {
-    return _scriptManager.mountPoints
-  }
-
-  boolean isMounted(mountPoint)
-  {
-    return _scriptManager.isMounted(mountPoint);
-  }
-
-  boolean waitForState(args)
-  {
-    return _scriptManager.waitForState(args);
-  }
-
-  def waitForAction(args)
-  {
-    return _scriptManager.waitForAction(args)
-  }
-
-  def getState(mountPoint)
-  {
-    return _scriptManager.getState(mountPoint);
-  }
-
-  public getFullState(mountPoint)
-  {
-    return _scriptManager.getFullState(mountPoint)
   }
 
   void shutdown()

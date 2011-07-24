@@ -38,6 +38,11 @@ def interface ScriptManager extends Shutdownable
   ScriptNode installScript(args)
 
   /**
+   * @return a script previously installed (or <code>null</code> if not found)
+   */
+  ScriptNode findScript(mountPoint)
+
+  /**
    * Installs the root script
    * 
    * @actionArgs arguments for the install action
