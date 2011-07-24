@@ -32,6 +32,14 @@ import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
 
 /**
+ * In order to write a unit test for a glu script you should create your own test class by extending
+ * this class.
+ *
+ * In your setup, you can set the {@link GluScriptBaseTest#initParameters}. Most of the methods
+ * can be overriden to provide customized values. From your test you can then use the convenient
+ * methods like {@link GluScriptBaseTest#deploy()} to run through all the phase of your script.
+ *
+ * @see GluScriptBaseTest#getScriptClass()} for advice on how to name your test
  * @author yan@pongasoft.com */
 public class GluScriptBaseTest extends GroovyTestCase
 {
@@ -56,8 +64,8 @@ public class GluScriptBaseTest extends GroovyTestCase
 
     logFileSystem = createLogFileSystem()
     appsFileSystem = createAppsFileSystem()
-    shell = createShell()
     rootShell = createRootShell()
+    shell = createShell()
     agentImpl =  createAgent()
     agentImpl.boot(agentBootArgs)
   }
@@ -94,7 +102,8 @@ public class GluScriptBaseTest extends GroovyTestCase
 
   protected Shell createShell()
   {
-    new ShellImpl(fileSystem: appsFileSystem, agentProperties: createAgentProperties())
+    new ShellImpl(fileSystem: appsFileSystem,
+                  agentProperties: new AgentProperties(createAgentProperties()))
   }
 
   protected Shell createRootShell()
@@ -102,9 +111,19 @@ public class GluScriptBaseTest extends GroovyTestCase
     new ShellImpl(fileSystem: logFileSystem)
   }
 
-  protected AgentProperties createAgentProperties()
+  /**
+   * If you need to add some properties, you can override this method and add your own set
+   * of properties (available in glu script with <code>shell.env</code>)
+   */
+  protected Map createAgentProperties()
   {
-    new AgentProperties()
+    [
+      'glu.agent.name': agentName,
+      'glu.agent.fabric': fabric,
+      'glu.agent.scriptRootDir': appsFileSystem.root.file.canonicalPath,
+      'glu.agent.logDir': logFileSystem.root.file.canonicalPath,
+      'glu.agent.tempDir': rootShell.tmpRoot.file.canonicalPath
+    ]
   }
 
   protected AgentImpl createAgent()
@@ -112,11 +131,35 @@ public class GluScriptBaseTest extends GroovyTestCase
     new AgentImpl(clock: clock)
   }
 
+
+  /**
+   * @return the fabric this agent belongs to
+   */
+  protected String getFabric()
+  {
+    'test-fabric'
+  }
+
+  /**
+   * @return name of the agent
+   */
+  protected String getAgentName()
+  {
+    'test-agent'
+  }
+
+  /**
+   * @return the agent interface to call all the methods you want (see Agent javadoc api)
+   */
   protected Agent getAgent()
   {
     agentImpl
   }
 
+  /**
+   * @return the same shell that your script has access to (so that the unit test can use the same
+   * convenient calls)
+   */
   protected Shell getShell()
   {
     agentImpl.shellForScripts
@@ -132,16 +175,28 @@ public class GluScriptBaseTest extends GroovyTestCase
     ]
   }
 
+  /**
+   * Modify the {@link #initParameters} field or extend this method to customize the initParameters
+   * used when installing the script
+   */
   protected Map getInitParameters()
   {
     return initParameters
   }
 
+  /**
+   * Modify the {@link #actionArgs} field or extend this method to customize the actionArgs
+   * used when invoking an action on the script
+   */
   protected Map getActionArgs(String action)
   {
     actionArgs[action]
   }
 
+  /**
+   * The mountpoint on which the script will be mounted. If the name of the mountpoint is being
+   * used by your script, you may want to customize it!
+   */
   protected String getScriptMountPoint()
   {
     "/test/${this.class.simpleName}"
@@ -170,6 +225,9 @@ public class GluScriptBaseTest extends GroovyTestCase
     [scriptFactory: new FromClassNameScriptFactory(scriptClass)]
   }
 
+  /**
+   * Install the script (use sensible defaults if values are not provided)
+   */
   protected void installScript(def args)
   {
     if(!args.mountPoint)
@@ -184,11 +242,17 @@ public class GluScriptBaseTest extends GroovyTestCase
     agentImpl.installScript(args)
   }
 
+  /**
+   * Install the script (use all default/configured values)
+   */
   protected void installScript()
   {
     installScript([:])
   }
 
+  /**
+   * Unnstall the script (use sensible defaults if values are not provided)
+   */
   protected void uninstallScript(def args)
   {
     if(!args.mountPoint)
@@ -197,18 +261,28 @@ public class GluScriptBaseTest extends GroovyTestCase
     agentImpl.uninstallScript(args)
   }
 
-
+  /**
+   * Uninstall the script (use all default/configured values)
+   */
   protected void uninstallScript()
   {
     uninstallScript([:])
   }
 
+  /**
+   * @return the (internal) script representation if you need to access it directly
+   */
   protected ScriptNode getScript()
   {
     agentImpl.findScript(scriptMountPoint)
   }
 
-
+  /**
+   * Execute the action asynchronously
+   *
+   * @param args (use sensible defaults if values are not provided)
+   * @see Agent#executeAction
+   */
   protected String asyncExecuteAction(def args)
   {
     if(!args.mountPoint)
@@ -220,6 +294,12 @@ public class GluScriptBaseTest extends GroovyTestCase
     agentImpl.executeAction(args)
   }
 
+  /**
+   * Execute the action synchronously
+   *
+   * @param args (use sensible defaults if values are not provided)
+   * @see Agent#executeActionAndWait
+   */
   protected def syncExecuteAction(def args)
   {
     if(!args.mountPoint)
@@ -231,81 +311,135 @@ public class GluScriptBaseTest extends GroovyTestCase
     agentImpl.executeActionAndWait(args)
   }
 
+  /**
+   * @return the full state of the script
+   */
   protected def getFullState()
   {
     agentImpl.getFullState(mountPoint: scriptMountPoint)
   }
 
+  /**
+   * Shortcut to get the value from the full state
+   *
+   * @return the value of a field in your script (note that if the value is not exported
+   * (ex transient feature) you will get <code>null</code>)
+   */
   protected def getExportedScriptFieldValue(String fieldName)
   {
     fullState?.scriptState?.script?."${fieldName}"
   }
 
+  /**
+   * Shortcut to get the value from the full state
+   *
+   * @return the state machine state
+   */
   protected Map getStateMachineState()
   {
     fullState?.scriptState?.stateMachine
   }
 
+  /**
+   * Synchronously runs the install action on a previously installed script
+   */
   protected def install()
   {
     syncExecuteAction(action: 'install')
   }
 
+  /**
+   * Asynchronously runs the install action on a previously installed script
+   */
   protected String asyncInstall()
   {
     asyncExecuteAction(action: 'install')
   }
 
+  /**
+   * Synchronously runs the configure action on a previously installed script
+   */
   protected def configure()
   {
     syncExecuteAction(action: 'configure')
   }
 
+  /**
+   * Asynchronously runs the configure action on a previously installed script
+   */
   protected String asyncConfigure()
   {
     asyncExecuteAction(action: 'configure')
   }
 
+  /**
+   * Synchronously runs the start action on a previously installed script
+   */
   protected def start()
   {
     syncExecuteAction(action: 'start')
   }
 
+  /**
+   * Asynchronously runs the start action on a previously installed script
+   */
   protected String asyncStart()
   {
     asyncExecuteAction(action: 'start')
   }
 
+  /**
+   * Synchronously runs the stop action on a previously installed script
+   */
   protected def stop()
   {
     syncExecuteAction(action: 'stop')
   }
 
+  /**
+   * Asynchronously runs the stop action on a previously installed script
+   */
   protected String asyncStop()
   {
     asyncExecuteAction(action: 'stop')
   }
 
+  /**
+   * Synchronously runs the unconfigure action on a previously installed script
+   */
   protected def unconfigure()
   {
     syncExecuteAction(action: 'unconfigure')
   }
 
+  /**
+   * Asynchronously runs the unconfigure action on a previously installed script
+   */
   protected String asyncUnconfigure()
   {
     asyncExecuteAction(action: 'unconfigure')
   }
 
+  /**
+   * Synchronously runs the uninstall action on a previously installed script
+   */
   protected def uninstall()
   {
     syncExecuteAction(action: 'uninstall')
   }
 
+  /**
+   * Asynchronously runs the uninstall action on a previously installed script
+   */
   protected String asyncUninstall()
   {
     asyncExecuteAction(action: 'uninstall')
   }
 
+  /**
+   * Shortcut to run {@link #installScript()} then {@link #install()}, then {@link #configure()},
+   * then {@link #start()}
+   */
   protected void deploy()
   {
     installScript()
@@ -314,6 +448,10 @@ public class GluScriptBaseTest extends GroovyTestCase
     start()
   }
 
+  /**
+   * Shortcut to run {@link #stop()} then {@link #unconfigure()} then {@link #uninstall()} then
+   * {@link #uninstallScript()}
+   */
   protected void undeploy()
   {
     stop()
@@ -322,11 +460,19 @@ public class GluScriptBaseTest extends GroovyTestCase
     uninstallScript()
   }
 
+  /**
+   * Clear any error on your script
+   */
   protected void clearError()
   {
     agentImpl.clearError(mountPoint: scriptMountPoint)
   }
 
+  /**
+   * Runs the closure (which should executing an action on your script) and make sure that it fails.
+   * It returns the exception being thrown (always of type {@link ScriptExecutionCauseException}
+   * provided that you executed an action in the script of course!
+   */
   protected ScriptExecutionCauseException scriptShouldFail(Closure closure)
   {
     try
