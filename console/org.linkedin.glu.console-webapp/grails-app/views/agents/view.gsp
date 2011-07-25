@@ -109,7 +109,7 @@
             <dd class="errorStackTrace">
               <dl id="stackTraceBody_${mountPoint.mountPoint}">
                 <g:each in="${specialEntry.value}" var="ste">
-                  <dt class="stackTraceHeader">* ${ste.name.encodeAsHTML()}: "${ste.message.encodeAsHTML()}"</dt>
+                  <dt class="stackTraceHeader">* ${ste.name.encodeAsHTML()}: "${ste.message?.encodeAsHTML()}"</dt>
                 </g:each>
               </dl>
             </dd>
