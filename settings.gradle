@@ -36,6 +36,6 @@ include ':agent:org.linkedin.glu.agent-api',
         ':scripts:org.linkedin.glu.script-jetty',
         ':scripts:org.linkedin.glu.script-noop',
         ':scripts:org.linkedin.glu.script-hello-world',
-        ':scripts:org.linkedin.glu.scripts-test-fwk',
         ':samples:org.linkedin.glu.samples.sample-webapp',
+        ':utils:org.linkedin.glu.scripts-test-fwk',
         ':utils:org.linkedin.glu.utils'
