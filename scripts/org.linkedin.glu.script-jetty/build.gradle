@@ -33,6 +33,7 @@ File sampleWebapp = sampleWebappProject.tasks.getByPath('war').archivePath
 test {
   systemProperties = [skeleton: jettyArchive,
                       war: sampleWebapp.canonicalPath]
+  jvmArgs = ["-Dlog4j.configuration=file:${new File(rootDir, 'agent/org.linkedin.glu.agent-server-upgrade/src/cmdline/resources/conf/log4j.xml').canonicalPath}"]
 }
 
 tasks.'test'.dependsOn(sampleWebappProject.tasks.getByPath('war'))
