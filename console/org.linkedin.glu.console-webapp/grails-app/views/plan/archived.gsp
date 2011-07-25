@@ -27,6 +27,10 @@
   table#deployment td {
     padding: 0.5em;
   }
+  .step {
+    padding: .2em;
+    margin: .4em;
+  }
   </style>
 </head>
 <body>
