@@ -1,6 +1,14 @@
 Latest changes
 ==============
 
+3.1.0 (2011/07/26)
+------------------
+
+Added unit test framework for glu script and created sibling project `glu-script-contribs <https://github.com/linkedin/glu-scripts-contrib>`_
+
+* Implemented `glu-80 <https://github.com/linkedin/glu/issues/80>`_: `Add ability to write unit tests for glu script`
+* Added ``Shell.httpPost`` method
+
 3.0.0 (2011/06/25)
 ------------------
 

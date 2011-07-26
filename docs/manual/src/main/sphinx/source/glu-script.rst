@@ -189,3 +189,46 @@ An example of glu script
 Real life example
 -----------------
 You can find a real life example of a glu script called `JettyGluScript <https://github.com/linkedin/glu/blob/master/scripts/org.linkedin.glu.script-jetty/src/main/groovy/JettyGluScript.groovy>`_ which shows how to deploy a webapp container (jetty), install web applications in it and monitor it.
+
+Developing and unit testing a glu script
+----------------------------------------
+The glu script test framework allows you to develop and unit test your glu script without having to worry about setting up all the components. To write a unit test for a glu script, you can simply inherit from the `GluScriptBaseTest <https://github.com/linkedin/glu/blob/master/utils/org.linkedin.glu.scripts-test-fwk/src/main/groovy/org/linkedin/glu/scripts/testFwk/GluScriptBaseTest.groovy>`_, setup a couple of parameters and run the convenient methods provided by the framework::
+
+  class TestMyGluScript extends GluScriptBaseTest
+  {
+    public void setUp() {
+      super.setUp()
+      initParameters = [ p1: 'v1' ]
+    }
+
+    // this method is not required if you follow the conventions
+    public String getScriptClass() {
+      return MyGluScript.getClass().getName()
+    }
+
+    public void testHappyPath() {
+      deploy()
+      undeploy()
+    }
+  }
+
+In order to compile the script and the unit test, you need the following dependencies (make sure you use the appropriate versions which may differ from this example!)::
+
+    // gradle format
+    dependencies {
+      compile "org.linkedin:org.linkedin.util-groovy:1.7.0"
+      compile "org.linkedin:org.linkedin.glu.agent-api:3.1.0"
+      groovy  "org.codehaus.groovy:groovy:1.7.5"
+
+      testCompile "org.linkedin:org.linkedin.glu.scripts-test-fwk:3.1.0"
+      testCompile "junit:junit:4.4"
+    }
+
+.. note:: You can use maven or any other dependency management system as long you include the proper dependencies.
+
+.. tip:: For more information and examples, you can check the following:
+
+   * `GluScriptBaseTest <https://github.com/linkedin/glu/blob/master/utils/org.linkedin.glu.scripts-test-fwk/src/main/groovy/org/linkedin/glu/scripts/testFwk/GluScriptBaseTest.groovy>`_ to check what the framework has to offer (javadoc is fairly comprehensive)
+   * `TestJettyGluScript <https://github.com/linkedin/glu/blob/master/scripts/org.linkedin.glu.script-jetty/src/test/groovy/test/script/jetty/TestJettyGluScript.groovy>`_ for a real life example of unit testing a glu script
+   * `glu-scripts-contrib <https://github.com/linkedin/glu-scripts-contrib>`_ is the project that contains glu script contributed by the community as well as a sample
+   * `sample <https://github.com/linkedin/glu-scripts-contrib/tree/master/scripts/org.linkedin.glu-scripts-contrib.sample>`_ is a sample glu script and unit test with comprehensive documentation demonstrating several features about writing and unit testing a glu script
