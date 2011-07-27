@@ -72,6 +72,16 @@ class DeploymentServiceImpl implements DeploymentService
     }
   }
 
+  Collection<Plan<ActionDescriptor>> getPlans(String fabric)
+  {
+    synchronized(_plans)
+    {
+      _plans.values().findAll { Plan<ActionDescriptor> plan ->
+        plan.metadata.fabric == fabric
+      }
+    }
+  }
+
   Collection<CurrentDeployment> getDeployments(String fabric)
   {
     synchronized(_deployments)
@@ -88,6 +98,14 @@ class DeploymentServiceImpl implements DeploymentService
     synchronized(_deployments)
     {
       _deployments.values().findAll { it.fabric == fabric && closure(it) }
+    }
+  }
+
+  @Override
+  Collection<CurrentDeployment> getDeployments(String fabric, String planId)
+  {
+    getDeployments(fabric) { CurrentDeployment deployment ->
+      deployment.planExecution?.plan?.id == planId
     }
   }
 
@@ -146,6 +164,12 @@ class DeploymentServiceImpl implements DeploymentService
     deploymentStorage.getArchivedDeployment(id)
   }
 
+  @Override
+  Deployment getCurrentOrArchivedDeployment(String id)
+  {
+    getDeployment(id) ?: getArchivedDeployment(id)
+  }
+
   boolean isExecutingDeploymentPlan(String fabric)
   {
     synchronized(_deployments)
@@ -166,13 +190,13 @@ class DeploymentServiceImpl implements DeploymentService
   {
     synchronized(_deployments)
     {
-      String username = authorizationService.getExecutingPrincipal()
+      String username = authorizationService?.getExecutingPrincipal()
 
       ArchivedDeployment deployment =
         deploymentStorage.startDeployment(description,
-                                                   system.fabric,
-                                                   username,
-                                                   plan.toXml())
+                                          system.fabric,
+                                          username,
+                                          plan.toXml())
 
       def id = deployment.id
 

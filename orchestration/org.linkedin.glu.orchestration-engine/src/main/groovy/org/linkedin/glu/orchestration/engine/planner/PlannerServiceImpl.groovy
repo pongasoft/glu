@@ -168,6 +168,7 @@ class PlannerServiceImpl implements PlannerService
       // 4. set name and metadata for the plan
       plan.setMetadata('fabric', expectedModel.fabric)
       plan.setMetadata('systemId', expectedModel.id)
+      plan.setId(UUID.randomUUID().toString())
       plan.setMetadata(metadata)
 
       plan.step?.metadata?.putAll(metadata)

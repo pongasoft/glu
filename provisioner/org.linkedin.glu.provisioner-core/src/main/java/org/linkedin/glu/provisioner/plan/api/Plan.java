@@ -95,12 +95,27 @@ public class Plan<T>
     _metadata.put("name", name);
   }
 
+  /**
+   * Change the name of a plan
+   */
+  public void setId(String id)
+  {
+    _metadata.put("id", id);
+  }
+
   public String getId()
   {
-    if(_step == null)
-      return Integer.toHexString(System.identityHashCode(this));
-    else
-      return getStep().getId();
+    String id = (String) _metadata.get("id");
+
+    if(id == null)
+    {
+      if(_step == null)
+        id = Integer.toHexString(System.identityHashCode(this));
+      else
+        id = getStep().getId();
+    }
+
+    return id;
   }
 
   public IStep<T> getStep()

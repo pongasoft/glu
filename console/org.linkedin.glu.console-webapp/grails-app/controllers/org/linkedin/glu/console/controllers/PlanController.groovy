@@ -157,7 +157,13 @@ public class PlanController extends ControllerBase
   def deployments = {
     if(params.id)
     {
-      render(view: 'deploymentDetails', model: [deployment: deploymentService.getDeployment(params.id)])
+      CurrentDeployment deployment = deploymentService.getDeployment(params.id)
+      if(deployment)
+        render(view: 'deploymentDetails', model: [deployment: deployment])
+      else
+      {
+        redirect(action: 'archived', params: [id: params.id])
+      }
     }
     else
     {
@@ -197,7 +203,7 @@ public class PlanController extends ControllerBase
   def archived = {
     if(params.id)
     {
-      [deployment: DbDeployment.findByIdAndFabric(params.id, request.fabric.name)]
+      [deployment: deploymentService.getArchivedDeployment(params.id)]
     }
     else
     {
@@ -299,10 +305,27 @@ public class PlanController extends ControllerBase
   }
 
   /**
-   * Returns the list of all plans
+   * Returns the list of all plans (that have been saved)
    */
   def rest_list_plans = {
-    render "ok"
+    Collection<Plan<ActionDescriptor>> plans = deploymentService.getPlans(request.fabric.name)
+    if(plans)
+    {
+      response.setContentType('text/json')
+      def map = [:]
+      plans.each { plan ->
+        map[plan.id] = g.createLink(absolute: true,
+                                    mapping: 'restPlan',
+                                    id: plan.id, params: [fabric: request.fabric]).toString()
+      }
+      render prettyPrintJsonWhenRequested(map)
+    }
+    else
+    {
+      response.setStatus(HttpServletResponse.SC_NO_CONTENT,
+                         'no plan current deployments')
+      render ''
+    }
   }
 
   /**
@@ -459,7 +482,7 @@ public class PlanController extends ControllerBase
   def rest_view_execution = {
     def deployment = deploymentService.getDeployment(params.id)
 
-    if(deployment && deployment.planExecution.plan.id == plans[params.planId])
+    if(deployment && deployment.planExecution.plan.id == params.planId)
     {
       response.setContentType('text/xml')
       render deployment.planExecution.toXml()
@@ -467,6 +490,33 @@ public class PlanController extends ControllerBase
     else
     {
       response.sendError HttpServletResponse.SC_NOT_FOUND
+    }
+  }
+
+  /**
+   * List all the executions for a given plan (GET /plan/<planId>/executions)
+   */
+  def rest_list_executions = {
+    Collection<CurrentDeployment> list =
+      deploymentService.getDeployments(request.fabric.name, params.id)
+    if(list)
+    {
+      response.setContentType('text/json')
+      def map = [:]
+      list.each { CurrentDeployment deployment ->
+        map[deployment.id] = g.createLink(absolute: true,
+                                          mapping: 'restExecution',
+                                          id: deployment.id, params: [
+                                          planId: params.id,
+                                          fabric: request.fabric.name]).toString()
+      }
+      render prettyPrintJsonWhenRequested(map)
+    }
+    else
+    {
+      response.setStatus(HttpServletResponse.SC_NO_CONTENT,
+                         'no execution for this plan')
+      render ''
     }
   }
 }

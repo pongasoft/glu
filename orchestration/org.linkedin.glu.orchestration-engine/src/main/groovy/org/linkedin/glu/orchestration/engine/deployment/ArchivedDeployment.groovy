@@ -22,4 +22,10 @@ public class ArchivedDeployment extends Deployment
 {
   String status
   String details // xml representation of the plan
+
+  @Override
+  String getPlanXml()
+  {
+    details
+  }
 }

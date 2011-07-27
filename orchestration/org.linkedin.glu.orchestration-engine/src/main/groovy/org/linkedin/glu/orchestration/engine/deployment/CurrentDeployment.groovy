@@ -26,4 +26,10 @@ public class CurrentDeployment extends Deployment
   String systemId
   IPlanExecution planExecution
   IPlanExecutionProgressTracker progressTracker
+
+  @Override
+  String getPlanXml()
+  {
+    planExecution.plan.toXml()
+  }
 }

@@ -32,12 +32,19 @@ interface DeploymentService
 
   void savePlan(Plan<ActionDescriptor> plan)
 
+  Collection<Plan<ActionDescriptor>> getPlans(String fabric)
+
   Collection<CurrentDeployment> getDeployments(String fabric)
 
   /**
    * Returns all the deployments matching the closure
    */
   Collection<CurrentDeployment> getDeployments(String fabric, Closure closure)
+
+  /**
+   * Returns all the deployments for the current plan
+   */
+  Collection<CurrentDeployment> getDeployments(String fabric, String planId)
 
   /**
    * @return <code>true</code> if the deployment was archived, <code>false</code> if there is
@@ -56,6 +63,12 @@ interface DeploymentService
   CurrentDeployment getDeployment(String id)
 
   ArchivedDeployment getArchivedDeployment(String id)
+
+  /**
+   * If the deployment is not archived yet, then simply return it otherwise return the archived
+   * version
+   */
+  Deployment getCurrentOrArchivedDeployment(String id)
 
   boolean isExecutingDeploymentPlan(String fabric)
 

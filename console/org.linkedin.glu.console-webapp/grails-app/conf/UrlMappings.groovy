@@ -178,6 +178,9 @@ class UrlMappings
     name restPlan: "/rest/v1/$fabric/plan/$id"(controller: 'plan') {
       action = [GET: 'rest_view_plan']
     }
+    "/rest/v1/$fabric/plan/$id/executions"(controller: 'plan') {
+      action = [GET: 'rest_list_executions']
+    }
     "/rest/v1/$fabric/plan/$id/execution"(controller: 'plan') {
       action = [POST: 'rest_execute_plan']
     }
