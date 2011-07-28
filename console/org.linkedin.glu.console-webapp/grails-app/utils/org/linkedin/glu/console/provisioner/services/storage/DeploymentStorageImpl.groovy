@@ -20,6 +20,7 @@ import org.linkedin.glu.orchestration.engine.deployment.DeploymentStorage
 import org.linkedin.glu.orchestration.engine.deployment.ArchivedDeployment
 import org.linkedin.glu.console.domain.DbDeployment
 import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
+import org.linkedin.util.annotations.Initializable
 
 /**
  * @author yan@pongasoft.com */
@@ -28,14 +29,46 @@ public class DeploymentStorageImpl implements DeploymentStorage
   public static final String MODULE = DeploymentStorageImpl.class.getName();
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
+  @Initializable
+  int maxResults = 25
+
   @Override
   ArchivedDeployment getArchivedDeployment(String id)
   {
     createArchivedDeployment(DbDeployment.get(id as long))
   }
 
+  @Override
+  Map getArchivedDeployments(String fabric,
+                             boolean includeDetails,
+                             def params)
+  {
+    // TODO MED YP: implement includeDetails behavior to minimize amount of data read from DB!
+
+    if(params.offset == null)
+      params.offset = 0
+    params.max = Math.min(params.max ? params.max.toInteger() : maxResults, maxResults)
+    params.sort = params.sort ?: 'startDate'
+    params.order = params.order ?: 'desc'
+    def deployments = DbDeployment.findAllByFabric(fabric, params)
+
+    [
+        deployments: deployments.collect { createArchivedDeployment(it) },
+        count: getArchivedDeploymentsCount(fabric),
+    ]
+  }
+
+  @Override
+  int getArchivedDeploymentsCount(String fabric)
+  {
+    DbDeployment.countByFabric(fabric)
+  }
+
   protected ArchivedDeployment createArchivedDeployment(DbDeployment deployment)
   {
+    if(deployment == null)
+      return null
+    
     return new ArchivedDeployment(id: deployment.id.toString(),
                                   startDate: deployment.startDate,
                                   endDate: deployment.endDate,

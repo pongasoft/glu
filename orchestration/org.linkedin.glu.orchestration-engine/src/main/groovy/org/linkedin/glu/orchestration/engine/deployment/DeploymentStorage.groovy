@@ -24,6 +24,20 @@ public interface DeploymentStorage
 {
   ArchivedDeployment getArchivedDeployment(String id)
 
+  /**
+   * params can be what grails accept for paginating queries: <code>max</code>,
+   * <code>offset</code>, <code>sort</code>, <code>order</code>
+   * @return the list of archived deployments
+   */
+  Map getArchivedDeployments(String fabric,
+                             boolean includeDetails,
+                             params)
+
+  /**
+   * @return number of archived deployments in this fabric
+   */
+  int getArchivedDeploymentsCount(String fabric)
+
   ArchivedDeployment startDeployment(String description,
                                      String fabric,
                                      String username,

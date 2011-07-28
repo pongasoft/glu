@@ -181,7 +181,7 @@ class Client:
 
     while 1:
       progressStatus = self._doRequest(statusUrl, "HEAD")
-      completeStatus = progressStatus['x-linkedin-glu-completion']
+      completeStatus = progressStatus['x-glu-completion']
       percentComplete = re.split(':', completeStatus)
 
       if not completed.match(completeStatus):

@@ -165,6 +165,20 @@ class DeploymentServiceImpl implements DeploymentService
   }
 
   @Override
+  Map getArchivedDeployments(String fabric,
+                             boolean includeDetails,
+                             params)
+  {
+    deploymentStorage.getArchivedDeployments(fabric, includeDetails, params)
+  }
+
+  @Override
+  int getArchivedDeploymentsCount(String fabric)
+  {
+    deploymentStorage.getArchivedDeploymentsCount(fabric)
+  }
+
+  @Override
   Deployment getCurrentOrArchivedDeployment(String id)
   {
     getDeployment(id) ?: getArchivedDeployment(id)

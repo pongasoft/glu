@@ -37,6 +37,22 @@ public class InMemoryDeploymentStorage implements DeploymentStorage
   }
 
   @Override
+  Map getArchivedDeployments(String fabric, boolean includeDetails, params)
+  {
+    // TODO HIGH YP: currently ignoring params entirely!!
+    [
+      deployments: deployments.values().findAll { it.fabric == fabric },
+      count: getArchivedDeploymentsCount(fabric)
+    ]
+  }
+
+  @Override
+  int getArchivedDeploymentsCount(String fabric)
+  {
+    deployments.values().findAll { it.fabric == fabric }.size()
+  }
+
+  @Override
   ArchivedDeployment startDeployment(String description, String fabric, String username, String details)
   {
     ArchivedDeployment deployment = new ArchivedDeployment(id: ++lastDeploymentId.toString(),

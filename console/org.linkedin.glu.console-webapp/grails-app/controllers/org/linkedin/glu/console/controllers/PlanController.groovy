@@ -25,7 +25,6 @@ import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.provisioner.plan.api.IStepExecution
 import org.linkedin.glu.provisioner.plan.api.IPlanExecution
-import org.linkedin.glu.console.domain.DbDeployment
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import javax.servlet.http.HttpServletResponse
 import org.linkedin.util.clock.Clock
@@ -36,6 +35,8 @@ import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescrip
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.glu.orchestration.engine.deployment.ArchivedDeployment
+import org.linkedin.glu.orchestration.engine.deployment.Deployment
 
 /**
  * @author ypujante@linkedin.com */
@@ -207,13 +208,7 @@ public class PlanController extends ControllerBase
     }
     else
     {
-      params.max = Math.min(params.max ? params.max.toInteger() : 50, 50)
-      params.sort = 'startDate'
-      params.order = 'desc'
-      [
-          deployments: DbDeployment.findAllByFabric(request.fabric.name, params),
-          count: DbDeployment.count(),
-      ]
+      deploymentService.getArchivedDeployments(request.fabric.name, false, params)
     }
   }
 
@@ -468,6 +463,7 @@ public class PlanController extends ControllerBase
       else
         completion = "${completion}"
       response.setHeader("X-LinkedIn-GLU-Completion", completion)
+      response.setHeader("X-glu-completion", completion)
       render ''
     }
     else
@@ -518,6 +514,174 @@ public class PlanController extends ControllerBase
                          'no execution for this plan')
       render ''
     }
+  }
+
+  /**
+   * List all current deployments (GET /deployments/current)
+   */
+  def rest_list_current_deployments = {
+    Collection<CurrentDeployment> list = deploymentService.getDeployments(request.fabric.name)
+    if(list)
+    {
+      response.setContentType('text/json')
+      def map = [:]
+      list.each { CurrentDeployment deployment ->
+        def deploymentMap = buildMap(deployment)
+        deploymentMap.viewURL = g.createLink(absolute: true,
+                                             mapping: 'restViewCurrentDeployment',
+                                             id: deployment.id,
+                                             params: [fabric: request.fabric.name]).toString()
+        map[deployment.id] = deploymentMap
+      }
+      render prettyPrintJsonWhenRequested(map)
+    }
+    else
+    {
+      response.setStatus(HttpServletResponse.SC_NO_CONTENT,
+                         'no current deployments')
+      render ''
+    }
+  }
+
+  /**
+   * Handle GET and HEAD /deployments/current/<deploymentId>
+   */
+  def rest_view_current_deployment = {
+    processViewDeployment(deploymentService.getDeployment(params.id))
+  }
+
+  /**
+   * Archive current deployment DELETE /deployments/current/<deploymentId>
+   */
+  def rest_archive_current_deployment = {
+    try
+    {
+      boolean archived = deploymentService.archiveDeployment(params.id)
+      response.addHeader("X-glu-archived", archived.toString())
+      response.setStatus(HttpServletResponse.SC_OK)
+      render ''
+    }
+    catch (IllegalStateException e)
+    {
+      // currently running... cannot archive!
+      response.sendError HttpServletResponse.SC_CONFLICT
+    }
+  }
+
+  /**
+   * Archive all deployments DELETE /deployments/current
+   */
+  def rest_archive_all_deployments = {
+    def count = deploymentService.archiveAllDeployments(request.fabric.name)
+    response.addHeader("X-glu-archived", count.toString())
+    response.setStatus(HttpServletResponse.SC_OK)
+    render ''
+  }
+
+  /**
+   * count how many archived deployments (HEAD /deployments/archived) */
+  def rest_count_archived_deployments = {
+    response.addHeader("X-glu-totalCount",
+                       deploymentService.getArchivedDeploymentsCount(request.fabric.name).toString())
+    response.setStatus(HttpServletResponse.SC_OK)
+    render ''
+  }
+
+  /**
+   * List archived deployments (GET /deployments/archived) */
+  def rest_list_archived_deployments = {
+    def map = deploymentService.getArchivedDeployments(request.fabric.name, false, params)
+
+    if(map.deployments)
+    {
+      Map deploymentsMap = [:]
+
+      map.deployments.each { ArchivedDeployment deployment ->
+        def deploymentMap = buildMap(deployment)
+        deploymentMap.viewURL = g.createLink(absolute: true,
+                                             mapping: 'restViewArchivedDeployment',
+                                             id: deployment.id,
+                                             params: [fabric: request.fabric.name]).toString()
+        deploymentsMap[deployment.id] = deploymentMap
+      }
+
+      response.addHeader("X-glu-count", map.deployments.size().toString())
+      response.addHeader("X-glu-totalCount", map.count.toString())
+      ['max', 'offset', 'sort', 'order'].each { k ->
+        response.addHeader("X-glu-${k}", params[k].toString())
+      }
+
+      response.setContentType('text/json')
+      render prettyPrintJsonWhenRequested(deploymentsMap)
+    }
+    else
+    {
+      response.setStatus(HttpServletResponse.SC_NO_CONTENT,
+                         'no current deployments')
+      render ''
+    }
+  }
+
+  /**
+   * Handle GET and HEAD /deployments/archived/<deploymentId>
+   */
+  def rest_view_archived_deployment = {
+    processViewDeployment(deploymentService.getArchivedDeployment(params.id))
+  }
+
+  /**
+   * Handle GET and HEAD for a deployment
+   */
+  private void processViewDeployment(Deployment deployment)
+  {
+    if(deployment)
+    {
+      def map = buildMap(deployment)
+      // put all map values as headers
+      map.each { k, v ->
+        if(v)
+          response.addHeader("X-glu-${k}", v.toString())
+      }
+
+      if(request.method == "HEAD")
+      {
+        render ''
+      }
+      else
+      {
+        response.setContentType('text/xml')
+        render deployment.planXml
+      }
+    }
+    else
+    {
+      response.sendError HttpServletResponse.SC_NOT_FOUND
+      render ''
+    }
+  }
+
+  private Map buildMap(CurrentDeployment deployment)
+  {
+    [
+      startTime: deployment.planExecution.startTime,
+      endTime: deployment.planExecution.completionStatus?.endTime,
+      username: deployment.username,
+      status: deployment.planExecution.completionStatus?.status ?: 'RUNNING',
+      description: deployment.description,
+      completedSteps: deployment.progressTracker.leafStepsCompletedCount,
+      totalSteps: deployment.planExecution.plan.leafStepsCount,
+    ]
+  }
+
+  private Map buildMap(ArchivedDeployment deployment)
+  {
+    [
+      startTime: deployment.startDate.time,
+      endTime: deployment.endDate?.time,
+      username: deployment.username,
+      status: deployment.status,
+      description: deployment.description
+    ]
   }
 }
 

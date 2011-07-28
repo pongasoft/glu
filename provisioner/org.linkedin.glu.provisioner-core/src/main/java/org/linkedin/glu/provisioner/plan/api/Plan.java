@@ -16,6 +16,9 @@
 
 package org.linkedin.glu.provisioner.plan.api;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.linkedin.util.xml.XMLIndent;
 
 import java.util.ArrayList;
@@ -272,6 +275,27 @@ public class Plan<T>
     }
 
     return xml.getXML();
+  }
+
+  public JSONObject toJson()
+  {
+    JSONObject json = new JSONObject();
+
+    try
+    {
+      json.put("metadata", getMetadata());
+      if(_step != null)
+      {
+        JsonStepVisitor<T> visitor = new JsonStepVisitor<T>(json);
+        _step.acceptVisitor(visitor);
+      }
+    }
+    catch(JSONException e)
+    {
+      throw new RuntimeException(e);
+    }
+
+    return json;
   }
 
   @Override

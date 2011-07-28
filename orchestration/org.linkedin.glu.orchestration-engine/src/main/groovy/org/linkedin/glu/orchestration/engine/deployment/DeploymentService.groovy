@@ -65,6 +65,21 @@ interface DeploymentService
   ArchivedDeployment getArchivedDeployment(String id)
 
   /**
+   * params can be what grails accept for paginating queries: <code>max</code>,
+   * <code>offset</code>, <code>sort</code>, <code>order</code>
+   * @return a map with deployments: the list of archived deployments and
+   *         count: the total number of entries
+   */
+  Map getArchivedDeployments(String fabric,
+                             boolean includeDetails,
+                             params)
+
+  /**
+   * @return number of archived deployments in this fabric
+   */
+  int getArchivedDeploymentsCount(String fabric)
+
+  /**
    * If the deployment is not archived yet, then simply return it otherwise return the archived
    * version
    */

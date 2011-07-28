@@ -173,46 +173,102 @@ class UrlMappings
      * plan
      */
     "/rest/v1/$fabric/plans"(controller: 'plan') {
-      action = [GET: 'rest_list_plans', POST: 'rest_create_plan']
+      action = [
+        GET: 'rest_list_plans',
+        POST: 'rest_create_plan'
+      ]
     }
     name restPlan: "/rest/v1/$fabric/plan/$id"(controller: 'plan') {
-      action = [GET: 'rest_view_plan']
+      action = [
+        GET: 'rest_view_plan'
+      ]
     }
     "/rest/v1/$fabric/plan/$id/executions"(controller: 'plan') {
-      action = [GET: 'rest_list_executions']
+      action = [
+        GET: 'rest_list_executions'
+      ]
     }
     "/rest/v1/$fabric/plan/$id/execution"(controller: 'plan') {
-      action = [POST: 'rest_execute_plan']
+      action = [
+        POST: 'rest_execute_plan'
+      ]
     }
     name restExecution: "/rest/v1/$fabric/plan/$planId/execution/$id"(controller: 'plan') {
-      action = [GET: 'rest_view_execution', HEAD: 'rest_execution_status']
+      action = [
+        GET: 'rest_view_execution',
+        HEAD: 'rest_execution_status'
+      ]
+    }
+
+    /***
+     * deployments
+     */
+    "/rest/v1/$fabric/deployments/current"(controller: 'plan') {
+      action = [
+        GET: 'rest_list_current_deployments',
+        DELETE: 'rest_archive_all_deployments'
+      ]
+    }
+
+    name restViewCurrentDeployment: "/rest/v1/$fabric/deployments/current/$id"(controller: 'plan') {
+      action = [
+        HEAD: 'rest_view_current_deployment',
+        GET: 'rest_view_current_deployment',
+        DELETE: 'rest_archive_current_deployment'
+      ]
+    }
+
+    "/rest/v1/$fabric/deployments/archived"(controller: 'plan') {
+      action = [
+        HEAD: 'rest_count_archived_deployments',
+        GET: 'rest_list_archived_deployments'
+      ]
+    }
+
+    name restViewArchivedDeployment: "/rest/v1/$fabric/deployments/archived/$id"(controller: 'plan') {
+      action = [
+        HEAD: 'rest_view_archived_deployment',
+        GET: 'rest_view_archived_deployment'
+      ]
     }
 
     /***
      * model
      */
     name restStaticModel: "/rest/v1/$fabric/model/static"(controller: 'model') {
-      action = [POST: 'rest_upload_model', GET: 'rest_get_static_model']
+      action = [
+        POST: 'rest_upload_model',
+        GET: 'rest_get_static_model'
+      ]
     }
     name restLiveModel: "/rest/v1/$fabric/model/live"(controller: 'model') {
-      action = [GET: 'rest_get_live_model']
+      action = [
+        GET: 'rest_get_live_model'
+      ]
     }
 
     /***
      * delta
      */
     name restDelta: "/rest/v1/$fabric/model/delta"(controller: 'delta') {
-      action = [GET: 'rest_get_delta']
+      action = [
+        GET: 'rest_get_delta'
+      ]
     }
 
     /**
      * DEPRECATED: kept for backward compatibility only
      */
     "/rest/v1/$fabric/system/model"(controller: 'model') {
-      action = [POST: 'rest_upload_model', GET: 'rest_get_static_model']
+      action = [
+        POST: 'rest_upload_model',
+        GET: 'rest_get_static_model'
+      ]
     }
     "/rest/v1/$fabric/system/live"(controller: 'model') {
-      action = [GET: 'rest_get_live_model']
+      action = [
+        GET: 'rest_get_live_model'
+      ]
     }
 
     "500"(view: '/error')
