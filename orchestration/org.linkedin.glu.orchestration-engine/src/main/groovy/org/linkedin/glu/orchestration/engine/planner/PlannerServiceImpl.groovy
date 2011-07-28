@@ -51,6 +51,11 @@ class PlannerServiceImpl implements PlannerService
   @Initializable(required = true)
   Planner planner
 
+  @Initializable(required = true)
+  Closure planIdFactory = { Plan<ActionDescriptor> plan ->
+    UUID.randomUUID().toString()
+  }
+
   @Initializable
   String autoUpgradeScriptClassname = 'org.linkedin.glu.agent.impl.script.AutoUpgradeScript'
 
@@ -168,9 +173,13 @@ class PlannerServiceImpl implements PlannerService
       // 4. set name and metadata for the plan
       plan.setMetadata('fabric', expectedModel.fabric)
       plan.setMetadata('systemId', expectedModel.id)
-      plan.setId(UUID.randomUUID().toString())
-      plan.setMetadata(metadata)
 
+      // 5. set the plan id
+      String planId = planIdFactory(plan)
+      if(planId)
+        plan.setId(planId)
+
+      plan.setMetadata(metadata)
       plan.step?.metadata?.putAll(metadata)
 
       def name = params.name ?: metadata.name

@@ -53,7 +53,8 @@ public class TestPlannerService extends GroovyTestCase
   PlannerServiceImpl plannerService = new PlannerServiceImpl(planner: planner,
                                                              deltaMgr: deltaMgr,
                                                              fabricService: fabricService,
-                                                             agentsService: agentService)
+                                                             agentsService: agentService,
+                                                             planIdFactory: { null })
   /**
    * Test for bounce plan
    */
