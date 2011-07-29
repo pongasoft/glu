@@ -257,6 +257,29 @@ class UrlMappings
     }
 
     /**
+     * agents
+     */
+    "/rest/v1/$fabric/agents"(controller: 'agents') {
+      action = [
+        HEAD: 'rest_count_agents',
+        GET: 'rest_list_agents'
+      ]
+    }
+
+    name restViewAgent: "/rest/v1/$fabric/agent/$id"(controller: 'agents') {
+      action = [
+        GET: 'rest_view_agent'
+      ]
+    }
+
+    "/rest/v1/$fabric/agents/versions"(controller: 'agents') {
+      action = [
+        GET: 'rest_list_agents_versions',
+        POST: 'rest_upgrade_agents_versions'
+      ]
+    }
+
+    /**
      * DEPRECATED: kept for backward compatibility only
      */
     "/rest/v1/$fabric/system/model"(controller: 'model') {

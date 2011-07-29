@@ -506,11 +506,12 @@ public class PlanController extends ControllerBase
                                           planId: params.id,
                                           fabric: request.fabric.name]).toString()
       }
+      response.addHeader("X-glu-count", map.size().toString())
       render prettyPrintJsonWhenRequested(map)
     }
     else
     {
-      response.setStatus(HttpServletResponse.SC_NO_CONTENT,
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
                          'no execution for this plan')
       render ''
     }
@@ -533,11 +534,12 @@ public class PlanController extends ControllerBase
                                              params: [fabric: request.fabric.name]).toString()
         map[deployment.id] = deploymentMap
       }
+      response.addHeader("X-glu-count", map.size().toString())
       render prettyPrintJsonWhenRequested(map)
     }
     else
     {
-      response.setStatus(HttpServletResponse.SC_NO_CONTENT,
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
                          'no current deployments')
       render ''
     }
@@ -616,7 +618,7 @@ public class PlanController extends ControllerBase
     }
     else
     {
-      response.setStatus(HttpServletResponse.SC_NO_CONTENT,
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
                          'no current deployments')
       render ''
     }

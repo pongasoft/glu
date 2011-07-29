@@ -27,6 +27,10 @@ import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.orchestration.engine.planner.PlannerService
 import org.linkedin.glu.orchestration.engine.delta.DeltaService
+import javax.servlet.http.HttpServletResponse
+import org.linkedin.glu.agent.tracker.AgentInfo
+import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor
+import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 
 /**
  * @author ypujante@linkedin.com
@@ -34,6 +38,7 @@ import org.linkedin.glu.orchestration.engine.delta.DeltaService
 class AgentsController extends ControllerBase
 {
   AgentsService agentsService
+  DeploymentService deploymentService
   PlannerService plannerService
   DeltaService deltaService
 
@@ -372,6 +377,152 @@ class AgentsController extends ControllerBase
         redirect(action: 'view', id: params.id)
         return
       }
+    }
+  }
+
+  /**
+   * Retuns the count of agents (HEAD /agents)
+   */
+  def rest_count_agents = {
+    Collection<AgentInfo> agents = agentsService.getAgentInfos(request.fabric)?.values()
+
+    if(agents)
+    {
+      response.addHeader("X-glu-count", agents.size().toString())
+      render ''
+    }
+    else
+    {
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
+                         'no agents')
+      render ''
+    }
+  }
+
+  /**
+   * Retuns the list of agents (GET /agents)
+   */
+  def rest_list_agents = {
+    Collection<AgentInfo> agents = agentsService.getAgentInfos(request.fabric)?.values()
+
+    if(agents)
+    {
+      def map = [:]
+      agents.each { AgentInfo agent ->
+        def agentMap = agent.agentProperties.findAll { !it.key.startsWith('java.') }
+        agentMap.viewURL = g.createLink(absolute: true,
+                                        mapping: 'restViewAgent',
+                                        id: agent.agentName,
+                                        params: [fabric: request.fabric.name]).toString()
+        map[agent.agentName] = agentMap
+      }
+      response.setContentType('text/json')
+      response.addHeader("X-glu-count", map.size().toString())
+      render prettyPrintJsonWhenRequested(map)
+    }
+    else
+    {
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
+                         'no agents')
+      render ''
+    }
+  }
+
+  /**
+   * Retuns the agent view (GET /agent/<agentName>)
+   */
+  def rest_view_agent = {
+    AgentInfo agent = agentsService.getAgentInfo(request.fabric, params.id)
+
+    if(agent)
+    {
+      def map = [:]
+      map['details'] = agent.agentProperties.findAll { !it.key.startsWith('java.') }
+      response.setContentType('text/json')
+      render prettyPrintJsonWhenRequested(map)
+    }
+    else
+    {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND,
+                         'no such agent')
+      render ''
+    }
+  }
+
+  /**
+   * Retuns the list of agents versions (GET /agents/versions)
+   */
+  def rest_list_agents_versions = {
+    Collection<AgentInfo> agents = agentsService.getAgentInfos(request.fabric)?.values()
+
+    if(agents)
+    {
+      def map = [:]
+      agents.each { AgentInfo agent ->
+        map[agent.agentName] = agent.version
+      }
+      response.setContentType('text/json')
+      response.addHeader("X-glu-count", map.size().toString())
+      render prettyPrintJsonWhenRequested(map)
+    }
+    else
+    {
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
+                         'no agents')
+      render ''
+    }
+  }
+
+  /**
+   * Creates a plan for upgrading the agent (POST /agents/versions)
+   */
+  def rest_upgrade_agents_versions = {
+    if(!params.version || !params.coordinates)
+    {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST)
+      return
+    }
+
+    if(params.agents instanceof String)
+    {
+      params.agents = [params.agents]
+    }
+
+    def availableAgents = agentsService.getAgentInfos(request.fabric).keySet()
+
+    params.agents = params.agents?.findAll { availableAgents.contains(it) }
+
+    params.fabric = request.fabric
+    params.type = Type.valueOf(params.type ?: 'PARALLEL')
+
+    def plan =
+      plannerService.computeAgentsUpgradePlan(params,
+                                              [origin: 'rest', action: 'upgradeAgents', version: params.version])
+
+
+    if(plan?.hasLeafSteps())
+    {
+      if(plan.leafSteps.findAll { it.action instanceof NoOpActionDescriptor }.size() == plan.leafStepsCount)
+      {
+        response.sendError(HttpServletResponse.SC_NO_CONTENT,
+                           'no plan created (already upgrading all agents)')
+        render ''
+      }
+      else
+      {
+        deploymentService.savePlan(plan)
+        response.addHeader('Location', g.createLink(absolute: true,
+                                                    mapping: 'restPlan',
+                                                    id: plan.id,
+                                                    params: [fabric: request.fabric]).toString())
+        response.setStatus(HttpServletResponse.SC_CREATED)
+        render plan.id
+      }
+    }
+    else
+    {
+      response.sendError(HttpServletResponse.SC_NO_CONTENT, 'no plan created (nothing to upgrade)')
+      render ''
     }
   }
 
