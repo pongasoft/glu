@@ -313,6 +313,7 @@ public class PlanController extends ControllerBase
                                     mapping: 'restPlan',
                                     id: plan.id, params: [fabric: request.fabric]).toString()
       }
+      response.addHeader("X-glu-count", map.size().toString())
       render prettyPrintJsonWhenRequested(map)
     }
     else

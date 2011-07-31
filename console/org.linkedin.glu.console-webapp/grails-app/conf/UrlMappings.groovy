@@ -210,7 +210,7 @@ class UrlMappings
       ]
     }
 
-    name restViewCurrentDeployment: "/rest/v1/$fabric/deployments/current/$id"(controller: 'plan') {
+    name restViewCurrentDeployment: "/rest/v1/$fabric/deployment/current/$id"(controller: 'plan') {
       action = [
         HEAD: 'rest_view_current_deployment',
         GET: 'rest_view_current_deployment',
@@ -225,7 +225,7 @@ class UrlMappings
       ]
     }
 
-    name restViewArchivedDeployment: "/rest/v1/$fabric/deployments/archived/$id"(controller: 'plan') {
+    name restViewArchivedDeployment: "/rest/v1/$fabric/deployment/archived/$id"(controller: 'plan') {
       action = [
         HEAD: 'rest_view_archived_deployment',
         GET: 'rest_view_archived_deployment'
