@@ -1,6 +1,16 @@
 Latest changes
 ==============
 
+3.2.0 (2011/07/31)
+------------------
+
+Enhanced REST API by exposing more functionalities (agent upgrade, deployments, plans). Note that the REST call ``HEAD /plan/<planId>/execution/<executionId>`` now returns a header called ``X-glu-completion`` (the old one ``X-LinkedIn-GLU-completion`` is still returned for backward compatibility).
+
+* Implemented `glu-66 <https://github.com/linkedin/glu/issues/66>`_: `implement rest call GET /plans`
+* Fixed `glu-81 <https://github.com/linkedin/glu/issues/81>`_: `Sometimes ste.message is null. It is null when the exception is java.util`
+* Fixed `glu-82 <https://github.com/linkedin/glu/issues/82>`_: `Add some spacing around the pagination items.`
+* Fixed `glu-83 <https://github.com/linkedin/glu/issues/83>`_: `NPE at http://glu/console/plan/deployments/XXX`
+
 3.1.0 (2011/07/26)
 ------------------
 
