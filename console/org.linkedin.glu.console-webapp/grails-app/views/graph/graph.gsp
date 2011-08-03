@@ -20,10 +20,7 @@
   <meta name="layout" content="main"/>
 </head>
 <body>
-<h2>TODO: Display graphs here</h2>
-<ul>
-  <li>Graph 1</li>
-  <li>Graph 2</li>
-</ul>
+<h2>TODO: Display A single graph here</h2>
+<img src="http://www.jpowered.com/php-scripts/area-graph/images/area-graph-311x331.gif"/>
 </body>
 </html>

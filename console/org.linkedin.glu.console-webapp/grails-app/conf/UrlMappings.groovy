@@ -90,6 +90,7 @@ class UrlMappings
 	*/
 	// graph
 	"/graph"(controller: 'graph', action: "index") {__nvbe = 'Graph' }
+	"/graph/versions"(controller: 'graph', action: "graph") {__nvbe = 'Graph' }
 	
     /**************************************
      * RELEASE access

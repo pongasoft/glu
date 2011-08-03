@@ -30,8 +30,8 @@ class GraphController extends ControllerBase
   ConsoleConfig consoleConfig
 
   def index = {
-    def subject = SecurityUtils.getSubject()
-    def user = User.findByUsername(subject.principal)
-    return [roles: user.roles]
+  }
+
+  def graph = {
   }
 }
