@@ -84,7 +84,13 @@ class UrlMappings
 
     // home
     "/home"(controller: 'home', action: "index") { __nvbe = 'User' }
-
+	
+	/**************************************
+	* GRAPHING
+	*/
+	// graph
+	"/graph"(controller: 'graph', action: "index") {__nvbe = 'Graph' }
+	
     /**************************************
      * RELEASE access
      */

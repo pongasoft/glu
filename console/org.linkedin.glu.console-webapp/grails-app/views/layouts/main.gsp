@@ -78,6 +78,7 @@
         <li ${cl.navbarEntryClass(entry: 'System')} id="tab-system"><g:link controller="system" action="list">System</g:link></li>
         <g:if test="${isAdminUser}"><li ${cl.navbarEntryClass(entry: 'Model')} id="tab-model"><g:link controller="model" action="choose">Model</g:link></li></g:if>
       </g:if>
+      <li ${cl.navbarEntryClass(entry: 'Graph')} id="tab-graphs"><g:link controller="graph">Graphs</g:link></li>
       <g:if test="${isAdminUser}"><li ${cl.navbarEntryClass(entry: 'Admin')} id="tab-admin"><g:link controller="admin">Admin</g:link></li></g:if>
       <li ${cl.navbarEntryClass(entry: 'User')} id="tab-home"><g:link controller="home"><span id="tab-home-username">${user.username.encodeAsHTML()}</span></g:link></li>
       <li ${cl.navbarEntryClass(entry: 'Help')} id="tab-help"><g:link controller="help" action="index">Help</g:link></li>
