@@ -56,8 +56,7 @@ class DashboardController extends ControllerBase
 
   private def doComputeDelta()
   {
-    deltaService.computeGroupByDelta(request.fabric,
-                                     request.system,
+    deltaService.computeGroupByDelta(request.system,
                                      consoleConfig.defaults.dashboard,
                                      params)
   }

@@ -27,6 +27,10 @@
   table#deployment td {
     padding: 0.5em;
   }
+  .step {
+    padding: .2em;
+    margin: .4em;
+  }
   </style>
 </head>
 <body>
@@ -39,8 +43,8 @@
   <table id="deployment">
     <tr>
       <th>Username</th>
-      <th>Start Time</th>
-      <th>End Time</th>
+      <th>Start Date</th>
+      <th>End Date</th>
       <th>Duration</th>
       <th>Status</th>
     </tr>
@@ -77,13 +81,15 @@ ${deployment.details.encodeAsHTML()}
   </ul>
 <g:if test="${deployments}">
   <h2>Archived deployments [${count}]</h2>
-  <g:paginate total="${count}" max="50"/>
+  <div class="paginateButtons">
+    <g:paginate total="${count}" max="25"/>
+  </div>
   <table id="deployments">
     <tr>
       <th>Description</th>
       <th>Username</th>
-      <th>Start Time</th>
-      <th>End Time</th>
+      <th>Start Date</th>
+      <th>End Date</th>
       <th>Duration</th>
       <th>Status</th>
     </tr>
@@ -112,7 +118,9 @@ ${deployment.details.encodeAsHTML()}
       </tr>
     </g:each>
   </table>
-  <g:paginate total="${count}" max="25"/>
+  <div class="paginateButtons">
+    <g:paginate total="${count}" max="25"/>
+  </div>
 </g:if>
 <g:else>
   <h2>No archived deployments...</h2>

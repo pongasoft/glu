@@ -51,13 +51,7 @@
   <g:if test="${executingDeploymentPlan}">Executing deployment plan... <g:link controller="plan" action="deployments">Check progress.</g:link></g:if>
   </p>
 
-  <g:render template="/plan/selectDelta" model="[delta: delta, title: 'Deploy: ' + title]"/>
-
-  <g:render template="/plan/selectDelta" model="[delta: bounce, title: 'Bounce: ' + title]"/>
-
-  <g:render template="/plan/selectDelta" model="[delta: redeploy, title: 'Redeploy: ' + title]"/>
-
-  <g:render template="/plan/selectDelta" model="[delta: undeploy, title: 'Undeploy: ' + title]"/>
+  <g:render template="/plan/selectPlan" model="[title: title, filter: null, hasDelta: hasDelta]"/>
 
   <g:if test="${missingAgents}">
     <h2>Missing agents [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h2>

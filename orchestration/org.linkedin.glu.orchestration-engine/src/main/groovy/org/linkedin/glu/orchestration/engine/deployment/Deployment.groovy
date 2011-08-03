@@ -20,7 +20,7 @@ import org.linkedin.util.clock.Timespan
 
 /**
  * @author yan@pongasoft.com */
-public class Deployment
+public abstract class Deployment
 {
   String id
   Date startDate = new Date()
@@ -36,4 +36,6 @@ public class Deployment
     else
       return null
   }
+
+  abstract String getPlanXml()
 }

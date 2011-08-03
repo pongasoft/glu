@@ -22,17 +22,23 @@ import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl
+import org.linkedin.glu.orchestration.engine.delta.impl.DeltaMgrImpl
+import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta.DeltaState
+import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 
 class TestDeltaService extends GroovyTestCase
 {
-  def deltaService = new DeltaServiceImpl()
+  DeltaMgrImpl deltaMgr = new DeltaMgrImpl()
+  DeltaServiceImpl deltaService = new DeltaServiceImpl(deltaMgr: deltaMgr)
+
+  def DEFAULT_INCLUDED_IN_VERSION_MISMATCH = deltaMgr.includedInVersionMismatch
 
   void testDeltaService()
   {
     // empty
     def current = []
     def expected = []
-    groovy.util.GroovyTestCase.assertEquals([], doComputeDelta(current, expected))
+    assertEqualsIgnoreType([], doComputeDelta(expected, current))
 
     // notDeployed
     current = []
@@ -46,18 +52,20 @@ class TestDeltaService extends GroovyTestCase
     assertEqualsIgnoreType([
                            [
                             'metadata.container': 'c1',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: DeltaState.ERROR,
                             status: 'notDeployed',
+                            statusInfo: 'NOT deployed',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // notDeployed + cluster (GLU-393)
     current = []
@@ -72,23 +80,26 @@ class TestDeltaService extends GroovyTestCase
                            [
                             'metadata.cluster': 'cl1',
                             'metadata.container': 'c1',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: DeltaState.ERROR,
                             status: 'notDeployed',
+                            statusInfo: 'NOT deployed',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
-    // notRunning
+    // notExpectedState (with default = running)
     current = [
         [
             agent: 'a1', mountPoint: '/m1', script: 's1',
+            entryState: 'stopped',
             initParameters: [wars: 'w1'],
             metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
         ]
@@ -104,23 +115,62 @@ class TestDeltaService extends GroovyTestCase
                            [
                             'metadata.container': 'c1',
                             'metadata.currentState': 'stopped',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
-                            status: 'notRunning',
+                            state: DeltaState.ERROR,
+                            status: 'notExpectedState',
+                            statusInfo: 'running!=stopped',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
+
+    // notExectedState (with specific state=stopped)
+    current = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            entryState: 'configured',
+            initParameters: [wars: 'w1'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'configured']
+        ]
+    ]
+    expected = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            entryState: 'stopped',
+            initParameters: [wars: 'w1'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2']
+        ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.container': 'c1',
+                            'metadata.currentState': 'configured',
+                            entryState: 'stopped',
+                            key: 'a1:/m1',
+                            agent: 'a1',
+                            mountPoint: '/m1',
+                            'metadata.product': 'p1',
+                            script: 's1',
+                            state: DeltaState.ERROR,
+                            status: 'notExpectedState',
+                            statusInfo: 'stopped!=configured',
+                            'metadata.version': 'R2',
+                            'initParameters.wars': 'w1'
+                            ]
+                           ],
+                           doComputeDelta(expected, current))
 
     // notRunning + versionMismatch => default is versionMismatch wins
     current = [
         [
             agent: 'a1', mountPoint: '/m1', script: 's1',
+            entryState: 'stopped',
             initParameters: [wars: 'w1'],
             metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
         ]
@@ -136,25 +186,28 @@ class TestDeltaService extends GroovyTestCase
                            [
                             'metadata.container': 'c1',
                             'metadata.currentState': 'stopped',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
-                            status: 'versionMismatch',
-                            statusInfo: 'initParameters.wars:w2 != initParameters.wars:w1',
+                            state: DeltaState.ERROR,
+                            status: 'delta',
+                            statusInfo: ['entryState:[running!=stopped]',
+                                         'initParameters.wars:[w2!=w1]'],
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w2'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // notRunning + versionMismatch => we force notRunning to win
     deltaService.notRunningOverridesVersionMismatch = true
     current = [
         [
             agent: 'a1', mountPoint: '/m1', script: 's1',
+            entryState: 'stopped',
             initParameters: [wars: 'w1'],
             metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
         ]
@@ -170,18 +223,20 @@ class TestDeltaService extends GroovyTestCase
                            [
                             'metadata.container': 'c1',
                             'metadata.currentState': 'stopped',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
-                            status: 'notRunning',
+                            state: DeltaState.ERROR,
+                            status: 'notExpectedState',
+                            statusInfo: 'running!=stopped',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w2'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // restoring defaults
     deltaService.notRunningOverridesVersionMismatch = false
@@ -190,6 +245,7 @@ class TestDeltaService extends GroovyTestCase
     current = [
         [
             agent: 'a1', mountPoint: '/m1', script: 's1',
+            entryState: 'stopped',
             initParameters: [wars: 'w1'],
             metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
         ]
@@ -205,24 +261,27 @@ class TestDeltaService extends GroovyTestCase
                            [
                             'metadata.container': 'c1',
                             'metadata.currentState': 'stopped',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
-                            status: 'versionMismatch',
-                            statusInfo: 'initParameters.wars:w2 != initParameters.wars:w1',
+                            state: DeltaState.ERROR,
+                            status: 'delta',
+                            statusInfo: ['entryState:[running!=stopped]',
+                                         'initParameters.wars:[w2!=w1]'],
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w2'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // versionMismatch (config)
     current = [
         [
             agent: 'a1', mountPoint: '/m1', script: 's1',
+            entryState: 'stopped',
             initParameters: [wars: 'w1', config: 'cnf1'],
             metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
         ]
@@ -239,24 +298,65 @@ class TestDeltaService extends GroovyTestCase
                             'metadata.container': 'c1',
                             'initParameters.config': 'cnf2',
                             'metadata.currentState': 'stopped',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
-                            status: 'versionMismatch',
-                            statusInfo: 'initParameters.config:cnf2 != initParameters.config:cnf1',
+                            state: DeltaState.ERROR,
+                            status: 'delta',
+                            statusInfo: ['entryState:[running!=stopped]',
+                                         'initParameters.config:[cnf2!=cnf1]'],
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
+
+    // versionMismatch (wars & config)
+    current = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            entryState: 'stopped',
+            initParameters: [wars: 'w1', config: 'cnf1'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+        ]
+    ]
+    expected = [
+        [
+            agent: 'a1', mountPoint: '/m1', script: 's1',
+            initParameters: [wars: 'w2', config: 'cnf2'],
+            metadata: [container: 'c1', product: 'p1', version: 'R2']
+        ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.container': 'c1',
+                            'initParameters.config': 'cnf2',
+                            'metadata.currentState': 'stopped',
+                            entryState: 'running',
+                            key: 'a1:/m1',
+                            agent: 'a1',
+                            mountPoint: '/m1',
+                            'metadata.product': 'p1',
+                            script: 's1',
+                            state: DeltaState.ERROR,
+                            status: 'delta',
+                            statusInfo: ['entryState:[running!=stopped]',
+                                         'initParameters.config:[cnf2!=cnf1]',
+                                         'initParameters.wars:[w2!=w1]'],
+                            'metadata.version': 'R2',
+                            'initParameters.wars': 'w2'
+                            ]
+                           ],
+                           doComputeDelta(expected, current))
 
     // versionMismatch (script)
     current = [
       [
         agent: 'a1', mountPoint: '/m1', script: 's1',
+        entryState: 'stopped',
         initParameters: [wars: 'w1', config: 'cnf1'],
         metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
       ]
@@ -265,7 +365,7 @@ class TestDeltaService extends GroovyTestCase
       [
         agent: 'a1', mountPoint: '/m1', script: 's2',
         initParameters: [wars: 'w1', config: 'cnf1'],
-        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+        metadata: [container: 'c1', product: 'p1', version: 'R2']
       ]
     ]
     assertEqualsIgnoreType([
@@ -273,172 +373,173 @@ class TestDeltaService extends GroovyTestCase
                             'metadata.container': 'c1',
                             'initParameters.config': 'cnf1',
                             'metadata.currentState': 'stopped',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's2',
-                            state: 'ERROR',
-                            status: 'versionMismatch',
-                            statusInfo: 'script:s2 != script:s1',
+                            state: DeltaState.ERROR,
+                            status: 'delta',
+                            statusInfo: ['entryState:[running!=stopped]',
+                                         'script:[s2!=s1]'],
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // versionMismatch (script) (with includedInVersionMismatch)
-    deltaService.includedInVersionMismatch = ['script'] as Set
-    deltaService.excludedInVersionMismatch = null
-    current = [
-      [
-        agent: 'a1', mountPoint: '/m1', script: 's1',
-        initParameters: [wars: 'w1', config: 'cnf1'],
-        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+    withNewDeltaMgr(['script'], null ) {
+      current = [
+        [
+          agent: 'a1', mountPoint: '/m1', script: 's1',
+          initParameters: [wars: 'w1', config: 'cnf1'],
+          metadata: [container: 'c1', product: 'p1', version: 'R2']
+        ]
       ]
-    ]
-    expected = [
-      [
-        agent: 'a1', mountPoint: '/m1', script: 's2',
-        initParameters: [wars: 'w1', config: 'cnf1'],
-        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      expected = [
+        [
+          agent: 'a1', mountPoint: '/m1', script: 's2',
+          initParameters: [wars: 'w1', config: 'cnf1'],
+          metadata: [container: 'c1', product: 'p1', version: 'R2']
+        ]
       ]
-    ]
-    assertEqualsIgnoreType([
-                           [
-                            'metadata.container': 'c1',
-                            'initParameters.config': 'cnf1',
-                            'metadata.currentState': 'stopped',
-                            key: 'a1:/m1',
-                            agent: 'a1',
-                            mountPoint: '/m1',
-                            'metadata.product': 'p1',
-                            script: 's2',
-                            state: 'ERROR',
-                            status: 'versionMismatch',
-                            statusInfo: 'script:s2 != script:s1',
-                            'metadata.version': 'R2',
-                            'initParameters.wars': 'w1'
-                            ]
-                           ],
-                           doComputeDelta(current, expected))
+      assertEqualsIgnoreType([
+                             [
+                              'metadata.container': 'c1',
+                              'initParameters.config': 'cnf1',
+                              entryState: 'running',
+                              key: 'a1:/m1',
+                              agent: 'a1',
+                              mountPoint: '/m1',
+                              'metadata.product': 'p1',
+                              script: 's2',
+                              state: DeltaState.ERROR,
+                              status: 'delta',
+                              statusInfo: 'script:[s2!=s1]',
+                              'metadata.version': 'R2',
+                              'initParameters.wars': 'w1'
+                              ]
+                             ],
+                             doComputeDelta(expected, current))
+    }
 
     // versionMismatch (script) (with includedInVersionMismatch)
-    deltaService.includedInVersionMismatch = ['initParameters.wars'] as Set
-    deltaService.excludedInVersionMismatch = null
-    current = [
-      [
-        agent: 'a1', mountPoint: '/m1', script: 's1',
-        initParameters: [wars: 'w1', config: 'cnf1'],
-        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+    withNewDeltaMgr(['initParameters.wars'], null) {
+      current = [
+        [
+          agent: 'a1', mountPoint: '/m1', script: 's1',
+          initParameters: [wars: 'w1', config: 'cnf1'],
+          metadata: [container: 'c1', product: 'p1', version: 'R2']
+        ]
       ]
-    ]
-    expected = [
-      [
-        agent: 'a1', mountPoint: '/m1', script: 's2',
-        initParameters: [wars: 'w1', config: 'cnf1'],
-        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      expected = [
+        [
+          agent: 'a1', mountPoint: '/m1', script: 's2',
+          initParameters: [wars: 'w1', config: 'cnf1'],
+          metadata: [container: 'c1', product: 'p1', version: 'R2']
+        ]
       ]
-    ]
-    assertEqualsIgnoreType([
-                           [
-                            'metadata.container': 'c1',
-                            'initParameters.config': 'cnf1',
-                            'metadata.currentState': 'stopped',
-                            key: 'a1:/m1',
-                            agent: 'a1',
-                            mountPoint: '/m1',
-                            'metadata.product': 'p1',
-                            script: 's2',
-                            state: 'ERROR',
-                            status: 'notRunning',
-                            'metadata.version': 'R2',
-                            'initParameters.wars': 'w1'
-                            ]
-                           ],
-                           doComputeDelta(current, expected))
+      assertEqualsIgnoreType([
+                             [
+                              'metadata.container': 'c1',
+                              'initParameters.config': 'cnf1',
+                              entryState: 'running',
+                              key: 'a1:/m1',
+                              agent: 'a1',
+                              mountPoint: '/m1',
+                              'metadata.product': 'p1',
+                              script: 's1',
+                              state: DeltaState.OK,
+                              status: 'expectedState',
+                              statusInfo: 'running',
+                              'metadata.version': 'R2',
+                              'initParameters.wars': 'w1'
+                              ]
+                             ],
+                             doComputeDelta(expected, current))
+    }
 
     // versionMismatch (script) (with excludedInVersionMismatch)
-    deltaService.includedInVersionMismatch = null
-    deltaService.excludedInVersionMismatch = ['initParameters.wars'] as Set
-    current = [
-      [
-        agent: 'a1', mountPoint: '/m1', script: 's1',
-        initParameters: [wars: 'w1', config: 'cnf1'],
-        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+    withNewDeltaMgr(DEFAULT_INCLUDED_IN_VERSION_MISMATCH, ['initParameters.wars']) {
+      current = [
+        [
+          agent: 'a1', mountPoint: '/m1', script: 's1',
+          initParameters: [wars: 'w1', config: 'cnf1'],
+          metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+        ]
       ]
-    ]
-    expected = [
-      [
-        agent: 'a1', mountPoint: '/m1', script: 's2',
-        initParameters: [wars: 'w1', config: 'cnf1'],
-        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      expected = [
+        [
+          agent: 'a1', mountPoint: '/m1', script: 's2',
+          initParameters: [wars: 'w1', config: 'cnf1'],
+          metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+        ]
       ]
-    ]
-    assertEqualsIgnoreType([
-                           [
-                            'metadata.container': 'c1',
-                            'initParameters.config': 'cnf1',
-                            'metadata.currentState': 'stopped',
-                            key: 'a1:/m1',
-                            agent: 'a1',
-                            mountPoint: '/m1',
-                            'metadata.product': 'p1',
-                            script: 's2',
-                            state: 'ERROR',
-                            status: 'versionMismatch',
-                            statusInfo: 'script:s2 != script:s1',
-                            'metadata.version': 'R2',
-                            'initParameters.wars': 'w1'
-                            ]
-                           ],
-                           doComputeDelta(current, expected))
+      assertEqualsIgnoreType([
+                             [
+                             'metadata.container': 'c1',
+                             'initParameters.config': 'cnf1',
+                             'metadata.currentState': 'stopped',
+                             entryState: 'running',
+                             key: 'a1:/m1',
+                             agent: 'a1',
+                             mountPoint: '/m1',
+                             'metadata.product': 'p1',
+                             script: 's2',
+                             state: DeltaState.ERROR,
+                             status: 'delta',
+                             statusInfo: 'script:[s2!=s1]',
+                             'metadata.version': 'R2',
+                             'initParameters.wars': 'w1'
+                             ]
+                             ],
+                             doComputeDelta(expected, current))
+    }
 
-    // versionMismatch (script) (with includedInVersionMismatch)
-    deltaService.includedInVersionMismatch = null
-    deltaService.excludedInVersionMismatch = ['script'] as Set
-    current = [
-      [
-        agent: 'a1', mountPoint: '/m1', script: 's1',
-        initParameters: [wars: 'w1', config: 'cnf1'],
-        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+    // versionMismatch (script) (with excludedInVersionMismatch)
+    withNewDeltaMgr(DEFAULT_INCLUDED_IN_VERSION_MISMATCH, ['script']) {
+      current = [
+        [
+          agent: 'a1', mountPoint: '/m1', script: 's1',
+          initParameters: [wars: 'w1', config: 'cnf1'],
+          metadata: [container: 'c1', product: 'p1', version: 'R2']
+        ]
       ]
-    ]
-    expected = [
-      [
-        agent: 'a1', mountPoint: '/m1', script: 's2',
-        initParameters: [wars: 'w1', config: 'cnf1'],
-        metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+      expected = [
+        [
+          agent: 'a1', mountPoint: '/m1', script: 's2',
+          initParameters: [wars: 'w1', config: 'cnf1'],
+          metadata: [container: 'c1', product: 'p1', version: 'R2']
+        ]
       ]
-    ]
-    assertEqualsIgnoreType([
-                           [
-                            'metadata.container': 'c1',
-                            'initParameters.config': 'cnf1',
-                            'metadata.currentState': 'stopped',
-                            key: 'a1:/m1',
-                            agent: 'a1',
-                            mountPoint: '/m1',
-                            'metadata.product': 'p1',
-                            script: 's2',
-                            state: 'ERROR',
-                            status: 'notRunning',
-                            'metadata.version': 'R2',
-                            'initParameters.wars': 'w1'
-                            ]
-                           ],
-                           doComputeDelta(current, expected))
-
-    // restoring
-    deltaService.includedInVersionMismatch = null
-    deltaService.excludedInVersionMismatch = null
+      assertEqualsIgnoreType([
+                             [
+                              'metadata.container': 'c1',
+                              'initParameters.config': 'cnf1',
+                              entryState: 'running',
+                              key: 'a1:/m1',
+                              agent: 'a1',
+                              mountPoint: '/m1',
+                              'metadata.product': 'p1',
+                              script: 's1',
+                              state: DeltaState.OK,
+                              status: 'expectedState',
+                              statusInfo: 'running',
+                              'metadata.version': 'R2',
+                              'initParameters.wars': 'w1'
+                              ]
+                             ],
+                             doComputeDelta(expected, current))
+    }
 
     // unexpected
     current = [
         [
             agent: 'a1', mountPoint: '/m1', script: 's1',
             initParameters: [wars: 'w1'],
-            metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
+            metadata: [container: 'c1', product: 'p1', version: 'R2']
         ]
     ]
     expected = [
@@ -452,31 +553,34 @@ class TestDeltaService extends GroovyTestCase
     assertEqualsIgnoreType([
                            [
                             'metadata.container': 'c1',
-                            'metadata.currentState': 'stopped',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: DeltaState.ERROR,
                             status: 'unexpected',
+                            statusInfo: 'should NOT be deployed',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ],
                            [
                             'metadata.container': 'c1',
+                            entryState: 'running',
                             key: 'a2:/m1',
                             agent: 'a2',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: DeltaState.ERROR,
                             status: 'notDeployed',
+                            statusInfo: 'NOT deployed',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // error
     current = [
@@ -498,51 +602,28 @@ class TestDeltaService extends GroovyTestCase
                             'metadata.container': 'c1',
                             'metadata.currentState': 'running',
                             'metadata.error': 'in error',
+                             error: 'in error',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: DeltaState.ERROR,
                             status: 'error',
                             statusInfo: 'in error',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
-
-    // unknown
-    current = [
-        [
-            agent: 'a1', mountPoint: '/m1', script: 's1',
-            initParameters: [wars: 'w1'],
-            metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'stopped']
-        ]
-    ]
-    expected = null
-    assertEqualsIgnoreType([
-                           [
-                            'metadata.container': 'c1',
-                            'metadata.currentState': 'stopped',
-                            key: 'a1:/m1',
-                            agent: 'a1',
-                            mountPoint: '/m1',
-                            'metadata.product': 'p1',
-                            script: 's1',
-                            state: 'UNKNOWN',
-                            status: 'unknown',
-                            'metadata.version': 'R2',
-                            'initParameters.wars': 'w1'
-                            ]
-                           ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // ok
     current = [
         [
             agent: 'a1', mountPoint: '/m1', script: 's1',
             initParameters: [wars: 'w1'],
+            entryState: 'running',
             metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'running'],
             tags: ['ec:1', 'ec:2']
         ]
@@ -559,25 +640,28 @@ class TestDeltaService extends GroovyTestCase
                            [
                             'metadata.container': 'c1',
                             'metadata.currentState': 'running',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'RUNNING',
-                            status: 'running',
+                            state: DeltaState.OK,
+                            status: 'expectedState',
+                            statusInfo: 'running',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1',
                             'tags.ee:1': 'a1:/m1',
                              tags: ['ee:1']
                             ]
                             ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // ok (with cluster)
     current = [
         [
             agent: 'a1', mountPoint: '/m1', script: 's1',
+            entryState: 'running',
             initParameters: [wars: 'w1'],
             metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'running']
         ]
@@ -594,23 +678,26 @@ class TestDeltaService extends GroovyTestCase
                             'metadata.container': 'c1',
                             'metadata.cluster': 'cl1',
                             'metadata.currentState': 'running',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'RUNNING',
-                            status: 'running',
+                            state: DeltaState.OK,
+                            status: 'expectedState',
+                            statusInfo: 'running',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
+                           doComputeDelta(expected, current))
 
     // ok (with cluster)
     current = [
         [
             agent: 'a1', mountPoint: '/m1', script: 's1',
+            entryState: 'running',
             initParameters: [wars: 'w1'],
             metadata: [container: 'c1', cluster: 'cl1', product: 'p1', version: 'R2', currentState: 'running']
         ]
@@ -627,41 +714,26 @@ class TestDeltaService extends GroovyTestCase
                             'metadata.container': 'c1',
                             'metadata.cluster': 'cl1',
                             'metadata.currentState': 'running',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'RUNNING',
-                            status: 'running',
+                            state: DeltaState.OK,
+                            status: 'expectedState',
+                            statusInfo: 'running',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected))
-
-    // nothing deployed on the agent at all
-    current = [
-    ]
-    expected = [
-    ]
-
-    assertEqualsIgnoreType([
-                           [
-                            'metadata.currentState': 'NA',
-                            agent: 'a1',
-                            state: 'NA',
-                            status: 'NA'
-                            ]
-                           ],
-                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
-                             cs.metadata.emptyAgents = ['a1']
-                           })
+                           doComputeDelta(expected, current))
 
     // (system) tags
     current = [
         [
             agent: 'a1', mountPoint: '/m1', script: 's1',
+            entryState: 'running',
             initParameters: [wars: 'w1'],
             metadata: [container: 'c1', product: 'p1', version: 'R2', currentState: 'running'],
             tags: ['ec:1', 'ec:2']
@@ -679,13 +751,15 @@ class TestDeltaService extends GroovyTestCase
                            [
                             'metadata.container': 'c1',
                             'metadata.currentState': 'running',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'RUNNING',
-                            status: 'running',
+                            state: DeltaState.OK,
+                            status: 'expectedState',
+                            statusInfo: 'running',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1',
                             'tags.ee:1': 'a1:/m1',
@@ -693,10 +767,11 @@ class TestDeltaService extends GroovyTestCase
                              tags: ['a:2', 'ee:1']
                             ]
                            ],
-                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
+                           doComputeDelta(expected, current, { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
-                           })
+                             [cs, es]
+                           }))
 
     current = [
     ]
@@ -711,13 +786,15 @@ class TestDeltaService extends GroovyTestCase
     assertEqualsIgnoreType([
                            [
                             'metadata.container': 'c1',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: DeltaState.ERROR,
                             status: 'notDeployed',
+                            statusInfo: 'NOT deployed',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1',
                             'tags.ee:1': 'a1:/m1',
@@ -725,10 +802,11 @@ class TestDeltaService extends GroovyTestCase
                              tags: ['a:2', 'ee:1']
                             ]
                            ],
-                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
+                           doComputeDelta(expected, current, { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
-                           })
+                             [cs, es]
+                           }))
 
     current = [
         [
@@ -744,23 +822,36 @@ class TestDeltaService extends GroovyTestCase
                            [
                             'metadata.container': 'c1',
                             'metadata.currentState': 'running',
+                            entryState: 'running',
                             key: 'a1:/m1',
                             agent: 'a1',
                             mountPoint: '/m1',
                             'metadata.product': 'p1',
                             script: 's1',
-                            state: 'ERROR',
+                            state: DeltaState.ERROR,
                             status: 'unexpected',
+                            statusInfo: 'should NOT be deployed',
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w1'
                             ]
                            ],
-                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
+                           doComputeDelta(expected, current, { SystemModel cs, SystemModel es ->
                              cs.addAgentTags('a1', ['a:1'])
                              es.addAgentTags('a1', ['a:2'])
-                           })
+                             [cs, es]
+                           }))
+  }
 
+  public void testEmptyAgent()
+  {
+    def current
+    def expected
+
+    // nothing deployed on the agent at all
     current = [
+      [
+        agent: 'a1', entryState: 'NA', metadata: [emptyAgent: true, currentState: 'NA']
+      ]
     ]
     expected = [
     ]
@@ -768,20 +859,122 @@ class TestDeltaService extends GroovyTestCase
     assertEqualsIgnoreType([
                            [
                             'metadata.currentState': 'NA',
+                            'metadata.emptyAgent': true,
+                            entryState: 'NA',
+                            key: 'a1:null',
                             agent: 'a1',
-                            state: 'NA',
+                            state: DeltaState.NA,
                             status: 'NA',
-                             tags: ['a:2']
+                            statusInfo: 'empty agent'
                             ]
                            ],
-                           doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
-                             cs.addAgentTags('a1', ['a:1'])
-                             es.addAgentTags('a1', ['a:2'])
-                             cs.metadata.emptyAgents = ['a1']
-                           })
+                           doComputeDelta(expected, current))
 
+    current = [
+      [
+        agent: 'a1', entryState: 'NA', metadata: [emptyAgent: true, currentState: 'NA']
+      ]
+    ]
+    expected = [
+    ]
+
+    assertEqualsIgnoreType([
+                           [
+                            'metadata.currentState': 'NA',
+                            'metadata.emptyAgent': true,
+                            entryState: 'NA',
+                            key: 'a1:null',
+                            agent: 'a1',
+                            state: DeltaState.NA,
+                            status: 'NA',
+                            statusInfo: 'empty agent',
+                            tags: ['a:2'],
+                             "tags.a:2": "a1:null"
+                            ]
+                            ],
+                           doComputeDelta(expected, current, { SystemModel cs, SystemModel es ->
+                             cs.addAgentTags('a1', ['a:2'])
+                             [cs, es]
+                           }))
   }
 
+  /**
+   * Specific tests for parent/child relationship
+   */
+  void testParentChild()
+  {
+    def current
+    def expected
+
+    // parentDelta (parent needs redeploy => child needs redeploy)
+    current = [
+      [
+        agent: 'a1', mountPoint: '/p1', script: 's1'
+      ],
+      [
+        agent: 'a1', mountPoint: '/c1', script: 's1', parent: '/p1'
+      ]
+    ]
+    expected = [
+      [
+        agent: 'a1', mountPoint: '/p1', script: 's2'
+      ],
+      [
+        agent: 'a1', mountPoint: '/c1', script: 's1', parent: '/p1'
+      ]
+    ]
+    assertEqualsIgnoreType([
+                           [
+                            entryState: 'running',
+                            key: 'a1:/c1',
+                            agent: 'a1',
+                            mountPoint: '/c1',
+                            parent: "/p1",
+                            script: 's1',
+                            state: DeltaState.ERROR,
+                            status: 'parentDelta',
+                            statusInfo: 'needs redeploy (parent delta)'
+                           ],
+                           [
+                            entryState: 'running',
+                            key: 'a1:/p1',
+                            agent: 'a1',
+                            mountPoint: '/p1',
+                            script: 's2',
+                            state: DeltaState.ERROR,
+                            status: 'delta',
+                            statusInfo: 'script:[s2!=s1]'
+                           ],
+                           ],
+                           doComputeDelta(expected, current))
+
+    // when the filter, filters out the child, it still need to be present otherwise the plan
+    // will be wrong!
+    assertEqualsIgnoreType([
+                           [
+                            entryState: 'running',
+                            key: 'a1:/c1',
+                            agent: 'a1',
+                            mountPoint: '/c1',
+                            parent: "/p1",
+                            script: 's1',
+                            state: DeltaState.ERROR,
+                            status: 'parentDelta',
+                            statusInfo: 'needs redeploy (parent delta)'
+                           ],
+                           [
+                            entryState: 'running',
+                            key: 'a1:/p1',
+                            agent: 'a1',
+                            mountPoint: '/p1',
+                            script: 's2',
+                            state: DeltaState.ERROR,
+                            status: 'delta',
+                            statusInfo: 'script:[s2!=s1]'
+                           ],
+                           ],
+                           deltaF(current, expected, "mountPoint='/p1'"))
+  }
 
   // Testing for use case where metadata changes (version in this case)
   // entry | current | expected
@@ -857,13 +1050,15 @@ class TestDeltaService extends GroovyTestCase
       def entry =
       [
           agent: 'a1',
+          entryState: 'running',
           mountPoint: "/${mountPoint}".toString(),
           script: 's1',
           'initParameters.wars': 'w1',
           'metadata.currentState': state,
           key: "a1:/${mountPoint}".toString(),
-          status: state == 'running' ? 'running' : 'notRunning',
-          state: state == 'running' ? 'RUNNING' : 'ERROR'
+          status: state == 'running' ? 'expectedState' : 'notExpectedState',
+          statusInfo: state == 'running' ? 'running' : 'running!=stopped',
+          state: state == 'running' ? DeltaState.OK : DeltaState.ERROR
       ]
 
       // when not in error, then priority comes from 'current'
@@ -892,7 +1087,325 @@ class TestDeltaService extends GroovyTestCase
       expectedDelta << entry
     }
 
-    assertEqualsIgnoreType(expectedDelta, deltaService.computeDelta(currentSystem, expectedSystem))
+    assertEqualsIgnoreType(expectedDelta, deltaService.computeDelta(expectedSystem, currentSystem))
+  }
+
+  public void testComputeDeltaAsJSON()
+  {
+    String delta
+
+    SystemModel expectedModel =
+      m([agent: 'a1', mountPoint: '/m0', script: 's1'],
+        [agent: 'a1', mountPoint: '/m1', script: 's1'],
+        [agent: 'a1', mountPoint: '/m2', script: 's2'],
+        [agent: 'a1', mountPoint: '/m3', script: 's2', initParameters: [ip1: "iv1"]])
+
+    SystemModel currentModel =
+      m([agent: 'a1', mountPoint: '/m0', script: 's1'],
+        [agent: 'a1', mountPoint: '/m2', script: 's1'],
+        [agent: 'a1', mountPoint: '/m3', script: 's1', initParameters: [ip1: "iv2"]])
+
+    delta = jsonDelta(expectedModel, currentModel, [:])
+
+    assertEquals("""{"delta": {
+  "a1:/m0": {
+    "agent": "a1",
+    "entryState": "running",
+    "key": "a1:/m0",
+    "mountPoint": "/m0",
+    "script": "s1",
+    "state": "OK",
+    "status": "expectedState",
+    "statusInfo": "running"
+  },
+  "a1:/m1": {
+    "agent": {"ev": "a1"},
+    "entryState": {"ev": "running"},
+    "errorValueKeys": [
+      "entryState",
+      "script"
+    ],
+    "key": {"ev": "a1:/m1"},
+    "mountPoint": {"ev": "/m1"},
+    "script": {"ev": "s1"},
+    "state": "ERROR",
+    "status": "notDeployed",
+    "statusInfo": "NOT deployed"
+  },
+  "a1:/m2": {
+    "agent": "a1",
+    "entryState": "running",
+    "errorValueKeys": ["script"],
+    "key": "a1:/m2",
+    "mountPoint": "/m2",
+    "script": {
+      "cv": "s1",
+      "ev": "s2"
+    },
+    "state": "ERROR",
+    "status": "delta",
+    "statusInfo": "script:[s2!=s1]"
+  },
+  "a1:/m3": {
+    "agent": "a1",
+    "entryState": "running",
+    "errorValueKeys": [
+      "initParameters.ip1",
+      "script"
+    ],
+    "initParameters.ip1": {
+      "cv": "iv2",
+      "ev": "iv1"
+    },
+    "key": "a1:/m3",
+    "mountPoint": "/m3",
+    "script": {
+      "cv": "s1",
+      "ev": "s2"
+    },
+    "state": "ERROR",
+    "status": "delta",
+    "statusInfo": [
+      "initParameters.ip1:[iv1!=iv2]",
+      "script:[s2!=s1]"
+    ]
+  }
+}}""", delta)
+
+    delta = jsonDelta(expectedModel, currentModel, [errorsOnly: true])
+
+    assertEquals("""{"delta": {
+  "a1:/m1": {
+    "agent": {"ev": "a1"},
+    "entryState": {"ev": "running"},
+    "errorValueKeys": [
+      "entryState",
+      "script"
+    ],
+    "key": {"ev": "a1:/m1"},
+    "mountPoint": {"ev": "/m1"},
+    "script": {"ev": "s1"},
+    "state": "ERROR",
+    "status": "notDeployed",
+    "statusInfo": "NOT deployed"
+  },
+  "a1:/m2": {
+    "agent": "a1",
+    "entryState": "running",
+    "errorValueKeys": ["script"],
+    "key": "a1:/m2",
+    "mountPoint": "/m2",
+    "script": {
+      "cv": "s1",
+      "ev": "s2"
+    },
+    "state": "ERROR",
+    "status": "delta",
+    "statusInfo": "script:[s2!=s1]"
+  },
+  "a1:/m3": {
+    "agent": "a1",
+    "entryState": "running",
+    "errorValueKeys": [
+      "initParameters.ip1",
+      "script"
+    ],
+    "initParameters.ip1": {
+      "cv": "iv2",
+      "ev": "iv1"
+    },
+    "key": "a1:/m3",
+    "mountPoint": "/m3",
+    "script": {
+      "cv": "s1",
+      "ev": "s2"
+    },
+    "state": "ERROR",
+    "status": "delta",
+    "statusInfo": [
+      "initParameters.ip1:[iv1!=iv2]",
+      "script:[s2!=s1]"
+    ]
+  }
+}}""", delta)
+
+    delta = jsonDelta(expectedModel, currentModel, [flatten: true])
+
+    assertEquals("""{"delta": {
+  "a1:/m0": {
+    "agent": "a1",
+    "entryState": "running",
+    "key": "a1:/m0",
+    "mountPoint": "/m0",
+    "script": "s1",
+    "state": "OK",
+    "status": "expectedState",
+    "statusInfo": "running"
+  },
+  "a1:/m1": {
+    "agent": "a1",
+    "entryState": "running",
+    "key": "a1:/m1",
+    "mountPoint": "/m1",
+    "script": "s1",
+    "state": "ERROR",
+    "status": "notDeployed",
+    "statusInfo": "NOT deployed"
+  },
+  "a1:/m2": {
+    "agent": "a1",
+    "entryState": "running",
+    "key": "a1:/m2",
+    "mountPoint": "/m2",
+    "script": "s2",
+    "state": "ERROR",
+    "status": "delta",
+    "statusInfo": "script:[s2!=s1]"
+  },
+  "a1:/m3": {
+    "agent": "a1",
+    "entryState": "running",
+    "initParameters.ip1": "iv1",
+    "key": "a1:/m3",
+    "mountPoint": "/m3",
+    "script": "s2",
+    "state": "ERROR",
+    "status": "delta",
+    "statusInfo": [
+      "initParameters.ip1:[iv1!=iv2]",
+      "script:[s2!=s1]"
+    ]
+  }
+}}""", delta)
+  }
+
+  public void testParentChildDeltaWithFilter()
+  {
+    String expectedModelString = """{
+  "agentTags": {"agent-1": ["a:tag1"]},
+  "entries": [
+    {
+      "agent": "agent-1",
+      "mountPoint": "/c1",
+      "parent": "/p1",
+      "script": "file:/tmp/ChildGluScript.groovy",
+      "tags": []
+    },
+    {
+      "agent": "agent-1",
+      "mountPoint": "/c2",
+      "parent": "/p1",
+      "script": "file:/tmp/ChildGluScript.groovy",
+      "tags": []
+    },
+    {
+      "agent": "agent-1",
+      "initParameters": {"foo": "bar"},
+      "mountPoint": "/p1",
+      "script": "file:/tmp/ParentGluScript.groovy",
+      "tags": []
+    },
+    {
+      "agent": "agent-1",
+      "mountPoint": "/p2",
+      "script": "file:/tmp/ParentGluScript.groovy",
+      "tags": []
+    }
+  ],
+  "fabric": "glu-dev-1",
+  "id": "9583ae021e15c99d0d59ab93e807f281c20d3699",
+  "metadata": {"product": {
+    "product1": {
+      "name": "product1",
+      "version": "1.0.0"
+    },
+    "product2": {
+      "name": "product2",
+      "version": "2.0.0"
+    }
+  }}
+}"""
+
+    String currentModelString = """{
+  "entries": [
+    {
+      "agent": "agent-1",
+      "entryState": "running",
+      "metadata": {
+        "currentState": "running",
+        "modifiedTime": 1308414678502,
+        "scriptState": {
+          "script": {},
+          "stateMachine": {"currentState": "running"}
+        }
+      },
+      "mountPoint": "/c1",
+      "parent": "/p1",
+      "script": "file:/tmp/ChildGluScript.groovy",
+      "tags": ["a:tag1"]
+    },
+    {
+      "agent": "agent-1",
+      "entryState": "running",
+      "metadata": {
+        "currentState": "running",
+        "modifiedTime": 1308414612227,
+        "scriptState": {
+          "script": {},
+          "stateMachine": {"currentState": "running"}
+        }
+      },
+      "mountPoint": "/c2",
+      "parent": "/p2",
+      "script": "file:/tmp/ChildGluScript.groovy",
+      "tags": ["a:tag1"]
+    },
+    {
+      "agent": "agent-1",
+      "entryState": "running",
+      "metadata": {
+        "currentState": "running",
+        "modifiedTime": 1308414678275,
+        "scriptState": {
+          "script": {},
+          "stateMachine": {"currentState": "running"}
+        }
+      },
+      "mountPoint": "/p1",
+      "script": "file:/tmp/ParentGluScript.groovy",
+      "tags": ["a:tag1"]
+    },
+    {
+      "agent": "agent-1",
+      "entryState": "running",
+      "metadata": {
+        "currentState": "running",
+        "modifiedTime": 1308414612061,
+        "scriptState": {
+          "script": {},
+          "stateMachine": {"currentState": "running"}
+        }
+      },
+      "mountPoint": "/p2",
+      "script": "file:/tmp/ParentGluScript.groovy",
+      "tags": ["a:tag1"]
+    }
+  ],
+  "fabric": "glu-dev-1",
+  "metadata": {"accuracy": "ACCURATE"}
+}"""
+
+    String filter = "mountPoint='/c1'"
+
+    SystemModel expectedModel = JSONSystemModelSerializer.INSTANCE.deserialize(expectedModelString)
+    SystemModel currentModel = JSONSystemModelSerializer.INSTANCE.deserialize(currentModelString)
+
+
+    def delta = deltaMgr.computeDelta(expectedModel.filterBy(filter),
+                                      currentModel,
+                                      null)
+
+    assertTrue(delta.hasErrorDelta())
   }
 
   private SystemModel toSystem(Map system, String currentState)
@@ -909,7 +1422,10 @@ class TestDeltaService extends GroovyTestCase
       ]
 
       if(currentState)
+      {
         entry.metadata.currentState = currentState
+        entry.entryState = currentState
+      }
 
       if(version)
         entry.metadata.version = version
@@ -919,25 +1435,39 @@ class TestDeltaService extends GroovyTestCase
 
     return toSystem(entries)
   }
-  
-  private def doComputeDelta(def current, def expected)
+
+  private def deltaF(def current, def expected, def filter)
   {
-    doComputeDelta(current, expected) { SystemModel cs, SystemModel es ->
-      // nothing to do
+    doComputeDelta(expected, current, null) { SystemModel cs, SystemModel es ->
+      [cs, es.filterBy(filter)]
     }
   }
 
-  private def doComputeDelta(def current, def expected, Closure closure)
+  private def doComputeDelta(def expected, def current)
+  {
+    doComputeDelta(expected, current, null, null)
+  }
+
+  private def doComputeDelta(def expected, def current, Closure closure)
+  {
+    doComputeDelta(expected, current, closure, null)
+  }
+
+  private def doComputeDelta(def expected, def current, Closure beforeEntries, Closure afterEntries)
   {
     SystemModel currentSystem = createEmptySystem(current)
     SystemModel expectedSystem = createEmptySystem(expected)
 
-    closure(currentSystem, expectedSystem)
+    if(beforeEntries)
+      (currentSystem, expectedSystem) = beforeEntries(currentSystem, expectedSystem)
 
     addEntries(currentSystem, current)
     addEntries(expectedSystem, expected)
 
-    return deltaService.computeDelta(currentSystem, expectedSystem)
+    if(afterEntries)
+      (currentSystem, expectedSystem) = afterEntries(currentSystem, expectedSystem)
+
+    return deltaService.computeDelta(expectedSystem, currentSystem)
   }
 
   private SystemModel toSystem(def system)
@@ -958,6 +1488,25 @@ class TestDeltaService extends GroovyTestCase
       model.addEntry(SystemEntry.fromExternalRepresentation(e))
     }
   }
+
+  private void withNewDeltaMgr(def includedInVersionMismatch,
+                               def excludedInVersionMismatch,
+                               Closure closure)
+  {
+    def oldi = deltaMgr.includedInVersionMismatch
+    def olde = deltaMgr.excludedInVersionMismatch
+    deltaMgr.includedInVersionMismatch = includedInVersionMismatch as Set
+    deltaMgr.excludedInVersionMismatch = excludedInVersionMismatch as Set
+    try
+    {
+      closure()
+    }
+    finally
+    {
+      deltaMgr.excludedInVersionMismatch = olde
+      deltaMgr.includedInVersionMismatch = oldi
+    }
+  }
   
   /**
    * Convenient call to compare and ignore type
@@ -968,4 +1517,24 @@ class TestDeltaService extends GroovyTestCase
     assertTrue("expected <${o1}> but was <${o2}>", GroovyCollectionsUtils.compareIgnoreType(o1, o2))
   }
 
+  private String jsonDelta(SystemModel expectedModel, SystemModel currentModel, params)
+  {
+    params.expectedModel = expectedModel
+    params.currentModel = currentModel
+    params.prettyPrint = true
+
+    deltaService.computeDeltaAsJSON(params)
+  }
+
+  private SystemModel m(Map... entries)
+  {
+    SystemModel model = new SystemModel(fabric: "f1")
+
+
+    entries.each {
+      model.addEntry(SystemEntry.fromExternalRepresentation(it))
+    }
+
+    return model
+  }
 }

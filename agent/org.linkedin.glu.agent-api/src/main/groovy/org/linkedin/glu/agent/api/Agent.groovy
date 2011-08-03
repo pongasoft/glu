@@ -33,6 +33,14 @@ public interface Agent
     running: [[to: 'stopped', action: 'stop']]
   ]
 
+  def static SELF_UPGRADE_TRANSITIONS =
+  [
+      NONE: [[to: 'installed', action: 'install']],
+      installed: [[to: 'NONE', action: 'uninstall'], [to: 'prepared', action: 'prepare']],
+      prepared: [[to: 'upgraded', action: 'commit'], [to: 'installed', action: 'rollback']],
+      upgraded: [[to: 'NONE', action: 'uninstall']]
+  ]
+
   /********************************************************************
    * Software management
    ********************************************************************/

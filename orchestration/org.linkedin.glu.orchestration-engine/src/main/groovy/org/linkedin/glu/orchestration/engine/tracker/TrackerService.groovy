@@ -28,6 +28,8 @@ interface TrackerService
 {
   Map<String, AgentInfo> getAgentInfos(Fabric fabric)
 
+  AgentInfo getAgentInfo(String fabric, String agentName)
+
   AgentInfo getAgentInfo(Fabric fabric, String agentName)
 
   /**

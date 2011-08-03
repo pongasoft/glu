@@ -19,6 +19,7 @@ package org.linkedin.glu.provisioner.plan.api;
 import org.linkedin.util.xml.XMLIndent;
 
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * @author ypujante@linkedin.com
@@ -89,6 +90,11 @@ public class XmlStepVisitor<T> implements IStepVisitor<T>
   }
 
   public Map<String, Object> getMetadata()
+  {
+    return _metadata;
+  }
+
+  public Map<String, Object> sortMetadata(Map<String, Object> metadata)
   {
     return _metadata;
   }

@@ -443,12 +443,20 @@ class AgentRestClient implements Agent
     def representation = extractRepresentation(clientResource, clientResource.responseEntity)
     if(representation instanceof Status)
     {
-      throw new AgentException(representation.toString())
+      handleRecoverableError(representation)
     }
     else
     {
       throwAgentException(clientResource.status, RestException.fromJSON(representation))
     }
+  }
+
+  protected void handleRecoverableError(Status status)
+  {
+    if(status.isRecoverableError())
+      throw new RecoverableAgentException(status)
+    else
+      throw new AgentException(status.toString())
   }
 
   /**

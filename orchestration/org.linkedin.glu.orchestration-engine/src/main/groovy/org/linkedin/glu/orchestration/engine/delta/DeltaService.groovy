@@ -17,13 +17,31 @@
 package org.linkedin.glu.orchestration.engine.delta
 
 import org.linkedin.glu.provisioner.core.model.SystemModel
-import org.linkedin.glu.orchestration.engine.fabric.Fabric
 
 interface DeltaService
 {
-  def computeDelta(Fabric fabric, SystemModel expectedSystem)
+  /**
+   * @params.expectedModel expected model
+   * @params.currentModel current model (<code>null</code> means compute it)
+   * @params.errorsOnly filter to show only errors (<code>true/false</code>)
+   * @params.prettyPrint if json should be pretty printed (<code>true/false</code>)
+   * @params.flatten flatten the model (<code>true/false</code>)
+   * @return json representation of the delta
+   */
+  String computeDeltaAsJSON(params)
 
-  def computeDelta(SystemModel currentSystem, SystemModel expectedSystem)
+  /**
+   * Computes the delta between the expected model and the current one (which will be computed)
+   * In this version the delta is a set
+   * @return a map with 2 entries: <code>accuracy</code> and <code>delta</code>.
+   */
+  Map computeDelta(SystemModel expectedModel)
+
+  /**
+   * Computes the raw delta between the expected model and the current one (which will be computed)
+   * @return a map with 2 entries <code>[accuracy: accuracy, delta: SystemModelDelta]</code>
+   */
+  Map computeRawDelta(SystemModel expectedModel)
 
   /**
    * This method used to be in <code>DashboardController</code> and as been moved here to
@@ -33,8 +51,7 @@ interface DeltaService
    * @param groupBySelection TODO MED YP (params from the request)
    * @return the delta grouped by according to the definition and selection
    */
-  Map computeGroupByDelta(Fabric fabric,
-                          SystemModel expectedSystem,
+  Map computeGroupByDelta(SystemModel expectedSystem,
                           Map groupByDefinition,
                           Map groupBySelection)
 }

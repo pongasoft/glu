@@ -21,17 +21,24 @@ import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
 import org.linkedin.glu.utils.tags.ReadOnlyTaggeable
+import org.linkedin.util.lang.LangUtils
 
 /**
  * @author ypujante@linkedin.com */
-class SystemEntry implements ReadOnlyTaggeable
+class SystemEntry implements ReadOnlyTaggeable, MetadataProvider
 {
+  public static final String DEFAULT_ENTRY_STATE = "running";
+  public static final String DEFAULT_PARENT = "/";
+
   String agent
   String mountPoint
   def script
-  def initParameters = [:]
-  def metadata = [:]
-  volatile ReadOnlyTaggeable entryTags = ReadOnlyTaggeable.EMPTY
+  String entryState
+  String parent // optional
+  def initParameters = [:] // optional
+  def actionArgs = [:] // optional
+  Map<String, Object> metadata = [:] // optional
+  volatile ReadOnlyTaggeable entryTags = ReadOnlyTaggeable.EMPTY // optional
 
   String getKey()
   {
@@ -42,10 +49,20 @@ class SystemEntry implements ReadOnlyTaggeable
   {
     def res =
     [
-      agent: agent,
-      mountPoint: mountPoint,
-      script: script
+      agent: agent
     ]
+
+    if(script)
+      res.script = script
+
+    if(mountPoint)
+      res.mountPoint = mountPoint
+
+    if(entryState)
+      res.entryState = entryState
+
+    if(parent && parent != DEFAULT_PARENT)
+      res.parent = parent
 
     if(initParameters)
       res.initParameters = initParameters
@@ -53,10 +70,49 @@ class SystemEntry implements ReadOnlyTaggeable
     if(metadata)
       res.metadata = metadata
 
+    if(actionArgs)
+      res.actionArgs = actionArgs
+
     if(hasTags())
       res.tags = tags
 
     return res
+  }
+
+  private String getRawEntryState()
+  {
+    entryState
+  }
+
+  String getEntryState()
+  {
+    if(!entryState)
+      return DEFAULT_ENTRY_STATE
+    else
+      return entryState
+  }
+
+  private String getRawParent()
+  {
+    parent
+  }
+
+  String getParent()
+  {
+    if(!parent)
+      return DEFAULT_PARENT
+    else
+      return parent
+  }
+
+  boolean isDefaultParent()
+  {
+    return getParent() == DEFAULT_PARENT
+  }
+
+  String getParentKey()
+  {
+    return "${agent}:${parent}".toString()
   }
 
   @Override
@@ -112,6 +168,11 @@ class SystemEntry implements ReadOnlyTaggeable
     entryTags = new TaggeableTreeSetImpl(tags)
   }
 
+  boolean isEmptyAgent()
+  {
+    return mountPoint == null
+  }
+
   /**
    * @return a flattened version of the entry (a map with only one level)
    */
@@ -130,7 +191,15 @@ class SystemEntry implements ReadOnlyTaggeable
     er.remove('tags')
     GroovyCollectionsUtils.flatten(er, destMap)
     destMap.key = key
+    destMap.entryState = getEntryState() // not part of er if <code>null</code>
     return destMap
+  }
+
+  public SystemEntry clone()
+  {
+    def ext = toExternalRepresentation()
+    ext = LangUtils.deepClone(ext)
+    return fromExternalRepresentation(ext)
   }
 
   static SystemEntry fromExternalRepresentation(def er)
@@ -150,6 +219,8 @@ class SystemEntry implements ReadOnlyTaggeable
     if(initParameters != that.initParameters) return false;
     if(metadata != that.metadata) return false;
     if(mountPoint != that.mountPoint) return false;
+    if(rawEntryState != that.rawEntryState) return false;
+    if(rawParent != that.rawParent) return false;
     if(script != that.script) return false;
     if(entryTags != that.entryTags) return false;
 
@@ -162,6 +233,8 @@ class SystemEntry implements ReadOnlyTaggeable
 
     result = (agent != null ? agent.hashCode() : 0);
     result = 31 * result + (mountPoint != null ? mountPoint.hashCode() : 0);
+    result = 31 * result + (entryState != null ? entryState.hashCode() : 0);
+    result = 31 * result + (parent != null ? parent.hashCode() : 0);
     result = 31 * result + (script != null ? script.hashCode() : 0);
     result = 31 * result + (initParameters != null ? initParameters.hashCode() : 0);
     result = 31 * result + (metadata != null ? metadata.hashCode() : 0);
@@ -173,5 +246,4 @@ class SystemEntry implements ReadOnlyTaggeable
   {
     return JsonUtils.toJSON(toExternalRepresentation()).toString(2)
   }
-
 }

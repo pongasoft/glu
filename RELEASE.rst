@@ -1,6 +1,52 @@
 Latest changes
 ==============
 
+3.2.0 (2011/07/31)
+------------------
+
+Enhanced REST API by exposing more functionalities (agent upgrade, deployments, plans). Note that the REST call ``HEAD /plan/<planId>/execution/<executionId>`` now returns a header called ``X-glu-completion`` (the old one ``X-LinkedIn-GLU-completion`` is still returned for backward compatibility).
+
+* Implemented `glu-66 <https://github.com/linkedin/glu/issues/66>`_: `implement rest call GET /plans`
+* Fixed `glu-81 <https://github.com/linkedin/glu/issues/81>`_: `Sometimes ste.message is null. It is null when the exception is java.util`
+* Fixed `glu-82 <https://github.com/linkedin/glu/issues/82>`_: `Add some spacing around the pagination items.`
+* Fixed `glu-83 <https://github.com/linkedin/glu/issues/83>`_: `NPE at http://glu/console/plan/deployments/XXX`
+
+3.1.0 (2011/07/26)
+------------------
+
+Added unit test framework for glu script and created sibling project `glu-script-contribs <https://github.com/linkedin/glu-scripts-contrib>`_
+
+* Implemented `glu-80 <https://github.com/linkedin/glu/issues/80>`_: `Add ability to write unit tests for glu script`
+* Added ``Shell.httpPost`` method
+
+3.0.0 (2011/06/25)
+------------------
+
+What is new in 3.0.0 ?
+^^^^^^^^^^^^^^^^^^^^^^
+
+3.0.0 adds the following features:
+
+* :ref:`parent/child relationship <static-model-entries-parent>` which adds the capability of decoupling the lifecycle of a parent and a child 
+  (typical examples being deploying a webapp inside a webapp container or deploying a bundle in an OSGi container)
+* define the desired state of an entry in the model (:ref:`entryState <static-model-entries-entryState>`) which, for example, allows you to deploy an 
+  application without starting it
+* The console is no longer precomputing the various plans (deploy, bounce, undeploy and redeploy) and they are now computed on demand only
+* The delta is now a first class citizen and a new rest API allows to :ref:`access it <goe-rest-api-get-model-delta>`
+* The core of the orchestration engine (delta, planner and deployer) has been fully rewritten to offer those new capabilities (now in java
+  which should provide some performance improvements over groovy).
+
+List of tickets
+^^^^^^^^^^^^^^^
+
+* Fixed `glu-18 <https://github.com/linkedin/glu/issues/18>`_: `Grails Runtime Exception (500) when viewing a deployment status` (thanks to Ran!)
+* Fixed `glu-21 <https://github.com/linkedin/glu/issues/21>`_: `The model should allow for expressing which state is desired`
+* Fixed `glu-33 <https://github.com/linkedin/glu/issues/33>`_: `Mountpoint disappears from agent view when not in model`
+* Implemented `glu-63 <https://github.com/linkedin/glu/issues/63>`_: `Handle parent/child relationship in the orchestration engine/console`
+* Fixed `glu-71 <https://github.com/linkedin/glu/issues/71>`_: `Fix plan when bouncing parent/child`
+* Fixed `glu-72 <https://github.com/linkedin/glu/issues/72>`_: `Console times out while talking to agent`
+* Fixed `glu-73 <https://github.com/linkedin/glu/issues/73>`_: `Agent upgrade broken due to pid file invalid`
+
 2.4.2 (2011/05/27)
 ------------------
 * Fixed `glu-64 <https://github.com/linkedin/glu/issues/64>`_: `Concurrent deployment of ivy artifacts causes wrong artifact to be downloaded`

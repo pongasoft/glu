@@ -31,7 +31,7 @@ import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
 
 /**
  * @author ypujante@linkedin.com  */
-class SystemModel
+class SystemModel implements MetadataProvider
 {
   public static final OneWayCodec SHA1 =
     OneWayMessageDigestCodec.createSHA1Instance('', HexaCodec.INSTANCE)
@@ -40,12 +40,13 @@ class SystemModel
     new JSONSystemModelSerializer(prettyPrint: 2)
 
   private final Map<String, SystemEntry> _entries = new TreeMap()
+  private final Map<String, Collection<String>> _children = new HashMap<String,Collection<String>>()
   private Map<String, Taggeable> _agentTags = new TreeMap<String, Taggeable>()
 
   String id
   String fabric
 
-  def metadata = [:]
+  Map<String, Object> metadata = [:]
 
   // contains a list of filters that have been applied to this model from the original (chain if
   // more than one)
@@ -71,6 +72,14 @@ class SystemModel
       throw new IllegalArgumentException("already defined entry ${entry.key}")
     }
     _entries[entry.key] = entry
+    if(entry.parent != SystemEntry.DEFAULT_PARENT)
+    {
+      Collection<String> children = _children[entry.parentKey]
+      if(children == null)
+        children = new HashSet<String>()
+      _children[entry.parentKey] = children
+      children << entry.key
+    }
     def agentTags = getAgentTags(entry.agent)
     if(!entry.entryTags.hasAllTags(agentTags.tags))
     {
@@ -99,9 +108,24 @@ class SystemModel
     _entries[key]
   }
 
+  Collection<String> findChildrenKeys(String parentKey)
+  {
+    _children[parentKey]
+  }
+
   Collection<SystemEntry> findEntries()
   {
     return _entries.values().collect { it }
+  }
+
+  public <T extends Collection<String>> T getKeys(T keys)
+  {
+    if(keys == null)
+      return null
+
+    _entries.keySet().each { keys << it }
+
+    return keys
   }
 
   def computeStats()
@@ -239,22 +263,14 @@ class SystemModel
    *
    * @return <code>[system1, system2]</code>
    */
-  static def filter(SystemModel system1, SystemModel system2)
+  static List<SystemModel> filter(SystemModel system1, SystemModel system2)
   {
     if(system1 == null || system2 == null)
     {
       return [system1, system2]
     }
 
-    def filters1 = system1.filters
-    def filters2 = system2.filters
-
-    system1 = system1.filterBy(filters2)
-    system2 = system2.filterBy(filters1)
-
-    def keys = new HashSet()
-    system1.each { keys << it.key }
-    system2.each { keys << it.key }
+    def keys = filterKeys(system1, system2)
 
     system1 = system1.unfilter()
     system2 = system2.unfilter()
@@ -266,6 +282,36 @@ class SystemModel
 
     return [system1, system2]
   }
+
+  /**
+   * Filters the 2 models in the following way:
+   * <ul>
+   * <li>filter system2 with all filter applied to system1</li>
+   * <li>filter system1 with all filter applied to system2</li>
+   * <li>compute and return union of keys between system1 and system2</li>
+   * </ul>
+   *
+   * @return the keys
+   */
+  static Set<String> filterKeys(SystemModel system1, SystemModel system2)
+  {
+    if(system1 == null || system2 == null)
+    {
+      return [] as Set
+    }
+
+    def filters1 = system1.filters
+    def filters2 = system2.filters
+
+    system1 = system1.filterBy(filters2)
+    system2 = system2.filterBy(filters1)
+
+    def keys = new HashSet()
+    system1.each { keys << it.key }
+    system2.each { keys << it.key }
+    return keys
+  }
+
 
   /**
    * The filter is a dsl
@@ -382,6 +428,11 @@ class SystemModel
 
   def toExternalRepresentation()
   {
+    toExternalRepresentation(true)
+  }
+
+  def toExternalRepresentation(boolean includeEntries)
+  {
     def map = [
       id: id,
       fabric: fabric
@@ -390,7 +441,7 @@ class SystemModel
     if(metadata)
       map.metadata = metadata
 
-    if(_entries)
+    if(includeEntries && _entries)
       map.entries = findEntries().collect { it.toExternalRepresentation() }
 
     if(!_agentTags.isEmpty())
@@ -406,6 +457,13 @@ class SystemModel
   public SystemModel clone()
   {
     def ext = toExternalRepresentation()
+    ext = LangUtils.deepClone(ext)
+    return SystemModel.fromExternalRepresentation(ext)
+  }
+
+  public SystemModel cloneNoEntries()
+  {
+    def ext = toExternalRepresentation(false)
     ext = LangUtils.deepClone(ext)
     return SystemModel.fromExternalRepresentation(ext)
   }

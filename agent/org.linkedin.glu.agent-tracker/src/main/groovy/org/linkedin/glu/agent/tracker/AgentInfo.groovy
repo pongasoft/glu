@@ -19,6 +19,7 @@
 package org.linkedin.glu.agent.tracker
 
 import org.linkedin.util.url.URLBuilder
+import org.linkedin.glu.utils.tags.TagsSerializer
 
 /**
  * Represent an individual agent
@@ -27,6 +28,8 @@ import org.linkedin.util.url.URLBuilder
  */
 class AgentInfo extends NodeInfo
 {
+  public static final TagsSerializer TAGS_SERIALIZER = TagsSerializer.INSTANCE
+
   AgentInfoPropertyAccessor agentInfoPropertyAccessor = PrefixAgentInfoPropertyAccessor.DEFAULT
   String agentName
 
@@ -37,7 +40,7 @@ class AgentInfo extends NodeInfo
 
   Set<String> getTags()
   {
-    return agentInfoPropertyAccessor.getPropertyValue(this, 'agent.tags') as Set<String> ?: []
+    return TAGS_SERIALIZER.deserialize(agentInfoPropertyAccessor.getPropertyValue(this, 'agent.tags')) as Set<String> ?: []
   }
 
   int getPort()

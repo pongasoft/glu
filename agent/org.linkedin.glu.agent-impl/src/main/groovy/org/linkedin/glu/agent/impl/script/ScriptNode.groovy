@@ -30,13 +30,17 @@ import java.util.concurrent.ExecutionException
 import org.linkedin.util.lifecycle.Shutdownable
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.util.lifecycle.Startable
+import org.linkedin.glu.agent.api.GluScript
+import org.linkedin.glu.agent.api.Shell
+import org.linkedin.glu.agent.api.StateManager
+import org.linkedin.glu.agent.api.Timers
 
 /**
  * A script node (recursive structure)
  *
  * @author ypujante@linkedin.com
  */
-def class ScriptNode implements Shutdownable, Startable
+def class ScriptNode implements Shutdownable, Startable, GluScript
 {
   private final ScriptState _scriptState
   private final ScriptExecution _scriptExecution
@@ -84,9 +88,45 @@ def class ScriptNode implements Shutdownable, Startable
     return mountPoint.toString()
   }
 
-  def getLog()
+  Logger getLog()
   {
     return _log
+  }
+
+  @Override
+  Shell getShell()
+  {
+    script."shell"
+  }
+
+  @Override
+  Map getParams()
+  {
+    script."params"
+  }
+
+  @Override
+  StateManager getStateManager()
+  {
+    script."stateManager"
+  }
+
+  @Override
+  Timers getTimers()
+  {
+    script."timers"
+  }
+
+  @Override
+  Collection<GluScript> getChildren()
+  {
+    script."children"
+  }
+
+  @Override
+  GluScript getParent()
+  {
+    script."parent"
   }
 
   def getScriptDefinition()
@@ -124,7 +164,7 @@ def class ScriptNode implements Shutdownable, Startable
 
         if(script.hasProperty('onChildAdded'))
         {
-          script.onChildAdded(mountPoint: childMountPoint, child: child)
+          script.onChildAdded(child: child)
         }
 
         return child
@@ -136,36 +176,36 @@ def class ScriptNode implements Shutdownable, Startable
     }
   }
 
-  def removeChild(MountPoint childMountPoint)
+  def removeChild(ScriptNode child)
   {
     synchronized(_children) {
-      assert _children.contains(childMountPoint)
+      assert _children.contains(child.mountPoint)
 
       if(script.hasProperty('onChildRemoved'))
       {
-        script.onChildRemoved(mountPoint: childMountPoint)
+        script.onChildRemoved(child: child)
       }
 
       if(script.hasProperty('destroyChild'))
       {
-        script.destroyChild(mountPoint: childMountPoint)
+        script.destroyChild(mountPoint: child.mountPoint, script: child.script)
       }
 
-      _children.remove(childMountPoint)
+      _children.remove(child.mountPoint)
     }
   }
 
-  def getMountPoint()
+  MountPoint getMountPoint()
   {
     return scriptDefinition.mountPoint
   }
 
-  def getParent()
+  MountPoint getParentMountPoint()
   {
     return scriptDefinition.parent
   }
 
-  def getChildren()
+  Collection<MountPoint> getChildrenMountPoints()
   {
     synchronized(_children) {
       return _children.collect { it }

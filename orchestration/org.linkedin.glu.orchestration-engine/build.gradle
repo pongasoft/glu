@@ -20,12 +20,15 @@ apply plugin: 'org.linkedin.release'
 
 dependencies {
   compile project(':provisioner:org.linkedin.glu.provisioner-core')
-  compile project(':provisioner:org.linkedin.glu.provisioner-agent')
   compile project(':agent:org.linkedin.glu.agent-rest-client')
   compile project(':agent:org.linkedin.glu.agent-tracker')
   compile spec.external.linkedinZookeeperImpl
+  compile spec.external.linkedinUtilsGroovy
 
   groovy spec.external.groovy
   testCompile spec.external.junit
   testRuntime spec.external.slf4jLog4j
 }
+
+sourceSets.main.java.srcDirs = []
+sourceSets.main.groovy.srcDir 'src/main/java'

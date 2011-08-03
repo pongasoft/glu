@@ -112,71 +112,71 @@ The important flag is ``-l`` which request the *live* model. You get an output v
     "entries": [{
       "agent": "agent-1",
       "initParameters": {
-	"port": 9000,
-	"skeleton": "http://localhost:8080/glu/repository/tgzs/jetty-distribution-7.2.2.v20101205.tar.gz",
-	"webapps": [
-	  {
-	    "contextPath": "/cp1",
-	    "monitor": "/monitor",
-	    "war": "http://localhost:8080/glu/repository/wars/org.linkedin.glu.samples.sample-webapp-2.2.0.war"
-	  },
-	  {
-	    "contextPath": "/cp2",
-	    "monitor": "/monitor",
-	    "war": "http://localhost:8080/glu/repository/wars/org.linkedin.glu.samples.sample-webapp-2.2.0.war"
-	  }
-	]
+        "port": 9000,
+        "skeleton": "http://localhost:8080/glu/repository/tgzs/jetty-distribution-7.2.2.v20101205.tar.gz",
+        "webapps": [
+          {
+            "contextPath": "/cp1",
+            "monitor": "/monitor",
+            "war": "http://localhost:8080/glu/repository/wars/org.linkedin.glu.samples.sample-webapp-2.2.0.war"
+          },
+          {
+            "contextPath": "/cp2",
+            "monitor": "/monitor",
+            "war": "http://localhost:8080/glu/repository/wars/org.linkedin.glu.samples.sample-webapp-2.2.0.war"
+          }
+        ]
       },
       "metadata": {
-	"cluster": "c1",
-	"container": {"name": "sample"},
-	"currentState": "stopped",
-	"error": "Server down detected. Check the log file for errors.",
-	"modifiedTime": 1302883875857,
-	"product": "product1",
-	"scriptState": {
-	  "script": {
-	    "gcLog": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/logs/gc.log",
-	    "logsDir": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/logs/",
-	    "port": 9000,
-	    "serverCmd": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/bin/jetty-ctl.sh",
-	    "serverLog": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/logs/start.log",
-	    "serverRoot": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/",
-	    "version": "2.2.0",
-	    "webapps": {
-	      "/cp1": {
-		"context": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/contexts/_cp1.xml",
-		"contextPath": "/cp1",
-		"localWar": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/wars/_cp1.war",
-		"monitor": "/monitor",
-		"remoteWar": "http://localhost:8080/glu/repository/wars/org.linkedin.glu.samples.sample-webapp-2.2.0.war"
-	      },
-	      "/cp2": {
-		"context": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/contexts/_cp2.xml",
-		"contextPath": "/cp2",
-		"localWar": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/wars/_cp2.war",
-		"monitor": "/monitor",
-		"remoteWar": "http://localhost:8080/glu/repository/wars/org.linkedin.glu.samples.sample-webapp-2.2.0.war"
-	      }
-	    }
-	  },
-	  "stateMachine": {
-	    "currentState": "stopped",
-	    "error": "Server down detected. Check the log file for errors."
-	  },
-	  "timers": [{
-	    "repeatFrequency": "15s",
-	    "timer": "serverMonitor"
-	  }]
-	},
-	"version": "1.0.0"
+        "cluster": "c1",
+        "container": {"name": "sample"},
+        "currentState": "stopped",
+        "error": "Server down detected. Check the log file for errors.",
+        "modifiedTime": 1302883875857,
+        "product": "product1",
+        "scriptState": {
+          "script": {
+            "gcLog": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/logs/gc.log",
+            "logsDir": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/logs/",
+            "port": 9000,
+            "serverCmd": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/bin/jetty-ctl.sh",
+            "serverLog": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/logs/start.log",
+            "serverRoot": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/",
+            "version": "2.2.0",
+            "webapps": {
+              "/cp1": {
+                "context": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/contexts/_cp1.xml",
+                "contextPath": "/cp1",
+                "localWar": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/wars/_cp1.war",
+                "monitor": "/monitor",
+                "remoteWar": "http://localhost:8080/glu/repository/wars/org.linkedin.glu.samples.sample-webapp-2.2.0.war"
+              },
+              "/cp2": {
+                "context": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/contexts/_cp2.xml",
+                "contextPath": "/cp2",
+                "localWar": "file:/export/content/glu/org.linkedin.glu.packaging-all-2.2.0/apps/sample/i001/wars/_cp2.war",
+                "monitor": "/monitor",
+                "remoteWar": "http://localhost:8080/glu/repository/wars/org.linkedin.glu.samples.sample-webapp-2.2.0.war"
+              }
+            }
+          },
+          "stateMachine": {
+            "currentState": "stopped",
+            "error": "Server down detected. Check the log file for errors."
+          },
+          "timers": [{
+            "repeatFrequency": "15s",
+            "timer": "serverMonitor"
+          }]
+        },
+        "version": "1.0.0"
       },
       "mountPoint": "/sample/i001",
       "script": "http://localhost:8080/glu/repository/scripts/org.linkedin.glu.script-jetty-2.2.0/JettyGluScript.groovy",
       "tags": [
-	"frontend",
-	"osx",
-	"webapp"
+        "frontend",
+        "osx",
+        "webapp"
       ]
     }],
     "fabric": "glu-dev-1",
@@ -300,13 +300,13 @@ will produce the following output (sequential)::
         systemId="4836742aa34f6915fae3c0f46fbcc86ea381df74" savedTime="1302892719254">
     <sequential origin="rest" action="deploy" filter="all">
       <sequential agent="agent-1" mountPoint="/sample/i001">
-	<leaf name="Start agent-1:/sample/i001 on agent-1" />
+        <leaf name="Start agent-1:/sample/i001 on agent-1" />
       </sequential>
       <sequential agent="agent-1" mountPoint="/sample/i003">
-	<leaf name="Install script for installation agent-1:/sample/i003 on agent-1" />
-	<leaf name="Install agent-1:/sample/i003 on agent-1" />
-	<leaf name="Configure agent-1:/sample/i003 on agent-1" />
-	<leaf name="Start agent-1:/sample/i003 on agent-1" />
+        <leaf name="Install script for installation agent-1:/sample/i003 on agent-1" />
+        <leaf name="Install agent-1:/sample/i003 on agent-1" />
+        <leaf name="Configure agent-1:/sample/i003 on agent-1" />
+        <leaf name="Start agent-1:/sample/i003 on agent-1" />
       </sequential>
     </sequential>
   </plan>
@@ -322,13 +322,13 @@ will produce the following output (parallel)::
         systemId="4836742aa34f6915fae3c0f46fbcc86ea381df74" savedTime="1302892859008">
     <parallel origin="rest" action="deploy" filter="all">
       <sequential agent="agent-1" mountPoint="/sample/i001">
-	<leaf name="Start agent-1:/sample/i001 on agent-1" />
+        <leaf name="Start agent-1:/sample/i001 on agent-1" />
       </sequential>
       <sequential agent="agent-1" mountPoint="/sample/i003">
-	<leaf name="Install script for installation agent-1:/sample/i003 on agent-1" />
-	<leaf name="Install agent-1:/sample/i003 on agent-1" />
-	<leaf name="Configure agent-1:/sample/i003 on agent-1" />
-	<leaf name="Start agent-1:/sample/i003 on agent-1" />
+        <leaf name="Install script for installation agent-1:/sample/i003 on agent-1" />
+        <leaf name="Install agent-1:/sample/i003 on agent-1" />
+        <leaf name="Configure agent-1:/sample/i003 on agent-1" />
+        <leaf name="Start agent-1:/sample/i003 on agent-1" />
       </sequential>
     </parallel>
   </plan>
@@ -371,86 +371,917 @@ The security model is simply implementing http basic authorization: every reques
 
 .. note:: The username and password are only slightly obfuscated (base 64) but it is not an issue because the cli talks to the console over https and as a result the headers are never traveling over an insecure channel.
 
+A few concepts
+^^^^^^^^^^^^^^
+
+You may wonder what is the difference between the 3 notions exposed by the REST API: plans, current deployments and archived deployments.
+
+* A plan (as exposed by the ``/plans*`` APIs) simply represents a list of instructions that glu *will* execute. If you use the console, you can get a good idea of what a plan looks like:
+
+   .. image:: /images/tutorial/tutorial-select-plan-2.png
+      :align: center
+      :alt: Dashboard shows the delta
+
+  Currently a plan only lives (for a short time) in memory, between the time it gets created (``POST /plans``) and the time it gets executed. There is no persistent storage. 
+
+  .. note:: this may change in the future as it would be convenient to create a plan just once and execute it at a later time or repeatedly.
+
+* Once the plan is created and you execute it (``POST /plan/<planId>/execution``), it becomes a deployment and 2 things happen:
+
+  1. a memory representation of the deployment is created: the current deployment
+  2. a database entry is created for this deployment: the archived deployment
+
+* The current deployment lives in memory because it is used by the orchestration engine to execute the steps that needs to happen. It is dynamically updated as steps complete. The current deployment will remain in memory (even after it completes) until either you shutdown the console (so the memory is gone...) or you archive it. The current deployment contains more details than the archived one and can be seen in the console when clicking on the `Plans` tab.
+
+* The archived deployment is created (in the database) when the plan starts executing and then it is updated again **only** when the current deployment completes (whether it was successful or not). The archived deployment is permanent (because it is stored in the database) and can be seen in the console when clicking on the `Plans/Archived` tab.
+
+.. tip:: There is a relationship between a plan execution and the current and archived plan: the ``executionId`` is in fact the 
+   ``deploymentId``::
+
+         GET /plans/<planId>/executions/<executionId>
+
+         is equivalent to 
+
+         GET /deployment/current/<executionId>
+
+         and if you want to access the archived version you can issue
+
+         GET /deployment/archived/<executionId>
+
+.. warning:: Currently, the ``/plans*`` APIs are only dealing with the plans that have been created through the REST API. The plans created and executed from the web interface use a different mechanism and won't appear in those calls. This will be adressed in an upcoming release. The ``/deployments*`` calls work whether the REST API or the web interface was used.
+
 API
 ^^^
-Main URI: ``/console/rest/v1/<fabric>`` (all the URIs in the following tables starts with the main URI)
+Main URI: ``/console/rest/v1/<fabric>`` (all the URIs in the following table start with the main URI)
 
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|Method     |URI                                        |Description         |Request                                             |Response                                                    |
-+===========+===========================================+====================+====================================================+============================================================+
-|``GET``    |``/plans``                                 |List all the plans  |N/A                                                 |TBD                                                         |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``POST``   |``/plans``                                 |Create a plan       |view details below for the content of body of the   |* ``201`` (``CREATED``) with ``Location`` header to access  |
-|           |                                           |                    |``POST``                                            |  the plan (``/plan/ <planId>``)                            |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |                                                    |* ``204`` (``NO CONTENT``) when no plan created because     |
-|           |                                           |                    |                                                    |  there is nothing to do                                    |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``GET``    |``/plan/<planId>``                         |View the plan (as an|N/A                                                 |* ``200`` (``OK``) with an xml representation of the plan   |
-|           |                                           |xml document)       |                                                    |                                                            |
-|           |                                           |                    |                                                    |* ``404`` (``NOT_FOUND``) if no such plan                   |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``POST``   |``/plan/<planId>/execution``               |Executes the plan   |N/A                                                 |* ``201`` (``CREATED``) with ``Location`` header to access  |
-|           |                                           |                    |                                                    |  the plan execution (``/plan/ <planId>/ execution/         |
-|           |                                           |                    |                                                    |  <executionId>``).                                         |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |                                                    |.. note:: it is a non blocking call and it returns right    |
-|           |                                           |                    |                                                    |    away and you can check the progress thus allowing to    |
-|           |                                           |                    |                                                    |    have a progress bar!                                    |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |                                                    |* ``404`` (``NOT_FOUND``) if no such plan                   |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``HEAD``   |``/plan/<planId>/execution/<executionId>`` |Returns the status  |N/A                                                 |* ``200`` (``OK``) with ``X-LinkedIn-GLU-Completion`` header|
-|           |                                           |of the execution    |                                                    |  with value:                                               |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |                                                    |  a. if plan non completed, percentage completion (ex:      |
-|           |                                           |                    |                                                    |  ``87``)                                                   |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |                                                    |  b. if completed: ``100:<completion status>`` (ex:         |
-|           |                                           |                    |                                                    |  ``100:FAILED`` or ``100:COMPLETED``)                      |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |                                                    |* ``404`` (``NOT_FOUND``) if no such execution              |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``GET``    |``/plan/<planId>/execution/<executionId>`` |Returns the         |N/A                                                 |* ``200`` (``OK``) with an xml representation of the        |
-|           |                                           |execution as an xml |                                                    |  execution (equivalent to the view in the console)         |
-|           |                                           |document            |                                                    |                                                            |
-|           |                                           |                    |                                                    |* ``404`` (``NOT_FOUND``) if no such execution              |
-|           |                                           |                    |                                                    |                                                            |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``DELETE`` |``/plan/<planId>/execution/<executionId>`` |Aborts the execution|N/A                                                 |TBD                                                         |
-|           |                                           |                    |                                                    |                                                            |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``POST``   |``/model/static``                          |Loads the (desired) |Body can be of 2 types depending on the             |* ``201`` (``CREATED``) when loaded successfully            |
-|           |                                           |model in the console|``Content-Type`` header:                            |                                                            |
-|           |                                           |                    |                                                    |* ``204`` (``NO_CONTENT``) if model was loaded successfully |
-|           |                                           |                    |``application/x-www-form-urlencoded`` then body     |  and is equal to the previous one                          |
-|           |                                           |                    |should contain ``modelUrl=xxx`` with the url        |                                                            |
-|           |                                           |                    |pointing to the model (the console will 'download'  |* ``400`` (``BAD_REQUEST``) if the model is not valid       |
-|           |                                           |                    |it)                                                 |  (should be a properly json formatted document)            |
-|           |                                           |                    |                                                    |                                                            |
-|           |                                           |                    |``text/json`` then body should be the model itself  |* ``404`` (``NOT_FOUND``) when error (note error handling   |
-|           |                                           |                    |(`example <https://gist.github.com/755981>`_)       |  needs to be revisited)                                    |
-|           |                                           |                    |                                                    |                                                            |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``GET``    |``/model/static``                          |Retrieves the       |optional request parameters:                        |* ``200`` (``OK``) with a json representation of the model  |
-|           |                                           |current loaded model|                                                    |                                                            |
-|           |                                           |(aka 'desired'      |``prettyPrint=true`` for human readable output      |                                                            |
-|           |                                           |state)              |                                                    |                                                            |
-|           |                                           |                    |``systemFilter=...`` for filtering (see             |                                                            |
-|           |                                           |                    |:ref:`goe-filter-syntax` for the syntax)            |                                                            |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
-|``GET``    |``/model/live``                            |Retrieves the       |optional request parameters:                        |* ``200`` (``OK``) with a json representation of the live   |
-|           |                                           |current live model  |                                                    |  model                                                     |
-|           |                                           |coming from         |``prettyPrint=true`` for human readable output      |                                                            |
-|           |                                           |ZooKeeper (aka      |                                                    |.. note:: the metadata contains information like            |
-|           |                                           |current state)      |``systemFilter=...`` for filtering (see             |   ``currentState``                                         |
-|           |                                           |                    |:ref:`goe-filter-syntax` for the syntax)            |                                                            |
-+-----------+-------------------------------------------+--------------------+----------------------------------------------------+------------------------------------------------------------+
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|Method     |URI                                        |Description                       |Details                                   |
++===========+===========================================+==================================+==========================================+
+|``HEAD``   |``/agents``                                |Returns the number of agents      |:ref:`view <goe-rest-api-head-agents>`    |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/agents``                                |List all the agents               |:ref:`view <goe-rest-api-get-agents>`     |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/agent/<agentName>``                     |View details about the agent      |:ref:`view <goe-rest-api-get-agent>`      |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/agents/versions``                       |List all the agents versions      |:ref:`view                                |
+|           |                                           |                                  |<goe-rest-api-get-agents-versions>`       |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``POST``   |``/agents/versions``                       |Upgrade the agents                |:ref:`view                                |
+|           |                                           |                                  |<goe-rest-api-post-agents-versions>`      |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/plans``                                 |List all the plans                |:ref:`view <goe-rest-api-get-plans>`      |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``POST``   |``/plans``                                 |Create a plan                     |:ref:`view <goe-rest-api-post-plans>`     |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/plan/<planId>``                         |View the plan (as an xml document)|:ref:`view <goe-rest-api-get-plan>`       |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``POST``   |``/plan/<planId>/execution``               |Executes the plan                 |:ref:`view                                |
+|           |                                           |                                  |<goe-rest-api-post-plan-execution>`       |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/plan/<planId>/executions``              |List all the executions for a plan|:ref:`view                                |
+|           |                                           |                                  |<goe-rest-api-get-plan-executions>`       |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``HEAD``   |``/plan/<planId>/execution/<executionId>`` |Returns the status of the         |:ref:`view                                |
+|           |                                           |execution                         |<goe-rest-api-head-plan-execution>`       |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/plan/<planId>/execution/<executionId>`` |Returns the execution as an xml   |:ref:`view                                |
+|           |                                           |document                          |<goe-rest-api-get-plan-execution>`        |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``DELETE`` |``/plan/<planId>/execution/<executionId>`` |Aborts the execution              |:ref:`view                                |
+|           |                                           |                                  |<goe-rest-api-delete-plan-execution>`     |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/deployments/current``                   |List all current deployments      |:ref:`view                                |
+|           |                                           |                                  |<goe-rest-api-get-deployments-current>`   |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``DELETE`` |``/deployments/current``                   |Archive all current deployments   |:ref:`view                                |
+|           |                                           |                                  |<goe-rest-api-delete-deployments-current>`|
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/deployment/current/<deploymentId>``     |View details about the current    |:ref:`view                                |
+|           |                                           |deployment                        |<goe-rest-api-get-deployment-current>`    |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``HEAD``   |``/deployment/current/<deploymentId>``     |View info only about the current  |:ref:`view                                |
+|           |                                           |deployment                        |<goe-rest-api-head-deployment-current>`   |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``DELETE`` |``/deployment/current/<deploymentId>``     |Archive the current deployment    |:ref:`view                                |
+|           |                                           |                                  |<goe-rest-api-delete-deployment-current>` |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``HEAD``   |``/deployments/archived``                  |Returns the total count of        |:ref:`view                                |
+|           |                                           |archived deployments              |<goe-rest-api-head-deployments-archived>` |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/deployments/archived``                  |List the archived deployments     |:ref:`view                                |
+|           |                                           |(paginated!)                      |<goe-rest-api-get-deployments-archived>`  |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``HEAD``   |``/deployment/archived/<deploymentId>``    |View info about the archived      |:ref:`view                                |
+|           |                                           |deployment                        |<goe-rest-api-head-deployment-archived>`  |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/deployment/archived/<deploymentId>``    |View details about the archived   |:ref:`view                                |
+|           |                                           |deployment                        |<goe-rest-api-get-deployment-archived>`   |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``POST``   |``/model/static``                          |Loads the (desired) model in the  |:ref:`view                                |
+|           |                                           |console                           |<goe-rest-api-post-model-static>`         |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/model/static``                          |Retrieves the current loaded model|:ref:`view                                |
+|           |                                           |(aka 'desired' state)             |<goe-rest-api-get-model-static>`          |
+|           |                                           |                                  |                                          |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/model/live``                            |Retrieves the current live model  |:ref:`view                                |
+|           |                                           |coming from ZooKeeper (aka current|<goe-rest-api-get-model-live>`            |
+|           |                                           |state)                            |                                          |
+|           |                                           |                                  |                                          |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/model/delta``                           |Retrieves the delta between static|:ref:`view                                |
+|           |                                           |model and live model              |<goe-rest-api-get-model-delta>`           |
+|           |                                           |                                  |                                          |
+|           |                                           |                                  |                                          |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+
+.. _goe-rest-api-head-agents:
+
+Agents count
+""""""""""""
+
+* Description: Returns the number of agents (in the fabric specified in the URL)
+
+* Request: ``HEAD /agents``
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-count`` with the number of agents
+ 
+  * ``204`` (``NO CONTENT``) when there is no agent
+
+* Example::
+
+     curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/agents" --head
+     < HTTP/1.1 200 OK
+     < X-glu-count: 4
+
+.. _goe-rest-api-get-agents:
+
+List all the agents
+"""""""""""""""""""
+
+* Description: List all the agents
+
+* Request: ``GET /agents``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-count`` with the number of agents
+    * body: json map where key is agent name and value is another map with all the agents properties (as can be seen in the console when looking at an individual agent and clicking `View Details`).
+
+  * ``204`` (``NO CONTENT``) when there is no agent
+
+* Example::
+
+     curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/agents?prettyPrint=true"
+     < HTTP/1.1 200 OK
+     < X-glu-count: 4
+     {
+       "agent-1": {
+         "glu.agent.apps": "/export/content/glu/devsetup/apps/agent-1",
+         "glu.agent.configURL": "zookeeper:/org/glu/agents/fabrics/glu-dev-1/config/config.properties",
+         "glu.agent.dataDir": "/export/content/glu/devsetup/agent-1/data",
+         "glu.agent.fabric": "glu-dev-1",
+         ...
+         "viewURL": "http://localhost:8080/console/rest/v1/glu-dev-1/agent/agent-1"
+       },
+       "agent-10": {
+         ...
+         "viewURL": "http://localhost:8080/console/rest/v1/glu-dev-1/agent/agent-10"
+       },
+       ...
+     }
+
+.. _goe-rest-api-get-agent:
+
+View agent details
+""""""""""""""""""
+
+* Description: View the details of a single agent
+
+* Request: ``GET /agent/<agentName>``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+   * body: json map with a single key ``details`` containing another map with all the agents properties (as can be seen in the console when looking at an individual agent and clicking `View Details`).
+     .. note:: In an upcoming release there will be other keys in the map to represent also the entries deployed on the agent (as can be seen in the console when looking at an individual agent)
+
+  * ``404`` (``NOT FOUND``) when there is no such agent
+
+* Example::
+
+     curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/agent/agent-1?prettyPrint=true"
+     < HTTP/1.1 200 OK
+     {"details": {
+       "glu.agent.apps": "/export/content/glu/devsetup/apps/agent-1",
+       "glu.agent.configURL": "zookeeper:/org/glu/agents/fabrics/glu-dev-1/config/config.properties",
+       "glu.agent.dataDir": "/export/content/glu/devsetup/agent-1/data",
+       "glu.agent.fabric": "glu-dev-1",
+       "glu.agent.homeDir": "/export/content/glu/devsetup/agent-1",
+       "glu.agent.hostname": "192.168.0.150",
+       "glu.agent.hostnameFactory": ":ip",
+       "glu.agent.keystoreChecksum": "JSHZAn5IQfBVp1sy0PgA36fT_fD",
+       "glu.agent.keystorePath": "zookeeper:/org/glu/agents/fabrics/glu-dev-1/config/agent.keystore",
+       "glu.agent.logDir": "/export/content/glu/devsetup/agent-1/data/logs",
+       "glu.agent.name": "agent-1",
+       "glu.agent.persistent.properties": "/export/content/glu/devsetup/agent-1/data/config/agent.properties",
+       "glu.agent.pid": "4641",
+       "glu.agent.port": "13906",
+       "glu.agent.rest.nonSecure.port": "12907",
+       "glu.agent.rest.server.defaultThreads": "3",
+       "glu.agent.scriptRootDir": "/export/content/glu/devsetup/apps/agent-1",
+       "glu.agent.scriptStateDir": "/export/content/glu/devsetup/agent-1/data/scripts/state",
+       "glu.agent.sslEnabled": "true",
+       "glu.agent.tempDir": "/export/content/glu/devsetup/agent-1/data/tmp",
+       "glu.agent.truststoreChecksum": "qUFMIePiJhz8i7Ow9lZmN5pyZjl",
+       "glu.agent.truststorePath": "zookeeper:/org/glu/agents/fabrics/glu-dev-1/config/console.truststore",
+       "glu.agent.version": "3.2.0-SNAPSHOT",
+       "glu.agent.zkConnectString": "localhost:2181",
+       "glu.agent.zkProperties": "/export/content/glu/devsetup/agent-1/data/config/zk.properties",
+       "glu.agent.zkSessionTimeout": "5s",
+       "glu.agent.zookeeper.root": "/org/glu"
+    }}
+
+.. _goe-rest-api-get-agents-versions:
+
+List all the agents versions
+""""""""""""""""""""""""""""
+
+* Description: List all the agents versions
+
+* Request: ``GET /agents/versions``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-count`` with the number of agents
+    * body: json map where key is agent name and value is the agent version
+
+  * ``204`` (``NO CONTENT``) when there is no agent
+
+* Example::
+
+     curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/agents/versions?prettyPrint=true"
+     < HTTP/1.1 200 OK
+     < X-glu-count: 4
+     {
+       "agent-1": "3.2.0",
+       "agent-10": "3.1.0",
+       "agent-4": "3.2.0",
+       "agent-7": "3.2.0"
+    }
+
+.. _goe-rest-api-post-agents-versions:
+
+Upgrade the agents
+""""""""""""""""""
+
+* Description: Create a plan to upgrade the agents. You must then execute the plan as described in :ref:`Executing a plan <goe-rest-api-post-plan-execution>`
+
+* Request: ``POST /agents/versions``
+
+ * The post content type should be ``application/x-www-form-urlencoded``
+ * The body of the post should be a well formed query string containing the following parameters:
+
+   * ``version``: the version of the new agent
+   * ``coordinates``: the url of the agent upgrade tarball
+   * ``agents``: 1 per agent name you want to upgrade
+
+* Response: 
+
+  * ``201`` (``Created``) with:
+
+    * headers: ``Location`` containing the url to POST to in order to execute the plan (see :ref:`Executing a plan <goe-rest-api-post-plan-execution>`)
+
+  * ``204`` (``NO CONTENT``) when there is nothing to do
+  * ``400`` (``BAD REQUEST``) when missing ``version`` or ``coordinates``
+
+* Example::
+
+     # 1. create the upgrade plan
+     curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/agents/versions" --data "agents=agent-1&agents=agent-4&version=3.1.0&coordinates=https://github.com/downloads/linkedin/glu/org.linkedin.glu.agent-server-upgrade-3.1.0.tgz"
+     > Content-Type: application/x-www-form-urlencoded
+     >
+     < HTTP/1.1 201 Created
+     < Location: http://localhost:8080/console/rest/v1/glu-dev-1/plan/49e69ef4-7c84-4f9b-9838-fce131b69028
+
+     # 2. view the upgrade plan. You can then execute it...
+     curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/plan/49e69ef4-7c84-4f9b-9838-fce131b69028?prettyPrint=true"
+     <?xml version="1.0"?>
+     <plan fabric="glu-dev-1" id="49e69ef4-7c84-4f9b-9838-fce131b69028" origin="rest" action="upgradeAgents" version="3.1.0" name="origin=rest - action=upgradeAgents - version=3.1.0 - PARALLEL" savedTime="1312126425812">
+       <parallel origin="rest" action="upgradeAgents" version="3.1.0">
+         <sequential agent="agent-1" mountPoint="/self/upgrade">
+           <leaf agent="agent-1" fabric="glu-dev-1" initParameters="{agentTar=https://github.com/downloads/linkedin/glu/org.linkedin.glu.agent-server-upgrade-3.1.0.tgz, newVersion=3.1.0}" mountPoint="/self/upgrade" name="Install script for [/self/upgrade] on [agent-1]" script="{scriptClassName=org.linkedin.glu.agent.impl.script.AutoUpgradeScript}" scriptLifecycle="installScript" />
+           <leaf agent="agent-1" fabric="glu-dev-1" mountPoint="/self/upgrade" name="Run [install] phase for [/self/upgrade] on [agent-1]" scriptAction="install" toState="installed" />
+           <leaf agent="agent-1" fabric="glu-dev-1" mountPoint="/self/upgrade" name="Run [prepare] phase for [/self/upgrade] on [agent-1]" scriptAction="prepare" toState="prepared" />
+           <leaf agent="agent-1" fabric="glu-dev-1" mountPoint="/self/upgrade" name="Run [commit] phase for [/self/upgrade] on [agent-1]" scriptAction="commit" toState="upgraded" />
+           <leaf agent="agent-1" fabric="glu-dev-1" mountPoint="/self/upgrade" name="Run [uninstall] phase for [/self/upgrade] on [agent-1]" scriptAction="uninstall" toState="NONE" />
+           <leaf agent="agent-1" fabric="glu-dev-1" mountPoint="/self/upgrade" name="Uninstall script for [/self/upgrade] on [agent-1]" scriptLifecycle="uninstallScript" />
+         </sequential>
+         <sequential agent="agent-4" mountPoint="/self/upgrade">
+           <leaf agent="agent-4" fabric="glu-dev-1" initParameters="{agentTar=https://github.com/downloads/linkedin/glu/org.linkedin.glu.agent-server-upgrade-3.1.0.tgz, newVersion=3.1.0}" mountPoint="/self/upgrade" name="Install script for [/self/upgrade] on [agent-4]" script="{scriptClassName=org.linkedin.glu.agent.impl.script.AutoUpgradeScript}" scriptLifecycle="installScript" />
+           <leaf agent="agent-4" fabric="glu-dev-1" mountPoint="/self/upgrade" name="Run [install] phase for [/self/upgrade] on [agent-4]" scriptAction="install" toState="installed" />
+           <leaf agent="agent-4" fabric="glu-dev-1" mountPoint="/self/upgrade" name="Run [prepare] phase for [/self/upgrade] on [agent-4]" scriptAction="prepare" toState="prepared" />
+           <leaf agent="agent-4" fabric="glu-dev-1" mountPoint="/self/upgrade" name="Run [commit] phase for [/self/upgrade] on [agent-4]" scriptAction="commit" toState="upgraded" />
+           <leaf agent="agent-4" fabric="glu-dev-1" mountPoint="/self/upgrade" name="Run [uninstall] phase for [/self/upgrade] on [agent-4]" scriptAction="uninstall" toState="NONE" />
+           <leaf agent="agent-4" fabric="glu-dev-1" mountPoint="/self/upgrade" name="Uninstall script for [/self/upgrade] on [agent-4]" scriptLifecycle="uninstallScript" />
+         </sequential>
+       </parallel>
+     </plan>
+
+
+.. _goe-rest-api-get-plans:
+
+List all the plans
+""""""""""""""""""
+
+* Description: List all the plans (that have been created through ``POST /plans``).
+
+* Request: ``GET /plans``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-count`` => number of plans
+    * body: json map where key is plan id and value is a link to view it
+
+  * ``204`` (``NO CONTENT``) when there is no plan to list
+
+* Example::
+
+    curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/plans?prettyPrint=true"
+    < HTTP/1.1 200 OK
+    < X-glu-count: 2
+    < Content-Type: text/json
+    < Content-Length: 262
+    {
+      "03714d11-7b44-4717-b426-85d4cbf6c5d4": "http://localhost:8080/console/rest/v1/glu-dev-1/plan/03714d11-7b44-4717-b426-85d4cbf6c5d4",
+      "b553f8de-62bc-4000-9c43-2fe869bdb3c4": "http://localhost:8080/console/rest/v1/glu-dev-1/plan/b553f8de-62bc-4000-9c43-2fe869bdb3c4"
+    }
+
+.. _goe-rest-api-post-plans:
+
+Create deployment plan
+""""""""""""""""""""""
+
+* Description: Create a plan.
+
+* Request: ``POST /plans``
+
+  * view details :ref:`below <goe-rest-api-representing-a-plan>` for the content of body of the ``POST``
+
+* Response: 
+
+  * ``201`` (``CREATED``) with ``Location`` header to access the plan (``/plan/<planId>``)
+  * ``204`` (``NO CONTENT``) when no plan created because there is nothing to do
+
+.. _goe-rest-api-get-plan:
+
+View a deployment plan
+""""""""""""""""""""""
+
+* Description: View the plan (as an xml document)
+
+* Request: ``GET /plan``
+
+  * N/A
+
+* Response:
+
+  * ``200`` (``OK``) with an xml representation of the plan
+  * ``404`` (``NOT_FOUND``) if no such plan
+
+.. _goe-rest-api-post-plan-execution:
+
+Execute a deployment plan
+"""""""""""""""""""""""""
+
+* Description: Execute the plan.
+
+* Request: ``POST /plan/<planId>/execution``
+
+  * N/A
+
+* Response:
+
+  * ``201`` (``CREATED``) with ``Location`` header to access the plan execution (``/plan/<planId>/ execution/<executionId>``).                                         
+
+    .. note:: it is a non blocking call and it returns right away and you can check the progress thus allowing to have a progress bar!
+
+  * ``404`` (``NOT_FOUND``) if no such plan
+
+.. _goe-rest-api-get-plan-executions:
+
+List all the plan executions
+""""""""""""""""""""""""""""
+
+* Description: List all the plan excutions. Once a plan has been created (``POST /plans``) it is possible to execute it multiple times. This call allows you to list all the executions of a previously created plan.
+
+* Request: ``GET /plan/<planId>/executions``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-count`` => number of executions
+    * body: json map where key is execution id and value is a link to view it
+
+  * ``204`` (``NO CONTENT``) when no execution
+
+* Example::
+
+    curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/plan/03714d11-7b44-4717-b426-85d4cbf6c5d4/executions"
+    < HTTP/1.1 200 OK
+    < X-glu-count: 1
+    < Content-Type: text/json
+    < 
+   {"3":"http://localhost:8080/console/rest/v1/glu-dev-1/plan/03714d11-7b44-4717-b426-85d4cbf6c5d4/execution/3"}
+
+.. tip:: The execution id is in fact a deployment id and can be used directly in the ``/deployments*`` APIs
+
+.. _goe-rest-api-head-plan-execution:
+
+Check status of plan execution
+""""""""""""""""""""""""""""""
+
+* Description: Return the status of the execution.
+
+* Request: ``HEAD /plan/<planId>/execution/<executionId>``
+
+  * N/A
+
+* Response:
+
+  * ``200`` (``OK``) with ``X-glu-completion`` header with value:
+
+    a. if plan non completed, percentage completion (ex: ``87``)
+
+    b. if completed: ``100:<completion status>`` (ex: ``100:FAILED`` or ``100:COMPLETED``)
+
+  * ``404`` (``NOT_FOUND``) if no such execution
+
+.. _goe-rest-api-get-plan-execution:
+
+View execution plan
+"""""""""""""""""""
+
+* Description: Return the execution as an xml document.
+
+* Request: ``GET /plan/<planId>/execution/<executionId>``
+
+  * N/A
+
+* Response:
+
+  * ``200`` (``OK``) with an xml representation of the execution (equivalent to the view in the console)
+  * ``404`` (``NOT_FOUND``) if no such execution
+
+.. _goe-rest-api-delete-plan-execution:
+
+Abort execution plan
+""""""""""""""""""""
+
+* Description: Abort the execution.
+
+* Request: ``DELETE /plan/<planId>/execution/<executionId>``
+
+  * N/A
+
+* Response:
+
+  * TBD
+
+.. _goe-rest-api-get-deployments-current:
+
+List all current deployments
+""""""""""""""""""""""""""""
+
+* Description: List all current deployments.
+
+* Request: ``GET /deployments/current``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-count`` => number of current deployments
+    * body: json map where key is deployment id and value is another map with some details about the deployment (equivalent to what you see on the `Plans` tab in the console)
+
+  * ``204`` (``NO CONTENT``) when there is no deployment to list
+
+* Example::
+
+     curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/deployments/current?prettyPrint=true"
+     < HTTP/1.1 200 OK
+     < X-glu-count: 4
+     < Content-Type: text/json
+     {
+       "1": {
+         "completedSteps": 16,
+         "description": "Deploy - Fabric [glu-dev-1] - PARALLEL",
+         "endTime": 1312038165459,
+         "startTime": 1312038160946,
+         "status": "COMPLETED",
+         "totalSteps": 16,
+         "username": "glua",
+         "viewURL": "http://localhost:8080/console/rest/v1/glu-dev-1/deployment/current/1"
+       },
+       ...
+     }
+
+.. _goe-rest-api-delete-deployments-current:
+
+Archive all current deployments
+"""""""""""""""""""""""""""""""
+
+* Description: Archive all current deployments.
+
+* Request: ``DELETE /deployments/current``
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-archived`` => number of deployments that were archived
+
+* Example::
+
+     curl -v -X DELETE -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/deployments/current"
+     < HTTP/1.1 200 OK
+     < X-glu-archived: 3
+
+.. _goe-rest-api-get-deployment-current:
+
+View current deployment (details)
+"""""""""""""""""""""""""""""""""
+
+* Description: View the current deployment details
+
+* Request: ``GET /deployment/current/<deploymentId>``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-startTime``, ``X-glu-endTime``, ``X-glu-username``, ``X-glu-status``, ``X-glu-description``, ``X-glu-completedSteps``, ``X-glu-totalSteps``
+    * body: xml representation of the plan showing the details
+
+  * ``404`` (``NOT FOUND``) when there is no such deployment
+
+* Example::
+
+     curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/deployment/current/1?prettyPrint=true"
+     < HTTP/1.1 200 OK
+     < X-glu-startTime: 1312038160946
+     < X-glu-endTime: 1312038165459
+     < X-glu-username: glua
+     < X-glu-status: COMPLETED
+     < X-glu-description: Deploy - Fabric [glu-dev-1] - PARALLEL
+     < X-glu-completedSteps: 16
+     < X-glu-totalSteps: 16
+     < Content-Type: text/xml
+     < 
+     <?xml version="1.0"?>
+     <plan fabric="glu-dev-1" systemId="47d37bb288b3908f2f3fe5d8b382053e7b13719b" id="f84e4f59-476d-4c17-bf3d-534b975cebf1" name="Deploy - Fabric [glu-dev-1] - PARALLEL">
+       <parallel name="Deploy - Fabric [glu-dev-1] - PARALLEL">
+         <sequential agent="agent-1" mountPoint="/m1/i001">
+       ...
+     </plan>
+
+.. _goe-rest-api-head-deployment-current:
+
+View current deployment (info)
+""""""""""""""""""""""""""""""
+
+* Description: View the current deployment info (just the headers).
+
+
+* Request: ``HEAD /deployment/current/<deploymentId>``
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-startTime``, ``X-glu-endTime``, ``X-glu-username``, ``X-glu-status``, ``X-glu-description``, ``X-glu-completedSteps``, ``X-glu-totalSteps``
+
+  * ``404`` (``NOT FOUND``) when there is no such deployment
+
+* Example::
+
+     curl -v --head -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/deployment/current/1"
+     < HTTP/1.1 200 OK
+     < X-glu-startTime: 1312038160946
+     < X-glu-endTime: 1312038165459
+     < X-glu-username: glua
+     < X-glu-status: COMPLETED
+     < X-glu-description: Deploy - Fabric [glu-dev-1] - PARALLEL
+     < X-glu-completedSteps: 16
+     < X-glu-totalSteps: 16
+
+.. _goe-rest-api-delete-deployment-current:
+
+Archive current deployment
+""""""""""""""""""""""""""
+
+* Description: Archive a single current deployment.
+
+* Request: ``DELETE /deployment/current/<deploymentId>``
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-archived`` => ``true`` if the deployment was archived, ``false`` if already archived
+
+* Example::
+
+     curl -v -X DELETE -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/deployment/current/1"
+     < HTTP/1.1 200 OK
+     < X-glu-archived: true
+
+.. _goe-rest-api-head-deployments-archived:
+
+Archived deployments count
+""""""""""""""""""""""""""
+
+* Description: Return the total count of archived deployments.
+
+
+* Request: ``HEAD /deployments/archived``
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-totalCount``
+
+* Example::
+
+     curl -v --head -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/deployments/archived"
+     < HTTP/1.1 200 OK
+     < X-glu-totalCount: 4
+
+.. _goe-rest-api-get-deployments-archived:
+
+List archived deployments (paginated)
+"""""""""""""""""""""""""""""""""""""
+
+* Description: List archived deployments according to the parameters provided to determine which `page` to return.
+
+* Request: ``GET /deployments/archived``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+  * ``max=xxx`` how many entries to return max (max cannot exceed a limit which defaults to 25 which is also the value used if not provided)
+  * ``offset=xxx`` which entry to start (default is 0)
+
+    .. note:: ``offset`` represents the index in the list (not a deployment id!). To go from page to page, the offset simply increments by ``max``. Example with ``max=10``, ``offset=0`` will return page 1, ``offset=10`` will return page 2, etc...
+
+  * ``sort`` which `column` to sort on (default is ``startDate``) 
+  * ``order`` which order to sort the list (default is ``desc``)
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-max``, ``X-glu-offset``, ``X-glu-sort``, ``X-glu-order``, which are the values provided/defaulted/adjusted from the request and ``X-glu-count`` which is the number of entries returned and ``X-glu-totalCount`` which is the total number of archived deployments
+    * body: json map where key is deployment id and value is another map with some details about the deployment (equivalent to what you see on the `Plans/Archived` tab in the console)
+
+  * ``204`` (``NO CONTENT``) when there is no deployment to list
+
+* Example::
+
+     curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/deployments/archived?prettyPrint=true&max=2"
+     < HTTP/1.1 200 OK
+     < X-glu-count: 2
+     < X-glu-totalCount: 4
+     < X-glu-max: 2
+     < X-glu-offset: 0
+     < X-glu-sort: startDate
+     < X-glu-order: desc
+     < Content-Type: text/json
+     {
+       "3": {
+         "description": "origin=rest - action=bounce - filter=all - SEQUENTIAL",
+         "endTime": 1312039222813,
+         "startTime": 1312039220934,
+         "status": "COMPLETED",
+         "username": "glua",
+         "viewURL": "http://localhost:8080/console/rest/v1/glu-dev-1/deployment/archived/3"
+       },
+       "4": {
+         "description": "origin=rest - action=bounce - filter=all - PARALLEL",
+         "endTime": 1312039238723,
+         "startTime": 1312039237598,
+         "status": "COMPLETED",
+         "username": "glua",
+         "viewURL": "http://localhost:8080/console/rest/v1/glu-dev-1/deployment/archived/4"
+       }
+     }
+
+.. _goe-rest-api-get-deployment-archived:
+
+View archived deployment (details)
+""""""""""""""""""""""""""""""""""
+
+* Description: View the archived deployment details
+
+* Request: ``GET /deployment/archived/<deploymentId>``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-startTime``, ``X-glu-endTime``, ``X-glu-username``, ``X-glu-status``, ``X-glu-description``
+    * body: xml representation of the plan showing the details
+
+  * ``404`` (``NOT FOUND``) when there is no such deployment
+
+* Example::
+
+     curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/deployment/archived/1?prettyPrint=true"
+     < HTTP/1.1 200 OK
+     < X-glu-startTime: 1312038160946
+     < X-glu-endTime: 1312038165459
+     < X-glu-username: glua
+     < X-glu-status: COMPLETED
+     < X-glu-description: Deploy - Fabric [glu-dev-1] - PARALLEL
+    < Content-Type: text/xml
+     < 
+     <?xml version="1.0"?>
+     <plan fabric="glu-dev-1" systemId="47d37bb288b3908f2f3fe5d8b382053e7b13719b" id="f84e4f59-476d-4c17-bf3d-534b975cebf1" name="Deploy - Fabric [glu-dev-1] - PARALLEL">
+       <parallel name="Deploy - Fabric [glu-dev-1] - PARALLEL">
+         <sequential agent="agent-1" mountPoint="/m1/i001">
+       ...
+     </plan>
+
+.. _goe-rest-api-head-deployment-archived:
+
+View archived deployment (info)
+"""""""""""""""""""""""""""""""
+
+* Description: View the archived deployment info (just the headers).
+
+
+* Request: ``HEAD /deployment/archived/<deploymentId>``
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-startTime``, ``X-glu-endTime``, ``X-glu-username``, ``X-glu-status``, ``X-glu-description``
+
+  * ``404`` (``NOT FOUND``) when there is no such deployment
+
+* Example::
+
+     curl -v --head -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/deployment/archived/1"
+     < HTTP/1.1 200 OK
+     < X-glu-startTime: 1312038160946
+     < X-glu-endTime: 1312038165459
+     < X-glu-username: glua
+     < X-glu-status: COMPLETED
+     < X-glu-description: Deploy - Fabric [glu-dev-1] - PARALLEL
+
+.. _goe-rest-api-post-model-static:
+
+Load static model
+"""""""""""""""""
+
+* Description: Load the (desired) model in the console.
+
+* Request: ``POST /model/static``
+
+  Body can be of 2 types depending on the ``Content-Type`` header:
+
+  1. ``application/x-www-form-urlencoded`` then body should contain ``modelUrl=xxx`` with the url pointing to the model (the console will 'download' it)
+  2. ``text/json`` then body should be the model itself (`example <https://gist.github.com/755981>`_)
+
+* Response:
+
+  * ``201`` (``CREATED``) when loaded successfully
+  * ``204`` (``NO_CONTENT``) if model was loaded successfully and is equal to the previous one
+  * ``400`` (``BAD_REQUEST``) if the model is not valid (should be a properly json formatted document)
+  * ``404`` (``NOT_FOUND``) when error (note error handling needs to be revisited)
+
+.. _goe-rest-api-get-model-static:
+
+View static model
+"""""""""""""""""
+
+* Description: Retrieve the current loaded model (aka *expected* state).
+
+  .. note:: this is what you loaded using ``POST /model/static``
+
+* Request: ``GET /model/static``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+  * ``systemFilter=...`` for filtering (see :ref:`goe-filter-syntax` for the syntax)
+
+* Response:  
+
+  * ``200`` (``OK``) with a json representation of the model
+
+.. _goe-rest-api-get-model-live:
+
+View live model
+"""""""""""""""
+
+* Description: Retrieve the current live model coming from ZooKeeper (aka *current* state).
+
+* Request: ``GET /model/live``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+  * ``systemFilter=...`` for filtering (see :ref:`goe-filter-syntax` for the syntax)
+
+* Response:
+
+  * ``200`` (``OK``) with a json representation of the live model
+
+    .. note:: the metadata contains information like ``currentState``
+
+.. _goe-rest-api-get-model-delta:
+
+View delta
+""""""""""
+
+* Description: Retrieve the delta (similar to what can be seen on the dashboard) which is the difference between the static and live model (expected vs current)
+
+* Request: ``GET /model/delta``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+  * ``systemFilter=...`` for filtering (see :ref:`goe-filter-syntax` for the syntax)
+  * ``errorsOnly=true`` filter to show only errors 
+  * ``flatten=true`` flatten the output (similar to dashboard view) 
+
+* Response:
+
+  * ``200`` (``OK``) with a json representation of the delta
 
 API Examples
 ^^^^^^^^^^^^
 * Sending the model to glu in `java <https://gist.github.com/756465>`_
 * `Python example <https://github.com/linkedin/glu/blob/REL_1.5.0/console/org.linkedin.glu.console-cli/src/cmdline/resources/lib/python/gluconsole/rest.py>`_ (part of the cli)
+
+.. _goe-rest-api-representing-a-plan:
 
 Representing a plan
 -------------------

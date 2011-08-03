@@ -118,3 +118,7 @@ subprojects {
 
   buildDir = "${topBuildDir}${project.path.replace(':','/')}".toString()
 }
+
+task clean(type: Delete) {
+  delete topBuildDir
+}

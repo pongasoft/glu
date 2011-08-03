@@ -23,6 +23,7 @@ import org.linkedin.util.lifecycle.CannotConfigureException
 import org.linkedin.glu.console.domain.RoleName
 import org.linkedin.glu.console.domain.User
 import org.linkedin.glu.orchestration.engine.system.SystemService
+import org.linkedin.glu.provisioner.core.model.SystemModel
 
 class FabricController extends ControllerBase
 {
@@ -250,6 +251,7 @@ class FabricController extends ControllerBase
       fabricService.resetCache()
       flash.message = "Fabric ${fabricInstance.id} created"
       audit('fabric.updated', fabricInstance.id.toString(), params.toString())
+      systemService.saveCurrentSystem(new SystemModel(fabric: fabricInstance.name))
       redirect(action: show, id: fabricInstance.id)
     }
     else

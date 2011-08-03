@@ -15,6 +15,28 @@
  * the License.
  */
 
+/////////////////////////////////////////////////////////
+// Default values (can be overriden in any of the config file (see below))
+/////////////////////////////////////////////////////////
+// security (keystore/trustore defining security between console and agent)
+console.sslEnabled = false
+console.keystorePath = ""
+console.keystorePassword = ""
+console.keyPassword = ""
+console.truststorePath = ""
+console.truststorePassword = ""
+console.secretkeystorePath = "/dev/null"
+
+// if you want to restrict access to some subdirectory between agent and console
+console.authorizationService.unrestrictedLocation = "/"
+
+// connection timeout when the console tries to talk to the agent (rest)
+console.to.agent.connectionTimeout = "30s"
+
+/////////////////////////////////////////////////////////
+// End Default values
+/////////////////////////////////////////////////////////
+
 // locations to search for config files that get merged into the main config
 // config files can either be Java properties files or ConfigSlurper scripts
 
@@ -218,11 +240,6 @@ environments {
 
         warn   'org.mortbay.log'
     }
-  }
-
-  // for backward compatibility default this path to /dev/null if it is not defined
-  if (!console.secretkeystorePath) {
-    console.secretkeystorePath = "/dev/null"
   }
 }
 

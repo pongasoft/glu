@@ -25,14 +25,18 @@ import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.provisioner.plan.api.IStepExecution
 import org.linkedin.glu.provisioner.plan.api.IPlanExecution
-import org.linkedin.glu.console.domain.DbDeployment
-import org.linkedin.glu.provisioner.core.action.ActionDescriptor
-import org.linkedin.glu.provisioner.plan.api.LeafStep
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import javax.servlet.http.HttpServletResponse
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
 import org.linkedin.glu.orchestration.engine.deployment.CurrentDeployment
+import org.linkedin.glu.orchestration.engine.planner.PlannerService
+import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor
+import org.linkedin.glu.provisioner.plan.api.IStep.Type
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
+import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.glu.orchestration.engine.deployment.ArchivedDeployment
+import org.linkedin.glu.orchestration.engine.deployment.Deployment
 
 /**
  * @author ypujante@linkedin.com */
@@ -40,6 +44,7 @@ public class PlanController extends ControllerBase
 {
   Clock clock = SystemClock.instance()
   DeploymentService deploymentService
+  PlannerService plannerService
   AgentsService agentsService
 
   def beforeInterceptor = {
@@ -58,11 +63,11 @@ public class PlanController extends ControllerBase
    * View the plan (expect id)
    */
   def view = {
-    def plan = session.delta?.find { it.id == params.id }
+    def plan = session.plan?.find { it.id == params.id }
 
     if(plan)
     {
-      [delta: plan]
+      [plan: plan]
     }
     else
     {
@@ -78,7 +83,7 @@ public class PlanController extends ControllerBase
 
     if(plan)
     {
-      session.delta = [plan]
+      session.plan = [plan]
 
       redirect(action: 'view', id: plan.id)
     }
@@ -97,7 +102,7 @@ public class PlanController extends ControllerBase
 
     if(plan)
     {
-      session.delta = null
+      session.plan = null
 
       CurrentDeployment currentDeployment =
         deploymentService.executeDeploymentPlan(request.system,
@@ -114,16 +119,37 @@ public class PlanController extends ControllerBase
     }
   }
 
-
   /**
-   * Renders a delta
+   * Create a plan
    */
-  def renderDelta = {
-    def plan = session.delta.find { it.id == params.id }
-    if(plan)
-      render(template: 'delta', model: [delta: plan])
+  def create = {
+
+    def args = params
+    if(params.json)
+    {
+      args = JsonUtils.fromJSON(params.json)
+    }
+
+    if(args.systemFilter)
+      args.system = request.system.filterBy(args.systemFilter)
     else
-      render 'not found'
+      args.system = request.system
+    args.type = args.stepType ?: Type.SEQUENTIAL
+
+    if(args.planType)
+    {
+      Plan<ActionDescriptor> plan =
+        plannerService."compute${args.planType.capitalize()}Plan"(args, null)
+      if(plan?.hasLeafSteps())
+      {
+        session.plan = plan
+        render(template: 'plan', model: [plan: plan])
+      }
+      else
+        render "no plan"
+    }
+    else
+      render "choose a plan"
   }
 
   /**
@@ -132,7 +158,13 @@ public class PlanController extends ControllerBase
   def deployments = {
     if(params.id)
     {
-      render(view: 'deploymentDetails', model: [deployment: deploymentService.getDeployment(params.id)])
+      CurrentDeployment deployment = deploymentService.getDeployment(params.id)
+      if(deployment)
+        render(view: 'deploymentDetails', model: [deployment: deployment])
+      else
+      {
+        redirect(action: 'archived', params: [id: params.id])
+      }
     }
     else
     {
@@ -172,17 +204,11 @@ public class PlanController extends ControllerBase
   def archived = {
     if(params.id)
     {
-      [deployment: DbDeployment.findByIdAndFabric(params.id, request.fabric.name)]
+      [deployment: deploymentService.getArchivedDeployment(params.id)]
     }
     else
     {
-      params.max = Math.min(params.max ? params.max.toInteger() : 50, 50)
-      params.sort = 'startDate'
-      params.order = 'desc'
-      [
-          deployments: DbDeployment.findAllByFabric(request.fabric.name, params),
-          count: DbDeployment.count(),
-      ]
+      deploymentService.getArchivedDeployments(request.fabric.name, false, params)
     }
   }
 
@@ -248,7 +274,7 @@ public class PlanController extends ControllerBase
    */
   private Plan doFilterPlan(params)
   {
-    Plan plan = session.delta.find { it.id == params.id }
+    Plan plan = session.plan.find { it.id == params.id }
 
     if(plan)
     {
@@ -274,10 +300,28 @@ public class PlanController extends ControllerBase
   }
 
   /**
-   * Returns the list of all plans
+   * Returns the list of all plans (that have been saved)
    */
   def rest_list_plans = {
-    render "ok"
+    Collection<Plan<ActionDescriptor>> plans = deploymentService.getPlans(request.fabric.name)
+    if(plans)
+    {
+      response.setContentType('text/json')
+      def map = [:]
+      plans.each { plan ->
+        map[plan.id] = g.createLink(absolute: true,
+                                    mapping: 'restPlan',
+                                    id: plan.id, params: [fabric: request.fabric]).toString()
+      }
+      response.addHeader("X-glu-count", map.size().toString())
+      render prettyPrintJsonWhenRequested(map)
+    }
+    else
+    {
+      response.setStatus(HttpServletResponse.SC_NO_CONTENT,
+                         'no plan current deployments')
+      render ''
+    }
   }
 
   /**
@@ -288,46 +332,10 @@ public class PlanController extends ControllerBase
     def args = [:]
     args.system = request.system
     args.fabric = request.fabric
-    args.name = params.systemFilter ?: 'all'
-
-
-    Plan plan
-
-    switch(params.planAction)
-    {
-      case 'start':
-      case 'deploy':
-        plan = deploymentService.computeDeploymentPlan(args)
-        break;
-
-      case 'stop':
-        args.state = ['stopped']
-        plan = deploymentService.computeTransitionPlan(args) { true }
-        break;
-
-      case 'undeploy':
-        plan = deploymentService.computeUndeployPlan(args) { true }
-        break;
-
-      case 'bounce':
-        plan = deploymentService.computeBouncePlan(args) { true }
-        break;
-
-      case 'redeploy':
-        plan = deploymentService.computeRedeployPlan(args) { true }
-        break;
-
-      default:
-        render "invalid action: ${params.planAction}"
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST)
-        return
-    }
-
-    def type
 
     try
     {
-      type = IStep.Type.valueOf((params.order ?: 'sequential').toUpperCase())
+      args.type = IStep.Type.valueOf((params.order ?: 'sequential').toUpperCase())
     }
     catch (IllegalArgumentException e)
     {
@@ -336,15 +344,43 @@ public class PlanController extends ControllerBase
       return
     }
 
-    plan?.name = null // force the generation of a new name
-    plan =
-      deploymentService.groupByInstance(plan,
-                                        type,
-                                        [origin: 'rest', action: params.planAction, filter: args.name])
+    Plan plan
+
+    def metadata = [origin: 'rest', action: params.planAction, filter: params.systemFilter ?: 'all']
+
+    switch(params.planAction)
+    {
+      case 'start':
+      case 'deploy':
+        plan = plannerService.computeDeployPlan(args, metadata)
+        break;
+
+      case 'stop':
+        args.state = ['stopped']
+        plan = plannerService.computeTransitionPlan(args, metadata)
+        break;
+
+      case 'undeploy':
+        plan = plannerService.computeUndeployPlan(args, metadata)
+        break;
+
+      case 'bounce':
+        plan = plannerService.computeBouncePlan(args, metadata)
+        break;
+
+      case 'redeploy':
+        plan = plannerService.computeRedeployPlan(args, metadata)
+        break;
+
+      default:
+        render "invalid action: ${params.planAction}"
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST)
+        return
+    }
 
     if(plan?.hasLeafSteps())
     {
-      if(plan.leafSteps.findAll { it.action?.actionName == 'noop' }.size() == plan.leafStepsCount)
+      if(plan.leafSteps.findAll { it.action instanceof NoOpActionDescriptor }.size() == plan.leafStepsCount)
       {
         response.setStatus(HttpServletResponse.SC_NO_CONTENT,
                            'no plan created (only pending transitions)')
@@ -428,6 +464,7 @@ public class PlanController extends ControllerBase
       else
         completion = "${completion}"
       response.setHeader("X-LinkedIn-GLU-Completion", completion)
+      response.setHeader("X-glu-completion", completion)
       render ''
     }
     else
@@ -442,7 +479,7 @@ public class PlanController extends ControllerBase
   def rest_view_execution = {
     def deployment = deploymentService.getDeployment(params.id)
 
-    if(deployment && deployment.planExecution.plan.id == plans[params.planId])
+    if(deployment && deployment.planExecution.plan.id == params.planId)
     {
       response.setContentType('text/xml')
       render deployment.planExecution.toXml()
@@ -453,98 +490,201 @@ public class PlanController extends ControllerBase
     }
   }
 
-  private Plan createStartAllPlan()
-  {
-    def args = [:]
-    args.system = request.system
-    args.fabric = request.fabric
-    return deploymentService.computeDeploymentPlan(args)
-  }
-
-  private Plan createStartAllPlan(IStep.Type type)
-  {
-    Plan plan = createStartAllPlan()
-    deploymentService.groupByInstance(plan, type, [instance: '*'])
-  }
-
-  private Plan createStopAllPlan()
-  {
-    def args = [:]
-    args.system = request.system
-    args.fabric = request.fabric
-    return deploymentService.computeUndeployPlan(args) { true }
-  }
-
-  private Plan createStopAllPlan(IStep.Type type)
-  {
-    Plan plan = createStopAllPlan()
-    deploymentService.groupByInstance(plan, type, [instance: '-*'])
-  }
-
-  private Plan createPlan(Plan startAllPlan, Plan stopAllPlan, String line)
-  {
-    IStep.Type planType = IStep.Type.SEQUENTIAL
-
-    if(line.startsWith('//'))
+  /**
+   * List all the executions for a given plan (GET /plan/<planId>/executions)
+   */
+  def rest_list_executions = {
+    Collection<CurrentDeployment> list =
+      deploymentService.getDeployments(request.fabric.name, params.id)
+    if(list)
     {
-      planType = IStep.Type.PARALLEL
-      line = line[2..-1]
+      response.setContentType('text/json')
+      def map = [:]
+      list.each { CurrentDeployment deployment ->
+        map[deployment.id] = g.createLink(absolute: true,
+                                          mapping: 'restExecution',
+                                          id: deployment.id, params: [
+                                          planId: params.id,
+                                          fabric: request.fabric.name]).toString()
+      }
+      response.addHeader("X-glu-count", map.size().toString())
+      render prettyPrintJsonWhenRequested(map)
     }
+    else
+    {
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
+                         'no execution for this plan')
+      render ''
+    }
+  }
 
-    def planBuilder = startAllPlan.createEmptyPlanBuilder()
-    planBuilder.name = line
-    def stepsBuilder = planBuilder.addSequentialSteps()
-    stepsBuilder.name = planBuilder.name
+  /**
+   * List all current deployments (GET /deployments/current)
+   */
+  def rest_list_current_deployments = {
+    Collection<CurrentDeployment> list = deploymentService.getDeployments(request.fabric.name)
+    if(list)
+    {
+      response.setContentType('text/json')
+      def map = [:]
+      list.each { CurrentDeployment deployment ->
+        def deploymentMap = buildMap(deployment)
+        deploymentMap.viewURL = g.createLink(absolute: true,
+                                             mapping: 'restViewCurrentDeployment',
+                                             id: deployment.id,
+                                             params: [fabric: request.fabric.name]).toString()
+        map[deployment.id] = deploymentMap
+      }
+      response.addHeader("X-glu-count", map.size().toString())
+      render prettyPrintJsonWhenRequested(map)
+    }
+    else
+    {
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
+                         'no current deployments')
+      render ''
+    }
+  }
 
-    def entries = line.split(',')
-    entries.each { entry ->
-      def kv = entry.split('=')
-      def type = kv[0].trim()
-      def value = kv[1].trim()
+  /**
+   * Handle GET and HEAD /deployments/current/<deploymentId>
+   */
+  def rest_view_current_deployment = {
+    processViewDeployment(deploymentService.getDeployment(params.id))
+  }
 
-      def plan
-      if(value.startsWith('-'))
+  /**
+   * Archive current deployment DELETE /deployments/current/<deploymentId>
+   */
+  def rest_archive_current_deployment = {
+    try
+    {
+      boolean archived = deploymentService.archiveDeployment(params.id)
+      response.addHeader("X-glu-archived", archived.toString())
+      response.setStatus(HttpServletResponse.SC_OK)
+      render ''
+    }
+    catch (IllegalStateException e)
+    {
+      // currently running... cannot archive!
+      response.sendError HttpServletResponse.SC_CONFLICT
+    }
+  }
+
+  /**
+   * Archive all deployments DELETE /deployments/current
+   */
+  def rest_archive_all_deployments = {
+    def count = deploymentService.archiveAllDeployments(request.fabric.name)
+    response.addHeader("X-glu-archived", count.toString())
+    response.setStatus(HttpServletResponse.SC_OK)
+    render ''
+  }
+
+  /**
+   * count how many archived deployments (HEAD /deployments/archived) */
+  def rest_count_archived_deployments = {
+    response.addHeader("X-glu-totalCount",
+                       deploymentService.getArchivedDeploymentsCount(request.fabric.name).toString())
+    response.setStatus(HttpServletResponse.SC_OK)
+    render ''
+  }
+
+  /**
+   * List archived deployments (GET /deployments/archived) */
+  def rest_list_archived_deployments = {
+    def map = deploymentService.getArchivedDeployments(request.fabric.name, false, params)
+
+    if(map.deployments)
+    {
+      Map deploymentsMap = [:]
+
+      map.deployments.each { ArchivedDeployment deployment ->
+        def deploymentMap = buildMap(deployment)
+        deploymentMap.viewURL = g.createLink(absolute: true,
+                                             mapping: 'restViewArchivedDeployment',
+                                             id: deployment.id,
+                                             params: [fabric: request.fabric.name]).toString()
+        deploymentsMap[deployment.id] = deploymentMap
+      }
+
+      response.addHeader("X-glu-count", map.deployments.size().toString())
+      response.addHeader("X-glu-totalCount", map.count.toString())
+      ['max', 'offset', 'sort', 'order'].each { k ->
+        response.addHeader("X-glu-${k}", params[k].toString())
+      }
+
+      response.setContentType('text/json')
+      render prettyPrintJsonWhenRequested(deploymentsMap)
+    }
+    else
+    {
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
+                         'no current deployments')
+      render ''
+    }
+  }
+
+  /**
+   * Handle GET and HEAD /deployments/archived/<deploymentId>
+   */
+  def rest_view_archived_deployment = {
+    processViewDeployment(deploymentService.getArchivedDeployment(params.id))
+  }
+
+  /**
+   * Handle GET and HEAD for a deployment
+   */
+  private void processViewDeployment(Deployment deployment)
+  {
+    if(deployment)
+    {
+      def map = buildMap(deployment)
+      // put all map values as headers
+      map.each { k, v ->
+        if(v)
+          response.addHeader("X-glu-${k}", v.toString())
+      }
+
+      if(request.method == "HEAD")
       {
-        value = value[1..-1]
-        plan = stopAllPlan
+        render ''
       }
       else
       {
-        if(value.startsWith('+'))
-          value = value[1..-1]
-        plan = startAllPlan
-      }
-
-      def steps = plan.leafSteps.findAll { LeafStep<ActionDescriptor> step ->
-        def adp = step.action.descriptorProperties
-
-        switch(type)
-        {
-          case 'host':
-            return adp.hostname == value
-
-          case 'appname':
-            return step.action.actionParams?.metadata?.container?.name == value
-
-          case 'instance':
-            def instance = "${adp.hostname}:${adp.mountPoint}".toString()
-            return instance == value
-
-          case 'cluster':
-            return step.action.actionParams?.metadata?.cluster == value
-
-          default:
-            return false
-        }
-      }
-
-      steps.each { LeafStep<ActionDescriptor> step ->
-        stepsBuilder.addLeafStep(step)
+        response.setContentType('text/xml')
+        render deployment.planXml
       }
     }
+    else
+    {
+      response.sendError HttpServletResponse.SC_NOT_FOUND
+      render ''
+    }
+  }
 
-    def plan = planBuilder.toPlan()
-    deploymentService.groupByInstance(plan, planType, [:])
+  private Map buildMap(CurrentDeployment deployment)
+  {
+    [
+      startTime: deployment.planExecution.startTime,
+      endTime: deployment.planExecution.completionStatus?.endTime,
+      username: deployment.username,
+      status: deployment.planExecution.completionStatus?.status ?: 'RUNNING',
+      description: deployment.description,
+      completedSteps: deployment.progressTracker.leafStepsCompletedCount,
+      totalSteps: deployment.planExecution.plan.leafStepsCount,
+    ]
+  }
+
+  private Map buildMap(ArchivedDeployment deployment)
+  {
+    [
+      startTime: deployment.startDate.time,
+      endTime: deployment.endDate?.time,
+      username: deployment.username,
+      status: deployment.status,
+      description: deployment.description
+    ]
   }
 }
 

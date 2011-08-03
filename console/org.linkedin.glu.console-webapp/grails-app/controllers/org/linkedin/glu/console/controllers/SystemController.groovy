@@ -19,16 +19,19 @@ package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
-import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.console.domain.DbSystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.orchestration.engine.system.SystemService
+import org.linkedin.glu.orchestration.engine.planner.PlannerService
+import org.linkedin.glu.orchestration.engine.delta.DeltaService
 
 class SystemController extends ControllerBase
 {
   AgentsService agentsService
   DeploymentService deploymentService
+  PlannerService plannerService
   SystemService systemService
+  DeltaService deltaService
 
   def beforeInterceptor = {
     // we make sure that the fabric is always set before executing any action
@@ -121,70 +124,13 @@ class SystemController extends ControllerBase
     {
       def title = "Fabric [${request.fabric}]"
 
-      params.system = request.system
-      params.fabric = request.fabric
-      params.name = "Deploy: ${title}".toString()
-
       def missingAgents = systemService.getMissingAgents(request.fabric, request.system)
 
-      Plan plan = deploymentService.computeDeploymentPlan(params)
-
-      def plans =
-        deploymentService.groupByInstance(plan,
-                                          [type: 'deploy',
-                                          fabric: request.fabric.name])
-
-      session.delta = []
-
-      session.delta.addAll(plans)
-
-      def bouncePlans
-
-      def bouncePlan = deploymentService.computeBouncePlan(params) { true }
-      if(bouncePlan)
-      {
-        bouncePlan.name = "Bounce: ${title}"
-        bouncePlans =
-          deploymentService.groupByInstance(bouncePlan,
-                                            [type: 'bounce',
-                                            fabric: request.fabric.name])
-        session.delta.addAll(bouncePlans)
-      }
-
-      def redeployPlans
-
-      def redeployPlan = deploymentService.computeRedeployPlan(params) { true }
-      if(redeployPlan)
-      {
-        redeployPlan.name = "Redeploy: ${title}"
-        redeployPlans =
-          deploymentService.groupByInstance(redeployPlan,
-                                            [type: 'redeploy',
-                                            fabric: request.fabric.name])
-        session.delta.addAll(redeployPlans)
-      }
-
-      def undeployPlans
-
-      def undeployPlan = deploymentService.computeUndeployPlan(params) { true }
-      if(undeployPlan)
-      {
-        undeployPlan.name = "Undeploy: ${title}"
-        undeployPlans =
-          deploymentService.groupByInstance(undeployPlan,
-                                            [type: 'undeploy',
-                                            fabric: request.fabric.name])
-        session.delta.addAll(undeployPlans)
-      }
-
       [
-          delta: plans,
-          bounce: bouncePlans,
-          redeploy: redeployPlans,
-          undeploy: undeployPlans,
-          title: title,
-          executingDeploymentPlan: deploymentService.isExecutingDeploymentPlan(request.fabric.name),
-          missingAgents: missingAgents
+        title: title,
+        hasDelta: deltaService.computeRawDelta(request.system).delta?.hasErrorDelta(),
+        executingDeploymentPlan: deploymentService.isExecutingDeploymentPlan(request.fabric.name),
+        missingAgents: missingAgents
       ]
     }
   }
@@ -195,49 +141,13 @@ class SystemController extends ControllerBase
   def filter = {
     if(request.system)
     {
-      session.delta = []
-
       def missingAgents = systemService.getMissingAgents(request.fabric, request.system)
 
-      def args = [:]
-      args.system = request.system
-      args.fabric = request.fabric
-      args.name = params.title
-
-      Plan plan = deploymentService.computeDeploymentPlan(args)
-
-      def plans =
-        deploymentService.groupByInstance(plan, [type: 'deploy', name: args.name])
-
-      session.delta.addAll(plans)
-
-      def bouncePlans
-
-      def bouncePlan = deploymentService.computeBouncePlan(args) { true }
-      if(bouncePlan)
-      {
-        bouncePlan.name = "Bounce ${params.title}"
-        bouncePlans =
-          deploymentService.groupByInstance(bouncePlan, [type: 'bounce', name: args.name])
-        session.delta.addAll(bouncePlans)
-      }
-
-      def redeployPlans
-
-      def redeployPlan = deploymentService.computeRedeployPlan(args) { true }
-      if(redeployPlan)
-      {
-        redeployPlan.name = "Redeploy ${params.title}"
-        redeployPlans =
-          deploymentService.groupByInstance(redeployPlan, [type: 'redeploy', name: args.name])
-        session.delta.addAll(redeployPlans)
-      }
-
       [
-          delta: plans,
-          bounce: bouncePlans,
-          redeploy: redeployPlans,
-          missingAgents: missingAgents
+        title: params.title,
+        filter: params.systemFilter,
+        hasDelta: deltaService.computeRawDelta(request.system).delta?.hasErrorDelta(),
+        missingAgents: missingAgents
       ]
     }
   }

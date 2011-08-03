@@ -58,7 +58,7 @@ Glossary
     A filter is used in the orchestration engine to select a set of entries based on some criteria.
 
   glu script
-    A glu script is a set of instructions backed by a state machine that the agent knows how to run. :doc:`View more information information <glu-script>`.
+    A glu script is a set of instructions backed by a state machine that the agent knows how to run. :doc:`View more information <glu-script>`.
 
   host
     A host represents a physical or virtual instance of a machine running 1 os. Examples 

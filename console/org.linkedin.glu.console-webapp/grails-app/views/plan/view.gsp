@@ -17,31 +17,31 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
-  <title>GLU Console - Delta</title>
+  <title>GLU Console - Plan Preview</title>
   <meta name="layout" content="main"/>
   <script type="text/javascript" src="${resource(dir:'js',file:'console.js')}"></script>
 </head>
 <body>
-<g:if test="${delta}">
+<g:if test="${plan}">
   <p>Quick Select:
-    <a href="#" onClick="quickSelect('delta_${delta.id}', 'quickSelect', 0);return false;">Select None</a> |
-    <a href="#" onClick="selectOne('delta_${delta.id}', 'quickSelect');return false;">Select First</a> |
-    <a href="#" onClick="quickSelect('delta_${delta.id}', 'quickSelect', 100);return false;">Select All</a>
+    <a href="#" onClick="quickSelect('plan_${plan.id}', 'quickSelect', 0);return false;">Select None</a> |
+    <a href="#" onClick="selectOne('plan_${plan.id}', 'quickSelect');return false;">Select First</a> |
+    <a href="#" onClick="quickSelect('plan_${plan.id}', 'quickSelect', 100);return false;">Select All</a>
   <g:each in="['25', '33', '50', '66', '75']" var="pct">
-    | <a href="#" onClick="quickSelect('delta_${delta.id}', 'quickSelect', ${pct});return false;">${pct}%</a>
+    | <a href="#" onClick="quickSelect('plan_${plan.id}', 'quickSelect', ${pct});return false;">${pct}%</a>
   </g:each>
   </p>
-  <div id="delta_${delta.id}">
-  <g:form method="post" controller="plan" action="filter" id="${delta.id}">
-    <g:hiddenField name="stepId" value="${delta.id}"/>
+  <div id="plan_${plan.id}">
+  <g:form method="post" controller="plan" action="filter" id="${plan.id}">
+    <g:hiddenField name="stepId" value="${plan.id}"/>
     <g:actionSubmit action="filter" value="Filter"/>
     <g:actionSubmit action="execute" value="Execute" onClick="return confirm('Are you sure you want to execute this plan ?');"/>
-    <g:render template="delta" model="[delta: delta]"/>
+    <g:render template="plan" model="[plan: plan]"/>
   </g:form>
   </div>
 </g:if>
 <g:else>
-  <h2>No delta... System is ok.</h2>
+  <h2>No plan... System is ok.</h2>
 </g:else>
 </body>
 </html>

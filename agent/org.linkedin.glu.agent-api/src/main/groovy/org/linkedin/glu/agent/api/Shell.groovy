@@ -435,6 +435,20 @@ def interface Shell
   Map httpHead(location)
 
   /**
+   * Issue a 'POST' request. The location should be an http or https link. The request will be
+   * made with <code>application/x-www-form-urlencoded</code> content type.
+   *
+   * @param location
+   * @param parameters the parameters of the post as map of key value pairs (value can be a single
+   * value or a collection of values)
+   * @return a map with the following entries:
+   * responseCode: 200, 404... {@link java.net.HttpURLConnection#getResponseCode()}
+   * responseMessage: message {@link java.net.HttpURLConnection#getResponseMessage()}
+   * headers: representing all the headers {@link java.net.URLConnection#getHeaderFields()}
+   */
+  Map httpPost(location, Map parameters)
+
+  /**
    * Similarly to the unix grep command, checks the location one line at a time and returns
    * all the lines which matches the pattern.
    *

@@ -218,7 +218,7 @@ def class TestScriptManager extends GroovyTestCase
     // / (is always installed...)
     def rootNode = sm.findScript('/')
     assertEquals(MountPoint.ROOT, rootNode.rootPath)
-    assertEquals(0, rootNode.children.size())
+    assertEquals(0, rootNode.childrenMountPoints.size())
 
     // we add a parent (which will be attached to root)
     def parentMountPoint = MountPoint.fromPath('/parent')
@@ -227,10 +227,10 @@ def class TestScriptManager extends GroovyTestCase
                      scriptFactory: new FromClassNameScriptFactory(MyScriptTestScriptManager))
     def parentNode = sm.findScript(parentMountPoint)
 
-    assertEquals(MountPoint.ROOT, parentNode.parent)
-    assertEquals(1, rootNode.children.size())
-    assertEquals([parentMountPoint], rootNode.children)
-    assertEquals(0, parentNode.children.size())
+    assertEquals(MountPoint.ROOT, parentNode.parentMountPoint)
+    assertEquals(1, rootNode.childrenMountPoints.size())
+    assertEquals([parentMountPoint], rootNode.childrenMountPoints)
+    assertEquals(0, parentNode.childrenMountPoints.size())
 
     assertEquals([install: '1/v1Parent'],
                  parentNode.install(value: 1,
@@ -254,11 +254,11 @@ def class TestScriptManager extends GroovyTestCase
     assertNull sm.findScript('/a/b')
 
     // we make sure that the parent/children have been wired properly
-    assertEquals(MountPoint.ROOT, parentNode.parent)
-    assertEquals(1, rootNode.children.size())
-    assertEquals([parentMountPoint], rootNode.children)
-    assertEquals(1, parentNode.children.size())
-    assertEquals([scriptMountPoint], parentNode.children)
+    assertEquals(MountPoint.ROOT, parentNode.parentMountPoint)
+    assertEquals(1, rootNode.childrenMountPoints.size())
+    assertEquals([parentMountPoint], rootNode.childrenMountPoints)
+    assertEquals(1, parentNode.childrenMountPoints.size())
+    assertEquals([scriptMountPoint], parentNode.childrenMountPoints)
 
     // /a/b/c
     assertEquals([install: '1/v1'],
@@ -282,10 +282,10 @@ def class TestScriptManager extends GroovyTestCase
     sm.uninstallScript(scriptMountPoint, false)
 
     // we make sure that the parent/children have been wired properly
-    assertEquals(MountPoint.ROOT, parentNode.parent)
-    assertEquals(1, rootNode.children.size())
-    assertEquals([parentMountPoint], rootNode.children)
-    assertEquals(0, parentNode.children.size())
+    assertEquals(MountPoint.ROOT, parentNode.parentMountPoint)
+    assertEquals(1, rootNode.childrenMountPoints.size())
+    assertEquals([parentMountPoint], rootNode.childrenMountPoints)
+    assertEquals(0, parentNode.childrenMountPoints.size())
   }
 
   /**

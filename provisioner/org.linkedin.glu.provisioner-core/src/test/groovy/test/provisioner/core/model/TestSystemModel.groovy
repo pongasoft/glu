@@ -143,6 +143,7 @@ class TestSystemModel extends GroovyTestCase
     def expectedStats =
     [
       agent: 2,
+      entryState: 'running',
       mountPoint: 2,
       script: 3,
       key: 3,
@@ -160,7 +161,7 @@ class TestSystemModel extends GroovyTestCase
     ]
 
     def computedStats = sd.computeStats()
-    assertTrue("\n${expectedStats} != \n${computedStats}",
+    assertTrue("\n${new TreeMap(expectedStats)} != \n${new TreeMap(computedStats)}",
                GroovyCollectionsUtils.compareIgnoreType(expectedStats, computedStats))
 
     expectedStats =

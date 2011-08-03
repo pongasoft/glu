@@ -42,6 +42,7 @@ import org.apache.tools.ant.filters.ReplaceTokens.Token
 import org.linkedin.util.io.resource.Resource
 import javax.management.Attribute
 import org.linkedin.glu.agent.impl.storage.AgentProperties
+import org.linkedin.util.url.QueryBuilder
 
 /**
  * contains the utility methods for the shell
@@ -399,6 +400,66 @@ def class ShellImpl implements Shell
         cx.doOutput = false
 
         cx.connect()
+
+        res.responseCode = cx.responseCode
+        res.responseMessage = cx.responseMessage
+        res.headers = cx.headerFields
+      }
+    }
+    finally
+    {
+      if(cx.respondsTo('close'))
+        cx.close()
+    }
+
+    return res
+  }
+
+  /**
+   * Issue a 'POST' request. The location should be an http or https link. The request will be
+   * made with <code>application/x-www-form-urlencoded</code> content type.
+   *
+   * @param location
+   * @param parameters the parameters of the post as map of key value pairs (value can be a single
+   * value or a collection of values)
+   * @return a map with the following entries:
+   * responseCode: 200, 404... {@link java.net.HttpURLConnection#getResponseCode()}
+   * responseMessage: message {@link java.net.HttpURLConnection#getResponseMessage()}
+   * headers: representing all the headers {@link java.net.URLConnection#getHeaderFields()}
+   */
+  Map httpPost(location, Map parameters)
+  {
+    Map res = [:]
+
+    URI uri = GroovyNetUtils.toURI(location)
+
+    URL url = uri.toURL()
+    URLConnection cx = url.openConnection()
+    try
+    {
+      if(cx instanceof HttpURLConnection)
+      {
+        cx.requestMethod = 'POST'
+        cx.setRequestProperty('Content-Type', 'application/x-www-form-urlencoded')
+        cx.doInput = true
+        cx.doOutput = true
+
+        cx.connect()
+
+        QueryBuilder qb = new QueryBuilder()
+
+        parameters?.each { k, v ->
+          if(v != null)
+          {
+            if(v instanceof Collection)
+              qb.addParameters(k.toString(), v.collect { it.toString() } as String[])
+            else
+              qb.addParameter(k.toString(), v.toString())
+          }
+        }
+
+        cx.outputStream << qb.toString()
+        cx.outputStream.close()
 
         res.responseCode = cx.responseCode
         res.responseMessage = cx.responseMessage

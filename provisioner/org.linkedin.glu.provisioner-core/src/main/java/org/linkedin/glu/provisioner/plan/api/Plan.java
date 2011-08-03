@@ -16,6 +16,9 @@
 
 package org.linkedin.glu.provisioner.plan.api;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.linkedin.util.xml.XMLIndent;
 
 import java.util.ArrayList;
@@ -95,12 +98,27 @@ public class Plan<T>
     _metadata.put("name", name);
   }
 
+  /**
+   * Change the name of a plan
+   */
+  public void setId(String id)
+  {
+    _metadata.put("id", id);
+  }
+
   public String getId()
   {
-    if(_step == null)
-      return Integer.toHexString(System.identityHashCode(this));
-    else
-      return getStep().getId();
+    String id = (String) _metadata.get("id");
+
+    if(id == null)
+    {
+      if(_step == null)
+        id = Integer.toHexString(System.identityHashCode(this));
+      else
+        id = getStep().getId();
+    }
+
+    return id;
   }
 
   public IStep<T> getStep()
@@ -257,6 +275,27 @@ public class Plan<T>
     }
 
     return xml.getXML();
+  }
+
+  public JSONObject toJson()
+  {
+    JSONObject json = new JSONObject();
+
+    try
+    {
+      json.put("metadata", getMetadata());
+      if(_step != null)
+      {
+        JsonStepVisitor<T> visitor = new JsonStepVisitor<T>(json);
+        _step.acceptVisitor(visitor);
+      }
+    }
+    catch(JSONException e)
+    {
+      throw new RuntimeException(e);
+    }
+
+    return json;
   }
 
   @Override

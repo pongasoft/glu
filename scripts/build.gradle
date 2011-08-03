@@ -21,9 +21,7 @@
 import org.linkedin.gradle.tasks.SingleArtifactTask
 import org.apache.tools.ant.filters.ReplaceTokens
 
-def gluScriptsTestProjectName = 'org.linkedin.glu.scripts.tests'
-
-configure(subprojects.findAll {it.name != gluScriptsTestProjectName}) {
+subprojects {
   apply plugin: 'groovy'
   apply plugin: 'org.linkedin.release'
 
@@ -36,7 +34,7 @@ configure(subprojects.findAll {it.name != gluScriptsTestProjectName}) {
     compile project(':agent:org.linkedin.glu.agent-api')
     groovy spec.external.groovy
 
-    //testCompile project(gluScriptsTestProjectName)
+    testCompile project(":utils:org.linkedin.glu.scripts-test-fwk")
     testCompile spec.external.junit
   }
 

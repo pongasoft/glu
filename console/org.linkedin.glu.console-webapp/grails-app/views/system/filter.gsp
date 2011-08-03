@@ -39,7 +39,7 @@
     padding-bottom: 1em;
   }
   </style>
-  <link rel="stylesheet" href="${resource(dir:'css',file:'audit.css')}"/>
+  <link rel="stylesheet" href="${resource(dir:'css',file:'delta.css')}"/>
   <script type="text/javascript" src="${resource(dir:'js',file:'delta.js')}"></script>
   <g:javascript>
 <cl:renderDeltaJS filter="${params.systemFilter}"/>
@@ -58,11 +58,7 @@
   </div>
   <g:include controller="dashboard" action="renderDelta" params="[groupBy: params.groupBy]"/>
 
-  <g:render template="/plan/selectDelta" model="[delta: delta, title: 'Deploy: ' + params.title]"/>
-
-  <g:render template="/plan/selectDelta" model="[delta: bounce, title: 'Bounce: ' + params.title ]"/>
-
-  <g:render template="/plan/selectDelta" model="[delta: redeploy, title: 'Redeploy: ' + params.title]"/>
+  <g:render template="/plan/selectPlan" model="[title: title, filter: filter, hasDelta: hasDelta]"/>
 
   <g:if test="${missingAgents}">
     <h2>Missing agents [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h2>

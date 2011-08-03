@@ -19,6 +19,7 @@ package org.linkedin.glu.console.controllers
 import org.linkedin.glu.console.domain.AuditLog
 import org.linkedin.util.codec.Codec
 import org.linkedin.util.codec.Base64Codec
+import org.linkedin.groovy.util.json.JsonUtils
 
 /**
  * Base class for controllers
@@ -115,6 +116,23 @@ class ControllerBase
     {
       return closure()
     }
+  }
+
+  /**
+   * 'Serialize' the object to json and then conditionally pretty print it (when the
+   * <code>prettyPrint</code> param is provided)
+   */
+  protected String prettyPrintJsonWhenRequested(Object o)
+  {
+    if(o == null)
+      return null
+
+    Object json = JsonUtils.toJSON(o)
+
+    if(params.prettyPrint)
+      json.toString(2)
+    else
+      json.toString()
   }
 
   /**

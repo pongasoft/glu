@@ -109,7 +109,7 @@
             <dd class="errorStackTrace">
               <dl id="stackTraceBody_${mountPoint.mountPoint}">
                 <g:each in="${specialEntry.value}" var="ste">
-                  <dt class="stackTraceHeader">* ${ste.name.encodeAsHTML()}: "${ste.message.encodeAsHTML()}"</dt>
+                  <dt class="stackTraceHeader">* ${ste.name.encodeAsHTML()}: "${ste.message?.encodeAsHTML()}"</dt>
                 </g:each>
               </dl>
             </dd>
@@ -119,11 +119,7 @@
     </div>
   </g:each>
 
-  <g:render template="/plan/selectDelta" model="[delta: delta, title: 'Delta: ' + title]"/>
-
-  <g:render template="/plan/selectDelta" model="[delta: bounce, title: 'Bounce: ' + title]"/>
-
-  <g:render template="/plan/selectDelta" model="[delta: redeploy, title: 'Redeploy: ' + title]"/>
+  <g:render template="/plan/selectPlan" model="[title: title, filter: filter, hasDelta: hasDelta]"/>
 
 </g:if>
 <g:else>

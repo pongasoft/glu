@@ -35,7 +35,6 @@ import org.linkedin.groovy.util.state.StateMachine
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeoutException
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
-import org.linkedin.util.lifecycle.ShutdownRequestedException
 
 /**
  * Manager for scripts
@@ -168,7 +167,7 @@ def class ScriptManagerImpl implements ScriptManager
 
     addScriptNode(childNode)
 
-    childNode.log.info("installed")
+    childNode.log.info("installScript(${args})")
 
     return childNode
   }
@@ -279,7 +278,7 @@ def class ScriptManagerImpl implements ScriptManager
   {
     mountPoint = MountPoint.create(mountPoint)
 
-    def node = findScript(mountPoint)
+    ScriptNode node = findScript(mountPoint)
     if(node)
     {
       synchronized(this)
@@ -299,7 +298,7 @@ def class ScriptManagerImpl implements ScriptManager
           }
         }
 
-        if(node.children)
+        if(node.childrenMountPoints)
         {
           def msg = "cannot unsinstall script at ${mountPoint}: uninstall children first!".toString()
           node.log.warn(msg)
@@ -320,7 +319,7 @@ def class ScriptManagerImpl implements ScriptManager
         }
 
         // we destroy the child
-        findScript(node.parent).removeChild(node.mountPoint)
+        findScript(node.parentMountPoint).removeChild(node)
 
         // we clean up the temp space
         node.shell.rmdirs(node.shell.fileSystem.tmpRoot)
@@ -469,7 +468,7 @@ def class ScriptManagerImpl implements ScriptManager
    */
   synchronized private def locateChildrenNodes(ScriptNode scriptNode)
   {
-    return scriptNode.children.collect {
+    return scriptNode.childrenMountPoints.collect {
       getScript(it)
     }
   }

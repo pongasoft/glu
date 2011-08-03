@@ -22,14 +22,8 @@ import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.rest.client.AgentFactory
 import org.linkedin.glu.agent.tracker.AgentInfo
 import org.linkedin.glu.agent.tracker.MountPointInfo
-import org.linkedin.glu.provisioner.api.planner.IAgentPlanner
-import org.linkedin.glu.provisioner.core.action.ActionDescriptor
-import org.linkedin.glu.provisioner.core.environment.Environment
-import org.linkedin.glu.provisioner.core.environment.Installation
-import org.linkedin.glu.provisioner.core.fabric.InstallationDefinition
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.core.model.SystemModel
-import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.orchestration.engine.tracker.TrackerService
 import org.linkedin.groovy.util.io.DataMaskingInputStream
@@ -38,15 +32,14 @@ import org.linkedin.groovy.util.state.StateMachineImpl
 import org.linkedin.util.lang.LangUtils
 import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
 import org.linkedin.util.annotations.Initializable
-import org.linkedin.glu.provisioner.impl.agent.DefaultDescriptionProvider
-import org.linkedin.glu.provisioner.core.action.IDescriptionProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider
 
 /**
  * @author ypujante
  */
-class AgentsServiceImpl implements AgentsService
+class AgentsServiceImpl implements AgentsService, AgentURIProvider
 {
   public static final String MODULE = AgentsServiceImpl.class.getName ();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
@@ -63,14 +56,23 @@ class AgentsServiceImpl implements AgentsService
   @Initializable(required = true)
   TrackerService trackerService
 
-  @Initializable(required = true)
-  IAgentPlanner agentPlanner
-
   @Initializable
   AuthorizationService authorizationService
 
-  @Initializable
-  IDescriptionProvider descriptionProvider = DefaultDescriptionProvider.INSTANCE
+  @Override
+  URI getAgentURI(String fabric, String agent) throws NoSuchAgentException
+  {
+    AgentInfo info = trackerService.getAgentInfo(fabric, agent)
+    if(!info)
+      throw new NoSuchAgentException(agent)
+    return info.getURI()
+  }
+
+  @Override
+  URI findAgentURI(String fabric, String agent)
+  {
+    return trackerService.getAgentInfo(fabric, agent)?.URI
+  }
 
   def getAllInfosWithAccuracy(Fabric fabric)
   {
@@ -126,36 +128,6 @@ class AgentsServiceImpl implements AgentsService
     }
   }
 
-  public Plan createTransitionPlan(args)
-  {
-    createTransitionPlan(args) { true }
-  }
-
-  public Plan createTransitionPlan(args, Closure filter)
-  {
-    def installations = args.installations
-    if(args.id && args.mountPoint)
-    {
-      def mp = getMountPointInfo(args.fabric, args.id, args.mountPoint)
-      if(mp)
-        installations = toInstallations(args.fabric, [mp])
-    }
-
-    if(installations)
-    {
-      def state = args.state
-      if(state instanceof String)
-        state = [state]
-      state = state.toList()
-      return agentPlanner.createTransitionPlan(installations,
-                                               state,
-                                               descriptionProvider,
-                                               filter)
-    }
-
-    return null
-  }
-
   def interruptAction(args)
   {
     withRemoteAgent(args.fabric, args.id) { Agent agent ->
@@ -208,30 +180,6 @@ class AgentsServiceImpl implements AgentsService
     }
   }
 
-  Plan<ActionDescriptor> createAgentsUpgradePlan(args)
-  {
-    return agentPlanner.createUpgradePlan(extractAgentsMap(args), args.version, args.coordinates)
-  }
-
-  protected def extractAgentsMap(args)
-  {
-    def agentInfos = getAgentInfos(args.fabric)
-
-    def agents = [:]
-
-    args.agents.each { agentName ->
-      AgentInfo agentInfo = agentInfos[agentName]
-      if(agentInfo)
-        agents[agentName] = agentInfo.URI
-    }
-    return agents
-  }
-
-  Plan<ActionDescriptor> createAgentsCleanupUpgradePlan(args)
-  {
-    return agentPlanner.createCleanupPlan(extractAgentsMap(args), args.version)
-  }
-
   /**
    * Builds the current system model based on the live data from ZooKeeper
    */
@@ -243,14 +191,18 @@ class AgentsServiceImpl implements AgentsService
 
     SystemModel systemModel = new SystemModel(fabric: fabric.name)
 
-    def emptyAgents = []
-
+    // 1. add the agent tags
     agents.values().each { agent ->
       def agentName = agent.info.agentName
       def agentTags = agent.info.tags
       
       if(agentTags)
         systemModel.addAgentTags(agentName, agentTags)
+    }
+
+    // 2. add entries
+    agents.values().each { agent ->
+      def agentName = agent.info.agentName
 
       if(agent.mountPoints)
       {
@@ -260,12 +212,15 @@ class AgentsServiceImpl implements AgentsService
       }
       else
       {
-        emptyAgents << agentName
+        // empty agent
+        SystemEntry emptyAgentEntry = new SystemEntry(agent: agentName)
+        emptyAgentEntry.metadata.emptyAgent = true
+        emptyAgentEntry.metadata.currentState = 'NA'
+        systemModel.addEntry(emptyAgentEntry)
       }
     }
 
     systemModel.metadata.accuracy = accuracy
-    systemModel.metadata.emptyAgents = emptyAgents
 
     return systemModel
   }
@@ -279,6 +234,7 @@ class AgentsServiceImpl implements AgentsService
 
     se.agent = agentName
     se.mountPoint = mp.mountPoint.toString()
+    se.parent = mp.parent
     Map data = LangUtils.deepClone(mp.data)
     se.script = data?.scriptDefinition?.scriptFactory?.location
 
@@ -304,6 +260,7 @@ class AgentsServiceImpl implements AgentsService
     }
 
     se.metadata.currentState = mp.currentState
+    se.entryState = mp.currentState
     if(mp.transitionState)
       se.metadata.transitionState = mp.transitionState
     if(mp.error)
@@ -315,152 +272,6 @@ class AgentsServiceImpl implements AgentsService
     }
     
     return se
-  }
-
-  /**
-   * Computes the current environment based on the live ZooKeeper data
-   */
-  Environment getCurrentEnvironment(Fabric fabric)
-  {
-    computeEnvironment(fabric, getCurrentSystemModel(fabric))
-  }
-
-  /**
-   * Computes the environment based on the system
-   */
-  Environment computeEnvironment(Fabric fabric, SystemModel system)
-  {
-    def agentInfos = getAgentInfos(fabric)
-
-    def installations = []
-
-    system.each { SystemEntry se ->
-
-      AgentInfo agentInfo = agentInfos[se.agent]
-
-      if(agentInfo)
-      {
-        def installation = toInstallation(agentInfo.URI, se)
-        if(installation)
-          installations << installation
-      }
-    }
-
-    def args = [:]
-    args.name = 'currentSystem'
-    args.installations = installations
-
-    return new Environment(args)
-  }
-
-  Environment getAgentEnvironment(Fabric fabric, String agentName)
-  {
-    return doGetAgentEnvironment(fabric, agentName) { it }
-  }
-
-  Environment getAgentEnvironment(Fabric fabric, String agentName, mountPoint)
-  {
-    mountPoint = MountPoint.create(mountPoint.toString())
-    return doGetAgentEnvironment(fabric, agentName) { mountPoints ->
-      mountPoints.findAll { it.mountPoint == mountPoint}
-    }
-  }
-
-  protected Environment doGetAgentEnvironment(Fabric fabric, String agentName, Closure closure)
-  {
-    def mountPoints = getMountPointInfos(fabric, agentName)?.values()
-    if(mountPoints == null)
-    {
-      // we differentiate between agent up and no mountpoints or agent down
-      if(getAgentInfo(fabric, agentName))
-        mountPoints = []
-      else
-        return null
-    }
-    mountPoints = closure(mountPoints)
-    def installations = toInstallations(fabric, mountPoints)
-    return new Environment(name: agentName, installations: installations)
-  }
-
-  protected Installation toInstallation(URI agentURI, SystemEntry se)
-  {
-    def args = [:]
-
-    args.hostname = se.agent
-    args.mount = se.mountPoint
-    args.uri = agentURI
-    args.name = se.key
-    args.gluScript = se.script
-    args.state = se.metadata.currentState
-    args.transitionState = se.metadata.transitionState
-    args.props = [*:se.initParameters]
-    def metadata = LangUtils.deepClone(se.metadata)
-    metadata.remove('currentState')
-    metadata.remove('transitionState')
-    metadata.remove('modifiedTime')
-    args.props.metadata = metadata
-    args.props.tags = se.tags
-
-    if(args.state == null || availableStates.contains(args.state))
-      return new Installation(args)
-    else
-    {
-      log.warn("Ignoring ${se.key} because state [${se.metadata.currentState}] is not recognized")
-      return null
-    }
-  }
-
-  protected def toInstallations(Fabric fabric, mountPoints)
-  {
-    def agentInfos = getAgentInfos(fabric)
-
-    def installations = [:]
-
-    if(mountPoints)
-    {
-      installations[MountPoint.ROOT] = null
-
-      def list = new LinkedList(mountPoints)
-
-      while(!list.isEmpty())
-      {
-        MountPointInfo mp = list.removeFirst()
-
-        if(!installations.containsKey(mp.parent))
-        {
-          list.addLast(mp)
-        }
-        else
-        {
-          if(availableStates.contains(mp.currentState))
-          {
-            AgentInfo agentInfo = agentInfos[mp.agentName]
-
-            if(agentInfo)
-            {
-              installations[mp.mountPoint] =
-                new Installation(hostname: mp.agentName,
-                                 mount: mp.mountPoint.path,
-                                 uri: agentInfo.URI,
-                                 name: mp.scriptDefinition.initParameters[InstallationDefinition.INSTALLATION_NAME],
-                                 gluScript: mp.scriptDefinition.scriptFactory.location,
-                                 state: mp.currentState,
-                                 transitionState: mp.transitionState,
-                                 props: mp.scriptDefinition.initParameters,
-                                 parent: installations[mp.parent])
-            }
-          }
-          else
-          {
-            log.warn("Ignoring ${mp.agentName}:${mp.mountPoint.path} because state [${mp.currentState}] is invalid")
-          }
-        }
-      }
-
-      installations.remove(MountPoint.ROOT)
-    }
-
-    return installations.values().toList()
   }
 
   protected def moveToState(agent, mountPoint, toState, timeout)

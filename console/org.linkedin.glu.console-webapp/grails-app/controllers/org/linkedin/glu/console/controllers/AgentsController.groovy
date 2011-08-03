@@ -18,13 +18,19 @@
 package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
-import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.agent.tracker.MountPointInfo
-import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import java.security.AccessControlException
 import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException
+import org.linkedin.glu.provisioner.plan.api.IStep.Type
+import org.linkedin.glu.provisioner.core.model.SystemModel
+import org.linkedin.glu.orchestration.engine.planner.PlannerService
+import org.linkedin.glu.orchestration.engine.delta.DeltaService
+import javax.servlet.http.HttpServletResponse
+import org.linkedin.glu.agent.tracker.AgentInfo
+import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor
+import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 
 /**
  * @author ypujante@linkedin.com
@@ -33,29 +39,12 @@ class AgentsController extends ControllerBase
 {
   AgentsService agentsService
   DeploymentService deploymentService
+  PlannerService plannerService
+  DeltaService deltaService
 
   def beforeInterceptor = {
     // we make sure that the fabric is always set before executing any action
     return ensureCurrentFabric()
-  }
-
-  /**
-   * List all the agents (in the current fabric)
-   */
-  def list = {
-    def agents = new TreeMap(agentsService.getAgentInfos(request.fabric))
-
-    def mountPoints = [:]
-
-    def model = [:]
-
-    def hosts = deploymentService.getHostsWithDeltas(fabric: request.fabric.name)
-
-    agents.values().each { agent ->
-      model[agent.agentName] = computeAgentModel(request.fabric, agent, null, hosts.contains(agent.agentName))
-    }
-
-    return [model: model, count: model.size(), instances: model.values().sum { it.mountPoints?.size() }]
   }
 
   /**
@@ -64,9 +53,7 @@ class AgentsController extends ControllerBase
   def listVersions = {
     def agents = agentsService.getAgentInfos(request.fabric)
 
-    def versions = agents.values().groupBy { agent ->
-      agent.agentProperties['org.linkedin.glu.agent.version']
-    }
+    def versions = agents.values().groupBy { it.version }
 
     return [versions: versions]
   }
@@ -88,37 +75,44 @@ class AgentsController extends ControllerBase
     }
 
     params.fabric = request.fabric
+    params.type = Type.PARALLEL
 
-    def plan = agentsService.createAgentsUpgradePlan(params)
+    def plan =
+      plannerService.computeAgentsUpgradePlan(params,
+                                              [name: "Agent upgrade to version ${params.version}".toString()])
 
-    session.delta = [plan]
-
-    redirect(controller: 'plan', action: 'view', id: plan.id)
+    if(plan)
+    {
+      session.plan = [plan]
+      redirect(controller: 'plan', action: 'view', id: plan.id)
+    }
+    else
+    {
+      flash.message = "No agent to upgrade"
+      redirect(action: 'listVersions')
+    }
   }
 
   /**
    * cleanup
    */
   def cleanup = {
-    if(!params.version)
+    params.name = "Agent upgrade cleanup"
+    params.system = request.system
+    params.type = Type.PARALLEL
+
+    def plan = plannerService.computeAgentsCleanupUpgradePlan(params, null)
+
+    if(plan)
     {
-      flash.error = "Missing version"
+      session.plan = [plan]
+      redirect(controller: 'plan', action: 'view', id: plan.id)
+    }
+    else
+    {
+      flash.message = "No agent to cleanup"
       redirect(action: 'listVersions')
-      return
     }
-
-    if(params.agents instanceof String)
-    {
-      params.agents = [params.agents]
-    }
-
-    params.fabric = request.fabric
-    
-    def plan = agentsService.createAgentsCleanupUpgradePlan(params)
-
-    session.delta = [plan]
-
-    redirect(controller: 'plan', action: 'view', id: plan.id)
   }
 
   /**
@@ -128,64 +122,32 @@ class AgentsController extends ControllerBase
     def agent = agentsService.getAgentInfo(request.fabric, params.id)
 
     def model = [:]
-    def plans
-    def bouncePlans
-    def redeployPlans
+    def allPlans = [:]
 
-    def title = "agent [${params.id}]"
-    
+    def title = "agent [${params.id}]".toString()
+    def filter = "agent='${params.id}'".toString()
+
+    def system = request.system.filterBy(filter)
+
     if(agent)
     {
-      params.fabric = request.fabric
-      params.name = title
-
-      def system = request.system
-      system = system?.filterBy {
-        it.agent == params.id
-      }
-
-      request.system = system
-      params.system = system
-
-      Plan plan = deploymentService.computeDeploymentPlan(params) { true }
-
-      session.delta = []
-
-      plans = deploymentService.groupByInstance(plan, [type: 'deploy', agent: params.id])
-
-      session.delta.addAll(plans)
-
-      def bouncePlan = deploymentService.computeBouncePlan(params)  { true }
-      if(bouncePlan)
-      {
-        bouncePlan.name = "Bounce: ${title}"
-        bouncePlans = deploymentService.groupByInstance(bouncePlan, [type: 'bounce', agent: params.id])
-        session.delta.addAll(bouncePlans)
-      }
-
-      def redeployPlan = deploymentService.computeRedeployPlan(params) { true }
-      if(redeployPlan)
-      {
-        redeployPlan.name = "Redeploy: ${title}"
-        redeployPlans = deploymentService.groupByInstance(redeployPlan, [type: 'redeploy', agent: params.id])
-        session.delta.addAll(redeployPlans)
-      }
-
       def mountPoints = [] as Set
       system.each { mountPoints << it.mountPoint }
+
+      SystemModel currentModel = agentsService.getCurrentSystemModel(request.fabric)
+      currentModel.each { mountPoints << it.mountPoint }
 
       model = computeAgentModel(request.fabric,
                                 agent,
                                 mountPoints,
-                                plan?.hasLeafSteps())
+                                allPlans.deploy && allPlans.deploy[0]?.hasLeafSteps())
     }
 
     return [
-        model: model,
-        delta: plans,
-        bounce: bouncePlans,
-        redeploy: redeployPlans,
-        title: title
+      model: model,
+      title: title,
+      filter: filter,
+      hasDelta: deltaService.computeRawDelta(system).delta?.hasErrorDelta()
     ]
   }
 
@@ -276,8 +238,8 @@ class AgentsController extends ControllerBase
   def start = {
     params.state = 'running'
     params.name = params.name ?: 'Start'
-    redirectToActionPlan('start') { p ->
-      deploymentService.computeTransitionPlan(p) { true }
+    redirectToActionPlan('start') { p, metadata ->
+      plannerService.computeTransitionPlans(p, metadata)
     }
   }
 
@@ -286,8 +248,8 @@ class AgentsController extends ControllerBase
   def stop = {
     params.state = 'stopped'
     params.name = params.name ?: 'Stop'
-    redirectToActionPlan('stop') { p ->
-      deploymentService.computeTransitionPlan(p) { true }
+    redirectToActionPlan('stop') { p, metadata ->
+      plannerService.computeTransitionPlans(p, metadata)
     }
   }
 
@@ -295,8 +257,8 @@ class AgentsController extends ControllerBase
    * Bounce */
   def bounce = {
     params.name = params.name ?: 'Bounce'
-    redirectToActionPlan('bounce') { p ->
-      deploymentService.computeBouncePlan(p) { true }
+    redirectToActionPlan('bounce') { p, metadata ->
+      plannerService.computeBouncePlans(p, metadata)
     }
   }
 
@@ -304,8 +266,8 @@ class AgentsController extends ControllerBase
    * Undeploy */
   def undeploy = {
     params.name = params.name ?: 'Undeploy'
-    redirectToActionPlan('undeploy') { p ->
-      deploymentService.computeUndeployPlan(p) { true }
+    redirectToActionPlan('undeploy') { p, metadata ->
+      plannerService.computeUndeployPlans(p, metadata)
     }
   }
 
@@ -313,8 +275,8 @@ class AgentsController extends ControllerBase
    * Redeploy */
   def redeploy = {
     params.name = params.name ?: 'Redeploy'
-    redirectToActionPlan('redeploy') { p ->
-      deploymentService.computeRedeployPlan(p) { true }
+    redirectToActionPlan('redeploy') { p, metadata ->
+      plannerService.computeRedeployPlans(p, metadata)
     }
   }
 
@@ -332,21 +294,26 @@ class AgentsController extends ControllerBase
       request.system = system
 
       params.system = system
-      params.fabric = request.fabric
+      params.type = IStep.Type.SEQUENTIAL
+      params.name = "${params.name} ${params.id}:${params.mountPoint}".toString()
 
-      def plan = closure(params)
+      def metadata = [
+        action: action,
+        agent: params.id,
+        mountPoint: params.mountPoint
+      ]
 
-      if(params.name)
+      def plans = closure(params, metadata)
+      if(plans)
       {
-        plan.name = "${params.name} ${params.id}:${params.mountPoint}".toString()
+        session.plan = plans
+        redirect(controller: 'plan', action: 'view', id: plans[0].id)
       }
-      plan = deploymentService.groupByInstance(plan,
-                                               IStep.Type.SEQUENTIAL,
-                                               [action: action,
-                                               agent: params.id,
-                                               mountPoint: params.mountPoint])
-      session.delta = [plan]
-      redirect(controller: 'plan', action: 'view', id: plan.id)
+      else
+      {
+        flash.error = "No plan to execute ${action}"
+        redirect(controller: 'agent', action: 'view', id: params.id)
+      }
     }
     catch (Exception e)
     {
@@ -410,6 +377,152 @@ class AgentsController extends ControllerBase
         redirect(action: 'view', id: params.id)
         return
       }
+    }
+  }
+
+  /**
+   * Retuns the count of agents (HEAD /agents)
+   */
+  def rest_count_agents = {
+    Collection<AgentInfo> agents = agentsService.getAgentInfos(request.fabric)?.values()
+
+    if(agents)
+    {
+      response.addHeader("X-glu-count", agents.size().toString())
+      render ''
+    }
+    else
+    {
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
+                         'no agents')
+      render ''
+    }
+  }
+
+  /**
+   * Retuns the list of agents (GET /agents)
+   */
+  def rest_list_agents = {
+    Collection<AgentInfo> agents = agentsService.getAgentInfos(request.fabric)?.values()
+
+    if(agents)
+    {
+      def map = [:]
+      agents.each { AgentInfo agent ->
+        def agentMap = agent.agentProperties.findAll { !it.key.startsWith('java.') }
+        agentMap.viewURL = g.createLink(absolute: true,
+                                        mapping: 'restViewAgent',
+                                        id: agent.agentName,
+                                        params: [fabric: request.fabric.name]).toString()
+        map[agent.agentName] = agentMap
+      }
+      response.setContentType('text/json')
+      response.addHeader("X-glu-count", map.size().toString())
+      render prettyPrintJsonWhenRequested(map)
+    }
+    else
+    {
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
+                         'no agents')
+      render ''
+    }
+  }
+
+  /**
+   * Retuns the agent view (GET /agent/<agentName>)
+   */
+  def rest_view_agent = {
+    AgentInfo agent = agentsService.getAgentInfo(request.fabric, params.id)
+
+    if(agent)
+    {
+      def map = [:]
+      map['details'] = agent.agentProperties.findAll { !it.key.startsWith('java.') }
+      response.setContentType('text/json')
+      render prettyPrintJsonWhenRequested(map)
+    }
+    else
+    {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND,
+                         'no such agent')
+      render ''
+    }
+  }
+
+  /**
+   * Retuns the list of agents versions (GET /agents/versions)
+   */
+  def rest_list_agents_versions = {
+    Collection<AgentInfo> agents = agentsService.getAgentInfos(request.fabric)?.values()
+
+    if(agents)
+    {
+      def map = [:]
+      agents.each { AgentInfo agent ->
+        map[agent.agentName] = agent.version
+      }
+      response.setContentType('text/json')
+      response.addHeader("X-glu-count", map.size().toString())
+      render prettyPrintJsonWhenRequested(map)
+    }
+    else
+    {
+      response.sendError(HttpServletResponse.SC_NO_CONTENT,
+                         'no agents')
+      render ''
+    }
+  }
+
+  /**
+   * Creates a plan for upgrading the agent (POST /agents/versions)
+   */
+  def rest_upgrade_agents_versions = {
+    if(!params.version || !params.coordinates)
+    {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST)
+      return
+    }
+
+    if(params.agents instanceof String)
+    {
+      params.agents = [params.agents]
+    }
+
+    def availableAgents = agentsService.getAgentInfos(request.fabric).keySet()
+
+    params.agents = params.agents?.findAll { availableAgents.contains(it) }
+
+    params.fabric = request.fabric
+    params.type = Type.valueOf(params.type ?: 'PARALLEL')
+
+    def plan =
+      plannerService.computeAgentsUpgradePlan(params,
+                                              [origin: 'rest', action: 'upgradeAgents', version: params.version])
+
+
+    if(plan?.hasLeafSteps())
+    {
+      if(plan.leafSteps.findAll { it.action instanceof NoOpActionDescriptor }.size() == plan.leafStepsCount)
+      {
+        response.sendError(HttpServletResponse.SC_NO_CONTENT,
+                           'no plan created (already upgrading all agents)')
+        render ''
+      }
+      else
+      {
+        deploymentService.savePlan(plan)
+        response.addHeader('Location', g.createLink(absolute: true,
+                                                    mapping: 'restPlan',
+                                                    id: plan.id,
+                                                    params: [fabric: request.fabric]).toString())
+        response.setStatus(HttpServletResponse.SC_CREATED)
+        render plan.id
+      }
+    }
+    else
+    {
+      response.sendError(HttpServletResponse.SC_NO_CONTENT, 'no plan created (nothing to upgrade)')
+      render ''
     }
   }
 

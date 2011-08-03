@@ -234,7 +234,7 @@ class ClientMain implements Startable
     moveToState(agent, mountPoint, 'running')
   }
 
-  private def moveToState(agent, mountPoint, toState)
+  protected def moveToState(agent, mountPoint, toState)
   {
     def state = agent.getState(mountPoint: mountPoint)
 
@@ -409,12 +409,12 @@ class ClientMain implements Startable
     }
   }
 
-  private def extractArgs(def config)
+  protected def extractArgs(def config)
   {
     return extractArgs(Config.getOptionalString(config, 'args', '[:]'))
   }
 
-  private def extractArgs(String args)
+  protected def extractArgs(String args)
   {
     return new GroovyShell().evaluate(args)
   }

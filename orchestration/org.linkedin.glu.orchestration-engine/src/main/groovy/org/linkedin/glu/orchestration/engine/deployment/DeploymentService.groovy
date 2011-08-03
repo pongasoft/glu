@@ -17,11 +17,10 @@
 
 package org.linkedin.glu.orchestration.engine.deployment
 
-import org.linkedin.glu.provisioner.core.environment.Environment
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.plan.api.IPlanExecutionProgressTracker
-import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.provisioner.plan.api.Plan
+import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 
 /**
  * System service.
@@ -29,70 +28,11 @@ import org.linkedin.glu.provisioner.plan.api.Plan
  * @author ypujante@linkedin.com */
 interface DeploymentService
 {
-  Collection<String> getHostsWithDeltas(params)
+  Plan<ActionDescriptor> getPlan(String id)
 
-  Plan computeDeploymentPlan(params)
+  void savePlan(Plan<ActionDescriptor> plan)
 
-  Plan computeDeploymentPlan(params, Closure closure)
-
-  /**
-   * Computes a transition plan. The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
-   */
-  Plan computeTransitionPlan(params, Closure filter)
-
-  /**
-   * Compute a bounce plan to bounce (= stop/start) containers. The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
-   */
-  Plan computeBouncePlan(params, Closure filter)
-
-  /**
-   * Compute an undeploy plan. The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
-   */
-  Plan computeUndeployPlan(params, Closure filter)
-
-  /**
-   * Compute a redeploy plan (= undeploy/deploy). The closure is meant to
-   * filter out the installations (<code>Installation</code>) and should return
-   * <code>true</code> for all installation  that need to be part of the plan.
-   */
-  Plan computeRedeployPlan(params, Closure filter)
-
-  Plan createPlan(String name,
-                  Environment currentEnvironment,
-                  Environment expectedEnvironment,
-                  Closure closure)
-
-  /**
-   * Shortcut to group the plan by hostname first, then mountpoint in both sequential and parallel
-   * types.
-   */
-  Map<IStep.Type, Plan> groupByHostnameAndMountPoint(Plan plan)
-
-  /**
-   * Create a new plan of the given type where the entries are grouped by hostname first, then
-   * mountpoint and call the closure to filter all leaves.
-   */
-  Plan groupByHostnameAndMountPoint(Plan plan, IStep.Type type)
-
-  /**
-   * Shortcut to group the plan by instance in both sequential and parallel types.
-   */
-  Collection<Plan> groupByInstance(Plan plan, def metadata)
-
-  /**
-   * Create a new plan of the given type where the entries going to be grouped by instance.
-   */
-  Plan groupByInstance(Plan plan, IStep.Type type, def metadata)
-
-  Plan getPlan(String id)
-
-  void savePlan(Plan plan)
+  Collection<Plan<ActionDescriptor>> getPlans(String fabric)
 
   Collection<CurrentDeployment> getDeployments(String fabric)
 
@@ -100,6 +40,11 @@ interface DeploymentService
    * Returns all the deployments matching the closure
    */
   Collection<CurrentDeployment> getDeployments(String fabric, Closure closure)
+
+  /**
+   * Returns all the deployments for the current plan
+   */
+  Collection<CurrentDeployment> getDeployments(String fabric, String planId)
 
   /**
    * @return <code>true</code> if the deployment was archived, <code>false</code> if there is
@@ -118,6 +63,27 @@ interface DeploymentService
   CurrentDeployment getDeployment(String id)
 
   ArchivedDeployment getArchivedDeployment(String id)
+
+  /**
+   * params can be what grails accept for paginating queries: <code>max</code>,
+   * <code>offset</code>, <code>sort</code>, <code>order</code>
+   * @return a map with deployments: the list of archived deployments and
+   *         count: the total number of entries
+   */
+  Map getArchivedDeployments(String fabric,
+                             boolean includeDetails,
+                             params)
+
+  /**
+   * @return number of archived deployments in this fabric
+   */
+  int getArchivedDeploymentsCount(String fabric)
+
+  /**
+   * If the deployment is not archived yet, then simply return it otherwise return the archived
+   * version
+   */
+  Deployment getCurrentOrArchivedDeployment(String id)
 
   boolean isExecutingDeploymentPlan(String fabric)
 

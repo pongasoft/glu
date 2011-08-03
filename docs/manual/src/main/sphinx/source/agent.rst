@@ -166,8 +166,8 @@ REST API::
 
 .. note:: you cannot uninstall the script unless the state machine allows you do to so. If you are in state ``running`` you first need to run ``stop``, ``unconfigure`` and ``uninstall``. There is a way to force uninstall irrelevant of the state of the state machine:
 
-Foce uninstall
-""""""""""""""
+Force uninstall
+"""""""""""""""
 
 Groovy API (force uninstall)::
 
@@ -195,6 +195,8 @@ One of the main design goals in building the agent was the ability to write simp
 .. tip:: 
    Implicitely (at runtime), all glu scripts implement the `GluScript <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-impl/src/main/groovy/org/linkedin/glu/agent/impl/GluScript.groovy>`_ interface.
 
+.. _agent-capabilities-log:
+
 ``log``
 """""""
 The ``log`` property allows you to log any information in the agent log file. It is an instance of ``org.slf4j.Logger``::
@@ -205,6 +207,8 @@ The ``log`` property allows you to log any information in the agent log file. It
       log.debug "this message will be logged only if the agent is started with debug messages on"
     }
 
+.. _agent-capabilities-params:
+
 ``params``
 """"""""""
 Every glu script action has access to the ``initParameters`` provided at installation time through the ``params`` property::
@@ -212,6 +216,8 @@ Every glu script action has access to the ``initParameters`` provided at install
     def configure = {
       log.info "initParameters = ${params}"
     }
+
+.. _agent-capabilities-mountPoint:
 
 ``mountPoint``
 """"""""""""""
@@ -223,6 +229,22 @@ The ``mountPoint`` on which the script was installed. In general, this property 
       shell.untar(skeleton, mountPoint) // will be unzipped/untarred in a unique location
     }
 
+.. _agent-capabilities-parent:
+
+``parent``
+""""""""""
+
+This property contains the ``GluScript`` of the parent (for root this value is ``null``). This property is to be used by a child when it wants to invoke methods on its parent.
+
+.. _agent-capabilities-children:
+
+``children``
+""""""""""""
+
+This property contains a collection of ``GluScript`` of the children of this script. This property is to be used by a parent when it wants to invoke methods on its children.
+
+.. _agent-capabilities-stateManager:
+
 ``stateManager``
 """"""""""""""""
 An instance of ``org.linkedin.glu.agent.api.StateManager`` (`StateManager api <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-api/src/main/groovy/org/linkedin/glu/agent/api/StateManager.groovy>`_) which allows to access the state::
@@ -231,6 +253,8 @@ An instance of ``org.linkedin.glu.agent.api.StateManager`` (`StateManager api <h
       log.info "current state is ${stateManager.state}"
     }
 
+.. _agent-capabilities-state:
+
 ``state``
 """""""""
 Shortcut to ``stateManager.state``::
@@ -238,6 +262,8 @@ Shortcut to ``stateManager.state``::
     def install = {
       log.info "current state is ${state}"
     }
+
+.. _agent-capabilities-shell:
 
 ``shell``
 """""""""
@@ -255,6 +281,8 @@ An instance of ``org.linkedin.glu.agent.api.Shell`` (`Shell api <https://github.
 
   .. tip:: The agent handles ``zookeeper:/a/b/c`` style URIs and can be configured to handle ``ivy:/a/b/1.0`` style URIs.
 
+.. _agent-capabilities-shell-env:
+
 ``shell.env``
 """""""""""""
 ``shell.env`` is a map which allows you to access all the configuration properties used when the agent booted including the ones stored in zookeeper. This allows for example to configure fabric dependent behavior. If you store the property::
@@ -264,6 +292,8 @@ An instance of ``org.linkedin.glu.agent.api.Shell`` (`Shell api <https://github.
 in the configuration file (agent config) loaded in ZooKeeper for a given fabric then your scripts can use relative values::
 
     shell.fetch("${shell.env['my.company.binary.repo.url']/${params.applicationRelativePath}"}
+
+.. _agent-capabilities-timers:
 
 ``timers``
 """"""""""
