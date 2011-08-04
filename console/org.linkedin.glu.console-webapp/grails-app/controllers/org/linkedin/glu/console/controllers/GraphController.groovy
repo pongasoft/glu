@@ -31,7 +31,18 @@ class GraphController extends ControllerBase {
 
   ConsoleConfig consoleConfig
 
+  /*
+   Example configuration:
+   console.defaults =
+     [graphs: [versions: ['x-axis': 'metadata.serviceName', 
+                          'y-axis': 'metadata.version', 
+                           type: 'google-chart', 
+                           description: 'version variation over the static model']
+    ],
+   */
   def index = {
+    def graphs = consoleConfig.defaults.graphs
+    [graphs: graphs]
   }
 
   def graph = {

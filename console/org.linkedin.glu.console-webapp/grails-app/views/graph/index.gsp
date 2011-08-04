@@ -20,10 +20,11 @@
   <meta name="layout" content="main"/>
 </head>
 <body>
-<h2>TODO: Display graphs here</h2>
+<h2>Glu Graphs</h2>
 <ul>
-  <li>Graph 1</li>
-  <li>Graph 2</li>
+<g:each in="${graphs}" var="graph">
+  <li><a href="/console/graph/${graph.key}">${graph.key}</a> (${graph.value.description})</li>
+</g:each>
 </ul>
 </body>
 </html>
