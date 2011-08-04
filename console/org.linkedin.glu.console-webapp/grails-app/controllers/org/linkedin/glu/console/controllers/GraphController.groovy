@@ -46,10 +46,20 @@ class GraphController extends ControllerBase {
   }
 
   def graph = {
+    // Currently there's only support for a predefined set of graphs, no generic metrics, generic aggregation etc
+    switch (params.graph) {
+      case "versions-desired":
+        return versionsDesired()
+      default:
+      	flash.error = "No such graph ${params.graph}"
+    }
+  }
+  
+  def versionsDesired = {
     DbSystemModel dbmodel = DbSystemModel.findCurrent(request.fabric)
     SystemModel model = dbmodel.systemModel
     List<MaxMinVersion> versions = extractMaxMinVersions(model)
-    [versions: versions]
+    [name: params.graph, versions: versions]
   }
 
   private def extractMaxMinVersions(SystemModel model) {

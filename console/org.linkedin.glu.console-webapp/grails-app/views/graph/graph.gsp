@@ -12,7 +12,7 @@ permissions and limitations under - the License. --}%
 
 </head>
 <body>
-	<h2>Graph: Versions</h2>
+	<h2>Graph: ${name}</h2>
 	<div id='chart' style='width: 100%; height: 700px;'></div>
 	<div id='table' style='margin-top: 20px'></div>
 	<script type="text/javascript" src="http://www.google.com/jsapi"></script>
