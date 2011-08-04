@@ -7,12 +7,9 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT - WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 implied. See the - License for the specific language governing
 permissions and limitations under - the License. --}%
-
-<html>
 <head>
-<title>GLU Console - ${user.username.encodeAsHTML()}
-</title>
-<meta name="layout" content="main" />
+<meta name="layout" content="mainNoScript" />
+
 </head>
 <body>
 	<h2>Graph: Versions</h2>
@@ -40,10 +37,9 @@ function drawVisualization() {
   var chart = new google.visualization.CandlestickChart(document.getElementById('chart'));
   var chartView = new google.visualization.DataView(data);
   chartView.setColumns([0, 1, 1, 2, 2]);
-  chart.draw(chartView, {legend:'none', hAxis: {showTextEvery: 1, slantedText: true, slantedTextAngle: 90},
-    title: 'Versions variation according to the STATIC model',
-    	vAxis: {},
-    	chartArea: {width: "80%"}});
+  chart.draw(chartView, {legend:'none',
+	  hAxis: {showTextEvery: 1, slantedText: true, slantedTextAngle: 90},
+    title: 'Versions variation according to the STATIC model'});
 
   var table = new google.visualization.Table(document.getElementById('table'));
   var tableView = new google.visualization.DataView(data);
