@@ -13,6 +13,9 @@ permissions and limitations under - the License. --}%
 </head>
 <body>
 	<h2>Graph: ${name}</h2>
+	<g:if test="${versions.empty}">
+	 <h3 style="text-align: center">Not enough data :-(</h3>
+	</g:if>
 	<div id='chart' style='width: 100%; height: 700px;'></div>
 	<div id='table' style='margin-top: 20px'></div>
 	<script type="text/javascript" src="http://www.google.com/jsapi"></script>
@@ -39,7 +42,7 @@ function drawVisualization() {
   chartView.setColumns([0, 1, 1, 2, 2]);
   chart.draw(chartView, {legend:'none',
 	  hAxis: {showTextEvery: 1, slantedText: true, slantedTextAngle: 90},
-    title: 'Versions variation according to the STATIC model'});
+    title: 'Versions variation according to the ${source} model'});
 
   var table = new google.visualization.Table(document.getElementById('table'));
   var tableView = new google.visualization.DataView(data);

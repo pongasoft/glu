@@ -20,6 +20,7 @@ import org.linkedin.glu.console.domain.DbSystemModel
 import org.linkedin.glu.console.domain.User
 import org.apache.shiro.SecurityUtils
 import org.linkedin.glu.grails.utils.ConsoleConfig
+import org.linkedin.glu.orchestration.engine.agents.AgentsService;
 import org.linkedin.glu.provisioner.core.model.SystemModel;
 
 /**
@@ -30,7 +31,8 @@ import org.linkedin.glu.provisioner.core.model.SystemModel;
 class GraphController extends ControllerBase {
 
   ConsoleConfig consoleConfig
-
+  AgentsService agentsService
+  
   /*
    Example configuration:
    console.defaults =
@@ -50,6 +52,8 @@ class GraphController extends ControllerBase {
     switch (params.graph) {
       case "versions-desired":
         return versionsDesired()
+      case "versions-live":
+        return versionsLive()
       default:
       	flash.error = "No such graph ${params.graph}"
     }
@@ -59,7 +63,14 @@ class GraphController extends ControllerBase {
     DbSystemModel dbmodel = DbSystemModel.findCurrent(request.fabric)
     SystemModel model = dbmodel.systemModel
     List<MaxMinVersion> versions = extractMaxMinVersions(model)
-    render(view: 'graphVersions', model: [name: params.graph, versions: versions])
+    render(view: 'graphVersions', model: [name: params.graph, versions: versions, source: 'DESIRED'])
+  }
+
+  def versionsLive = {
+    def model = agentsService.getCurrentSystemModel(request.fabric)
+    model = model.filterBy(request.system.filters)
+    List<MaxMinVersion> versions = extractMaxMinVersions(model)
+    render(view: 'graphVersions', model: [name: params.graph, versions: versions, source: 'LIVE'])
   }
 
   private def extractMaxMinVersions(SystemModel model) {
