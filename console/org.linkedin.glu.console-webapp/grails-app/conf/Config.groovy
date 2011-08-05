@@ -138,6 +138,10 @@ console.dev.defaults =
           'glu-dev-1': ['drMode': 'primary'],
           'glu-dev-2': ['drMode': 'secondary']
       ],
+      graphs: [
+        'versions-desired': [description: 'version variation over the desired (static) model. uses metadata.version as an int'],
+        'versions-live': [description: 'version variation over the live model. uses metadata.version as an int']
+      ],
   ]
 
 // set per-environment serverURL stem for creating absolute links
