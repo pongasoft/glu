@@ -21,7 +21,7 @@
 </head>
 <body>
 <h2>Glu Graphs</h2>
-<ul>
+<ul id="graphs-list">
 <g:each in="${graphs}" var="graph">
   <li><a href="/console/graph/${graph.key}">${graph.key}</a> (${graph.value.description})</li>
 </g:each>
