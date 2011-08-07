@@ -78,11 +78,11 @@ class GraphController extends ControllerBase {
       String module = entry.metadata.get("product")
       def versionString = entry.metadata.get("version")
       if (module != null && versionString != null) {
-        int version = -1
+        Number version = -1
         try {
-          version = versionString as int
+          version = versionString as Number
         } catch (NumberFormatException e) {
-        	// not an int. will be ignored	
+        	// not an Number. will be ignored	
         }
         if (version > 0) {
           String agent = entry.getAgent()
@@ -102,12 +102,12 @@ class GraphController extends ControllerBase {
   }
 
   class MaxMinVersion {
-    int min, max
+    Number min, max
     String module
     private Set<String> minAgents = new HashSet<String>()
     private Set<String> maxAgents = new HashSet<String>()
 
-    public MaxMinVersion(String module, int min, int max, Set<String> minAgents, Set<String> maxAgents) {
+    public MaxMinVersion(String module, Number min, Number max, Set<String> minAgents, Set<String> maxAgents) {
       this.module = module;
       this.min = min;
       this.max = max;
@@ -123,7 +123,7 @@ class GraphController extends ControllerBase {
      * @param version
      * @param agent
      */
-    def addVersion(int version, String agent) {
+    def addVersion(Number version, String agent) {
       if (version == min) {
         minAgents.add(agent);
       } else if (version < min) {
