@@ -60,8 +60,7 @@ class GraphController extends ControllerBase {
   }
   
   def versionsDesired = {
-    DbSystemModel dbmodel = DbSystemModel.findCurrent(request.fabric)
-    SystemModel model = dbmodel.systemModel
+    SystemModel model = request.system
     List<MaxMinVersion> versions = extractMaxMinVersions(model)
     render(view: 'graphVersions', model: [name: params.graph, versions: versions, source: 'DESIRED'])
   }
