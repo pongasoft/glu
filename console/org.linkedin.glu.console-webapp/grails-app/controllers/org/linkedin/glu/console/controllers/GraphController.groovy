@@ -70,6 +70,7 @@ class GraphController extends ControllerBase {
     def histo = getDeploymentsHistogramByDate(start.getTime(), end.getTime())
     render(view: 'deploymentsHisto', model: [name: params.graph, histo: histo])
   }
+  
   def versionsDesired = {
     SystemModel model = request.system
     List<MaxMinVersion> versions = extractMaxMinVersions(model)
@@ -91,8 +92,8 @@ class GraphController extends ControllerBase {
     deployments.each { it ->
       if (start.before(it.startDate) && end.after(it.startDate)) {
         long time = it.startDate.getTime()
-        def success =  it.status == "SUCCESS"
-        // aggregate by whole days, so get rid of the milli, seconds, minutes and hours
+        def success =  it.status == "COMPLETED"
+        // aggregate by whole days, so get rid of the milli, seconds, minutes and hours in one day
         long oneDayInMilli = 1000 * 60 * 60 * 24
         time /= oneDayInMilli
         time *= oneDayInMilli
@@ -149,7 +150,7 @@ class GraphController extends ControllerBase {
                   
    public void add(boolean success) {
      if (success) {
-       ++success;
+       ++this.success;
      } else {
        ++failed;
      }
