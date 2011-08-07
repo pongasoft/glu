@@ -21,6 +21,7 @@ import org.linkedin.glu.console.domain.User
 import org.apache.shiro.SecurityUtils
 import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.linkedin.glu.orchestration.engine.agents.AgentsService;
+import org.linkedin.glu.orchestration.engine.deployment.DeploymentService;
 import org.linkedin.glu.provisioner.core.model.SystemModel;
 
 /**
@@ -32,6 +33,7 @@ class GraphController extends ControllerBase {
 
   ConsoleConfig consoleConfig
   AgentsService agentsService
+  DeploymentService deploymentService
   
   /*
    Example configuration:
@@ -54,11 +56,20 @@ class GraphController extends ControllerBase {
         return versionsDesired()
       case "versions-live":
         return versionsLive()
+      case "deployments-histo":
+        return deploymentsHisto()
       default:
       	flash.error = "No such graph ${params.graph}"
     }
   }
-  
+
+  def deploymentsHisto = {
+    GregorianCalendar start = new GregorianCalendar();
+    GregorianCalendar end = new GregorianCalendar();
+    start.add(Calendar.DAY_OF_MONTH, -14);
+    def histo = getDeploymentsHistogramByDate(start.getTime(), end.getTime())
+    render(view: 'deploymentsHisto', model: [name: params.graph, histo: histo])
+  }
   def versionsDesired = {
     SystemModel model = request.system
     List<MaxMinVersion> versions = extractMaxMinVersions(model)
@@ -72,6 +83,31 @@ class GraphController extends ControllerBase {
     render(view: 'graphVersions', model: [name: params.graph, versions: versions, source: 'LIVE'])
   }
 
+  private SortedMap<Date, SuccessFailCounts> getDeploymentsHistogramByDate(Date start, Date end) {
+//    def deployments = deploymentService.getDeployments(request.fabric.name) // DO I need both getDeployments and getArchivedDeployments?
+    def deployments = deploymentService.getArchivedDeployments(request.fabric.name, false, params).get('deployments')
+    // Aggregate by date and success/failure
+    Map<Date, SuccessFailCounts> ret = new TreeMap<Date, SuccessFailCounts>();
+    deployments.each { it ->
+      if (start.before(it.startDate) && end.after(it.startDate)) {
+        long time = it.startDate.getTime()
+        def success =  it.status == "SUCCESS"
+        // aggregate by whole days, so get rid of the milli, seconds, minutes and hours
+        long oneDayInMilli = 1000 * 60 * 60 * 24
+        time /= oneDayInMilli
+        time *= oneDayInMilli
+        Date date = new Date(time)
+        SuccessFailCounts counts = ret.get(date);
+        if (counts == null) {
+          counts = new SuccessFailCounts()
+          ret.put(date, counts)
+        }
+        counts.add(success)
+      }
+    }
+    return ret;
+  }
+    
   private def extractMaxMinVersions(SystemModel model) {
     Map<String, MaxMinVersion> moduleVersions = new HashMap<String, MaxMinVersion>();
     model.findEntries().each { entry ->
@@ -101,6 +137,41 @@ class GraphController extends ControllerBase {
     return ret;
   }
 
+  /**
+  * A simple class that holds two numbers, one for success and another for failed counts.
+  * It represents the number of successful v/s failed deployments during a time period.
+  * @author Ran Tavory
+  *
+  */
+ public class SuccessFailCounts {
+   
+   private int success, failed;
+                  
+   public void add(boolean success) {
+     if (success) {
+       ++success;
+     } else {
+       ++failed;
+     }
+   }
+   
+   public int getSuccess() {
+     return success;
+   }
+                 
+   public void setSuccess(int success) {
+     this.success = success;
+   }
+     
+   public int getFailed() {
+     return failed;
+   }
+       
+   public void setFailed(int failed) {
+     this.failed = failed;
+   }
+ }
+ 
   class MaxMinVersion {
     Number min, max
     String module

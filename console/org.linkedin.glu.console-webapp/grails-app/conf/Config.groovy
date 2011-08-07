@@ -140,7 +140,8 @@ console.dev.defaults =
       ],
       graphs: [
         'versions-desired': [description: 'version variation over the desired (static) model. Uses metadata.version and metadata.product. Assumes versions are Numbers'],
-        'versions-live': [description: 'version variation over the live model. Uses metadata.version and metadata.product. Assumes versions are Numbers']
+        'versions-live': [description: 'version variation over the live model. Uses metadata.version and metadata.product. Assumes versions are Numbers'],
+        'deployments-histo': [description: 'A histogram of the number of deployments per day with a breakdown for successful and failed deployments']
       ],
   ]
 
