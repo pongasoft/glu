@@ -299,3 +299,12 @@ ul#graphs-list {
 ul#graphs-list li {
 	margin-bottom: 2em;
 }
+
+.hint {
+	float:right; 
+	background-color: #eee; 
+	width: 30%; 
+	padding: 1em;
+	border-color: #ccc;
+	border-style: dashed;
+}

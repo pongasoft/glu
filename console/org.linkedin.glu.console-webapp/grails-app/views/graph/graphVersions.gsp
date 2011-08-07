@@ -22,6 +22,11 @@
 	<g:if test="${versions.empty}">
 	 <h3 style="text-align: center">Not enough data :-(</h3>
 	</g:if>
+  <div class="hint">
+    <p>Hint: you can use filters parameters such as <a href="/console/graph/versions-desired?systemFilter=metadata.cluster='test'">/console/graph/versions-desired?systemFilter=metadata.cluster='test'</a> to filter out graph results</p>
+    <p>See <a href="http://linkedin.github.com/glu/docs/latest/html/filtering.html">Filtering</a></p>
+  </div>
+	<div style="clear:both">&nbsp;</div>
 	<div id='chart' style='width: 100%; height: 700px;'></div>
 	<div id='table' style='margin-top: 20px'></div>
 	<script type="text/javascript" src="http://www.google.com/jsapi"></script>
@@ -57,5 +62,6 @@ function drawVisualization() {
 }
 google.setOnLoadCallback(drawVisualization);
  </script>
+ 
 </body>
 </html>
