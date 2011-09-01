@@ -294,7 +294,7 @@ class DeltaServiceImpl implements DeltaService
       {
         if(row.state == 'ERROR')
           counts.errors++
-        counts.instances++
+       counts.instances++
       }
       if(row.state == 'ERROR')
         totals.errors++
@@ -320,13 +320,15 @@ class DeltaServiceImpl implements DeltaService
 
     groupByColumn0.each { column0, list ->
       def errors = list.findAll { it.state == DeltaState.ERROR }
+      def deltas = list.findAll { it.state == DeltaState.DELTA }
 
       def row = [
           instancesCount: list.size(),
-          errorsCount: errors.size()
+          errorsCount: errors.size(),
+          deltasCount: deltas.size()
       ]
 
-      row.state = expectedSystem ? (row.errorsCount > 0 ? 'ERROR' : 'OK') : 'UNKNOWN'
+      row.state = expectedSystem ? (row.errorsCount > 0 ? 'ERROR' : row.deltasCount > 0 ? 'DELTA' : 'OK') : 'UNKNOWN'
       row.na = list.find { it.state == DeltaState.NA} ? 'NA' : ''
 
       def entries = isErrorsFilter ? errors : list

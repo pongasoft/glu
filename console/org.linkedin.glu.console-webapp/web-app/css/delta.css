@@ -25,6 +25,11 @@
   background: #ddffdd;
 }
 
+.DELTA {
+  color: black;
+  background: #ffd119;
+}
+
 .UNKNOWN {
   color: #000000;
   background: #dddddd;

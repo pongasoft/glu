@@ -176,6 +176,7 @@ public class DeltaMgrImpl implements DeltaMgr, InternalDeltaProcessor
       {
         // handle it as a delta
         sed.setDeltaStatus("delta");
+        sed.setDeltaState(SystemEntryDelta.DeltaState.DELTA);
         keys = new TreeSet<String>(keys);
         Collection<String> values = new ArrayList<String>(keys.size());
         for(String key : keys)
