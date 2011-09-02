@@ -48,6 +48,7 @@ public interface SystemEntryDelta
     OK,
     WARN,
     ERROR,
+    DELTA,
     NA
   }
 
