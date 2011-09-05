@@ -17,6 +17,9 @@
 package org.linkedin.glu.console.domain
 
 /**
+ * Implementation note: the purpose of this class is to allow fetching the columns minus the details
+ * column. See the stack overflow question:
+ * http://stackoverflow.com/questions/6914569/how-to-exclude-some-columns-with-gorm-with-dynamic-finders
  * @author ypujante@linkedin.com */
 class LightDbDeployment
 {
