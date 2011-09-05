@@ -187,7 +187,9 @@ environments {
 
         //debug 'org.linkedin.zookeeper.tracker', 'org.linkedin.glu.agent.tracker'
 
-        //trace 'org.hibernate.SQL', 'org.hibernate.type'
+        // trace 'org.hibernate.SQL', 'org.hibernate.type'
+        // trace 'org.codehaus.groovy.grails.orm'
+        // trace 'org.codehaus.groovy.grails.orm.hibernate'
 
 
         warn   'org.mortbay.log'

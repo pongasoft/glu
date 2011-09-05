@@ -21,6 +21,7 @@ import org.linkedin.glu.orchestration.engine.deployment.ArchivedDeployment
 import org.linkedin.glu.console.domain.DbDeployment
 import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
 import org.linkedin.util.annotations.Initializable
+import org.linkedin.glu.console.domain.LightDbDeployment
 
 /**
  * @author yan@pongasoft.com */
@@ -43,14 +44,18 @@ public class DeploymentStorageImpl implements DeploymentStorage
                              boolean includeDetails,
                              def params)
   {
-    // TODO MED YP: implement includeDetails behavior to minimize amount of data read from DB!
-
     if(params.offset == null)
       params.offset = 0
     params.max = Math.min(params.max ? params.max.toInteger() : maxResults, maxResults)
     params.sort = params.sort ?: 'startDate'
     params.order = params.order ?: 'desc'
-    def deployments = DbDeployment.findAllByFabric(fabric, params)
+
+    def deployments
+
+    if(includeDetails)
+      deployments = DbDeployment.findAllByFabric(fabric, params)
+    else
+      deployments = LightDbDeployment.findAllByFabric(fabric, params)
 
     [
         deployments: deployments.collect { createArchivedDeployment(it) },
@@ -77,6 +82,21 @@ public class DeploymentStorageImpl implements DeploymentStorage
                                   description: deployment.description,
                                   status: deployment.status,
                                   details: deployment.details)
+  }
+
+  protected ArchivedDeployment createArchivedDeployment(LightDbDeployment deployment)
+  {
+    if(deployment == null)
+      return null
+
+    return new ArchivedDeployment(id: deployment.id.toString(),
+                                  startDate: deployment.startDate,
+                                  endDate: deployment.endDate,
+                                  username: deployment.username,
+                                  fabric: deployment.fabric,
+                                  description: deployment.description,
+                                  status: deployment.status,
+                                  details: null)
   }
 
   @Override
