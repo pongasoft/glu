@@ -14,25 +14,22 @@
  * the License.
  */
 
-package org.linkedin.glu.console.provisioner.services.storage
+package org.linkedin.glu.orchestration.engine.system
 
-import org.springframework.validation.Errors
+import org.linkedin.glu.provisioner.core.model.SystemModel
 
 /**
  * @author yan@pongasoft.com */
-public class SystemStorageException extends Exception
+public class SystemModelDetails
 {
-  private static final long serialVersionUID = 1L;
+  Date dateCreated
+  String fabric
+  String systemId
+  Integer size
+  SystemModel systemModel
 
-  Errors errors
-
-  SystemStorageException()
+  Map<String, Object> getMetadata()
   {
-  }
-
-  SystemStorageException(Errors errors)
-  {
-    super(errors?.toString())
-    this.errors = errors
+    return systemModel?.metadata
   }
 }

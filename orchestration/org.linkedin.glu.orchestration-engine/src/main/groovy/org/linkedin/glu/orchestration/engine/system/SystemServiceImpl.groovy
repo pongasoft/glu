@@ -103,4 +103,29 @@ public class SystemServiceImpl implements SystemService
 
     return true;
   }
+
+  @Override
+  SystemModel findCurrentSystem(String fabric)
+  {
+    systemStorage.findCurrentByFabric(fabric)
+  }
+
+  @Override
+  SystemModelDetails findDetailsBySystemId(String systemId)
+  {
+    systemStorage.findDetailsBySystemId(systemId)
+  }
+
+  @Override
+  int getSystemsCount(String fabric)
+  {
+    systemStorage.getSystemsCount(fabric)
+  }
+
+
+  @Override
+  Map findSystems(String fabric, boolean includeDetails, params)
+  {
+    systemStorage.findSystems(fabric, includeDetails, params)
+  }
 }

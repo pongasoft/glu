@@ -42,16 +42,13 @@ class SystemController extends ControllerBase
    * Listing all systems (paginated)
    */
   def list = {
-    params.max = Math.min(params.max ? params.max.toInteger() : 10, 100)
-    params.sort = 'id'
-    params.order = 'desc'
-
-    def systems = DbSystemModel.findAllByFabric(request.fabric.name, params)
+    def map =
+      systemService.findSystems(request.fabric.name, false, params)
 
     [
-        currentSystem: DbSystemModel.findCurrent(request.fabric),
-        systems: systems,
-        total: DbSystemModel.count()
+        currentSystem: request.system,
+        systems: map.systems,
+        total: map.count
     ]
   }
 
@@ -59,7 +56,7 @@ class SystemController extends ControllerBase
    * Viewing a single system (json textarea)
    */
   def view = {
-    def system = DbSystemModel.findBySystemId(params.id)
+    def system = systemService.findDetailsBySystemId(params.id)
     [system: system]
   }
 

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -32,6 +33,7 @@ class DbSystemModel
     systemId(nullable: false, blank: false, unique: true, validator: {val, obj ->
       return val == obj.systemModel.id
     })
+    size(nullable: true)
   }
 
   static mapping = {
@@ -45,6 +47,7 @@ class DbSystemModel
   String fabric
   String systemId
   private String _content
+  Integer size
 
   String getContent()
   {
@@ -79,6 +82,7 @@ class DbSystemModel
     _content = SERIALIZER.serialize(systemModel)
     fabric = systemModel.fabric
     systemId = systemModel.id
+    size = _content.size()
   }
 
   static transients = ['metadata', 'systemModel', '_systemModel', '_content']

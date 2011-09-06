@@ -22,15 +22,27 @@ import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.console.domain.DbCurrentSystem
 import org.linkedin.glu.console.domain.DbSystemModel
 import org.springframework.transaction.TransactionStatus
+import org.linkedin.util.annotations.Initializable
+import org.linkedin.glu.console.domain.LightDbSystemModel
+import org.linkedin.glu.orchestration.engine.system.SystemModelDetails
 
 /**
  * @author yan@pongasoft.com */
 public class SystemStorageImpl implements SystemStorage
 {
+  @Initializable
+  int maxSystemsResults = 10
+
   @Override
   SystemModel findCurrentByFabric(String fabric)
   {
-    DbCurrentSystem.findByFabric(fabric, [cache: false])?.systemModel?.systemModel
+    findCurrentDetailsByFabric(fabric)?.systemModel
+  }
+
+  @Override
+  SystemModelDetails findCurrentDetailsByFabric(String fabric)
+  {
+    createDetails(DbCurrentSystem.findByFabric(fabric, [cache: false])?.systemModel)
   }
 
   @Override
@@ -42,7 +54,13 @@ public class SystemStorageImpl implements SystemStorage
   @Override
   SystemModel findBySystemId(String systemId)
   {
-    DbSystemModel.findBySystemId(systemId)?.systemModel
+    findDetailsBySystemId(systemId)?.systemModel
+  }
+
+  @Override
+  SystemModelDetails findDetailsBySystemId(String systemId)
+  {
+    createDetails(DbSystemModel.findBySystemId(systemId))
   }
 
   void saveCurrentSystem(SystemModel systemModel)
@@ -74,5 +92,57 @@ public class SystemStorageImpl implements SystemStorage
         throw new SystemStorageException(dbc.errors)
       }
     }
+  }
+
+  @Override
+  int getSystemsCount(String fabric)
+  {
+    DbSystemModel.countByFabric(fabric)
+  }
+
+
+  @Override
+  Map findSystems(String fabric, boolean includeDetails, params)
+  {
+    if(params.offset == null)
+      params.offset = 0
+    params.max = Math.min(params.max ? params.max.toInteger() : maxSystemsResults, maxSystemsResults)
+    params.sort = params.sort ?: 'id'
+    params.order = params.order ?: 'desc'
+
+    def systems
+
+    if(includeDetails)
+      systems = DbSystemModel.findAllByFabric(fabric, params)
+    else
+      systems = LightDbSystemModel.findAllByFabric(fabric, params)
+
+    [
+        systems: systems.collect { createDetails(it) },
+        count: getSystemsCount(fabric),
+    ]
+  }
+
+  private SystemModelDetails createDetails(DbSystemModel model)
+  {
+    if(model == null)
+      return null
+
+    new SystemModelDetails(dateCreated: model.dateCreated,
+                           fabric: model.fabric,
+                           systemId: model.systemId,
+                           size: model.size ?: model.content?.size(),
+                           systemModel: model.systemModel)
+  }
+
+  private SystemModelDetails createDetails(LightDbSystemModel model)
+  {
+    if(model == null)
+      return null
+
+    new SystemModelDetails(dateCreated: model.dateCreated,
+                           fabric: model.fabric,
+                           systemId: model.systemId,
+                           size: model.size)
   }
 }

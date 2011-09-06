@@ -25,9 +25,28 @@ public interface SystemStorage
 {
   SystemModel findCurrentByFabric(String fabric)
 
+  SystemModelDetails findCurrentDetailsByFabric(String fabric)
+
   SystemModel findCurrentByFabric(Fabric fabric)
 
   SystemModel findBySystemId(String systemId)
 
+  SystemModelDetails findDetailsBySystemId(String systemId)
+
   void saveCurrentSystem(SystemModel systemModel)
+
+  /**
+   * params can be what grails accept for paginating queries: <code>max</code>,
+   * <code>offset</code>, <code>sort</code>, <code>order</code>
+   * @return a map with systems: the list of systems and
+   *         count: the total number of systems
+   */
+  Map findSystems(String fabric,
+                  boolean includeDetails,
+                  params)
+
+  /**
+   * @return the number of systems in the fabric
+   */
+  int getSystemsCount(String fabric)
 }

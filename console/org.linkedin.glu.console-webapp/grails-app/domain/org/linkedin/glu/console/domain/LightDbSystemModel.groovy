@@ -16,30 +16,18 @@
 
 package org.linkedin.glu.console.domain
 
-/**
- * Implementation note: the purpose of this class is to allow fetching the columns minus the details
- * column. See the stack overflow question:
- * http://stackoverflow.com/questions/6914569/how-to-exclude-some-columns-with-gorm-with-dynamic-finders
- * @author ypujante@linkedin.com */
-class LightDbDeployment
+class LightDbSystemModel
 {
   static constraints = {
-    startDate(nullable: false)
-    endDate(nullable: true)
-    username(nullable: true)
-    fabric(nullable: false)
-    description(nullable: true)
-    status(nullable: true)
+    size(nullable: true)
   }
 
   static mapping = {
-    table 'db_deployment'
+    table 'db_system_model'
   }
 
-  Date startDate = new Date()
-  Date endDate
-  String username
+  Date dateCreated
   String fabric
-  String description
-  String status
+  String systemId
+  Integer size
 }

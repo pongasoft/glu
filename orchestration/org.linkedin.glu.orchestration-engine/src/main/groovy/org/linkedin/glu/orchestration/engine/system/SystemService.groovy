@@ -43,4 +43,33 @@ public interface SystemService
    * <code>true</code> otherwise
    */
   boolean saveCurrentSystem(SystemModel newSystemModel)
+
+  /**
+   * @return the number of systems in the fabric
+   */
+  int getSystemsCount(String fabric)
+
+  /**
+   * params can be what grails accept for paginating queries: <code>max</code>,
+   * <code>offset</code>, <code>sort</code>, <code>order</code>
+   *
+   * @return a map with systems: the list of systems ({@link SystemModelDetails}) and
+   *         count: the total number of systems
+   */
+  Map findSystems(String fabric,
+                  boolean includeDetails,
+                  params)
+
+  /**
+   * Find the current system associated to the fabric.
+   *
+   * @param fabric
+   * @return
+   */
+  SystemModel findCurrentSystem(String fabric)
+
+  /**
+   * @return <code>null</code> if not found
+   */
+  SystemModelDetails findDetailsBySystemId(String systemId)
 }
