@@ -88,7 +88,12 @@
               </td>
             </g:if>
             <g:each in="${columnsTail}" var="columnName" status="columnIdx">
-              <td class="${entry.state} detail ${columnName}">
+              <g:if test="${entry.status == 'delta'}">
+                <td class="DELTA detail ${columnName}">
+              </g:if>
+              <g:else>
+                <td class="${entry.state} detail ${columnName}">
+              </g:else>
                 <cl:formatDeltaValue columns="${columns}" columnName="${columnName}" detail="${entry}" row="d-${line}-${rowIdx}"/>
               </td>
             </g:each>
