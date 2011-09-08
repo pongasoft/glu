@@ -46,7 +46,6 @@ class SystemController extends ControllerBase
       systemService.findSystems(request.fabric.name, false, params)
 
     [
-        currentSystem: request.system,
         systems: map.systems,
         total: map.count
     ]
@@ -57,7 +56,7 @@ class SystemController extends ControllerBase
    */
   def view = {
     def system = systemService.findDetailsBySystemId(params.id)
-    [system: system]
+    [systemDetails: system]
   }
 
   /**
@@ -86,6 +85,28 @@ class SystemController extends ControllerBase
     {
       flashException("Could not save the new model: ${th.message}", th)
       render(view: 'view', id: params.id, model: [system: system])
+    }
+  }
+
+  /**
+   * Set the system provided as the current one
+   */
+  def setAsCurrent = {
+    try
+    {
+      boolean res = systemService.setAsCurrentSystem(request.fabric.name, params.id)
+
+      if(res)
+        flash.message = "Current system has been set to [${params.id}]"
+      else
+        flash.message = "Current system is already [${params.id}]"
+
+      redirect(action: 'list')
+    }
+    catch(Throwable th)
+    {
+      flashException("Could not set the model as the current one: ${th.message}", th)
+      render(action: 'list')
     }
   }
 

@@ -105,6 +105,20 @@ public class SystemServiceImpl implements SystemService
   }
 
   @Override
+  synchronized boolean setAsCurrentSystem(String fabric, String systemId)
+  {
+    SystemModel previousSystemModel = systemStorage.findBySystemId(systemId)
+
+    if(previousSystemModel == null)
+      throw new IllegalArgumentException("no such system: ${systemId}")
+
+    if(previousSystemModel.fabric != fabric)
+      throw new IllegalArgumentException("system [${systemId}] does not belong to fabric ${fabric}")
+
+    systemStorage.setAsCurrentSystem(fabric, systemId)
+  }
+
+  @Override
   SystemModel findCurrentSystem(String fabric)
   {
     systemStorage.findCurrentByFabric(fabric)

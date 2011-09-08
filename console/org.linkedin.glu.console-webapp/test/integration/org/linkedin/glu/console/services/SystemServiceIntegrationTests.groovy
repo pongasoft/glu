@@ -85,4 +85,50 @@ class SystemServiceIntegrationTests extends GroovyTestCase
     assertEquals('json', currentModel.contentSerializer)
     assertEquals(model2, currentModel.systemModel)
   }
+
+  public void testSetAsCurrentSystem()
+  {
+    SystemModel model1 = new SystemModel(fabric: 'f1')
+    model1.addEntry(new SystemEntry(agent: 'h1', script: 's1', mountPoint: '/m1'))
+
+    SystemModel model2 = new SystemModel(fabric: 'f1')
+    model2.addEntry(new SystemEntry(agent: 'h2', script: 's2', mountPoint: '/m2'))
+
+    SystemModel model3 = new SystemModel(fabric: 'f2')
+    model2.addEntry(new SystemEntry(agent: 'h3', script: 's3', mountPoint: '/m3'))
+
+    assertTrue(systemService.saveCurrentSystem(model1))
+    model1 = systemService.findCurrentSystem('f1')
+
+    // setting the current system to be model1: already model1 => return false
+    assertFalse(systemService.setAsCurrentSystem('f1', model1.id))
+
+    // changing current system to model2
+    assertTrue(systemService.saveCurrentSystem(model2))
+    model2 = systemService.findCurrentSystem('f1')
+
+    // should be the new one
+    assertNotSame(model1.id, model2.id)
+
+    // now resetting current system to model1 => return true
+    assertTrue(systemService.setAsCurrentSystem('f1', model1.id))
+    assertEquals(model1.id, systemService.findCurrentSystem('f1').id)
+
+    // saving model3 as current system (in fabric f2!)
+    assertTrue(systemService.saveCurrentSystem(model3))
+    model3 = systemService.findCurrentSystem('f2')
+
+    // should not affect f1!
+    assertEquals(model1.id, systemService.findCurrentSystem('f1').id)
+
+    // trying to set as current a system from a different fabric should fail
+    shouldFail(IllegalArgumentException) {
+      systemService.setAsCurrentSystem('f1', model3.id)
+    }
+
+    // trying to set an unknown system should fail
+    shouldFail(IllegalArgumentException) {
+      systemService.setAsCurrentSystem('f1', 'unknown system')
+    }
+  }
 }

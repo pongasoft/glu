@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -14,7 +15,7 @@
   - the License.
   --}%
 
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="org.linkedin.glu.grails.utils.ConsoleConfig" contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
   <title>GLU Console - View System ${params.id}</title>
@@ -28,6 +29,9 @@
     padding: 0.2em;
     text-align: center;
   }
+  .current {
+    background: #eeeeff;
+  }
   </style>
 </head>
 <body>
@@ -37,14 +41,17 @@
   <li><g:link action="delta">Current</g:link></li>
   <li class="selected">View [${params.id}]</li>
 </ul>
-<g:if test="${system}">
-  <g:render template="system" model="[systems: [system]]"/>
+<g:if test="${systemDetails}">
+  <g:set var="editable" value="${!ConsoleConfig.getInstance().defaults.disableModelUpdate}"/>
+  <g:render template="system" model="[systems: [systemDetails]]"/>
   <g:form action="save" method="post">
-    <textarea rows="40" cols="150" id="content" name="content">${params.content ?: system.systemModel}</textarea>
+    <textarea rows="40" cols="150" id="content" name="content" ${editable ? '' : 'readonly="true"'}>${params.content ?: systemDetails.systemModel}</textarea>
     <g:hiddenField name="id" value="${params.id}"/>
-    <div class="buttons">
-      <span class="button"><input class="save" type="submit" value="Save changes"/></span>
-    </div>
+    <g:if test="${editable}">
+      <div class="buttons">
+        <span class="button"><input class="save" type="submit" value="Save changes"/></span>
+      </div>
+    </g:if>
   </g:form>
 </g:if>
 <g:else>

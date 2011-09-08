@@ -35,6 +35,8 @@ public interface SystemStorage
 
   void saveCurrentSystem(SystemModel systemModel)
 
+  boolean setAsCurrentSystem(String fabric, String systemId)
+
   /**
    * params can be what grails accept for paginating queries: <code>max</code>,
    * <code>offset</code>, <code>sort</code>, <code>order</code>

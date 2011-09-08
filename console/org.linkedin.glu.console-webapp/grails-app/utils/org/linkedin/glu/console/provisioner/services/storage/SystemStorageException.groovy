@@ -30,6 +30,11 @@ public class SystemStorageException extends Exception
   {
   }
 
+  SystemStorageException(String msg)
+  {
+    super(msg)
+  }
+
   SystemStorageException(Errors errors)
   {
     super(errors?.toString())

@@ -45,6 +45,14 @@ public interface SystemService
   boolean saveCurrentSystem(SystemModel newSystemModel)
 
   /**
+   * Sets the system provided its id as the current system
+   *
+   * @return <code>false</code> if the provided system is already the current system,
+   * <code>true</code> otherwise
+   */
+  boolean setAsCurrentSystem(String fabric, String systemId)
+
+  /**
    * @return the number of systems in the fabric
    */
   int getSystemsCount(String fabric)

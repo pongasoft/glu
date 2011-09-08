@@ -120,6 +120,8 @@ console.dev.defaults =
         'metadata.cluster': [name: 'cluster']
       ],
 
+    disableModelUpdate: false,
+
       model:
       [
           [

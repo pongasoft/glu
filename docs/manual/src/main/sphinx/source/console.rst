@@ -254,6 +254,19 @@ This configuration results in the following output:
 * the key represent the :term:`dotted notation` of an entry (see: :ref:`goe-filter-syntax` for more details and examples on the dotted notation)
 * the value is a map with (currently) one entry only: ``name`` which represents the (display) name of the column
 
+.. note:: Since 3.3.0, it takes effect only when showing a single system: for performance reasons the page which shows the list of systems no longer fetches the system and as such cannot display this information
+
+Non Editable Model
+""""""""""""""""""
+
+You can enable or disable the fact that a system model is editable or not by changing the following property::
+
+     disableModelUpdate: false,
+
+By default, the model is editable which means that there is a ``Save Changes`` button and the text area containing the body is editable. Changing this value to ``true`` removes the button and makes the text area non editable anymore.
+
+.. note:: Even if the model is not editable, it is always possible to *load* a new one by going to the ``Model`` tab. The idea behind this feature is to enforce the fact that the model should be properly versioned outside of glu and changing it should go through a proper flow that is beyond the scope of glu.
+
 Model
 """""
 

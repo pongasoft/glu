@@ -127,6 +127,11 @@ console.defaults =
           ]
       ],
 
+    // set this value to true if you don't want to allow for model update (the text area)
+    // meaning you can only load a new model
+    disableModelUpdate: false,
+
+
       header:
       [
           metadata: ['drMode']

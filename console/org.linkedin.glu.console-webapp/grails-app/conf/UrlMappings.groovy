@@ -153,6 +153,7 @@ class UrlMappings
 
     // system
     "/admin/system/save"(controller: 'system', action: 'save') { __nvbe = 'System' }
+    "/admin/system/setAsCurrent"(controller: 'system', action: 'setAsCurrent') { __nvbe = 'System' }
     "/admin/system/addEntry"(controller: 'system', action: 'addEntry') { __nvbe = 'System' }
 
     // audit log

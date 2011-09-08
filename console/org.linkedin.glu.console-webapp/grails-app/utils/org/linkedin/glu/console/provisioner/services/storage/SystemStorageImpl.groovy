@@ -95,6 +95,38 @@ public class SystemStorageImpl implements SystemStorage
   }
 
   @Override
+  boolean setAsCurrentSystem(String fabric, String systemId)
+  {
+    boolean res = false
+
+    DbSystemModel.withTransaction { TransactionStatus txStatus ->
+      DbSystemModel dbSystem = DbSystemModel.findBySystemId(systemId)
+
+      DbCurrentSystem dbc = DbCurrentSystem.findByFabric(fabric, [cache: false])
+
+      if(dbc)
+      {
+        res = dbc.systemModel.systemId != systemId
+        dbc.systemModel = dbSystem
+      }
+      else
+      {
+        dbc = new DbCurrentSystem(systemModel: dbSystem,
+                                  fabric: fabric)
+        res = true
+      }
+
+      if(!dbc.save())
+      {
+        txStatus.setRollbackOnly()
+        throw new SystemStorageException(dbc.errors)
+      }
+    }
+
+    return res
+  }
+
+  @Override
   int getSystemsCount(String fabric)
   {
     DbSystemModel.countByFabric(fabric)
