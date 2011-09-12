@@ -25,16 +25,36 @@ import org.linkedin.util.annotations.Initializable
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
 import org.linkedin.util.clock.Timespan
+import org.linkedin.util.lifecycle.Startable
+import org.linkedin.util.lifecycle.Destroyable
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.linkedin.groovy.util.clock.ClosureTimerTask
+import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
 
 /**
  * System service.
  *
  * @author ypujante@linkedin.com */
-class DeploymentServiceImpl implements DeploymentService
+class DeploymentServiceImpl implements DeploymentService, Startable, Destroyable
 {
+  public static final String MODULE =  DeploymentServiceImpl.class.getName();
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
+
   // we keep entries in the plan cache no more than 5m
   @Initializable
   Timespan planCacheTimeout = Timespan.parse('5m')
+
+  /**
+   * How often to run the auto archive timer
+   */
+  @Initializable
+  Timespan autoArchiveTimerFrequency = Timespan.parse('1m')
+
+  // we keep entries (<code>CurrentDeployment</code>) in memory no longer than the provided
+  // time (set it to <code>null</code> (or 0) if you do not want to auto archive)
+  @Initializable
+  Timespan autoArchiveTimeout = Timespan.parse('30m')
 
   @Initializable
   Clock clock = SystemClock.INSTANCE
@@ -50,6 +70,31 @@ class DeploymentServiceImpl implements DeploymentService
 
   private Map<String, CurrentDeployment> _deployments = [:]
   private Map<String, Plan> _plans = [:]
+
+  private Timer _autoArchiveTimer = null
+
+  @Override
+  void destroy()
+  {
+    _autoArchiveTimer?.cancel()
+  }
+
+  @Override
+  void start()
+  {
+    if(autoArchiveTimeout?.durationInMilliseconds > 0)
+    {
+      log.info("Starting auto-archive thread")
+      _autoArchiveTimer = new Timer("DeploymentServiceTimer", true)
+      _autoArchiveTimer.scheduleAtFixedRate(new ClosureTimerTask(autoArchiveClosure),
+                                            autoArchiveTimerFrequency.durationInMilliseconds,
+                                            autoArchiveTimerFrequency.durationInMilliseconds)
+    }
+    else
+    {
+      log.info("Auto-archive thread not started")
+    }
+  }
 
   Plan<ActionDescriptor> getPlan(String id)
   {
@@ -130,6 +175,31 @@ class DeploymentServiceImpl implements DeploymentService
       {
         return false
       }
+    }
+  }
+
+  /**
+   * run on a regular basis to automatically archive 'old' deployments. YP implementation note: the
+   * check on 'old' is based on when the deployment was completed!
+   */
+  def autoArchiveClosure = {
+    synchronized(_deployments)
+    {
+      def cutoffTime = autoArchiveTimeout.pastTimeMillis(clock)
+
+      def deploymentsToArchive = _deployments.values().findAll { CurrentDeployment deployment ->
+        IStepCompletionStatus status = deployment.planExecution.completionStatus
+
+        // completed more than 'cutoff' time ago
+        return status != null && status.endTime <= cutoffTime
+      }
+
+      deploymentsToArchive.each {
+        _deployments.remove(it.id)
+      }
+
+      if(deploymentsToArchive.size())
+        log.info "Auto-archived ${deploymentsToArchive.size()} deployments"
     }
   }
 

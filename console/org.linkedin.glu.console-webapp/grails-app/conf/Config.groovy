@@ -30,6 +30,9 @@ console.secretkeystorePath = "/dev/null"
 // if you want to restrict access to some subdirectory between agent and console
 console.authorizationService.unrestrictedLocation = "/"
 
+// set to '0' if you don't want deployments to be automatically archived
+console.deploymentService.autoArchiveTimeout = "30m"
+
 // connection timeout when the console tries to talk to the agent (rest)
 console.to.agent.connectionTimeout = "30s"
 

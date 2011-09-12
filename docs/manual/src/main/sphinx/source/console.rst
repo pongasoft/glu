@@ -159,6 +159,18 @@ You can configure LDAP for handling user management in the console. See :ref:`co
   ldap.search.pass="helloworld"
   ldap.username.attribute="sAMAccountName"
 
+Tuning
+^^^^^^
+
+Deployments auto-archive
+""""""""""""""""""""""""
+
+The plans page displays the list of deployments that have happened recently. Since 3.3.0, items in this list are automatically archived after 30 minutes. You can tune this property or simply disable automatic archiving by adding the following property::
+
+  // set it to "0" if you want to disable auto archiving entirely
+  console.deploymentService.autoArchiveTimeout = "30m"
+
+
 UI configuration
 ^^^^^^^^^^^^^^^^
 

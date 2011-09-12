@@ -55,7 +55,9 @@ public class InMemoryDeploymentStorage implements DeploymentStorage
   @Override
   ArchivedDeployment startDeployment(String description, String fabric, String username, String details)
   {
-    ArchivedDeployment deployment = new ArchivedDeployment(id: ++lastDeploymentId.toString(),
+    lastDeploymentId++
+
+    ArchivedDeployment deployment = new ArchivedDeployment(id: lastDeploymentId.toString(),
                                                            username: username,
                                                            fabric: fabric,
                                                            startDate: clock.currentDate(),

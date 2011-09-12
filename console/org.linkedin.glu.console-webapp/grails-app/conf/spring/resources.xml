@@ -186,11 +186,18 @@
   <!-- deploymentService           -->
   <!-- *********************** -->
   <bean id="_deploymentServiceImpl"
-        class="org.linkedin.glu.orchestration.engine.deployment.DeploymentServiceImpl">
+        class="org.linkedin.glu.orchestration.engine.deployment.DeploymentServiceImpl"
+        init-method="start"
+        destroy-method="destroy">
     <property name="authorizationService" ref="authorizationService"/>
     <property name="deployer" ref="deployer"/>
     <property name="deploymentStorage">
       <bean class="org.linkedin.glu.console.provisioner.services.storage.DeploymentStorageImpl"/>
+    </property>
+    <property name="autoArchiveTimeout">
+      <bean class="org.linkedin.util.clock.Timespan" factory-method="parse">
+        <constructor-arg value="${console.deploymentService.autoArchiveTimeout}"/>
+      </bean>
     </property>
   </bean>
 
