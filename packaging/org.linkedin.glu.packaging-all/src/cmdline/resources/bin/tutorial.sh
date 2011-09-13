@@ -40,6 +40,8 @@ setup()
  $BASEDIR/bin/setup-agent.sh -f $GLU_FABRIC -n $GLU_AGENT_NAME -d $BASEDIR/agent-server
  echo "### Stopping ZooKeeper..."
  $BASEDIR/bin/zookeeper-server.sh stop
+ echo "### Initializing Console..."
+ $BASEDIR/bin/console-server.sh check
  echo "### Done."
 }
 

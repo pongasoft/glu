@@ -103,7 +103,63 @@ The console uses a database to store some of its data (like the audit log, user 
    dataSource.dbCreate = "update"
    dataSource.url = dataSourceUrl
 
-.. note:: Coming Soon: ability to change the database provider entirely.
+.. _console-configuration-database-mysql:
+
+Example for a different database: MySql
+"""""""""""""""""""""""""""""""""""""""
+
+Here are the steps to follow in order to use MySql instead of HSQLDB (the steps would be very similar for a different database!)
+
+* Download and install MySql on your system (don't forget to start it!)
+
+* Connect to MySql and create the ``glu`` user::
+
+    sudo /usr/local/mysql/bin/mysql
+    mysql> create database glu;
+    mysql> show databases;
+    mysql> create user 'glua'@'localhost' identified by 'password';
+    mysql> grant all on glu.* to 'glua'@'localhost';
+
+  .. warning:: This values are obviously just example values (they simply need to be plugged in the right place in the configuration file (see below)).
+
+* Download the MySql `driver <http://www.mysql.com/downloads/connector/j/>`_
+
+* Copy the driver (in this example it is called ``mysql-connector-java-5.1.17-bin.jar``) to ``console-server/jetty-distribution-7.2.2.v20101205/lib/ext``
+
+  .. note:: You may need to run ``./bin/tutorial.sh setup`` in order to create the proper folder structure first!
+
+* Edit the glu configuration file (``console-server/conf/glu-console-webapp.groovy``) to input the proper values::
+
+    // 'glu' is the name of the database created previously
+    def dataSourceUrl = "jdbc:mysql://localhost/glu"
+    dataSource.dbCreate = "update"
+    dataSource.url = dataSourceUrl
+    dataSource.logSql=false // set to true for details (+ open trace logging level)
+    dataSource.dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
+    dataSource.driverClassName = "com.mysql.jdbc.Driver"
+    dataSource.username= "glua" // user created previously
+    dataSource.password = "password" // password assigned previously
+
+* Start the console
+
+* You can check that MySql is being used::
+
+    mysql> use glu;
+    mysql> show tables;
+    +---------------------+
+    | Tables_in_glu       |
+    +---------------------+
+    | audit_log           |
+    | db_current_system   |
+    | db_deployment       |
+    | db_system_model     |
+    | db_user_credentials |
+    | fabric              |
+    | role                |
+    | user                |
+    | user_permissions    |
+    | user_role           |
+    +---------------------+
 
 Logging
 ^^^^^^^

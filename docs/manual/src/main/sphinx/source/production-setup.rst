@@ -333,6 +333,8 @@ If the keys, passwords and everything is fine, you will get ``[/]`` which is a l
 Step 8: Install the console
 ---------------------------
 
+.. warning:: The default configuration uses HSQLDB for the database. In a production setup, it is **not** recommended to use HSQLDB. Check the section :ref:`console-configuration-database-mysql` for details on how to configure a different database.
+
 Option 1: Install the war file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -364,5 +366,4 @@ The console will output a log file called ``console.log`` under ``jetty-distribu
 
 .. tip::
    If you use this option, the documentation is automatically available when you start the server, under ``http://<consolehost>:8080/glu/docs/html/index.html``
-
 
