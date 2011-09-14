@@ -27,9 +27,6 @@
   li {
    list-style: none;
   }
-  td {
-    padding: 0.5em;
-  }
   input.stepCheckBox {
     display: none;
   }

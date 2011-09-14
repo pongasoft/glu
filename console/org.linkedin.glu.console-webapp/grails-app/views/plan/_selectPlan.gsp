@@ -15,26 +15,32 @@
   --}%
 <%@ page import="org.linkedin.groovy.util.json.JsonUtils; org.linkedin.glu.provisioner.plan.api.IStep.Type" %>
 <div id="select-plan">
-<h1 class="${hasDelta ? 'hasDelta' : ''}">${title} ${hasDelta ? '(delta)' : ''}</h1>
-<g:form controller="plan" action="redirectView">
-  <select name="planDetails" onchange="${remoteFunction(controller: 'plan', action:'create', update:[success:'plan-preview'], params: "'json=' + this.value")}">
-    <option value="{}" selected="true">Choose Plan</option>
-    <g:if test="${hasDelta}">
+  <g:form controller="plan" action="redirectView">
+    <table id="select-plan-radio">
       <g:each in="${['SEQUENTIAL', 'PARALLEL']}" var="stepType">
-          <option value="${JsonUtils.toJSON([planType: 'Deploy', stepType: stepType, name: 'Deploy - ' + title, systemFilter: filter]).encodeAsHTML()}">Deploy - ${title} - ${stepType} [*]</option>
+        <tr>
+          <th colspan="3">${title}</th>
+        </tr>
+        <g:each in="['Deploy', 'Bounce', 'Redeploy', 'Undeploy']" var="planType">
+          <g:if test="${planType != 'Deploy' || hasDelta}">
+            <tr class="${planType.toUpperCase()}">
+              <td>${planType}</td>
+              <td>${stepType}</td>
+              <td><input type="radio" name="planDetails" value="${JsonUtils.toJSON([planType: planType, stepType: stepType, name: planType + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="${remoteFunction(controller: 'plan', action:'create', update:[success:'plan-preview'], params: "'json=' + this.value")}" /></td>
+            </tr>
+          </g:if>
+        </g:each>
       </g:each>
-    </g:if>
-    <g:each in="['Bounce', 'Redeploy', 'Undeploy']" var="planType">
-      <g:each in="${['SEQUENTIAL', 'PARALLEL']}" var="stepType">
-          <option value="${JsonUtils.toJSON([planType: planType, stepType: stepType, name: planType + ' - ' + title, systemFilter: filter]).encodeAsHTML()}">${planType} - ${title} - ${stepType}</option>
-      </g:each>
-    </g:each>
-  </select>
-  <input type="submit" name="view" value="Select this plan" onClick="document.getElementById('planIdSelector').value=document.getElementById('planId').value;return true;">
-  <input type="hidden" name="planId" id="planIdSelector" value="undefined" />
-  <span class="spinner" style="display:none;">
-    <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" />
-  </span>
-</g:form>
-<div id="plan-preview" class="planDetails"></div>
+      <tr>
+        <td colspan="3" align="center">
+          <input type="submit" name="view" value="Select this plan" onClick="document.getElementById('planIdSelector').value=document.getElementById('planId').value;return true;">
+          <input type="hidden" name="planId" id="planIdSelector" value="undefined" />
+          <span class="spinner" style="display:none;">
+            <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" />
+          </span>
+        </td>
+      </tr>
+    </table>
+    <div id="plan-preview" class="planDetails">Select a plan</div>
+  </g:form>
 </div>

@@ -21,6 +21,10 @@ body {
   font: 13px arial, helvetica, sans-serif;
 }
 
+dl {
+  margin-top: 1px;
+}
+
 table {
   border-collapse: collapse;
 }
@@ -287,6 +291,25 @@ ul.tags.with-links a:hover {
   text-decoration: none;
 }
 
-#select-plan h1.hasDelta {
-  color: red;
+#footer {
+  clear: both;
+}
+
+#select-plan {
+  border-top: solid 1px #eeeeee;
+  padding-top: .5em;
+  margin-top: .5em;
+}
+
+#select-plan #select-plan-radio {
+  float: left;
+}
+
+#select-plan #select-plan-radio .DEPLOY {
+  background: #ffdddd;
+}
+
+#select-plan #plan-preview {
+  margin-left: .5em;
+  float: left;
 }
