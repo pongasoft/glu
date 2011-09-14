@@ -320,13 +320,15 @@ class DeltaServiceImpl implements DeltaService
 
     groupByColumn0.each { column0, list ->
       def errors = list.findAll { it.state == DeltaState.ERROR }
+      def deltas = list.findAll { it.status == "delta" }
 
       def row = [
           instancesCount: list.size(),
-          errorsCount: errors.size()
+          errorsCount: errors.size(),
+          deltasCount: deltas.size()
       ]
 
-      row.state = expectedSystem ? (row.errorsCount > 0 ? 'ERROR' : 'OK') : 'UNKNOWN'
+      row.state = expectedSystem ? (row.errorsCount > row.deltasCount ? 'ERROR' : row.deltasCount > 0 ? 'DELTA' : 'OK') : 'UNKNOWN'
       row.na = list.find { it.state == DeltaState.NA} ? 'NA' : ''
 
       def entries = isErrorsFilter ? errors : list
