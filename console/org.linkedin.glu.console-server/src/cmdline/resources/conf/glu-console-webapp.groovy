@@ -86,6 +86,9 @@ log4j = {
 
 console.defaults =
   [
+      // customCss can be a String (use """ notation in order to make it easy) or a URI
+      customCss: null,
+
       dashboard:
       [
           mountPoint: [checked: true, name: 'mountPoint', groupBy: true, linkFilter: true],

@@ -90,6 +90,8 @@ grails.enable.native2ascii = true
 // see ConsoleConfig for explanation
 console.dev.defaults =
   [
+    customCss: null,
+    
       dashboard:
       [
           mountPoint: [checked: true, name: 'mountPoint', groupBy: true, linkFilter: true],

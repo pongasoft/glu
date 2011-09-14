@@ -50,6 +50,7 @@
     <cl:renderTagsCss/>
   </style>
   <g:layoutHead/>
+  <cl:renderCustomCss/>
   <g:javascript library="prototype" />
   <g:javascript library="yui" />
   <g:javascript src="prototype/effects.js" />

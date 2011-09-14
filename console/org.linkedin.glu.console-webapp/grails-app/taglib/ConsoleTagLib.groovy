@@ -258,6 +258,20 @@ public class ConsoleTagLib
   }
 
   /**
+   * Renders the custom css section
+   */
+  def renderCustomCss = { args ->
+    def customCss = ConsoleConfig.getInstance().defaults.customCss
+    if(customCss)
+    {
+      if(customCss instanceof URI)
+        out << "<link rel=\"stylesheet\" href=\"${customCss.toString()}\"/> "
+      else
+        out << "<style type=\"text/css\">${customCss.toString()}</style>"
+    }
+  }
+
+  /**
    * Create a link to the system filter page
    */
   def linkToSystemFilter = { args, body ->

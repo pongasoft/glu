@@ -237,6 +237,24 @@ The UI is configured in the ``console.defaults`` section of the configuration fi
     ... configuration goes here ...
   ]
 
+Custom Css
+""""""""""
+
+If you want to customize the look and feel of the console and override or tweak any css value, you can provide your own custom css. Possible values are ``null`` (or simply non existent), ``String`` or ``URI``::
+
+      // no custom css
+      customCss: null
+
+      // as a String (using groovy """ notation makes it convenient)
+      customCss: """
+        .OK {
+          background: green;
+        }
+      """
+
+      // as a URI (for security reasons should be local!)
+      customCss: new URI("/glu/repository/css/custom.css")
+
 Dashboard
 """""""""
 The dashboard can be configured with the following section::
