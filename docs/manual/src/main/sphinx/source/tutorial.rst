@@ -207,7 +207,7 @@ Loading the model
 
 2. Click on the ``'System'`` tab.
 
-3. Click on the ``'Current'`` subtab. You should see a drop down below ``"Fabric [glu-dev-1] (delta)"`` which says ``'Choose Plan'``. Select the one called ``Deploy - Fabric[glu-dev-1] - PARALLEL [*]``. It should immediately shows you the list of actions (and their ordering) that are going to be accomplished to 'fix' the delta.
+3. Click on the ``'Current'`` subtab. You should see a table at the bottom of the page with ``Select a plan`` right next to it. Select the radio group control in the table that says ``Deploy PARALLEL`` (the row should be highlighted in red). It should immediately shows you the list of actions (and their ordering) that are going to be accomplished to 'fix' the delta.
 
 4. Click ``'Select this plan'``.
 
@@ -331,7 +331,7 @@ Changing the model
 
 5. Click on ``'/sample/i002'`` and you land on a filtered view containing only the mountPoint you clicked on.
 
-6. Choose the plan named ``'Deploy: mountPoint [/sample/i002] - SEQUENTIAL [*]'``. Note that since there is only 1 entry, choosing ``SEQUENTIAL`` or ``PARALLEL`` will have the same effect.
+6. Choose ``'Deploy / SEQUENTIAL'``. Note that since there is only 1 entry, choosing ``SEQUENTIAL`` or ``PARALLEL`` will have the same effect.
 
    .. image:: /images/tutorial/tutorial-select-plan-2.png
       :align: center

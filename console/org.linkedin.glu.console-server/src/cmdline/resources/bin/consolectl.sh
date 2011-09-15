@@ -28,6 +28,7 @@ if [ ! -d $JETTY_DISTRIBUTION ]; then
   rm -rf $JETTY_DISTRIBUTION/contexts/*
   rm -rf $JETTY_DISTRIBUTION/webapps/*
   cp $BASEDIR/conf/*-jetty-context.xml $JETTY_DISTRIBUTION/contexts
+  touch $JETTY_DISTRIBUTION/logs/console.log
   chmod +x $JETTY_DISTRIBUTION/bin/*.sh
 fi
 
