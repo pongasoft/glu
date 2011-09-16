@@ -237,6 +237,8 @@ The UI is configured in the ``console.defaults`` section of the configuration fi
     ... configuration goes here ...
   ]
 
+.. _console-configuration-custom-css:
+
 Custom Css
 """"""""""
 
@@ -341,6 +343,8 @@ This configuration results in the following output:
 * the value is a map with (currently) one entry only: ``name`` which represents the (display) name of the column
 
 .. note:: Since 3.3.0, it takes effect only when showing a single system: for performance reasons the page which shows the list of systems no longer fetches the system and as such cannot display this information
+
+.. _console-configuration-non-editable-model:
 
 Non Editable Model
 """"""""""""""""""

@@ -1,6 +1,32 @@
 Latest changes
 ==============
 
+3.3.0 (2011/09/16)
+------------------
+
+This release features the following:
+
+* Performance tuning (minimizing GC) based on LinkedIn feedback
+* UI change: text area for modifying the model can be (optionally) made non editable (see :ref:`documentation <console-configuration-non-editable-model>`)
+* UI change: selecting the current system/model is done through a radio group selection under the ``System`` tab
+* UI change: selecting a plan is no longer a drop down selection (this was discussed in the `forum <http://glu.977617.n3.nabble.com/RFC-Selecting-a-plan-proposal-td3333742.html>`_)
+* UI change: on the dashboard, there is now a different color for ``DELTA`` vs ``ERROR``
+* UI customization: added powerful ability to provide your own custom stylesheet (see :ref:`documentation <console-configuration-custom-css>`) allowing you to easily tweak the rendering (colors, layout, etc...)
+* Added documentation example on how to use a :ref:`different database <console-configuration-database-mysql>` with glu (MySql in this example)
+
+List of tickets:
+
+* Implemented `glu-76 <https://github.com/linkedin/glu/issues/76>`_: `Allow database configuration for the console`
+* Implemented `glu-77 <https://github.com/linkedin/glu/issues/77>`_: `Do not fetch full json model on System page`
+* Implemented `glu-78 <https://github.com/linkedin/glu/issues/78>`_: `Make System Text Area optionally read only`
+* Implemented `glu-79 <https://github.com/linkedin/glu/issues/79>`_: `keeping completed plans in unarchived state causes memory pressure`
+* Implemented `glu-89 <https://github.com/linkedin/glu/issues/89>`_: `make delta distinct from error in console`
+* Implemented `glu-93 <https://github.com/linkedin/glu/issues/93>`_: `Issue #89: make delta distinct from error in console` (thanks Richard)
+* Implemented `glu-94 <https://github.com/linkedin/glu/issues/94>`_: `fix typo in hello-world sample` (thanks Vincent)
+* Implemented `glu-96 <https://github.com/linkedin/glu/issues/96>`_: `Make plan selection easier`
+
+Thanks to Richard and Vincent for the contributions to this release.
+
 3.2.0 (2011/07/31)
 ------------------
 
