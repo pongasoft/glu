@@ -18,14 +18,11 @@
 
 package org.linkedin.glu.agent.rest.client
 
-import javax.net.ssl.SSLContext
-import org.restlet.Client
-import org.restlet.data.Protocol
-import org.restlet.data.Reference
 import org.linkedin.groovy.util.config.Config
-import org.linkedin.util.clock.Timespan
-import org.linkedin.util.annotations.Initializable
-import org.restlet.Context
+import org.restlet.Client
+import org.restlet.data.Reference
+import org.linkedin.util.annotations.Initializer
+import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 
 /**
  * Implementation which will create {@link AgentRestClient}.
@@ -34,102 +31,43 @@ import org.restlet.Context
  */
 class AgentFactoryImpl implements AgentFactory
 {
-  private final Map<String, String> _paths
-  private final SSLContext _sslContext
-  private final Integer _agentPort
+  public static final def DEFAULT_MAPPINGS =
+    ['agent', 'mountPoint', 'host', 'process', 'log', 'file', 'tags']
 
-  @Initializable
-  Timespan connectionTimeout = Timespan.parse('30s')
-
-  AgentFactoryImpl(Map<String, String> paths,
-                   Integer agentPort,
-                   SSLContext sslContext)
-  {
-    _agentPort = agentPort
-    _paths = paths
-    _sslContext = sslContext
+  public static final def DEFAULT_PATHS = GroovyCollectionsUtils.toMapKey(DEFAULT_MAPPINGS) {
+    "/${it}".toString()
   }
 
-  def withRemoteAgent(String host, Closure closure)
+  Map<String, String> paths = DEFAULT_PATHS
+  RestClientFactory restClientFactory
+
+  @Initializer
+  void setPaths(config)
   {
-    URI uri
-    if (_sslContext)
-    {
-      uri = new URI("https://${host}:${_agentPort}")
+    DEFAULT_MAPPINGS.each { name ->
+      paths[name] =
+        Config.getOptionalString(config, "${name}Path".toString(), "/${name}".toString())
     }
-    else
-    {
-      uri = new URI("http://${host}:${_agentPort}")
-    }
-    withRemoteAgent(uri, closure)
   }
 
   def withRemoteAgent(URI agentURI, Closure closure)
   {
-    def client
-    def protocol
+    restClientFactory.withRestClient(agentURI) { Client client ->
+      def protocol = client.protocols[0]
+      def baseRef = new Reference(protocol, agentURI.host, agentURI.port)
+      Map<String, Reference> references = [:]
 
-    switch(agentURI.scheme)
-    {
-      case 'http':
-        protocol = Protocol.HTTP
-        client = new Client(null, [protocol] as List, 'org.restlet.ext.httpclient.HttpClientHelper')
-        client.connectTimeout = connectionTimeout.durationInMilliseconds
-        break;
+      paths.each { name, path ->
+        references[name] = new Reference(baseRef, path)
+      }
 
-      case 'https':
-        protocol = Protocol.HTTPS
-        Context context = new Context()
-        context.attributes['serverURI'] = agentURI
-        context.attributes['sslContext'] = _sslContext
-        client = new Client(context, [protocol] as List, HttpsClientHelper.class.name)
-        client.connectTimeout = connectionTimeout.durationInMilliseconds
-        break;
-
-      default:
-        throw new IllegalArgumentException("unsupported scheme ${agentURI.scheme}")
-    }
-
-    def baseRef = new Reference(protocol, agentURI.host, agentURI.port)
-
-    Map<String, Reference> references = [:]
-
-    _paths.each { name, path ->
-      references[name] = new Reference(baseRef, path)
-    }
-
-    def agent = new AgentRestClient(client, references)
-
-    try
-    {
-      client.start()
-
-      return closure(agent)
-    }
-    finally
-    {
-      client.stop()
+      return closure(new AgentRestClient(client, references))
     }
   }
 
   static AgentFactory create(config)
   {
-    SSLContext sslContext
-    
-    if(Config.getOptionalBoolean(config, 'sslEnabled', true))
-    {
-      sslContext = HttpsClientHelper.initSSLContext(config)
-    }
-
-    def references = [:]
-
-    ['agent', 'mountPoint', 'host', 'process', 'log', 'file', 'tags'].each { name ->
-      references[name] =
-        Config.getOptionalString(config, "${name}Path".toString(), "/${name}".toString())
-    }
-
-    return new AgentFactoryImpl(references,
-                                Config.getOptionalInt(config, 'agentPort', 12906),
-                                sslContext)
+    new AgentFactoryImpl(restClientFactory: RestClientFactoryImpl.create(config),
+                         paths: config)
   }
 }

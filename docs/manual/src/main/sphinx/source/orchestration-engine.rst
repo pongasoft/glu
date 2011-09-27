@@ -426,6 +426,9 @@ Main URI: ``/console/rest/v1/<fabric>`` (all the URIs in the following table sta
 |``GET``    |``/agent/<agentName>``                     |View details about the agent      |:ref:`view <goe-rest-api-get-agent>`      |
 |           |                                           |                                  |                                          |
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``PUT``    |``/agent/<agentName>/fabric``              |Sets the fabric for the agent     |:ref:`view                                |
+|           |                                           |                                  |<goe-rest-api-put-agent-fabric>`          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
 |``GET``    |``/agents/versions``                       |List all the agents versions      |:ref:`view                                |
 |           |                                           |                                  |<goe-rest-api-get-agents-versions>`       |
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
@@ -504,6 +507,18 @@ Main URI: ``/console/rest/v1/<fabric>`` (all the URIs in the following table sta
 |           |                                           |                                  |                                          |
 |           |                                           |                                  |                                          |
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+
+Any fabric related URI: ``/console/rest/v1/-`` (all the URIs in the following table start with this URI)
+
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|Method     |URI                                        |Description                       |Details                                   |
++===========+===========================================+==================================+==========================================+
+|``GET``    |``/``                                      |Returns the list of fabrics       |:ref:`view <goe-rest-api-get-fabrics>`    |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/agents``                                |Returns the map of associations   |:ref:`view                                |
+|           |                                           |agent -> fabric                   |<goe-rest-api-get-agents-fabrics>`        |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+
 
 .. _goe-rest-api-head-agents:
 
@@ -626,6 +641,37 @@ View agent details
        "glu.agent.zkSessionTimeout": "5s",
        "glu.agent.zookeeper.root": "/org/glu"
     }}
+
+.. _goe-rest-api-put-agent-fabric:
+
+Assign a fabric to an agent
+"""""""""""""""""""""""""""
+
+* Description: Assigns a fabric to an agent (and optionally configures it)
+
+* Request: ``PUT /agent/<agentName>/fabric``
+
+  optional request parameters:
+
+  * ``host=<ip or hostname>`` for configuring the agent using the ip or the hostname of the agent (this assumes that the configuration port is ``12907``)
+  * ``uri=<configuration uri>`` for configuring the agent using the given uri (this form allows you to use a different port (ex: ``http://x.x.x.x:13906/config``))
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+  * ``400`` (``BAD REQUEST``) if missing or unknown fabric
+  * ``409`` (``CONFLICT``) when the configuration phase failed
+
+* Example::
+
+     curl -v -u "glua:password" -X PUT "http://localhost:8080/console/rest/v1/glu-dev-1/agent/xeon/fabric?host=127.0.0.1"
+     < HTTP/1.1 200 OK
+
+.. tip:: "Configuring" the agent means that the orchestration engine will issue a REST call to the agent with its own ZooKeeper connect string as configuration. This allows the use case where the agent is started without a ZooKeeper at all, so the agent is simply waiting for somebody to tell it where is his ZooKeeper.
+         This is what you see in the agent log::
+
+             Waiting for glu.agent.zkConnectString (rest:put:http://xeon.local:12907)
+
 
 .. _goe-rest-api-get-agents-versions:
 
@@ -1275,6 +1321,70 @@ View delta
 * Response:
 
   * ``200`` (``OK``) with a json representation of the delta
+
+.. _goe-rest-api-get-fabrics:
+
+List all the fabrics
+""""""""""""""""""""
+
+* Description: List all the fabrics
+
+* Request: ``GET /``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-count`` with the number of fabrics
+    * body: json array of fabric names
+
+* Example::
+
+     curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/-?prettyPrint=true"
+     < HTTP/1.1 200 OK
+     < X-glu-count: 2
+     < Content-Type: text/json
+     [
+       "glu-dev-1",
+       "glu-dev-2"
+     ]
+
+.. _goe-rest-api-get-agents-fabrics:
+
+List all the agents fabrics
+"""""""""""""""""""""""""""
+
+* Description: Returns the map of association agent -> fabric
+
+* Request: ``GET /agents``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-count`` with the number of entries in the map
+    * body: json map where the key is agent name and the value is the fabric
+
+* Example::
+
+     curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/-/agents?prettyPrint=true"
+     < HTTP/1.1 200 OK
+     < X-glu-count: 2
+     < Content-Type: text/json
+     {
+       "agent-1": "glu-dev-1",
+       "xeon.local": "glu-dev-1"
+     }
+
+.. warning:: This api (``/rest/v1/-/agents``) which returns a map of association agent -> fabric should not be mistaken with the api ``/rest/v1/<fabric>/agents`` which specifies the fabric and list all agents in a given fabric!
 
 API Examples
 ^^^^^^^^^^^^

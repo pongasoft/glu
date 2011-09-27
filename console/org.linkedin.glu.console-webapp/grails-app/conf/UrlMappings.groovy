@@ -281,6 +281,27 @@ class UrlMappings
     }
 
     /**
+     * fabric
+     */
+    "/rest/v1/-"(controller: 'fabric') {
+      action = [
+        GET: 'rest_list_fabrics'
+      ]
+    }
+
+    "/rest/v1/-/agents"(controller: 'fabric') {
+      action = [
+        GET: 'rest_list_agents_fabrics'
+      ]
+    }
+
+    "/rest/v1/$fabric/agent/$id/fabric"(controller: 'fabric') {
+      action = [
+        PUT: 'rest_set_agent_fabric'
+      ]
+    }
+
+    /**
      * DEPRECATED: kept for backward compatibility only
      */
     "/rest/v1/$fabric/system/model"(controller: 'model') {

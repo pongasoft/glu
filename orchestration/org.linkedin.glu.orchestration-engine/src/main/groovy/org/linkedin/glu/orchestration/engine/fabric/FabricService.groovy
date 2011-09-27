@@ -44,9 +44,19 @@ interface FabricService
   Collection<String> listFabricNames()
 
   /**
-   * Sets the fabric for the given agent: write it in ZooKeeper and configure the agent as well.
+   * Sets the fabric for the given agent: write it in ZooKeeper
    */
   void setAgentFabric(String agentName, String fabricName)
+
+  /**
+   * Configures the agent on the given host (builds a default config url)
+   */
+  void configureAgent(InetAddress host, String fabricName)
+
+  /**
+   * Configures the agent given its configuration URI
+   */
+  void configureAgent(URI agentConfigURI, String fabricName)
 
   /**
    * resets the fabrics cache which will force the connection to ZooKeeper to be dropped.

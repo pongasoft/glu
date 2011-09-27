@@ -167,7 +167,7 @@ class FabricServiceImpl implements FabricService, Destroyable
   }
 
   /**
-   * Sets the fabric for the given agent: write it in ZooKeeper and configure the agent as well.
+   * Sets the fabric for the given agent: write it in ZooKeeper
    */
   void setAgentFabric(String agentName, String fabricName)
   {
@@ -177,12 +177,35 @@ class FabricServiceImpl implements FabricService, Destroyable
                                       Ids.OPEN_ACL_UNSAFE,
                                       CreateMode.PERSISTENT)
     }
+  }
 
+  /**
+   * Configures the agent on the given host (builds a default config url)
+   */
+  void configureAgent(InetAddress host, String fabricName)
+  {
+    doConfigureAgent(host.hostAddress, fabricName)
+  }
+
+  /**
+   * Configures the agent given its configuration URI
+   */
+  void configureAgent(URI agentConfigURI, String fabricName)
+  {
+    doConfigureAgent(agentConfigURI, fabricName)
+  }
+
+  /**
+   * Configures the agent given its configuration URI
+   */
+  private void doConfigureAgent(def agent, String fabricName)
+  {
     def zkConnectString = findFabric(fabricName).zkConnectString
-    configurableFactory?.withRemoteConfigurable(agentName) { Configurable c ->
+    configurableFactory?.withRemoteConfigurable(agent) { Configurable c ->
       // YP note: using GString as a key in a map is a recipe for disaster => using string!
       def config = [:]
       config["${prefix}.agent.zkConnectString".toString()] = zkConnectString
+      config["${prefix}.agent.fabric".toString()] = fabricName
       c.configure(config)
     }
   }

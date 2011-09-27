@@ -64,13 +64,15 @@ import org.linkedin.glu.agent.rest.resources.TagsResource
 import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.glu.agent.impl.storage.TagsStorage
 import org.linkedin.glu.agent.impl.storage.WriteOnlyStorage
+import org.linkedin.util.lifecycle.Configurable
+import org.linkedin.glu.agent.rest.resources.AgentConfigResource
 
 /**
  * This is the main class to start the agent.
  *
  * @author ypujante@linkedin.com
  */
-class AgentMain implements LifecycleListener
+class AgentMain implements LifecycleListener, Configurable
 {
   public static final String MODULE = AgentMain.class.getName();
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
@@ -137,6 +139,9 @@ class AgentMain implements LifecycleListener
     // make sure all directories have their canonical representation
     config.keySet().findAll { it.endsWith('Dir') }.each { toCanonicalPath(config, it) }
 
+    // if a fabric is provided on the command line, it wins!
+    def fabricFromCli = Config.getOptionalString(config, "${prefix}.agent.fabric", null)
+
     _persistentPropertiesFile = loadPersistentProperties(config)
 
     // determine the host name of the agent
@@ -183,7 +188,7 @@ class AgentMain implements LifecycleListener
       }
     }
 
-    _fabric = computeFabric(config)
+    _fabric = computeFabric(fabricFromCli, config)
 
     // makes the fabric available
     config["${prefix}.agent.fabric".toString()] = _fabric
@@ -275,7 +280,23 @@ class AgentMain implements LifecycleListener
     return ppf
   }
 
-  File savePersistentProperties(Properties config, AgentProperties agentProperties)
+  @Override
+  void configure(Map config)
+  {
+    Map newPersistentProperties = new HashMap(_agentProperties.persistentProperties)
+    newPersistentProperties.putAll(config)
+    AgentProperties newAgentProperties = new AgentProperties(newPersistentProperties)
+
+    File persistentProperties = savePersistentProperties(_agentProperties.persistentProperties,
+                                                         newAgentProperties)
+
+    // TODO MED YP: this should trigger automatic restart of the agent
+    if(persistentProperties &&
+       newAgentProperties.persistentProperties != _agentProperties.persistentProperties)
+      log.warn "Persistent properties have been updated => agent needs to be restarted to take into account!"
+  }
+
+  synchronized File savePersistentProperties(config, AgentProperties agentProperties)
   {
     String persistentPropertiesFilename =
       Config.getOptionalString(config, "${prefix}.agent.persistent.properties", null)
@@ -323,22 +344,21 @@ class AgentMain implements LifecycleListener
   /**
    * Computes the fabric
    */
-  protected String computeFabric(def config)
+  protected String computeFabric(String fabricFromCli, def config)
   {
-    def fabric = Config.getOptionalString(config, "${prefix}.agent.fabric", null)
+    if(fabricFromCli)
+      return fabricFromCli
 
-    if(!fabric)
-    {
-      def fabricFile = Config.getOptionalString(config, 'fabricFile', null)
-      if(fabricFile)
-        fabricFile = new File(fabricFile)
+    def fabricFile = Config.getOptionalString(config, 'fabricFile', null)
+    if(fabricFile)
+      fabricFile = new File(fabricFile)
 
-      def mgr = new FabricManager(_zkClient,
-                                  computeZKAgentFabricPath(),
-                                  fabricFile)
+    def mgr = new FabricManager(_zkClient,
+                                computeZKAgentFabricPath(),
+                                Config.getOptionalString(config, "${prefix}.agent.fabric", null),
+                                fabricFile)
 
-      fabric = mgr.getFabric()
-    }
+    def fabric = mgr.getFabric()
 
     if(!fabric)
       throw new IllegalStateException("cannot determine the fabric for the agent")
@@ -478,10 +498,13 @@ class AgentMain implements LifecycleListener
     def attributes = context.getAttributes()
 
     attributes.put('agent', _proxiedAgent)
+    attributes.put('configurable', this)
+    attributes.put('codec', remoteConfigCodec)
 
     [
       agent: [clazz: AgentResource, matchingMode: Template.MODE_STARTS_WITH],
       host: [clazz: HostResource],
+      config: [clazz: AgentConfigResource],
       process: [clazz: ProcessResource, matchingMode: Template.MODE_STARTS_WITH],
       mountPoint: [clazz: MountPointResource, matchingMode: Template.MODE_STARTS_WITH],
       log: [clazz: LogResource, matchingMode: Template.MODE_STARTS_WITH],

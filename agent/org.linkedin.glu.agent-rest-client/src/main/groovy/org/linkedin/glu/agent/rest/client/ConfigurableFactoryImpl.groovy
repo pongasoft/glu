@@ -16,13 +16,11 @@
 
 package org.linkedin.glu.agent.rest.client
 
-import org.restlet.data.Protocol
-import org.restlet.Client
-import org.restlet.data.Reference
+import org.linkedin.util.codec.Base64Codec
 import org.linkedin.util.codec.OneWayCodec
 import org.linkedin.util.codec.OneWayMessageDigestCodec
-import org.linkedin.util.codec.Base64Codec
-import org.linkedin.util.clock.Timespan
+import org.restlet.Client
+import org.restlet.data.Reference
 
 /**
  * @author ypujante@linkedin.com */
@@ -30,7 +28,7 @@ class ConfigurableFactoryImpl implements ConfigurableFactory
 {
   int port = 12907
   OneWayCodec codec = defaultCodec()
-  Timespan connectionTimeout = Timespan.parse('1s')
+  RestClientFactory restClientFactory
 
   def withRemoteConfigurable(String host, Closure closure)
   {
@@ -39,24 +37,16 @@ class ConfigurableFactoryImpl implements ConfigurableFactory
 
   def withRemoteConfigurable(URI uri, Closure closure)
   {
-    def client = new Client(Protocol.HTTP)
-    client.connectTimeout = connectionTimeout.durationInMilliseconds
-    client.start()
-    try
-    {
+    restClientFactory.withRestClient(uri) { Client client ->
       ConfigurableRestClient c = new ConfigurableRestClient(client: client,
                                                             codec: codec,
                                                             reference: new Reference(uri.toString()))
       closure(c)
     }
-    finally
-    {
-      client.stop()
-    }
   }
 
   private static OneWayCodec defaultCodec()
   {
-    OneWayMessageDigestCodec.createSHA1Instance("gluos", Base64Codec.INSTANCE)
+    OneWayMessageDigestCodec.createSHA1Instance("gluos1way1", new Base64Codec("gluos1way2"))
   }
 }

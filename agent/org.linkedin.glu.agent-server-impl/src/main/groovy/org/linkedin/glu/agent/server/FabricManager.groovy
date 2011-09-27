@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -25,6 +26,7 @@ import org.linkedin.zookeeper.tracker.ZooKeeperTreeTracker
 import org.linkedin.zookeeper.tracker.ZKStringDataReader
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
+import org.apache.zookeeper.KeeperException
 
 /**
  * Manages the fabric: read it from a file or get it from zookeeper.
@@ -39,14 +41,19 @@ class FabricManager
 
   private final IZKClient _zkClient
   private final String _agentPath
+  private final String _previousFabric
   private final File _fabricFile
 
   private String _fabric
 
-  FabricManager(IZKClient zkClient, String agentPath, File fabricFile)
+  FabricManager(IZKClient zkClient,
+                String agentPath,
+                String previousFabric,
+                File fabricFile)
   {
     _zkClient = zkClient
     _agentPath = agentPath
+    _previousFabric = previousFabric
     _fabricFile = fabricFile
   }
 
@@ -63,7 +70,15 @@ class FabricManager
     else
     {
       if(_zkClient)
-        _fabric = getFabricFromZookeeper(timeout)
+      {
+        _fabric = readFabricFromZooKeeper()
+
+        if(!_fabric)
+          _fabric = _previousFabric
+
+        if(!_fabric)
+          _fabric = getFabricFromZookeeper(timeout)
+      }
 
       if(!_fabric && _fabricFile?.exists())
       {
@@ -72,6 +87,21 @@ class FabricManager
     }
 
     return _fabric
+  }
+
+  private String readFabricFromZooKeeper()
+  {
+    if(log.isDebugEnabled())
+      log.debug("reading fabric from ZooKeeper: ${_agentPath}")
+
+    try
+    {
+      return _zkClient.getStringData(FabricTracker.computeFabricPath(_agentPath))
+    }
+    catch (KeeperException.NoNodeException e)
+    {
+      return null
+    }
   }
 
   private String getFabricFromZookeeper(timeout)
@@ -107,12 +137,17 @@ class FabricTracker implements NodeEventsListener
 
   private String _fabric
 
+  public static String computeFabricPath(String agentPath)
+  {
+    return "${agentPath}/fabric".toString()
+  }
+
   FabricTracker(Clock clock, IZKClient zkClient, String agentPath)
   {
     this.clock = clock
     _zkClient = zkClient
     _agentPath = agentPath
-    _fabricPath = "${_agentPath}/fabric".toString()
+    _fabricPath = computeFabricPath(_agentPath)
   }
 
   public synchronized void onEvents(Collection events)

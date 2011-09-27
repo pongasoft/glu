@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -67,28 +68,42 @@ class TestFabricManager extends GroovyTestCase
 
   void testFabricManager()
   {
-    assertNull(new FabricManager(null, null, null).fabric)
-    assertNull(new FabricManager(null, null, new File('/do/not/exists')).fabric)
+    assertNull(new FabricManager(null, null, null, null).fabric)
+    assertNull(new FabricManager(null, null, null, new File('/do/not/exists')).fabric)
 
-    def envFile = fs.saveContent('/env', 'myEnvFromFile')
-    assertEquals('myEnvFromFile', new FabricManager(null, null, envFile.file).fabric)
+    def fabricFile = fs.saveContent('/fabric', 'myFabricFromFile')
+    assertEquals('myFabricFromFile', new FabricManager(null, null, null, fabricFile.file).fabric)
 
+    // no value in ZooKeeper => previous value wins
+    assertEquals('myFabricFromPrevious',
+                 new FabricManager(client, "/org/glu/agents/names/myHost1", "myFabricFromPrevious", null).fabric)
+
+    client.createWithParents('/org/glu/agents/names/myHost2/fabric',
+                             'myFabricFromZooKeeper2',
+                             Ids.OPEN_ACL_UNSAFE,
+                             CreateMode.PERSISTENT)
+
+    // value in ZooKeeper => it wins
+    assertEquals('myFabricFromZooKeeper2',
+                 new FabricManager(client, "/org/glu/agents/names/myHost2", "myFabricFromPrevious", null).fabric)
+
+    // no previous value => wait for value in ZooKeeper
     ThreadControl tc = new ThreadControl()
 
     Thread.start {
       tc.unblock('b0')
       tc.unblock('b1')
-      client.createWithParents('/org/glu/agents/names/myHost/fabric',
-                               'myEnvFromZooKeeper',
+      client.createWithParents('/org/glu/agents/names/myHost3/fabric',
+                               'myFabricFromZooKeeper3',
                                Ids.OPEN_ACL_UNSAFE,
                                CreateMode.PERSISTENT)
     }
 
     tc.block('b0')
-    def mgr = new FabricManager(client, "/org/glu/agents/names/myHost", null)
+    def mgr = new FabricManager(client, "/org/glu/agents/names/myHost3", null, null)
     shouldFail(TimeoutException) {mgr.getFabric(200)}
 
     tc.block('b1')
-    assertEquals('myEnvFromZooKeeper', mgr.fabric)
+    assertEquals('myFabricFromZooKeeper3', mgr.fabric)
   }
 }

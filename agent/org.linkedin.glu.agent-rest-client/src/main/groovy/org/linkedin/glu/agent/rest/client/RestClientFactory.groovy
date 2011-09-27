@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,18 +14,23 @@
  * the License.
  */
 
-
 package org.linkedin.glu.agent.rest.client
 
+import org.restlet.Client
+
 /**
- * Defines the agent factory
- *
- * @author ypujante@linkedin.com
- */
-interface AgentFactory
+ * @author yan@pongasoft.com */
+public interface RestClientFactory
 {
   /**
-   * Calls the closure with an agent object pointing to the URI provided.
+   * Creates and return the rest client. The caller is in charge of managing its lifecycle
    */
-  def withRemoteAgent(URI agentURI, Closure closure)
+  Client createRestClient(URI uri)
+
+  /**
+   * Calls the closure with a client that has been started and make sure it gets closed.
+   *
+   * @return whatever the closure returns
+   */
+  def withRestClient(URI uri, Closure closure)
 }

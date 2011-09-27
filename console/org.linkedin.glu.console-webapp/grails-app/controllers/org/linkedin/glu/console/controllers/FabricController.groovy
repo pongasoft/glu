@@ -24,6 +24,7 @@ import org.linkedin.glu.console.domain.RoleName
 import org.linkedin.glu.console.domain.User
 import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.provisioner.core.model.SystemModel
+import javax.servlet.http.HttpServletResponse
 
 class FabricController extends ControllerBase
 {
@@ -115,11 +116,13 @@ class FabricController extends ControllerBase
     def errors = [:]
 
     agents.each { String agent ->
-      if(params[agent])
+      String fabric = params[agent] as String
+      if(fabric)
       {
         try
         {
-          fabricService.setAgentFabric(agent, params[agent] as String)
+          fabricService.setAgentFabric(agent, fabric)
+          fabricService.configureAgent(InetAddress.getByName(agent), fabric)
         }
         catch(CannotConfigureException e)
         {
@@ -263,5 +266,66 @@ class FabricController extends ControllerBase
   def refresh = {
     fabricService.resetCache()
     redirect(action: 'select')
+  }
+
+  /**
+   * Retuns the list of fabrics (GET /-)
+   */
+  def rest_list_fabrics = {
+    Collection<String> fabrics = fabricService.listFabricNames()
+    response.setContentType('text/json')
+    response.addHeader("X-glu-count", fabrics.size().toString())
+    render prettyPrintJsonWhenRequested(fabrics)
+  }
+
+  /**
+   * Retuns the list of agents fabrics (GET /-/agents)
+   */
+  def rest_list_agents_fabrics = {
+    def agents = fabricService.getAgents()
+    response.setContentType('text/json')
+    response.addHeader("X-glu-count", agents.size().toString())
+    render prettyPrintJsonWhenRequested(agents)
+  }
+
+  /**
+   * Assign fabric to agent (PUT /<fabric>/agent/<agent>/fabric)
+   */
+  def rest_set_agent_fabric = {
+    def fabric = request.fabric
+
+    if(!fabric)
+    {
+      response.addHeader("X-glu-error", "missing (or unknown) fabric")
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "missing (or unknown) fabric")
+      return
+    }
+
+    fabricService.setAgentFabric(params.id, request.fabric.name)
+
+    def configParam = null
+
+    if(params.host)
+      configParam = InetAddress.getByName(params.host)
+
+    if(params.uri)
+      configParam = new URI(params.uri)
+
+    if(configParam)
+    {
+      try
+      {
+        fabricService.configureAgent(configParam, request.fabric.name)
+      }
+      catch(CannotConfigureException e)
+      {
+        response.addHeader("X-glu-error", e.message)
+        response.sendError(HttpServletResponse.SC_CONFLICT, e.message)
+        return
+      }
+    }
+
+    response.setStatus(HttpServletResponse.SC_OK)
+    render ''
   }
 }

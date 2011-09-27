@@ -39,6 +39,21 @@ public class AuditedFabricService implements FabricService
   }
 
   @Override
+  void configureAgent(InetAddress host, String fabricName)
+  {
+    auditLogService?.audit('fabric.configureAgent', "agent: ${host}, fabric: ${fabricName}")
+    fabricService.configureAgent(host, fabricName)
+  }
+
+  @Override
+  void configureAgent(URI agentConfigURI, String fabricName)
+  {
+    auditLogService?.audit('fabric.configureAgent', "agent: ${agentConfigURI}, fabric: ${fabricName}")
+    fabricService.configureAgent(agentConfigURI, fabricName)
+  }
+
+
+  @Override
   void resetCache()
   {
     auditLogService?.audit('fabric.resetCache')

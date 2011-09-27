@@ -30,6 +30,7 @@ import org.linkedin.glu.agent.rest.client.ConfigurableFactoryImpl
 import org.linkedin.glu.agent.rest.client.ConfigurableFactory
 import org.linkedin.util.codec.Base64Codec
 import org.linkedin.util.clock.SystemClock
+import org.linkedin.glu.agent.rest.client.RestClientFactoryImpl
 
 /**
  * @author ypujante@linkedin.com  */
@@ -125,7 +126,9 @@ class TestIZKClientFactory extends GroovyTestCase
     p['glu.agent.zkProperties'] = zkPropertiesFile.canonicalPath
 
     Codec codec = new Base64Codec('abc')
-    ConfigurableFactory cf = new ConfigurableFactoryImpl(port: 9998, codec: codec)
+    ConfigurableFactory cf = new ConfigurableFactoryImpl(port: 9998,
+                                                         codec: codec,
+                                                         restClientFactory: RestClientFactoryImpl.create([sslEnabled: false]))
 
     def thread1 = Thread.start {
       GroovyConcurrentUtils.waitForCondition(clock, '10s', null) {
