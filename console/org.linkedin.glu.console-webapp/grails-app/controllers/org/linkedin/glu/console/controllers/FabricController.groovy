@@ -283,6 +283,21 @@ class FabricController extends ControllerBase
    */
   def rest_list_agents_fabrics = {
     def agents = fabricService.getAgents()
+
+    // if an agent is defined in the model but entirely missing from the map it means that
+    // the agent has never been started
+    fabricService.fabrics.each { fabric ->
+      systemService.getMissingAgents(fabric).each { agent ->
+        if(!agents.containsKey(agent))
+          agents[agent] = '-'
+      }
+    }
+
+    // replacing all 'null' values by '-' (json output is removing null values :(
+    agents.findAll { agent, fabric -> fabric == null }.keySet().each {
+      agents[it] = '-'
+    }
+
     response.setContentType('text/json')
     response.addHeader("X-glu-count", agents.size().toString())
     render prettyPrintJsonWhenRequested(agents)
