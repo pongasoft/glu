@@ -198,11 +198,12 @@ def class ScriptManagerImpl implements ScriptManager
     ] as Timers
 
     def stateManager = [
-        getState: { getScript(sd.mountPoint).state },
-        getFullState: { getScript(sd.mountPoint).fullState },
-        forceChangeState: { currentState, error ->
+        getState             : { getScript(sd.mountPoint).state },
+        getFullState         :  { getScript(sd.mountPoint).fullState },
+        forceChangeState     :  { currentState, error ->
           getScript(sd.mountPoint).forceChangeState(currentState, error)
-        }
+        },
+        waitForShutdownState : { getScript(sd.mountPoint).waitForShutdownInvocation() }
     ] as StateManager
 
     scriptProperties.putAll(

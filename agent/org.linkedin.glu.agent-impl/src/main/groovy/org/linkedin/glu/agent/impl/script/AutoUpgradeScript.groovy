@@ -93,6 +93,10 @@ class AutoUpgradeScript
 
     asyncUpgrade(params.newVersion)
 
+    // we need to make sure that the script itself is in shutdown mode in order to proceed otherwise
+    // there is a timing issue (#69)
+    stateManager.waitForShutdownState()
+
     log.info "Prepare complete... restarting agent..."
   }
 

@@ -70,6 +70,11 @@ public interface GluScript
   GluScript getParent()
 
   /**
+   * @return a reference to 'this' script
+   */
+  GluScript getSelf()
+
+  /**
    * @return the children of this glu script
    */
   Collection<GluScript> getChildren()

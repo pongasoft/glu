@@ -130,6 +130,19 @@ class ScriptExecution implements Startable, Shutdownable
     }
   }
 
+  /**
+   * {@link #waitForShutdown} waits for shutdown to be complete. On the other end, this call waits
+   * for shutdown to be called.
+   */
+  void waitForShutdownInvocation()
+  {
+    synchronized(lock)
+    {
+      while(!_shutdown)
+        lock.wait()
+    }
+  }
+
   void waitForShutdown()
   {
     if(!_shutdown)

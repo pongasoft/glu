@@ -73,6 +73,15 @@ def class ScriptNode implements Shutdownable, Startable, GluScript
     _scriptExecution.shutdown()
   }
 
+  /**
+   * {@link #waitForShutdown} waits for shutdown to be complete. On the other end, this call waits
+   * for shutdown to be called.
+   */
+  void waitForShutdownInvocation()
+  {
+    _scriptExecution.waitForShutdownInvocation()
+  }
+
   void waitForShutdown()
   {
     _scriptExecution.waitForShutdown()
@@ -127,6 +136,12 @@ def class ScriptNode implements Shutdownable, Startable, GluScript
   GluScript getParent()
   {
     script."parent"
+  }
+
+  @Override
+  GluScript getSelf()
+  {
+    this
   }
 
   def getScriptDefinition()
@@ -278,10 +293,14 @@ def class ScriptNode implements Shutdownable, Startable, GluScript
     {
       throw new NullPointerException("missing repeatFrequency argument")
     }
-    _scriptExecution.scheduleTimer(timer, args.initialFrequency, args.repeatFrequency) {
+    
+    FutureExecutionImpl future =
+      _scriptExecution.scheduleTimer(timer, args.initialFrequency, args.repeatFrequency) {
       _scriptState.removeTimer(timer)
     }
     _scriptState.addTimer([timer: timer, repeatFrequency: args.repeatFrequency])
+
+    return future
   }
 
   /**

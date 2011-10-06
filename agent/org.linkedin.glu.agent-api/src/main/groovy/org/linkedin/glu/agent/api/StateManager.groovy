@@ -56,4 +56,11 @@ interface StateManager
    * @param error the new error state
    */
   void forceChangeState(currentState, error)
+
+  /**
+   * This method waits for the script to be in shutdown state: the script is put in shutdown state
+   * when the agent shutdowns. Note that {@link #getState()} and {@link @getFullState()} still
+   * return their normal value.
+   */
+  void waitForShutdownState()
 }

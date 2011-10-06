@@ -41,6 +41,10 @@ import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
 import java.util.concurrent.TimeoutException
 import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.glu.agent.impl.storage.TagsStorage
+import org.linkedin.util.concurrent.ThreadPerTaskExecutor
+import java.util.concurrent.Callable
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 /**
  * Test for AgentImpl
@@ -603,11 +607,10 @@ def class TestAgentImpl extends GroovyTestCase
     agent.installScript(mountPoint: scriptMountPoint,
                         scriptFactory: new FromClassNameScriptFactory(MyScriptTestDeadlockOnShutdown))
 
-    def res = [:]
     // then we run the 'install' action
     def id = agent.executeAction(mountPoint: scriptMountPoint,
                                  action: 'install',
-                                 actionArgs: [res: res, tc: tc])
+                                 actionArgs: [tc: tc])
 
     // we make sure that the script is currently executing
     tc.waitForBlock('shutdown')
@@ -640,6 +643,59 @@ def class TestAgentImpl extends GroovyTestCase
 
     // make sure that the agent shutdown properly
     tc.unblock('shutdownComplete')
+  }
+
+  /**
+   * test the wait for shutdown state feature which is a fix for issue #69
+   */
+  public void testWaitForShutdownState()
+  {
+    def tc = new ThreadControl(Timespan.parse('30s'))
+
+    // we install a script under /s
+    def scriptMountPoint = MountPoint.fromPath('/s')
+    agent.installScript(mountPoint: scriptMountPoint,
+                        scriptFactory: new FromClassNameScriptFactory(MyScriptTestWaitForShutdownState))
+
+    // then we run the 'install' action
+    agent.executeAction(mountPoint: scriptMountPoint,
+                        action: 'install',
+                        actionArgs: [tc: tc])
+
+    // we make sure that the script is currently executing
+    tc.waitForBlock('beforeWait')
+
+    assertFalse(agent.waitForState(mountPoint: scriptMountPoint,
+                                   state: 'installed',
+                                   timeout: '250'))
+
+    tc.unblock('beforeWait')
+
+    assertFalse(agent.waitForState(mountPoint: scriptMountPoint,
+                                   state: 'installed',
+                                   timeout: '250'))
+
+    def asyncWaitForState = {
+      agent.waitForState(mountPoint: scriptMountPoint,
+                                   state: 'installed',
+                                   timeout: '10s')
+    }
+
+    Future futureWaitForState = ThreadPerTaskExecutor.execute(asyncWaitForState as Callable)
+
+    agent.shutdown()
+
+    tc.waitForBlock('afterWait')
+
+    assertFalse(agent.waitForState(mountPoint: scriptMountPoint,
+                                   state: 'installed',
+                                   timeout: '250'))
+
+    tc.unblock('afterWait')
+
+    assertEquals(Boolean.TRUE, futureWaitForState.get(5, TimeUnit.SECONDS))
+
+    agent.waitForShutdown('5s')
   }
 
   public void testStateManager()
@@ -864,5 +920,14 @@ private def class MyScriptTestDeadlockOnShutdown
   def install = { args ->
     args.tc.block('shutdown')
     return stateManager.state // this causes a deadlock prior to fixing glu-52
+  }
+}
+
+private def class MyScriptTestWaitForShutdownState
+{
+  def install = { args ->
+    args.tc.block('beforeWait')
+    stateManager.waitForShutdownState()
+    args.tc.block('afterWait')
   }
 }
