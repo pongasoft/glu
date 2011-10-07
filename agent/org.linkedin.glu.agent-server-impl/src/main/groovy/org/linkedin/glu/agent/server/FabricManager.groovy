@@ -41,6 +41,7 @@ class FabricManager
 
   private final IZKClient _zkClient
   private final String _agentPath
+  private final String _newFabric
   private final String _previousFabric
   private final File _fabricFile
 
@@ -48,15 +49,16 @@ class FabricManager
 
   FabricManager(IZKClient zkClient,
                 String agentPath,
+                String newFabric,
                 String previousFabric,
                 File fabricFile)
   {
     _zkClient = zkClient
     _agentPath = agentPath
+    _newFabric = newFabric
     _previousFabric = previousFabric
     _fabricFile = fabricFile
   }
-
 
   String getFabric()
   {
@@ -69,24 +71,47 @@ class FabricManager
       return _fabric
     else
     {
-      if(_zkClient)
+      if(_newFabric)
       {
-        _fabric = readFabricFromZooKeeper()
+        _fabric = _newFabric
+      }
+      else
+      {
+        if(_zkClient)
+        {
+          _fabric = readFabricFromZooKeeper()
 
-        if(!_fabric)
-          _fabric = _previousFabric
+          if(!_fabric)
+            _fabric = _previousFabric
 
-        if(!_fabric)
-          _fabric = getFabricFromZookeeper(timeout)
+          if(!_fabric)
+            _fabric = getFabricFromZookeeper(timeout)
+        }
+
+        if(!_fabric && _fabricFile?.exists())
+        {
+          _fabric = _fabricFile.text.trim()
+        }
       }
 
-      if(!_fabric && _fabricFile?.exists())
-      {
-        _fabric = _fabricFile.text.trim()
-      }
+      if(_fabric && _zkClient)
+        saveFabricToZooKeeper(_fabric)
     }
 
     return _fabric
+  }
+
+  void saveFabricToZooKeeper(String fabric)
+  {
+    String fabricPath = FabricTracker.computeFabricPath(_agentPath)
+
+    if(log.isDebugEnabled())
+      log.debug("saving fabric to ZooKeeper: ${fabricPath} -> ${fabric}")
+
+    _zkClient.createOrSetWithParents(fabricPath,
+                                     fabric,
+                                     Ids.OPEN_ACL_UNSAFE,
+                                     CreateMode.PERSISTENT)
   }
 
   private String readFabricFromZooKeeper()

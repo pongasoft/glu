@@ -52,7 +52,8 @@ class IZKClientFactory implements Configurable
 
   IZKClient create()
   {
-    zkConnectString = Config.getOptionalString(config, "${prefix}.${ZK_CONNECT_STRING}".toString(), null)
+    zkConnectString =
+      Config.getOptionalString(config, "${prefix}.${ZK_CONNECT_STRING}".toString(), null)
 
     if(zkConnectString == 'none')
       return null
@@ -64,9 +65,10 @@ class IZKClientFactory implements Configurable
 
     if(zkConnectString)
     {
-      def zkClient = new ZKClient(zkConnectString,
-                                  Timespan.parse(Config.getOptionalString(config, "${prefix}.agent.zkSessionTimeout".toString(), '5s')),
-                                  null)
+      def zkClient =
+        new ZKClient(zkConnectString,
+                     Timespan.parse(Config.getOptionalString(config, "${prefix}.agent.zkSessionTimeout".toString(), '5s')),
+                     null)
 
       return zkClient
     }

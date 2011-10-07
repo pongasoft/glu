@@ -130,19 +130,21 @@ class AgentMain implements LifecycleListener, Configurable
     URL.setURLStreamHandlerFactory(_urlFactory)
 
     // read all the properties provided as urls on the command line
-    def config = new Properties()
+    Properties configFromCli = new Properties()
 
     args.each {
-      readConfig(it, config)
+      readConfig(it, configFromCli)
     }
 
     // make sure all directories have their canonical representation
-    config.keySet().findAll { it.endsWith('Dir') }.each { toCanonicalPath(config, it) }
+    toCanonicalPath(configFromCli)
 
-    // if a fabric is provided on the command line, it wins!
-    def fabricFromCli = Config.getOptionalString(config, "${prefix}.agent.fabric", null)
+    Properties configFromPreviousStart = new Properties()
 
-    _persistentPropertiesFile = loadPersistentProperties(config)
+    _persistentPropertiesFile = loadPersistentProperties(configFromCli, configFromPreviousStart)
+
+    // we merge the 2: cli overrides 'remembered' properties
+    Properties config = mergeConfig(configFromCli, configFromPreviousStart)
 
     // determine the host name of the agent
     def hf = Config.getOptionalString(config,
@@ -168,10 +170,10 @@ class AgentMain implements LifecycleListener, Configurable
                                           "${prefix}.agent.name",
                                           InetAddress.getLocalHost().canonicalHostName)
 
-    config["${prefix}.agent.name".toString()] = _agentName
-    config["${prefix}.agent.hostnameFactory".toString()] = hf
-    config["${prefix}.agent.hostname".toString()] = hostnameFactory()
-    config["${prefix}.agent.version".toString()] = config['org.linkedin.app.version']
+    configFromCli["${prefix}.agent.name".toString()] = _agentName
+    configFromCli["${prefix}.agent.hostnameFactory".toString()] = hf
+    configFromCli["${prefix}.agent.hostname".toString()] = hostnameFactory()
+    configFromCli["${prefix}.agent.version".toString()] = config['org.linkedin.app.version']
 
     log.info "Agent ZooKeeper name: ${_agentName}"
 
@@ -188,21 +190,34 @@ class AgentMain implements LifecycleListener, Configurable
       }
     }
 
-    _fabric = computeFabric(fabricFromCli, config)
+    _fabric = computeFabric(configFromCli, config)
 
     // makes the fabric available
-    config["${prefix}.agent.fabric".toString()] = _fabric
+    configFromCli["${prefix}.agent.fabric".toString()] = _fabric
 
     log.info "Agent fabric: ${_fabric}"
 
     // read the config provided in configURL (most likely in zookeeper, this is why we
     // need to register the handler beforehand)
-    readConfig(Config.getOptionalString(config, "${prefix}.agent.configURL", null), config)
+    // properties coming from ZooKeeper have higher priority than 'remembered' properties but lower
+    // priority than cli!
+    readConfig(Config.getOptionalString(config, "${prefix}.agent.configURL", null), configFromCli)
+
+    // make sure all directories have their canonical representation
+    toCanonicalPath(configFromCli)
+
+    config = mergeConfig(configFromCli, configFromPreviousStart)
 
     // dealing with optional properties
     setOptionalProperty(config, "${prefix}.agent.port", "12906")
     setOptionalProperty(config, "${prefix}.agent.sslEnabled", "true")
     setOptionalProperty(config, "${prefix}.agent.rest.server.defaultThreads", '3')
+    if(_zkClient)
+      setOptionalProperty(config,
+                          "${prefix}.${IZKClientFactory.ZK_CONNECT_STRING}",
+                          _zkClient.connectString)
+
+
 
     _agentProperties = new AgentProperties(config)
 
@@ -255,13 +270,17 @@ class AgentMain implements LifecycleListener, Configurable
    * Loads the persistent properties which will serve as default values for whatever is not
    * specified.
    *
+   * @param config to determine if/where to load the persistent properties from (this object will
+   *        *not* be modified by this method)
+   * @param persistentProperties will be populated with the persistent properties
    * @return the file they were loaded from (to write to it) or <code>null</code> if we should
    * not store any persistent properties
    */
-  File loadPersistentProperties(Properties config)
+  File loadPersistentProperties(Properties config, Properties persistentProperties)
   {
     String persistentPropertiesFilename =
       Config.getOptionalString(config, "${prefix}.agent.persistent.properties", null)
+
     if(persistentPropertiesFilename == null)
       return null
 
@@ -271,11 +290,7 @@ class AgentMain implements LifecycleListener, Configurable
 
     agentProperties.load(ppf)
 
-    agentProperties.persistentProperties.each { k,v ->
-      // a persistent property is added to config iff it is not already there
-      if(!config.containsKey(k))
-        config[k] = v
-    }
+    persistentProperties.putAll(agentProperties.persistentProperties)
 
     return ppf
   }
@@ -342,23 +357,32 @@ class AgentMain implements LifecycleListener, Configurable
   }
 
   /**
+   * Make sure that the paths are canonical (no .. or links)
+   * @param config
+   */
+  protected void toCanonicalPath(Properties config)
+  {
+    config.keySet().findAll { it.endsWith('Dir') }.each { toCanonicalPath(config, it) }
+  }
+
+  /**
    * Computes the fabric
    */
-  protected String computeFabric(String fabricFromCli, def config)
+  protected String computeFabric(def configFromCli, def config)
   {
-    if(fabricFromCli)
-      return fabricFromCli
+    File fabricFile = GroovyIOUtils.toFile(Config.getOptionalString(config,
+                                                                    "${prefix}.agent.fabricFile",
+                                                                    null))
 
-    def fabricFile = Config.getOptionalString(config, 'fabricFile', null)
-    if(fabricFile)
-      fabricFile = new File(fabricFile)
+    def fabricPropertyName = "${prefix}.agent.fabric".toString()
 
     def mgr = new FabricManager(_zkClient,
                                 computeZKAgentFabricPath(),
-                                Config.getOptionalString(config, "${prefix}.agent.fabric", null),
+                                Config.getOptionalString(configFromCli, fabricPropertyName, null),
+                                Config.getOptionalString(config, fabricPropertyName, null),
                                 fabricFile)
 
-    def fabric = mgr.getFabric()
+    String fabric = mgr.getFabric()
 
     if(!fabric)
       throw new IllegalStateException("cannot determine the fabric for the agent")
@@ -393,9 +417,6 @@ class AgentMain implements LifecycleListener, Configurable
 
     if(zkClient)
     {
-      setOptionalProperty(config,
-                          "${prefix}.${IZKClientFactory.ZK_CONNECT_STRING}",
-                          factory.zkConnectString)
       zkClient.start()
       zkClient.waitForStart(null)
     }
@@ -757,6 +778,34 @@ class AgentMain implements LifecycleListener, Configurable
         properties[name] = project.replaceProperties(project.getProperty(name))
       }
     }
+  }
+
+  /**
+   * The goal of this method is to merge the configuration in the following fashion: all
+   * properties that are in the <code>higherPriority</code> bucket will override any that are
+   * in the other bucket
+   *
+   * @return always a new object with the merged properties
+   */
+  protected Properties mergeConfig(Properties higherPriorityConfig, Properties lowerPriorityConfig)
+  {
+    Properties mergedConfig = new Properties()
+
+    // using ant to read the properties which will automatically do ${} replacement
+    def project = AntUtils.withBuilder { ant ->
+      [higherPriorityConfig, lowerPriorityConfig].each { props ->
+        props?.each { k,v ->
+          ant.property(name:k, value: v)
+        }
+      }
+      return ant.project
+    }
+
+    project.properties.keySet().each { name ->
+      mergedConfig[name] = project.replaceProperties(project.getProperty(name))
+    }
+
+    return mergedConfig
   }
 
   protected String getPassword(def config, String name)
