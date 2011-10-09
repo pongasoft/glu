@@ -39,6 +39,13 @@ public class AuditedFabricService implements FabricService
   }
 
   @Override
+  boolean clearAgentFabric(String agentName, String fabricName)
+  {
+    auditLogService?.audit('fabric.clearAgent', "agent: ${agentName}, fabric: ${fabricName}")
+    fabricService.clearAgentFabric(agentName, fabricName)
+  }
+
+  @Override
   void configureAgent(InetAddress host, String fabricName)
   {
     auditLogService?.audit('fabric.configureAgent', "agent: ${host}, fabric: ${fabricName}")

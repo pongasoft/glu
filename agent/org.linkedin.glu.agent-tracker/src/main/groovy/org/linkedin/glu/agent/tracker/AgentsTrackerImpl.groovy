@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -37,6 +38,7 @@ import org.linkedin.zookeeper.tracker.ZooKeeperTreeTracker
 import org.linkedin.zookeeper.tracker.NodeEventsListener
 import org.linkedin.zookeeper.tracker.NodeEventType
 import org.linkedin.zookeeper.tracker.ZKStringDataReader
+import org.apache.zookeeper.KeeperException
 
 /**
  * Tracks the agents (through zookeeper). Note that it has recovery built in!
@@ -275,6 +277,26 @@ class AgentsTrackerImpl implements AgentsTracker, LifecycleListener, ErrorListen
   Map<String, Map<MountPoint, MountPointInfo>> getMountPointInfos()
   {
     return _agentsTrackerInstance?.getMountPointInfos() ?: [:]
+  }
+
+  @Override
+  boolean clearAgentInfo(String agentName)
+  {
+    if(_agentsTrackerInstance?.getAgentInfo(agentName))
+      throw new IllegalStateException("agent ${agentName} is still up!")
+
+    try
+    {
+      // YP implementation note: this call is asynchronous: the tracker will receive events when the delete
+      // operation has propagated, or in other words calling 'getMountPointInfos' right after
+      // this call may potentially not return an empty map!
+      _zk.deleteWithChildren("${_zkAgentsState}/${agentName}")
+      return true
+    }
+    catch (KeeperException.NoNodeException e)
+    {
+      return false
+    }
   }
 
   /**

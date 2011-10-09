@@ -49,6 +49,12 @@ interface FabricService
   void setAgentFabric(String agentName, String fabricName)
 
   /**
+   * Clears the fabric for the given agent (from ZooKeeper)
+   * @return <code>true</code> if cleared, <code>false</code> if already cleared
+   */
+  boolean clearAgentFabric(String agentName, String fabricName)
+
+  /**
    * Configures the agent on the given host (builds a default config url)
    */
   void configureAgent(InetAddress host, String fabricName)

@@ -19,6 +19,7 @@ package org.linkedin.glu.orchestration.engine.agents
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.orchestration.engine.audit.AuditLogService
 import java.security.AccessControlException
+import org.linkedin.glu.orchestration.engine.fabric.Fabric
 
 /**
  * This class decorates an {@link AgentsService} to add auditing.
@@ -90,5 +91,11 @@ public class AuditedAgentsService implements AgentsService
       auditLogService.audit('agent.getFileContent.notAuthorized', "${args}")
       throw e
     }
+  }
+
+  boolean clearAgentInfo(Fabric fabric, String agentName)
+  {
+    auditLogService.audit('agent.clearInfo', "${agentName} / ${fabric.name}")
+    agentsService.clearAgentInfo(fabric, agentName)
   }
 }

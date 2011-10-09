@@ -89,6 +89,11 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
     return trackerService.getAgentInfo(fabric, agentName)
   }
 
+  boolean clearAgentInfo(Fabric fabric, String agentName)
+  {
+    return trackerService.clearAgentInfo(fabric, agentName)
+  }
+
   Map<MountPoint, MountPointInfo> getMountPointInfos(Fabric fabric, String agentName)
   {
     trackerService.getMountPointInfos(fabric, agentName)

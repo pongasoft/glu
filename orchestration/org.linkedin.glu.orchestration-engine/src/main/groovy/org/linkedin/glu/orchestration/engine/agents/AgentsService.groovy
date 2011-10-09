@@ -37,6 +37,13 @@ interface AgentsService
 
   MountPointInfo getMountPointInfo(Fabric fabric, String agentName, mountPoint)
 
+  /**
+   * Clears the agent info for the given agent
+   * @return <code>true</code> if the agent was cleared, <code>false</code> if it was already cleared
+   * @throws IllegalStateException when the agent is still up!
+   */
+  boolean clearAgentInfo(Fabric fabric, String agentName)
+
   def getFullState(args)
 
   def clearError(args)

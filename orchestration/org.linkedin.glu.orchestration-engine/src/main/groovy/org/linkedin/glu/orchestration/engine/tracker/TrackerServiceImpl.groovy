@@ -85,6 +85,18 @@ class TrackerServiceImpl implements TrackerService, Destroyable
     return getAgentsTrackerByFabric(fabric).getMountPointInfo(agentName, mountPoint)
   }
 
+  @Override
+  boolean clearAgentInfo(Fabric fabric, String agentName)
+  {
+    return getAgentsTrackerByFabric(fabric).clearAgentInfo(agentName)
+  }
+
+  @Override
+  boolean clearAgentInfo(String fabric, String agentName)
+  {
+    return clearAgentInfo(fabricService.findFabric(fabric), agentName)
+  }
+
   private synchronized AgentsTracker getAgentsTrackerByFabric(Fabric fabric)
   {
     def fabricName = fabric.name

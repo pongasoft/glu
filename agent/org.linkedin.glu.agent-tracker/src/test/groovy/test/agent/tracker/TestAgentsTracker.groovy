@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -221,7 +222,7 @@ class TestAgentsTracker extends GroovyTestCase
       //////////////////////////////
       // delete the instance (will trigger many events)
       range.each {
-        removeAgentInstance("a${it}")
+        removeAgentInstanceAndState("a${it}")
       }
 
       // check for correct values (states)
@@ -237,6 +238,75 @@ class TestAgentsTracker extends GroovyTestCase
         events = checkAgentEvents(events, "a${it}", [p1: "a${it}v1".toString()], NodeEventType.DELETED)
       }
       assertEquals(0, events.size())
+
+      //////////// check for clearAgentInfo ////////////
+
+      //////////////////////////////
+      // add N agent instances
+      range.each {
+        addAgentInstance("a${it}", [p1: "a${it}v1".toString()])
+      }
+
+      // check for correct values
+      events = waitForEvents(agentEvents, range.size())
+      range.each {
+        events = checkAgentEvents(events, "a${it}", [p1: "a${it}v1".toString()], NodeEventType.ADDED)
+      }
+      assertEquals(0, events.size())
+
+      assertEquals(range.size(), tracker.agentInfos.size())
+
+      //////////////////////////////
+      // add 1 state per agent
+      range.each {
+        setAgentState("a${it}", "/s${it}", [state: "a${it}v1".toString()])
+      }
+
+      // check for correct values
+      events = waitForEvents(mountPointEvents, range.size())
+      range.each {
+        events = checkMountPointEvents(events, "a${it}", "/s${it}", [state: "a${it}v1".toString()], NodeEventType.ADDED)
+      }
+      assertEquals(0, events.size())
+
+      //////////////////////////////
+      // cannot clear info when agent still up!
+      range.each { idx ->
+        shouldFail(IllegalStateException) {
+          tracker.clearAgentInfo("a${idx}")
+        }
+      }
+
+      //////////////////////////////
+      // delete only the ephemeral node
+      range.each {
+        removeAgentInstance("a${it}")
+      }
+
+      // check for correct values (agents)
+      events = waitForEvents(agentEvents, range.size())
+      range.each {
+        events = checkAgentEvents(events, "a${it}", [p1: "a${it}v1".toString()], NodeEventType.DELETED)
+      }
+      assertEquals(0, events.size())
+
+      //////////////////////////////
+      // now cleanup the state
+      range.each {
+        assertTrue(tracker.clearAgentInfo("a${it}"))
+      }
+
+      // check for correct values (states)
+      events = waitForEvents(mountPointEvents, range.size())
+      range.each {
+        events = checkMountPointEvents(events, "a${it}", "/s${it}", [state: "a${it}v1".toString()], NodeEventType.DELETED)
+      }
+      assertEquals(0, events.size())
+
+      // states are already gone
+      range.each {
+        assertFalse(tracker.clearAgentInfo("a${it}"))
+      }
 
       ///////////// Recovery /////////////
 
@@ -331,7 +401,7 @@ class TestAgentsTracker extends GroovyTestCase
     return [name: name, data: data]
   }
 
-  private void removeAgentInstance(String name)
+  private void removeAgentInstanceAndState(String name)
   {
     // delete all the states
     def path = PathUtils.addPaths(AGENTS_STATE, name)
@@ -343,6 +413,11 @@ class TestAgentsTracker extends GroovyTestCase
       client.delete(path)
     }
 
+    removeAgentInstance(name)
+  }
+
+  private void removeAgentInstance(String name)
+  {
     // delete the instance
     client.delete(PathUtils.addPaths(AGENTS_INSTANCES, name))
   }

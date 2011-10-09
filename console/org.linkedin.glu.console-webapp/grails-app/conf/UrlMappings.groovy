@@ -124,10 +124,12 @@ class UrlMappings
     "/admin/agents/upgrade"(controller: 'agents', action: 'upgrade') { __nvbe = 'Admin' }
     "/admin/agents/cleanup"(controller: 'agents', action: 'cleanup') { __nvbe = 'Admin' }
     "/admin/agents/forceUninstallScript/$id"(controller: 'agents', action: 'forceUninstallScript') { __nvbe = 'Dashboard' }
+    "/admin/agent/$id/clear"(controller: 'agents', action: 'clear') { __nvbe = 'Admin' }
 
     // fabric
     "/admin/fabric/listAgentFabrics"(controller: 'fabric', action: 'listAgentFabrics') { __nvbe = 'Admin' }
     "/admin/fabric/setAgentsFabrics"(controller: 'fabric', action: 'setAgentsFabrics') { __nvbe = 'Admin' }
+    "/admin/fabric/clearAgentFabric"(controller: 'fabric', action: 'clearAgentFabric') { __nvbe = 'Admin' }
     "/admin/fabric/list"(controller: 'fabric', action: 'list') { __nvbe = 'Admin' }
     "/admin/fabric/show/$id"(controller: 'fabric', action: 'show') { __nvbe = 'Admin' }
     "/admin/fabric/delete/$id?"(controller: 'fabric', action: 'delete') { __nvbe = 'Admin' }
@@ -269,7 +271,8 @@ class UrlMappings
 
     name restViewAgent: "/rest/v1/$fabric/agent/$id"(controller: 'agents') {
       action = [
-        GET: 'rest_view_agent'
+        GET: 'rest_view_agent',
+        DELETE: 'rest_delete_agent'
       ]
     }
 
@@ -297,7 +300,8 @@ class UrlMappings
 
     "/rest/v1/$fabric/agent/$id/fabric"(controller: 'fabric') {
       action = [
-        PUT: 'rest_set_agent_fabric'
+        PUT: 'rest_set_agent_fabric',
+        DELETE: 'rest_clear_agent_fabric'
       ]
     }
 

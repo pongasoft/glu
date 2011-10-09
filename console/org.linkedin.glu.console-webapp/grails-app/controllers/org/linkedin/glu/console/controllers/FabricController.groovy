@@ -145,6 +145,19 @@ class FabricController extends ControllerBase
     redirect(action: listAgentFabrics)
   }
 
+  def clearAgentFabric = {
+    ensureCurrentFabric()
+
+    boolean cleared = fabricService.clearAgentFabric(params.id, request.fabric.name)
+
+    if(cleared)
+      flash.message = "Fabric [${request.fabric.name}] was cleared for agent [${params.id}]."
+    else
+      flash.message = "Fabric [${request.fabric.name}] for agent [${params.id}] was already cleared."
+
+    redirect(action: listAgentFabrics)
+  }
+
   // YP Note: what is below is coming from the scaffolding (copy/pasted)
 
   // the delete, save and update actions only accept POST requests
@@ -316,7 +329,7 @@ class FabricController extends ControllerBase
       return
     }
 
-    fabricService.setAgentFabric(params.id, request.fabric.name)
+    fabricService.setAgentFabric(params.id, fabric.name)
 
     def configParam = null
 
@@ -330,7 +343,7 @@ class FabricController extends ControllerBase
     {
       try
       {
-        fabricService.configureAgent(configParam, request.fabric.name)
+        fabricService.configureAgent(configParam, fabric.name)
       }
       catch(CannotConfigureException e)
       {
@@ -341,6 +354,29 @@ class FabricController extends ControllerBase
     }
 
     response.setStatus(HttpServletResponse.SC_OK)
+    render ''
+  }
+
+  /**
+   * Assign fabric to agent (DELETE /<fabric>/agent/<agent>/fabric)
+   */
+  def rest_clear_agent_fabric = {
+    def fabric = request.fabric
+
+    if(!fabric)
+    {
+      response.addHeader("X-glu-error", "missing (or unknown) fabric")
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "missing (or unknown) fabric")
+      return
+    }
+
+    boolean cleared = fabricService.clearAgentFabric(params.id, fabric.name)
+
+    if(cleared)
+      response.setStatus(HttpServletResponse.SC_OK)
+    else
+      response.setStatus(HttpServletResponse.SC_NOT_FOUND)
+
     render ''
   }
 }

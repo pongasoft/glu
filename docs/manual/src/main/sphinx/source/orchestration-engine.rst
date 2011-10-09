@@ -426,8 +426,14 @@ Main URI: ``/console/rest/v1/<fabric>`` (all the URIs in the following table sta
 |``GET``    |``/agent/<agentName>``                     |View details about the agent      |:ref:`view <goe-rest-api-get-agent>`      |
 |           |                                           |                                  |                                          |
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``DELETE`` |``/agent/<agentName>``                     |Remove all knowledge of an agent  |:ref:`view <goe-rest-api-delete-agent>`   |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
 |``PUT``    |``/agent/<agentName>/fabric``              |Sets the fabric for the agent     |:ref:`view                                |
 |           |                                           |                                  |<goe-rest-api-put-agent-fabric>`          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``DELETE`` |``/agent/<agentName>/fabric``              |Clears the fabric for the agent   |:ref:`view                                |
+|           |                                           |                                  |<goe-rest-api-delete-agent-fabric>`       |
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
 |``GET``    |``/agents/versions``                       |List all the agents versions      |:ref:`view                                |
 |           |                                           |                                  |<goe-rest-api-get-agents-versions>`       |
@@ -642,6 +648,28 @@ View agent details
        "glu.agent.zookeeper.root": "/org/glu"
     }}
 
+.. _goe-rest-api-delete-agent:
+
+Remove all knowledge of an agent
+""""""""""""""""""""""""""""""""
+
+* Description: This call should be used in the scenario when you want to `decommission` a node: all data stored in ZooKeeper in regards to this agent will be wiped out.
+
+* Request: ``DELETE /agent/<agentName>``
+
+* Response: 
+
+  * ``200`` (``OK``) if the agent was succesfully cleaned
+  * ``404`` (``NOT FOUND``) if the agent did not exist in the first place
+  * ``409`` (``CONFLICT``) if the agent is still up and running!
+
+* Example::
+
+    curl -v -u "glua:password" -X DELETE "http://localhost:8080/console/rest/v1/glu-dev-1/agent/agent-1"
+    > DELETE /console/rest/v1/glu-dev-1/agent/agent-1 HTTP/1.1
+    < HTTP/1.1 200 OK
+
+
 .. _goe-rest-api-put-agent-fabric:
 
 Assign a fabric to an agent
@@ -658,7 +686,7 @@ Assign a fabric to an agent
 
 * Response: 
 
-  * ``200`` (``OK``) with:
+  * ``200`` (``OK``)
   * ``400`` (``BAD REQUEST``) if missing or unknown fabric
   * ``409`` (``CONFLICT``) when the configuration phase failed
 
@@ -671,6 +699,26 @@ Assign a fabric to an agent
          This is what you see in the agent log::
 
              Waiting for glu.agent.zkConnectString (rest:put:http://xeon.local:12907)
+
+.. _goe-rest-api-delete-agent-fabric:
+
+Clears the fabric for an agent
+""""""""""""""""""""""""""""""
+
+* Description: Simply clears the fabric previously associated to an agent
+
+* Request: ``DELETE /agent/<agentName>/fabric``
+
+* Response: 
+
+  * ``200`` (``OK``) if it worked
+  * ``404`` (``NOT FOUND``) if there was already no fabric
+  * ``400`` (``BAD REQUEST``) if missing or unknown fabric
+
+* Example::
+
+     curl -v -u "glua:password" -X DELETE "http://localhost:8080/console/rest/v1/glu-dev-1/agent/xeon/fabric"
+     < HTTP/1.1 200 OK
 
 
 .. _goe-rest-api-get-agents-versions:

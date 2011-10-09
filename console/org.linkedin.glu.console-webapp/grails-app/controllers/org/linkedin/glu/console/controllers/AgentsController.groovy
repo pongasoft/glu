@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletResponse
 import org.linkedin.glu.agent.tracker.AgentInfo
 import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor
 import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
+import org.linkedin.glu.orchestration.engine.fabric.FabricService
 
 /**
  * @author ypujante@linkedin.com
@@ -41,6 +42,7 @@ class AgentsController extends ControllerBase
   DeploymentService deploymentService
   PlannerService plannerService
   DeltaService deltaService
+  FabricService fabricService
 
   def beforeInterceptor = {
     // we make sure that the fabric is always set before executing any action
@@ -149,6 +151,26 @@ class AgentsController extends ControllerBase
       filter: filter,
       hasDelta: deltaService.computeRawDelta(system).delta?.hasErrorDelta()
     ]
+  }
+
+  def clear = {
+    ensureCurrentFabric()
+
+    try
+    {
+      boolean cleared = agentsService.clearAgentInfo(request.fabric, params.id)
+      fabricService.clearAgentFabric(params.id, request.fabric.name)
+      if(cleared)
+        flash.message = "Agent [${params.id}] was cleared."
+      else
+        flash.message = "Agent [${params.id}] was already cleared."
+    }
+    catch (IllegalStateException e)
+    {
+      flash.error = e.message
+    }
+
+    redirect(controller: 'fabric', action: 'listAgentFabrics')
   }
 
   /**
@@ -446,6 +468,27 @@ class AgentsController extends ControllerBase
       response.sendError(HttpServletResponse.SC_NOT_FOUND,
                          'no such agent')
       render ''
+    }
+  }
+
+  /**
+   * Clears the agent (DELETE /agent/<agentName>)
+   */
+  def rest_delete_agent = {
+    try
+    {
+      boolean cleared = agentsService.clearAgentInfo(request.fabric, params.id)
+      fabricService.clearAgentFabric(params.id, request.fabric.name)
+      if(cleared)
+        response.setStatus(javax.servlet.http.HttpServletResponse.SC_OK)
+      else
+        response.setStatus(javax.servlet.http.HttpServletResponse.SC_NOT_FOUND)
+      render ''
+    }
+    catch (IllegalStateException e)
+    {
+      response.addHeader("X-glu-error", e.message)
+      response.sendError(HttpServletResponse.SC_CONFLICT, e.message)
     }
   }
 

@@ -27,6 +27,7 @@ import org.linkedin.util.lifecycle.Destroyable
 import org.linkedin.glu.agent.rest.client.ConfigurableFactory
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.zookeeper.client.IZKClient
+import org.apache.zookeeper.KeeperException
 
 /**
  * This service will manage fabrics
@@ -120,7 +121,12 @@ class FabricServiceImpl implements FabricService, Destroyable
 
   protected String computeZKAgentsFabricPath(String agentName)
   {
-    "${zookeeperAgentsFabricRoot}/${agentName}/fabric".toString()
+    "${computeZKAgentsPath(agentName)}/fabric".toString()
+  }
+
+  protected String computeZKAgentsPath(String agentName)
+  {
+    "${zookeeperAgentsFabricRoot}/${agentName}".toString()
   }
 
   /**
@@ -176,6 +182,24 @@ class FabricServiceImpl implements FabricService, Destroyable
                                       fabricName,
                                       Ids.OPEN_ACL_UNSAFE,
                                       CreateMode.PERSISTENT)
+    }
+  }
+
+  /**
+   * Clears the fabric for the given agent (from ZooKeeper)
+   */
+  boolean clearAgentFabric(String agentName, String fabricName)
+  {
+    withZkClient(fabricName) { zkClient ->
+      try
+      {
+        zkClient.deleteWithChildren(computeZKAgentsPath(agentName))
+        return true
+      }
+      catch (KeeperException.NoNodeException e)
+      {
+        return false
+      }
     }
   }
 

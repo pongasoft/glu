@@ -40,7 +40,7 @@
 </head>
 <body>
 <div class="body">
-  <g:if test="${flash.message}">
+  <g:if test="${flash.message && flash.errors}">
     <h1>Warnings</h1>
     <table>
       <tr>
@@ -96,11 +96,15 @@
     <tr>
       <th>Agent</th>
       <th>Fabric</th>
+      <th>Cleanup Fabric</th>
+      <th>Cleanup All</th>
     </tr>
     <g:each in="${assignedAgents}" var="entry">
       <tr>
         <td>${entry.key.encodeAsHTML()}</td>
         <td>${entry.value.encodeAsHTML()}</td>
+        <td><g:link controller="fabric" action="clearAgentFabric" id="${entry.key.encodeAsHTML()}" onClick="return confirm('Are you sure you want to clear the agent-fabric link?');">Fabric</g:link></td>
+        <td><g:link controller="agents" action="clear" id="${entry.key.encodeAsHTML()}" onClick="return confirm('Are you sure you want to clear ALL knowledge of the agent?');">All</g:link></td>
       </tr>
     </g:each>
   </table>

@@ -120,4 +120,55 @@ public class TestFabricService extends GroovyTestCase
     assertEquals('f2', agents['a3'])
     assertEquals('f3', agents['a4'])
   }
+
+  public void testSetAndClearAgents()
+  {
+    fabrics.addAll(['f1', 'f2', 'f3'].collect { name ->
+      new Fabric(name: name,
+                 zkConnectString: "localhost:${port}".toString(),
+                 zkSessionTimeout: Timespan.parse('5s'),
+                 color: "#ffff${name}".toString())
+    })
+
+    def agents = fabricService.agents
+    assertEquals(0, agents.size())
+
+    fabricService.withZkClient('f1') { IZKClient client ->
+      assertNull(client.exists("${fabricService.zookeeperAgentsFabricRoot}/a1"))
+    }
+
+    // assigning f1 to a1
+    fabricService.setAgentFabric('a1', 'f1')
+
+    fabricService.withZkClient('f1') { IZKClient client ->
+      assertEquals('f1', client.getStringData("${fabricService.zookeeperAgentsFabricRoot}/a1/fabric"))
+    }
+    agents = fabricService.agents
+    assertEquals(1, agents.size())
+    assertEquals('f1', agents['a1'])
+
+    // calling a second time doesn't fail!
+    fabricService.setAgentFabric('a1', 'f1')
+
+    fabricService.withZkClient('f1') { IZKClient client ->
+      assertEquals('f1', client.getStringData("${fabricService.zookeeperAgentsFabricRoot}/a1/fabric"))
+    }
+    agents = fabricService.agents
+    assertEquals(1, agents.size())
+    assertEquals('f1', agents['a1'])
+
+
+    // clearing it
+    assertTrue(fabricService.clearAgentFabric('a1', 'f1'))
+
+    agents = fabricService.agents
+    assertEquals(0, agents.size())
+    fabricService.withZkClient('f1') { IZKClient client ->
+      assertNull(client.exists("${fabricService.zookeeperAgentsFabricRoot}/a1"))
+    }
+
+    // this time it returns false because it was already missing
+    assertFalse(fabricService.clearAgentFabric('a1', 'f1'))
+
+  }
 }
