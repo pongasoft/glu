@@ -1,6 +1,37 @@
 Latest changes
 ==============
 
+3.4.0 (2011/10/10)
+------------------
+
+A few changes to the agent (requires upgrade):
+
+* Now the agent saves its fabric in ZooKeeper on boot (since it can be overriden on the command line, it ensures that the console sees the same value!)
+* The agent offers a ``/config`` REST api after full boot (which allows to change the fabric after the agent has booted (but it still requires a manual agent reboot... will be implemented later))
+* Fixed timing issue on auto upgrade
+* Fixed the order in which properties are read to make sure that properties assigned in a previous run are used as default values and never override new values!
+
+Several new REST apis:
+
+* ``GET /-/``: list all fabrics
+* ``GET /-/agents``: list agent -> fabric association
+* ``PUT /<fabric>/agent/<agent>/fabric``: assign a fabric to an agent
+* ``DELETE /<fabric>/agent/<agent>/fabric``: clear the fabric for an agent (also added to the UI ``Admin/View agents fabric``)
+* ``DELETE /<fabric>/agent/<agent>``: `decommission` and agent (clear ZooKeeper of all agent information)  (also added to the UI ``Admin/View agents fabric``)
+
+Upgraded to ``linkedin-utils-1.7.1`` and ``linkedin-zookeeper-1.4.0`` to fix #95
+
+List of tickets:
+
+* Implemented `glu-35 <https://github.com/linkedin/glu/issues/35>`_: `Add 'decommission' a node/agent to the console`
+* Fixed `glu-69 <https://github.com/linkedin/glu/issues/69>`_: `Agent auto upgrade process relies on timing`
+* Fixed `glu-95 <https://github.com/linkedin/glu/issues/95>`_: `shell.fetch delivers files to an incorrect location`
+* Fixed `glu-99 <https://github.com/linkedin/glu/issues/99>`_: `add assign to fabric to REST API`
+* Fixed `glu-100 <https://github.com/linkedin/glu/issues/100>`_: `agent persistent property issues: override new values`
+* Fixed `glu-101 <https://github.com/linkedin/glu/issues/101>`_: `console fails to start when changing keys`
+* Fixed `glu-103 <https://github.com/linkedin/glu/issues/103>`_: `3.4.0dev Agent REST Call doesn't return unassociated agents.`
+
+
 3.3.0 (2011/09/16)
 ------------------
 
