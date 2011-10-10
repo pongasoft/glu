@@ -179,6 +179,23 @@ You use the ``keytool`` utility (bundled with java)::
    1. the password for the keystore (``WWWWWWW``) (``console.keystorePassword`` in the console configuration)
    2. the password for the key in the keystore (``ZZZZZZZ``) (``console.keyPassword`` in the console configuration)
 
+Secret keystore for the console (optional)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. sidebar:: Use of secret keystore
+
+             The secret keystore is a keystore that is used to store encrypted passwords that are automatically fed to the glu scripts. Typical usage is for configuration in order not to store plain text passwords.
+
+The secret keystore is originally an empty keystore. The one that comes bundled with the console (called ``console.secretkeystore``) is using the default/dev password.
+
+.. warning:: If you generate your own set of keys, you should make sure that the file pointing to by the configuration property ``console.secretkeystorePath`` does **not** exist. In other words if you use the console server that comes with glu, make sure to delete the file ``keys/console.secretkeystore``. The console will automatically create the file when it boots with the proper password.
+
+.. tip:: If you do not want to use this feature at all, you can simply change the configuration file 
+         this way::
+
+           console.secretkeystorePath="/dev/null"
+
+
 Export the RSA certificate
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -244,40 +261,48 @@ Summary
 
 At the end of this step, it may be a little confusing so let's recap what you should have:
 
-+----------------------+--------------------+--------------------+------------------------------------------------------+
-|File                  |Consumer            |Default storage     |Configuration properties                              |
-+======================+====================+====================+======================================================+
-|``agent.keystore``    |Agent               |ZooKeeper           |* ``glu.agent.keystorePath`` (where is the file       |
-|                      |                    |                    |  located)                                            |
-|                      |                    |                    |                                                      |
-|                      |                    |                    |* ``glu.agent.keystoreChecksum`` (computed)           |
-|                      |                    |                    |                                                      |
-|                      |                    |                    |* ``glu.agent.keystorePassword`` (``XXXXXXX``         |
-|                      |                    |                    |  encrypted)                                          |
-|                      |                    |                    |                                                      |
-|                      |                    |                    |* ``glu.agent.keyPassword`` (``ZZZZZZZ`` encrypted)   |
-+----------------------+--------------------+--------------------+------------------------------------------------------+
-|``agent.truststore``  |All clients of the  |locally to the      |* ``console.truststorePath`` (where is the file       |
-|                      |agent (console and  |client              |  located)                                            |
-|                      |agent cli)          |                    |                                                      |
-|                      |                    |                    |* ``console.truststorePassword`` (``AAAAAAA``         |
-|                      |                    |                    |  encrypted)                                          |
-+----------------------+--------------------+--------------------+------------------------------------------------------+
-|``console.keystore``  |Console             |local to the console|* ``console.keystorePath`` (where is the file located)|
-|                      |                    |                    |                                                      |
-|                      |                    |                    |* ``console.keystorePassword`` (``WWWWWWW`` encrypted)|
-|                      |                    |                    |                                                      |
-|                      |                    |                    |* ``console.keyPassword`` (``ZZZZZZZ`` encrypted)     |
-|                      |                    |                    |                                                      |
-+----------------------+--------------------+--------------------+------------------------------------------------------+
-|``console.truststore``|Agent               |ZooKeeper           |* ``glu.agent.truststorePath`` (where is the file     |
-|                      |                    |                    |  located)                                            |
-|                      |                    |                    |                                                      |
-|                      |                    |                    |* ``glu.agent.truststoreChecksum`` (computed)         |
-|                      |                    |                    |                                                      |
-|                      |                    |                    |* ``glu.agent.truststorePassword`` (``BBBBBBB``       |
-|                      |                    |                    |  encrypted)                                          |
-+----------------------+--------------------+--------------------+------------------------------------------------------+
++--------------------------+--------------------+--------------------+------------------------------------------------------+
+|File                      |Consumer            |Default storage     |Configuration properties                              |
++==========================+====================+====================+======================================================+
+|``agent.keystore``        |Agent               |ZooKeeper           |* ``glu.agent.keystorePath`` (where is the file       |
+|                          |                    |                    |  located)                                            |
+|                          |                    |                    |                                                      |
+|                          |                    |                    |* ``glu.agent.keystoreChecksum`` (computed)           |
+|                          |                    |                    |                                                      |
+|                          |                    |                    |* ``glu.agent.keystorePassword`` (``XXXXXXX``         |
+|                          |                    |                    |  encrypted)                                          |
+|                          |                    |                    |                                                      |
+|                          |                    |                    |* ``glu.agent.keyPassword`` (``ZZZZZZZ`` encrypted)   |
++--------------------------+--------------------+--------------------+------------------------------------------------------+
+|``agent.truststore``      |All clients of the  |locally to the      |* ``console.truststorePath`` (where is the file       |
+|                          |agent (console and  |client              |  located)                                            |
+|                          |agent cli)          |                    |                                                      |
+|                          |                    |                    |* ``console.truststorePassword`` (``AAAAAAA``         |
+|                          |                    |                    |  encrypted)                                          |
++--------------------------+--------------------+--------------------+------------------------------------------------------+
+|``console.keystore``      |Console             |local to the console|* ``console.keystorePath`` (where is the file located)|
+|                          |                    |                    |                                                      |
+|                          |                    |                    |* ``console.keystorePassword`` (``WWWWWWW`` encrypted)|
+|                          |                    |                    |                                                      |
+|                          |                    |                    |* ``console.keyPassword`` (``ZZZZZZZ`` encrypted)     |
+|                          |                    |                    |                                                      |
++--------------------------+--------------------+--------------------+------------------------------------------------------+
+|``console.truststore``    |Agent               |ZooKeeper           |* ``glu.agent.truststorePath`` (where is the file     |
+|                          |                    |                    |  located)                                            |
+|                          |                    |                    |                                                      |
+|                          |                    |                    |* ``glu.agent.truststoreChecksum`` (computed)         |
+|                          |                    |                    |                                                      |
+|                          |                    |                    |* ``glu.agent.truststorePassword`` (``BBBBBBB``       |
+|                          |                    |                    |  encrypted)                                          |
++--------------------------+--------------------+--------------------+------------------------------------------------------+
+|``console.secretkeystore``|Console             |local to the console|* ``console.secretkeystorePath`` (where is the file   |
+|                          |                    |**but** this file   |  located)                                            |
+|                          |                    |should **not** exist|                                                      |
+|                          |                    |if you generate your|                                                      |
+|                          |                    |own keys (the       |                                                      |
+|                          |                    |console **will**    |                                                      |
+|                          |                    |create it)          |                                                      |
++--------------------------+--------------------+--------------------+------------------------------------------------------+
 
 .. _production-setup-prepare-zookeeper:
 
