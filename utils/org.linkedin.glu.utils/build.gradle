@@ -19,6 +19,7 @@ apply plugin: 'org.linkedin.release'
 
 dependencies {
   compile spec.external.linkedinUtilsCore
+  compile spec.external.linkedinUtilsGroovy
   groovy spec.external.groovy
 
   testCompile spec.external.junit

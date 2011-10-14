@@ -54,4 +54,11 @@ interface DeltaService
   Map computeGroupByDelta(SystemModel expectedSystem,
                           Map groupByDefinition,
                           Map groupBySelection)
+
+  /**
+   * Compute the custom "group by" delta using the custom delta definition provided
+   */
+  CustomGroupByDelta computeCustomGroupByDelta(SystemModel expectedModel,
+                                               CustomDeltaDefinition deltaDefinition)
+
 }

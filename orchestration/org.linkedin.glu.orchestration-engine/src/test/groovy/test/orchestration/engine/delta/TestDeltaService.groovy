@@ -25,6 +25,8 @@ import org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl
 import org.linkedin.glu.orchestration.engine.delta.impl.DeltaMgrImpl
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta.DeltaState
 import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
+import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
+import org.linkedin.glu.orchestration.engine.delta.CustomGroupByDelta
 
 class TestDeltaService extends GroovyTestCase
 {
@@ -842,6 +844,858 @@ class TestDeltaService extends GroovyTestCase
                            }))
   }
 
+  public void testCustomGroupByDelta()
+  {
+    def current, expected, cdd, delta, res
+
+    // ok
+    current = [
+      [
+        agent: 'a1', mountPoint: '/m1', script: 's1',
+        initParameters: [wars: 'w1'],
+        entryState: 'running',
+        metadata: [container: 'c1', product: 'p1', version: '1.2.0', currentState: 'running', modifiedTime: 1000],
+        tags: ['ec:1', 'ec:2']
+      ],
+      [
+        agent: 'a1', mountPoint: '/m2', script: 's1',
+        initParameters: [wars: 'w1'],
+        entryState: 'running',
+        metadata: [container: 'c1', product: 'p1', version: '1.1.0', currentState: 'running', modifiedTime: 1500],
+        tags: ['ec:1', 'ec:3']
+      ],
+      [
+        agent: 'a1', mountPoint: '/m3', script: 's1',
+        initParameters: [wars: 'w1'],
+        entryState: 'running',
+        metadata: [container: 'c2', product: 'p1', version: '1.0.0', currentState: 'running', modifiedTime: 2000],
+        tags: ['ec:1', 'ec:4']
+      ],
+      [
+        agent: 'a2', mountPoint: '/m1', script: 's1',
+        initParameters: [wars: 'w1'],
+        entryState: 'running',
+        metadata: [container: 'c2', product: 'p1', version: '1.0.0', currentState: 'running', modifiedTime: 1000],
+        tags: ['ec:1', 'ec:5']
+      ]
+    ]
+    expected = current
+
+    // summary = true, min / max + 2 columns with *same* source!
+    cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: true,
+      columnsDefinition: [
+        [
+          name: 'ag',
+          source: 'agent',
+          orderBy: 'asc'
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint'
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version'
+        ],
+        [
+          name: 'oldest',
+          source: 'metadata.modifiedTime',
+          groupBy: 'min'
+        ],
+        [
+          name: 'newest',
+          source: 'metadata.modifiedTime',
+          groupBy: 'max'
+        ],
+      ]
+    ]
+
+    res = """
+{
+  "a1": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a1",
+      "mp": 3,
+      "newest": 2000,
+      "oldest": 1000,
+      "vs": 3
+    }],
+    "errorsCount": 0,
+    "instancesCount": 3,
+    "na": "",
+    "state": "OK"
+  },
+  "a2": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a2",
+      "mp": "/m1",
+      "newest": 1000,
+      "oldest": 1000,
+      "vs": "1.0.0"
+    }],
+    "errorsCount": 0,
+    "instancesCount": 1,
+    "na": "",
+    "state": "OK"
+  }
+}
+"""
+    delta = checkCustomGroupByDelta(res, expected, current, cdd)
+    // YP Note: the json transformation looses the sort order as it always sort in an ascending
+    // fashion, this is why I am doing a special test on the actual value returned to make
+    // sure that the orderBy: 'asc' is taken into account on the first column!
+    assertEquals(["a1", "a2"], delta.groupByDelta.keySet() as List)
+
+    // summary = true, min / max + 2 columns with *same* source!
+    cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: true,
+      columnsDefinition: [
+        [
+          name: 'ag',
+          source: 'agent',
+          orderBy: 'desc'
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint'
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version'
+        ],
+        [
+          name: 'oldest',
+          source: 'metadata.modifiedTime',
+          groupBy: 'min'
+        ],
+        [
+          name: 'newest',
+          source: 'metadata.modifiedTime',
+          groupBy: 'max'
+        ],
+      ]
+    ]
+
+    res = """
+{
+  "a1": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a1",
+      "mp": 3,
+      "newest": 2000,
+      "oldest": 1000,
+      "vs": 3
+    }],
+    "errorsCount": 0,
+    "instancesCount": 3,
+    "na": "",
+    "state": "OK"
+  },
+  "a2": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a2",
+      "mp": "/m1",
+      "newest": 1000,
+      "oldest": 1000,
+      "vs": "1.0.0"
+    }],
+    "errorsCount": 0,
+    "instancesCount": 1,
+    "na": "",
+    "state": "OK"
+  }
+}
+"""
+    delta = checkCustomGroupByDelta(res, expected, current, cdd)
+    // YP Note: the json transformation looses the sort order as it always sort in an ascending
+    // fashion, this is why I am doing a special test on the actual value returned to make
+    // sure that the orderBy: 'desc' is taken into account on the first column!
+    assertEquals(["a2", "a1"], delta.groupByDelta.keySet() as List)
+
+    // summary = true
+    cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: true,
+      columnsDefinition: [
+        [
+          name: 'mp',
+          source: 'mountPoint'
+        ],
+        [
+          name: 'ag',
+          source: 'agent',
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version'
+        ],
+      ]
+    ]
+
+    res = """
+{
+  "/m1": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": 2,
+      "mp": "/m1",
+      "vs": 2
+    }],
+    "errorsCount": 0,
+    "instancesCount": 2,
+    "na": "",
+    "state": "OK"
+  },
+  "/m2": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a1",
+      "mp": "/m2",
+      "vs": "1.1.0"
+    }],
+    "errorsCount": 0,
+    "instancesCount": 1,
+    "na": "",
+    "state": "OK"
+  },
+  "/m3": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a1",
+      "mp": "/m3",
+      "vs": "1.0.0"
+    }],
+    "errorsCount": 0,
+    "instancesCount": 1,
+    "na": "",
+    "state": "OK"
+  }
+}
+"""
+    checkCustomGroupByDelta(res, expected, current, cdd)
+
+    // summary = true, groupBy = uniqueCount
+    cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: true,
+      columnsDefinition: [
+        [
+          name: 'mp',
+          source: 'mountPoint'
+        ],
+        [
+          name: 'ag',
+          source: 'agent',
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version',
+          groupBy: 'uniqueCount'
+        ],
+      ]
+    ]
+
+    res = """
+{
+  "/m1": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": 2,
+      "mp": "/m1",
+      "vs": 2
+    }],
+    "errorsCount": 0,
+    "instancesCount": 2,
+    "na": "",
+    "state": "OK"
+  },
+  "/m2": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a1",
+      "mp": "/m2",
+      "vs": 1
+    }],
+    "errorsCount": 0,
+    "instancesCount": 1,
+    "na": "",
+    "state": "OK"
+  },
+  "/m3": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a1",
+      "mp": "/m3",
+      "vs": 1
+    }],
+    "errorsCount": 0,
+    "instancesCount": 1,
+    "na": "",
+    "state": "OK"
+  }
+}
+"""
+    checkCustomGroupByDelta(res, expected, current, cdd)
+
+    // summary = true, groupBy = uniqueVals
+    cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: true,
+      columnsDefinition: [
+        [
+          name: 'src',
+          source: 'script',
+        ],
+        [
+          name: 'ag',
+          source: 'agent',
+          groupBy: 'uniqueVals'
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint',
+          groupBy: 'uniqueVals'
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version',
+          groupBy: 'uniqueVals'
+        ],
+      ]
+    ]
+
+    res = """
+{"s1": {
+  "deltasCount": 0,
+  "entries": [{
+    "ag": [
+      "a1",
+      "a2"
+    ],
+    "mp": [
+      "/m1",
+      "/m2",
+      "/m3"
+    ],
+    "src": "s1",
+    "vs": [
+      "1.2.0",
+      "1.1.0",
+      "1.0.0"
+    ]
+  }],
+  "errorsCount": 0,
+  "instancesCount": 4,
+  "na": "",
+  "state": "OK"
+}}
+"""
+    checkCustomGroupByDelta(res, expected, current, cdd)
+
+    // summary = true, groupBy = vals
+    cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: true,
+      columnsDefinition: [
+        [
+          name: 'src',
+          source: 'script',
+        ],
+        [
+          name: 'ag',
+          source: 'agent',
+          groupBy: 'vals'
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint',
+          groupBy: 'vals'
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version',
+          groupBy: 'vals'
+        ],
+      ]
+    ]
+
+    res = """
+{"s1": {
+  "deltasCount": 0,
+  "entries": [{
+    "ag": [
+      "a1",
+      "a1",
+      "a1",
+      "a2"
+    ],
+    "mp": [
+      "/m1",
+      "/m2",
+      "/m3",
+      "/m1"
+    ],
+    "src": "s1",
+    "vs": [
+      "1.2.0",
+      "1.1.0",
+      "1.0.0",
+      "1.0.0"
+    ]
+  }],
+  "errorsCount": 0,
+  "instancesCount": 4,
+  "na": "",
+  "state": "OK"
+}}
+"""
+    checkCustomGroupByDelta(res, expected, current, cdd)
+
+    // summary = true, groupBy = count
+    cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: true,
+      columnsDefinition: [
+        [
+          name: 'src',
+          source: 'script',
+        ],
+        [
+          name: 'ag',
+          source: 'agent',
+          groupBy: 'count'
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint',
+          groupBy: 'count'
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version',
+          groupBy: 'count'
+        ],
+      ]
+    ]
+
+    res = """
+{"s1": {
+  "deltasCount": 0,
+  "entries": [{
+    "ag": 4,
+    "mp": 4,
+    "src": "s1",
+    "vs": 4
+  }],
+  "errorsCount": 0,
+  "instancesCount": 4,
+  "na": "",
+  "state": "OK"
+}}
+"""
+    checkCustomGroupByDelta(res, expected, current, cdd)
+
+    // summary = false
+    cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: false,
+      columnsDefinition: [
+        [
+          name: 'src',
+          source: 'script',
+        ],
+        [
+          name: 'ag',
+          source: 'agent',
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint',
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version',
+        ],
+      ]
+    ]
+
+    res = """
+{"s1": {
+  "deltasCount": 0,
+  "entries": [
+    {
+      "ag": "a1",
+      "mp": "/m1",
+      "src": "s1",
+      "vs": "1.2.0"
+    },
+    {
+      "ag": "a1",
+      "mp": "/m2",
+      "src": "s1",
+      "vs": "1.1.0"
+    },
+    {
+      "ag": "a1",
+      "mp": "/m3",
+      "src": "s1",
+      "vs": "1.0.0"
+    },
+    {
+      "ag": "a2",
+      "mp": "/m1",
+      "src": "s1",
+      "vs": "1.0.0"
+    }
+  ],
+  "errorsCount": 0,
+  "instancesCount": 4,
+  "na": "",
+  "state": "OK"
+}}
+"""
+    checkCustomGroupByDelta(res, expected, current, cdd)
+
+    // summary = false, orderBy = 'desc'
+    cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: false,
+      columnsDefinition: [
+        [
+          name: 'src',
+          source: 'script',
+        ],
+        [
+          name: 'ag',
+          source: 'agent',
+          orderBy: 'desc'
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint',
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version',
+        ],
+      ]
+    ]
+
+    res = """
+{"s1": {
+  "deltasCount": 0,
+  "entries": [
+    {
+      "ag": "a2",
+      "mp": "/m1",
+      "src": "s1",
+      "vs": "1.0.0"
+    },
+    {
+      "ag": "a1",
+      "mp": "/m1",
+      "src": "s1",
+      "vs": "1.2.0"
+    },
+    {
+      "ag": "a1",
+      "mp": "/m2",
+      "src": "s1",
+      "vs": "1.1.0"
+    },
+    {
+      "ag": "a1",
+      "mp": "/m3",
+      "src": "s1",
+      "vs": "1.0.0"
+    }
+  ],
+  "errorsCount": 0,
+  "instancesCount": 4,
+  "na": "",
+  "state": "OK"
+}}
+"""
+    checkCustomGroupByDelta(res, expected, current, cdd)
+
+    // summary = false, orderBy = 'desc'
+    cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: false,
+      columnsDefinition: [
+        [
+          name: 'src',
+          source: 'script',
+        ],
+        [
+          name: 'ag',
+          source: 'agent',
+          orderBy: 'desc'
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint',
+          orderBy: 'desc'
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version',
+        ],
+      ]
+    ]
+
+    res = """
+{"s1": {
+  "deltasCount": 0,
+  "entries": [
+    {
+      "ag": "a2",
+      "mp": "/m1",
+      "src": "s1",
+      "vs": "1.0.0"
+    },
+    {
+      "ag": "a1",
+      "mp": "/m3",
+      "src": "s1",
+      "vs": "1.0.0"
+    },
+    {
+      "ag": "a1",
+      "mp": "/m2",
+      "src": "s1",
+      "vs": "1.1.0"
+    },
+    {
+      "ag": "a1",
+      "mp": "/m1",
+      "src": "s1",
+      "vs": "1.2.0"
+    }
+  ],
+  "errorsCount": 0,
+  "instancesCount": 4,
+  "na": "",
+  "state": "OK"
+}}
+"""
+    checkCustomGroupByDelta(res, expected, current, cdd)
+
+    // summary = false, errorsOnly = true
+    cdd = [
+      name: 'd1',
+      errorsOnly: true,
+      summary: false,
+      columnsDefinition: [
+        [
+          name: 'src',
+          source: 'script',
+        ],
+        [
+          name: 'ag',
+          source: 'agent',
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint',
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version',
+        ],
+      ]
+    ]
+
+    res = "{}"
+
+    delta = checkCustomGroupByDelta(res, expected, current, cdd)
+    assertEquals(0, delta.counts['errors'])
+    assertEquals(0, delta.counts['instances'])
+    assertEquals(0, delta.totals['errors'])
+    assertEquals(4, delta.totals['instances'])
+
+    // now with real errors
+    // summary = false, errorsOnly = true
+    cdd = [
+      name: 'd1',
+      errorsOnly: true,
+      summary: false,
+      columnsDefinition: [
+        [
+          name: 'src',
+          source: 'script',
+        ],
+        [
+          name: 'ag',
+          source: 'agent',
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint',
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version',
+        ],
+        [
+          name: 'st',
+          source: 'status',
+        ],
+      ]
+    ]
+
+    res = """
+{"s1": {
+  "deltasCount": 0,
+  "entries": [
+    {
+      "ag": "a1",
+      "mp": "/m1",
+      "src": "s1",
+      "st": "notDeployed",
+      "vs": "1.2.0"
+    },
+    {
+      "ag": "a1",
+      "mp": "/m2",
+      "src": "s1",
+      "st": "notDeployed",
+      "vs": "1.1.0"
+    },
+    {
+      "ag": "a1",
+      "mp": "/m3",
+      "src": "s1",
+      "st": "notDeployed",
+      "vs": "1.0.0"
+    },
+    {
+      "ag": "a2",
+      "mp": "/m1",
+      "src": "s1",
+      "st": "notDeployed",
+      "vs": "1.0.0"
+    }
+  ],
+  "errorsCount": 4,
+  "instancesCount": 4,
+  "na": "",
+  "state": "ERROR"
+}}
+"""
+
+    delta = checkCustomGroupByDelta(res, expected, [], cdd)
+    assertEquals(0, delta.counts['errors'])
+    assertEquals(0, delta.counts['instances'])
+    assertEquals(0, delta.totals['errors'])
+    assertEquals(4, delta.totals['instances'])
+
+  }
+
+  public void testGroupBy()
+  {
+    def cdd, expected
+
+    cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: true,
+      columnsDefinition: [
+        [
+          name: 'ag',
+          source: 'agent',
+          orderBy: 'asc'
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint'
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version'
+        ],
+        [
+          name: 'oldest',
+          source: 'metadata.modifiedTime',
+          groupBy: 'min'
+        ],
+        [
+          name: 'newest',
+          source: 'metadata.modifiedTime',
+          groupBy: 'max'
+        ],
+      ]
+    ]
+
+    CustomDeltaDefinition definition = CustomDeltaDefinition.fromExternalRepresentation(cdd)
+
+    definition = definition.groupBy("newest")
+
+    expected = [
+      name: 'd1',
+      customFilter: null,
+      errorsOnly: false,
+      summary: true,
+      columnsDefinition: [
+        [
+          name: 'newest',
+          source: 'metadata.modifiedTime',
+          groupBy: 'max',
+          orderBy: 'asc',
+          linkable: true
+        ],
+        [
+          name: 'ag',
+          source: 'agent',
+          groupBy: 'uniqueCountOrUniqueVal',
+          orderBy: 'asc',
+          linkable: true
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint',
+          groupBy: 'uniqueCountOrUniqueVal',
+          orderBy: 'asc',
+          linkable: true
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version',
+          groupBy: 'uniqueCountOrUniqueVal',
+          orderBy: 'asc',
+          linkable: true
+        ],
+        [
+          name: 'oldest',
+          source: 'metadata.modifiedTime',
+          groupBy: 'min',
+          orderBy: 'asc',
+          linkable: true
+        ],
+      ]
+    ]
+
+    assertTrue(GroovyCollectionsUtils.compareIgnoreType(expected,
+                                                        definition.toExternalRepresentation()))
+  }
+
   public void testEmptyAgent()
   {
     def current
@@ -1530,11 +2384,40 @@ class TestDeltaService extends GroovyTestCase
   {
     SystemModel model = new SystemModel(fabric: "f1")
 
-
     entries.each {
       model.addEntry(SystemEntry.fromExternalRepresentation(it))
     }
 
     return model
+  }
+
+  private CustomGroupByDelta doComputeCustomGrouByDelta(def expected,
+                                                        def current,
+                                                        def customDeltaDefinition)
+  {
+    CustomDeltaDefinition cdd =
+      CustomDeltaDefinition.fromExternalRepresentation(customDeltaDefinition)
+
+    SystemModel currentModel = createEmptySystem(current)
+    SystemModel expectedModel = createEmptySystem(expected)
+
+    addEntries(currentModel, current)
+    addEntries(expectedModel, expected)
+
+    deltaService.computeCustomGroupByDelta(expectedModel, currentModel, cdd)
+  }
+
+  private CustomGroupByDelta checkCustomGroupByDelta(String expectedResult,
+                                                     def expected,
+                                                     def current,
+                                                     def customDeltaDefinition)
+  {
+    CustomGroupByDelta delta = doComputeCustomGrouByDelta(expected, current, customDeltaDefinition)
+
+    String computedResult = JsonUtils.toJSON(delta.groupByDelta).toString(2)
+
+    assertEquals(expectedResult.trim(), computedResult)
+
+    return delta
   }
 }

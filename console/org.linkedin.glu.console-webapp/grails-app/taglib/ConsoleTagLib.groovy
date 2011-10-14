@@ -29,6 +29,7 @@ import org.linkedin.util.io.PathUtils
 import org.linkedin.glu.orchestration.engine.tags.TagsService
 import org.linkedin.glu.orchestration.engine.fabric.FabricService
 import org.linkedin.groovy.util.lang.GroovyLangUtils
+import org.linkedin.glu.orchestration.engine.delta.CustomDeltaColumnDefinition
 
 /**
  * Tag library for the console.
@@ -123,48 +124,30 @@ public class ConsoleTagLib
 
   /**
    * Format an computeDelta value
-   * @param args.colunmName
-   * @param args.detail
+   * @param args.colunm a {@link CustomDeltaColumnDefinition} column definition
+   * @param args.values all the values for the row (a map)
    */
   def formatDeltaValue = { args ->
-    def columnName = args.columnName
-    def detail = args.detail
-    def columns = args.columns
+    CustomDeltaColumnDefinition column = args.column
+    def values = args.values
 
-    def value = detail[columnName]
-
-    switch(columnName)
-    {
-      case 'tags':
-        out << renderTags(tags: value,
-                          linkFilter: columns[columnName].linkFilter)
-        return
-
-      case 'tag':
-        out << renderTags(tags: value,
-                          linkFilter: columns[columnName].linkFilter)
-        return
-
-      default:
-        if(value instanceof Collection)
-        {
-          if(value.size() == 1)
-          {
-            value = value.iterator().next()
-          }
-          else
-          {
-            out << "<div class=\"count\">${value.size()}</div>"
-            return
-          }
-        }
-    }
+    def value = values[column.name]
 
     if(value == null)
       return
 
-    switch(columnName)
+    switch(column.source)
     {
+      case 'tags':
+        out << renderTags(tags: value,
+                          linkable: column.linkable)
+        return
+
+      case 'tag':
+        out << renderTags(tags: value,
+                          linkable: column.linkable)
+        return
+
       case 'metadata.modifiedTime':
         out << cl.formatDate(date: new Date(value))
         break;
@@ -199,15 +182,16 @@ public class ConsoleTagLib
       break;
 
       case 'status':
-        out << cl.formatDeltaStatus(status: value, statusInfo: detail.statusInfo, row: args.row)
+        out << cl.formatDeltaStatus(status: value, statusInfo: values.statusInfo, row: args.row)
       break;
 
       default:
-        if(columns[columnName].linkFilter)
+        if(column.linkable)
         {
-          out << cl.linkToSystemFilter(name: columnName,
+          out << cl.linkToSystemFilter(name: column.source,
                                        value: value,
-                                       displayName: columns[columnName].name) {
+                                       groupBy: column.name,
+                                       displayName: column.name) {
             out << value.encodeAsHTML()
           }
         }
@@ -223,30 +207,32 @@ public class ConsoleTagLib
    */
   def renderTags = { args ->
     def tags = args.tags
-    def linkFilter = args.linkFilter
+    def linkable = args.linkable
 
     if(tags)
     {
-      if(!(tags instanceof Collection))
-        tags = [tags]
-      
-      out << "<ul class=\"tags ${linkFilter ? 'with-links': 'no-links'}\">"
-      tags.each { String tag ->
-        out << "<li class=\"tag ${tagsService.getTagCssClass(tag) ?: ''}\">"
-        if(linkFilter)
-        {
-          out << cl.linkToSystemFilter(name: 'tags',
-                                       groupBy: 'tag',
-                                       value: tag,
-                                       displayName: 'tags') {
-            out << tag
+      if(tags instanceof Collection)
+      {
+        out << "<ul class=\"tags ${linkable ? 'with-links': 'no-links'}\">"
+        tags.each { String tag ->
+          out << "<li class=\"tag ${tagsService.getTagCssClass(tag) ?: ''}\">"
+          if(linkable)
+          {
+            out << cl.linkToSystemFilter(name: 'tags',
+                                         groupBy: 'tag',
+                                         value: tag,
+                                         displayName: 'tags') {
+              out << tag
+            }
           }
+          else
+           out << tag
+          out << "</li>"
         }
-        else
-         out << tag
-        out << "</li>"
+        out << "</ul>"
       }
-      out << "</ul>"
+      else
+        out << tags.encodeAsHTML()
     }
   }
 

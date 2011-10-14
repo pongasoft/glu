@@ -31,7 +31,7 @@
     <li class="selected">agent [${model.agent.agentName}]</li>
     <li><g:link action="ps" id="${model.agent.agentName}">All Processes</g:link></li>
   </ul>
-  <h1 class="${model.state}">${model.agent.agentName} (V${model.agent.version}) <cl:renderTags tags="${model.agent.tags}" linkFilter="${true}"/> </h1>
+  <h1 class="${model.state}">${model.agent.agentName} (V${model.agent.version}) <cl:renderTags tags="${model.agent.tags}" linkable="${true}"/> </h1>
   <ul class="summary">
     <li>Logs: <g:link action="tailLog" id="${model.agent.agentName}" params="[maxLine: 500]">main</g:link> |
       <g:link action="tailLog" id="${model.agent.agentName}" params="[log:'gc.log', maxLine: 500]">gc</g:link><g:if test="${model.agent.agentProperties['glu.agent.logDir']}"> |
@@ -76,7 +76,7 @@
   <g:each in="${ConsoleUtils.sortBy(model.mountPoints.keySet(), 'path')}" var="key">
     <g:set var="mountPoint" value="${model.mountPoints[key]}"/>
     <a name="${mountPoint.mountPoint}" id="${mountPoint.mountPoint}"></a>
-    <h2 class="${cl.mountPointState(mountPoint: mountPoint)}"><cl:linkToSystemFilter name="mountPoint" value="${key}">${key.encodeAsHTML()}</cl:linkToSystemFilter> <cl:renderTags tags="${mountPoint.tags}" linkFilter="${true}"/>
+    <h2 class="${cl.mountPointState(mountPoint: mountPoint)}"><cl:linkToSystemFilter name="mountPoint" value="${key}">${key.encodeAsHTML()}</cl:linkToSystemFilter> <cl:renderTags tags="${mountPoint.tags}" linkable="${true}"/>
     </h2>
     <ul class="summary">
       <cl:mountPointLogs agent="${model.agent.agentName}" mountPoint="${mountPoint}"/>

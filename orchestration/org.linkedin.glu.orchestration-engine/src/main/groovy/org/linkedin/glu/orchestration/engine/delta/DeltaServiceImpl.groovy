@@ -29,6 +29,8 @@ import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta.DeltaState
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.glu.utils.core.Externable
+import org.linkedin.glu.agent.tracker.AgentsTracker.AccuracyLevel
+import org.linkedin.glu.orchestration.engine.delta.impl.DeltaUtils
 
 class DeltaServiceImpl implements DeltaService
 {
@@ -376,6 +378,197 @@ class DeltaServiceImpl implements DeltaService
         totals: totals,
         currentSystem: expectedSystem
     ]
+  }
+
+  CustomGroupByDelta computeCustomGroupByDelta(SystemModel expectedModel,
+                                               SystemModel currentModel,
+                                               CustomDeltaDefinition deltaDefinition)
+  {
+    CustomGroupByDelta res = new CustomGroupByDelta(expectedModel: expectedModel,
+                                                    deltaDefinition: deltaDefinition,
+                                                    accuracy: currentModel.metadata.accuracy as AccuracyLevel)
+
+    def current = computeDelta(expectedModel, currentModel)
+
+    def columnSources = deltaDefinition.columnsDefinition.source.unique()
+    def orderBy = deltaDefinition.tailOrderBy
+
+//    boolean removeStatusInfoColumn = false
+//    if(columnNames.contains("status") && !columnNames.contains("statusInfo"))
+//    {
+//      removeStatusInfoColumn = true
+//      columnNames << "statusInfo"
+//    }
+
+    def column0Source = columnSources[0]
+
+    def allTags = new HashSet()
+
+    Map<String, ? extends Object> counts = [errors: 0, instances: 0]
+    Map<String, ? extends Object> totals = [errors: 0, instances: 0]
+
+    columnSources.each { String column ->
+      counts[column] = new HashSet()
+      totals[column] = new HashSet()
+    }
+
+    if(column0Source == 'tag')
+    {
+      Set<String> filteredTags = extractFilteredTags(expectedModel) as Set
+
+      def newCurrent = []
+      current.each { row ->
+        if(row.tags?.size() > 0)
+        {
+          row.tags.each { tag ->
+            if(!filteredTags || filteredTags.contains(tag))
+            {
+              def newRow = [*:row]
+              newRow.tag = tag
+              newCurrent << newRow
+            }
+          }
+        }
+        else
+          newCurrent << row
+      }
+      current = newCurrent
+    }
+
+    // TODO HIGH YP:  need to revisit counts as it does not currently account for error filtering
+    current.each { row ->
+      def column0Value = row[column0Source]
+      columnSources.each { column ->
+        if(column != 'tag' && row[column])
+        {
+          if(column0Value)
+            counts[column] << row[column]
+
+          totals[column] << row[column]
+        }
+      }
+
+      if(row.tags)
+        allTags.addAll(row.tags)
+
+      if(column0Value)
+      {
+        if(row.state == 'ERROR')
+        {
+          counts.errors++
+          counts.instances++
+        }
+        else
+        {
+          if(!deltaDefinition.errorsOnly)
+            counts.instances++
+        }
+      }
+      if(row.state == 'ERROR')
+        totals.errors++
+      totals.instances++
+    }
+
+    columnSources.each { column ->
+      counts[column] = counts[column].size()
+      totals[column] = totals[column].size()
+    }
+
+    counts.tag = allTags.size()
+    totals.tag = allTags.size()
+    counts.tags = allTags.size()
+    totals.tags = allTags.size()
+
+    // removes rows where the first column is null or empty
+    current = current.findAll { it[column0Source] }
+
+    String column0OrderBy = deltaDefinition.columnsDefinition[0].orderBy
+
+    def delta
+
+    if(column0OrderBy == null)
+      delta = [:]
+    else
+      delta = new TreeMap(DeltaUtils.delatRowsComparators.get(column0OrderBy))
+
+    def groupByColumn0 = current.groupBy { it.getAt(column0Source) }
+
+    groupByColumn0.each { column0, Collection list ->
+      def errors = list.findAll { it.state == DeltaState.ERROR }
+      def deltas = list.findAll { it.status == "delta" }
+
+      Map<String, ? extends Object> row = [
+          instancesCount: list.size(),
+          errorsCount: errors.size(),
+          deltasCount: deltas.size()
+      ]
+
+      row.state = expectedModel ?
+        (row.errorsCount > row.deltasCount ? 'ERROR' : row.deltasCount > 0 ? 'DELTA' : 'OK') :
+        'UNKNOWN'
+      row.na = list.find { it.state == DeltaState.NA} ? 'NA' : ''
+
+      def entries = deltaDefinition.errorsOnly ? errors : list
+
+      if(entries)
+      {
+        if(deltaDefinition.summary)
+        {
+          def summary = [:]
+          deltaDefinition.columnsDefinition.each { CustomDeltaColumnDefinition column ->
+            summary[column.name] = column.groupBy(entries."${column.source}")
+          }
+          entries = [summary]
+        }
+        else
+        {
+          def newEntries = []
+          entries.each { entry ->
+            def newEntry = [:]
+            deltaDefinition.columnsDefinition.each { CustomDeltaColumnDefinition column ->
+              newEntry[column.name] = entry."${column.source}"
+            }
+            newEntries << newEntry
+          }
+          entries = newEntries
+        }
+
+        // if more than one entry we sort them
+        if(entries.size() > 1)
+        {
+          DeltaUtils.sortBy(entries, orderBy)
+        }
+
+        row.entries = entries
+        delta[column0] = row
+      }
+    }
+
+//    if(removeStatusInfoColumn)
+//      columnNames.remove("statusInfo")
+
+    res.counts = counts
+    res.totals = totals
+    res.groupByDelta = delta
+
+    return res
+  }
+
+  @Override
+  CustomGroupByDelta computeCustomGroupByDelta(SystemModel expectedModel,
+                                               CustomDeltaDefinition deltaDefinition)
+  {
+    if(!expectedModel)
+      return null
+
+    Fabric fabric = fabricService.findFabric(expectedModel.fabric)
+
+    if(!fabric)
+      throw new IllegalArgumentException("unknown fabric ${expectedModel.fabric}")
+
+    SystemModel currentModel = agentsService.getCurrentSystemModel(fabric)
+
+    computeCustomGroupByDelta(expectedModel, currentModel, deltaDefinition)
   }
 
   private Collection<String> extractFilteredTags(SystemModel model)
