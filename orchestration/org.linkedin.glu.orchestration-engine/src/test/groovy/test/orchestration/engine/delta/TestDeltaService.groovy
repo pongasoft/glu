@@ -852,14 +852,14 @@ class TestDeltaService extends GroovyTestCase
     current = [
       [
         agent: 'a1', mountPoint: '/m1', script: 's1',
-        initParameters: [wars: 'w1'],
+        initParameters: [webapps: [[war: 'w1', contextPath: '/cp1'], [war: 'w2', contextPath: '/cp2']]],
         entryState: 'running',
         metadata: [container: 'c1', product: 'p1', version: '1.2.0', currentState: 'running', modifiedTime: 1000],
         tags: ['ec:1', 'ec:2']
       ],
       [
         agent: 'a1', mountPoint: '/m2', script: 's1',
-        initParameters: [wars: 'w1'],
+        initParameters: [webapps: [war: 'w1', contextPath: '/cp1']],
         entryState: 'running',
         metadata: [container: 'c1', product: 'p1', version: '1.1.0', currentState: 'running', modifiedTime: 1500],
         tags: ['ec:1', 'ec:3']
@@ -919,10 +919,10 @@ class TestDeltaService extends GroovyTestCase
     "deltasCount": 0,
     "entries": [{
       "ag": "a1",
-      "mp": 3,
+      "mp": {"count": 3},
       "newest": 2000,
       "oldest": 1000,
-      "vs": 3
+      "vs": {"count": 3}
     }],
     "errorsCount": 0,
     "instancesCount": 3,
@@ -989,10 +989,10 @@ class TestDeltaService extends GroovyTestCase
     "deltasCount": 0,
     "entries": [{
       "ag": "a1",
-      "mp": 3,
+      "mp": {"count": 3},
       "newest": 2000,
       "oldest": 1000,
-      "vs": 3
+      "vs": {"count": 3}
     }],
     "errorsCount": 0,
     "instancesCount": 3,
@@ -1047,9 +1047,9 @@ class TestDeltaService extends GroovyTestCase
   "/m1": {
     "deltasCount": 0,
     "entries": [{
-      "ag": 2,
+      "ag": {"count": 2},
       "mp": "/m1",
-      "vs": 2
+      "vs": {"count": 2}
     }],
     "errorsCount": 0,
     "instancesCount": 2,
@@ -1111,9 +1111,9 @@ class TestDeltaService extends GroovyTestCase
   "/m1": {
     "deltasCount": 0,
     "entries": [{
-      "ag": 2,
+      "ag": {"count": 2},
       "mp": "/m1",
-      "vs": 2
+      "vs": {"count": 2}
     }],
     "errorsCount": 0,
     "instancesCount": 2,
@@ -1125,7 +1125,7 @@ class TestDeltaService extends GroovyTestCase
     "entries": [{
       "ag": "a1",
       "mp": "/m2",
-      "vs": 1
+      "vs": {"count": 1}
     }],
     "errorsCount": 0,
     "instancesCount": 1,
@@ -1137,7 +1137,7 @@ class TestDeltaService extends GroovyTestCase
     "entries": [{
       "ag": "a1",
       "mp": "/m3",
-      "vs": 1
+      "vs": {"count": 1}
     }],
     "errorsCount": 0,
     "instancesCount": 1,
@@ -1296,10 +1296,10 @@ class TestDeltaService extends GroovyTestCase
 {"s1": {
   "deltasCount": 0,
   "entries": [{
-    "ag": 4,
-    "mp": 4,
+    "ag": {"count": 4},
+    "mp": {"count": 4},
     "src": "s1",
-    "vs": 4
+    "vs": {"count": 4}
   }],
   "errorsCount": 0,
   "instancesCount": 4,
@@ -1607,6 +1607,221 @@ class TestDeltaService extends GroovyTestCase
     assertEquals(0, delta.totals['errors'])
     assertEquals(4, delta.totals['instances'])
 
+    // summary = false, using tags (not first column)
+    cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: false,
+      columnsDefinition: [
+        [
+          name: 'mp',
+          source: 'mountPoint'
+        ],
+        [
+          name: 'ts',
+          source: 'tags',
+          groupBy: 'uniqueVals'
+        ],
+        [
+          name: 'ag',
+          source: 'agent',
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version',
+        ],
+      ]
+    ]
+
+    res = """
+{
+  "/m1": {
+    "deltasCount": 0,
+    "entries": [
+      {
+        "ag": "a1",
+        "mp": "/m1",
+        "ts": [
+          "ec:1",
+          "ec:2"
+        ],
+        "vs": "1.2.0"
+      },
+      {
+        "ag": "a2",
+        "mp": "/m1",
+        "ts": [
+          "ec:1",
+          "ec:5"
+        ],
+        "vs": "1.0.0"
+      }
+    ],
+    "errorsCount": 0,
+    "instancesCount": 2,
+    "na": "",
+    "state": "OK"
+  },
+  "/m2": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a1",
+      "mp": "/m2",
+      "ts": [
+        "ec:1",
+        "ec:3"
+      ],
+      "vs": "1.1.0"
+    }],
+    "errorsCount": 0,
+    "instancesCount": 1,
+    "na": "",
+    "state": "OK"
+  },
+  "/m3": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a1",
+      "mp": "/m3",
+      "ts": [
+        "ec:1",
+        "ec:4"
+      ],
+      "vs": "1.0.0"
+    }],
+    "errorsCount": 0,
+    "instancesCount": 1,
+    "na": "",
+    "state": "OK"
+  }
+}
+"""
+    checkCustomGroupByDelta(res, expected, current, cdd)
+
+    // summary = false, using tags (first column)
+    cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: true,
+      columnsDefinition: [
+        [
+          name: 'ts0',
+          source: 'tags',
+          groupBy: 'uniqueVals'
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint'
+        ],
+        [
+          name: 'ag',
+          source: 'agent',
+        ],
+        [
+          name: 'vs',
+          source: 'metadata.version',
+        ],
+        [
+          name: 'ts1',
+          source: 'tags',
+          groupBy: 'uniqueVals'
+        ],
+      ]
+    ]
+
+    res = """
+{
+  "[ec:1]": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": {"count": 2},
+      "mp": {"count": 3},
+      "ts0": ["ec:1"],
+      "ts1": [
+        "ec:1",
+        "ec:2",
+        "ec:3",
+        "ec:4",
+        "ec:5"
+      ],
+      "vs": {"count": 3}
+    }],
+    "errorsCount": 0,
+    "instancesCount": 4,
+    "na": "",
+    "state": "OK"
+  },
+  "[ec:2]": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a1",
+      "mp": "/m1",
+      "ts0": ["ec:2"],
+      "ts1": [
+        "ec:1",
+        "ec:2"
+      ],
+      "vs": "1.2.0"
+    }],
+    "errorsCount": 0,
+    "instancesCount": 1,
+    "na": "",
+    "state": "OK"
+  },
+  "[ec:3]": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a1",
+      "mp": "/m2",
+      "ts0": ["ec:3"],
+      "ts1": [
+        "ec:1",
+        "ec:3"
+      ],
+      "vs": "1.1.0"
+    }],
+    "errorsCount": 0,
+    "instancesCount": 1,
+    "na": "",
+    "state": "OK"
+  },
+  "[ec:4]": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a1",
+      "mp": "/m3",
+      "ts0": ["ec:4"],
+      "ts1": [
+        "ec:1",
+        "ec:4"
+      ],
+      "vs": "1.0.0"
+    }],
+    "errorsCount": 0,
+    "instancesCount": 1,
+    "na": "",
+    "state": "OK"
+  },
+  "[ec:5]": {
+    "deltasCount": 0,
+    "entries": [{
+      "ag": "a2",
+      "mp": "/m1",
+      "ts0": ["ec:5"],
+      "ts1": [
+        "ec:1",
+        "ec:5"
+      ],
+      "vs": "1.0.0"
+    }],
+    "errorsCount": 0,
+    "instancesCount": 1,
+    "na": "",
+    "state": "OK"
+  }
+}
+"""
+    checkCustomGroupByDelta(res, expected, current, cdd)
   }
 
   public void testGroupBy()
@@ -1659,35 +1874,40 @@ class TestDeltaService extends GroovyTestCase
           source: 'metadata.modifiedTime',
           groupBy: 'max',
           orderBy: 'asc',
-          linkable: true
+          linkable: true,
+          visible: true
         ],
         [
           name: 'ag',
           source: 'agent',
           groupBy: 'uniqueCountOrUniqueVal',
           orderBy: 'asc',
-          linkable: true
+          linkable: true,
+          visible: true
         ],
         [
           name: 'mp',
           source: 'mountPoint',
           groupBy: 'uniqueCountOrUniqueVal',
           orderBy: 'asc',
-          linkable: true
+          linkable: true,
+          visible: true
         ],
         [
           name: 'vs',
           source: 'metadata.version',
           groupBy: 'uniqueCountOrUniqueVal',
           orderBy: 'asc',
-          linkable: true
+          linkable: true,
+          visible: true
         ],
         [
           name: 'oldest',
           source: 'metadata.modifiedTime',
           groupBy: 'min',
           orderBy: 'asc',
-          linkable: true
+          linkable: true,
+          visible: true
         ],
       ]
     ]

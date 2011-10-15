@@ -44,19 +44,19 @@
   <div id="__delta_content">
     <table>
       <tr>
-        <th>${delta.firstColumnName?.encodeAsHTML()}</th>
+        <th>${delta.firstColumn.name?.encodeAsHTML()}</th>
         <th>I:${delta.counts['instances']}</th>
         <th>E:${delta.counts['errors']}</th>
-        <g:each in="${delta.tailColumnNames}" var="column" status="columnIdx">
-          <th class="${column}">
+        <g:each in="${delta.tailColumns.name}" var="column" status="columnIdx">
+          <th class="${column}"><g:link controller="dashboard" action="delta" params="[groupBy: column]">
             <g:if test="${delta.counts[column] == null}">${column.encodeAsHTML()}</g:if>
             <g:else>${column.encodeAsHTML()}:${delta.counts[column]}</g:else>
-          </th>
+          </g:link></th>
         </g:each>
       </tr>
       <g:if test="${delta.accuracy == AccuracyLevel.INACCURATE}">
         <tr id="__delta_inaccurate">
-          <td colspan="${3 + delta.tailColumnNames.size()}">
+          <td colspan="${3 + delta.tailColumns.size()}">
             <div class="warning">Warning!!! Warning!!! Warning!!!</div>
             The data you are seeing is not accurate as the console is in the process of loading it from ZooKeeper
             <div class="warning">Warning!!! Warning!!! Warning!!!</div>
@@ -72,7 +72,7 @@
         <g:set var="rowState" value="${row.state + ' ' + row.na}"/>
         <g:each in="${entries}" var="entry" status="rowIdx">
           <tr class="${rowState}">
-            <g:each in="${delta.deltaDefinition.columnsDefinition}" var="column" status="columnIdx">
+            <g:each in="${delta.deltaDefinition.visibleColumns}" var="column" status="columnIdx">
               <g:if test="${columnIdx == 0}">
                 <g:if test="${rowIdx == 0}">
                   <td rowspan="${entries.size()}" class="${rowState} column0">

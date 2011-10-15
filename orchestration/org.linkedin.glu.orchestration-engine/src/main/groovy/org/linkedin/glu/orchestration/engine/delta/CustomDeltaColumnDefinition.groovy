@@ -57,6 +57,11 @@ public class CustomDeltaColumnDefinition implements Externable
    * Whether the values should generate links */
   boolean linkable = true
 
+  /**
+   * Whether this column should be rendered or not
+   */
+  boolean visible = true
+
   void setGroupBy(String gb)
   {
     if(!SUPPORTED_GROUP_BY.contains(gb))
@@ -74,6 +79,12 @@ public class CustomDeltaColumnDefinition implements Externable
   }
 
   @Override
+  protected Object clone()
+  {
+    fromExternalRepresentation(toExternalRepresentation())
+  }
+
+  @Override
   def toExternalRepresentation()
   {
     return [
@@ -81,7 +92,8 @@ public class CustomDeltaColumnDefinition implements Externable
       source: source,
       groupBy: groupBy,
       orderBy: orderBy,
-      linkable: linkable
+      linkable: linkable,
+      visible: visible
     ]
   }
 
@@ -100,7 +112,7 @@ public class CustomDeltaColumnDefinition implements Externable
   }
 
   private Closure groupBy_uniqueCount = { Collection values ->
-    values.flatten().unique().size()
+    [count: values.flatten().unique().size()]
   }
 
   private Closure groupBy_uniqueCountOrUniqueVal = { Collection values ->
@@ -109,7 +121,7 @@ public class CustomDeltaColumnDefinition implements Externable
     if(uniqueValues.size() == 1)
       return uniqueValues[0]
     else
-      uniqueValues.size()
+      [count: uniqueValues.size()]
   }
 
   private Closure groupBy_vals = { Collection values ->
@@ -117,7 +129,7 @@ public class CustomDeltaColumnDefinition implements Externable
   }
 
   private Closure groupBy_count = { Collection values ->
-    values.size()
+    [count: values.size()]
   }
 
   private Closure groupBy_min = { Collection values ->

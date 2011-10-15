@@ -136,6 +136,15 @@ public class ConsoleTagLib
     if(value == null)
       return
 
+    if(value instanceof Map)
+    {
+      if(value.count)
+      {
+        out << value.count.encodeAsHTML()
+        return
+      }
+    }
+
     switch(column.source)
     {
       case 'tags':
@@ -176,9 +185,14 @@ public class ConsoleTagLib
         break;
 
       case 'agent':
-        out << g.link(controller: 'agents', action: 'view', id: value.encodeAsHTML()) {
+        if(column.linkable)
+        {
+          out << g.link(controller: 'agents', action: 'view', id: value.encodeAsHTML()) {
+            out << value.encodeAsHTML()
+          }
+        }
+        else
           out << value.encodeAsHTML()
-      }
       break;
 
       case 'status':
@@ -219,7 +233,7 @@ public class ConsoleTagLib
           if(linkable)
           {
             out << cl.linkToSystemFilter(name: 'tags',
-                                         groupBy: 'tag',
+                                         groupBy: 'tags',
                                          value: tag,
                                          displayName: 'tags') {
               out << tag
@@ -382,13 +396,6 @@ public class ConsoleTagLib
       state = 'ERROR'
 
     out << state
-  }
-
-  def serviceVersion = { args ->
-    def mountPoint = args.mountPoint
-
-    out << ConsoleHelper.computeVersion(mountPoint?.data?.scriptDefinition?.initParameters?.release,
-                                        mountPoint?.data?.scriptDefinition?.initParameters?.wars)
   }
 
   def linkToPs = { args, body ->

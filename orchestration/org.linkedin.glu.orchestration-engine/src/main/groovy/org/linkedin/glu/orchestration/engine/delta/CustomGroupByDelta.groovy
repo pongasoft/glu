@@ -41,13 +41,13 @@ public class CustomGroupByDelta
    */
   Map<String, Integer> totals
 
-  String getFirstColumnName()
+  CustomDeltaColumnDefinition getFirstColumn()
   {
-    return deltaDefinition.firstColumnName
+    return deltaDefinition.firstColumn
   }
 
-  Collection<String> getTailColumnNames()
+  Collection<CustomDeltaColumnDefinition> getTailColumns()
   {
-    return deltaDefinition.tailColumnNames
+    return deltaDefinition.tailColumns
   }
 }

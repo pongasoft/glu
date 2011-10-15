@@ -58,6 +58,23 @@ class DashboardController extends ControllerBase
     return [delta: doComputeDelta()]
   }
 
+  /**
+   * Called in order to customize the dashboard
+   */
+  def customize = {
+    Map rawDelta = deltaService.computeRawDelta(request.system).delta.flatten(new TreeMap())
+
+    def sources = [] as TreeSet
+
+    rawDelta.values().each {
+      sources.addAll(it.keySet())
+    }
+
+    [
+      sources: sources
+    ]
+  }
+
   /*
           mountPoint: [checked: true, name: 'mountPoint', groupBy: true, linkFilter: true],
           agent: [checked: true, name: 'agent', groupBy: true],
@@ -99,8 +116,6 @@ class DashboardController extends ControllerBase
 
     CustomDeltaDefinition cdd =
       CustomDeltaDefinition.fromDashboard(consoleConfig.defaults.dashboard)
-
-    println JsonUtils.toJSON(cdd.toExternalRepresentation()).toString(2)
 
     cdd = cdd.groupBy(params.groupBy)
 

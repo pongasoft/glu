@@ -31,6 +31,7 @@ import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.glu.utils.core.Externable
 import org.linkedin.glu.agent.tracker.AgentsTracker.AccuracyLevel
 import org.linkedin.glu.orchestration.engine.delta.impl.DeltaUtils
+import org.linkedin.glu.utils.collections.ComparableTreeSet
 
 class DeltaServiceImpl implements DeltaService
 {
@@ -379,6 +380,7 @@ class DeltaServiceImpl implements DeltaService
         currentSystem: expectedSystem
     ]
   }
+  public static final String HIDDEN_TAG_COLUMN = "__tag"
 
   CustomGroupByDelta computeCustomGroupByDelta(SystemModel expectedModel,
                                                SystemModel currentModel,
@@ -390,17 +392,45 @@ class DeltaServiceImpl implements DeltaService
 
     def current = computeDelta(expectedModel, currentModel)
 
-    def columnSources = deltaDefinition.columnsDefinition.source.unique()
+    List<CustomDeltaColumnDefinition> columnsDefinitions = deltaDefinition.columnsDefinition
+
+    def column0Source = columnsDefinitions[0].source
+
+    // when the first column is tags, we temporarily introduce a new column and new rows
+    // in order to have only one tag => as a result there will be duplicate rows
+    if(column0Source == 'tags')
+    {
+      deltaDefinition = deltaDefinition.clone()
+      CustomDeltaColumnDefinition column0 = deltaDefinition.columnsDefinition[0]
+
+      column0.source = HIDDEN_TAG_COLUMN
+      column0Source = column0.source
+      columnsDefinitions = [column0, * columnsDefinitions[1..-1]]
+      deltaDefinition.columnsDefinition = columnsDefinitions
+
+      Set<String> filteredTags = extractFilteredTags(expectedModel) as Set
+
+      def newCurrent = []
+      current.each { row ->
+        if(row.tags?.size() > 0)
+        {
+          row.tags.each { tag ->
+            if(!filteredTags || filteredTags.contains(tag))
+            {
+              def newRow = [*:row]
+              newRow[HIDDEN_TAG_COLUMN] = new ComparableTreeSet([tag])
+              newCurrent << newRow
+            }
+          }
+        }
+        else
+          newCurrent << row
+      }
+      current = newCurrent
+    }
+
+    def columnSources = columnsDefinitions.source.unique()
     def orderBy = deltaDefinition.tailOrderBy
-
-//    boolean removeStatusInfoColumn = false
-//    if(columnNames.contains("status") && !columnNames.contains("statusInfo"))
-//    {
-//      removeStatusInfoColumn = true
-//      columnNames << "statusInfo"
-//    }
-
-    def column0Source = columnSources[0]
 
     def allTags = new HashSet()
 
@@ -412,34 +442,11 @@ class DeltaServiceImpl implements DeltaService
       totals[column] = new HashSet()
     }
 
-    if(column0Source == 'tag')
-    {
-      Set<String> filteredTags = extractFilteredTags(expectedModel) as Set
-
-      def newCurrent = []
-      current.each { row ->
-        if(row.tags?.size() > 0)
-        {
-          row.tags.each { tag ->
-            if(!filteredTags || filteredTags.contains(tag))
-            {
-              def newRow = [*:row]
-              newRow.tag = tag
-              newCurrent << newRow
-            }
-          }
-        }
-        else
-          newCurrent << row
-      }
-      current = newCurrent
-    }
-
     // TODO HIGH YP:  need to revisit counts as it does not currently account for error filtering
     current.each { row ->
       def column0Value = row[column0Source]
       columnSources.each { column ->
-        if(column != 'tag' && row[column])
+        if(column != HIDDEN_TAG_COLUMN && row[column])
         {
           if(column0Value)
             counts[column] << row[column]
@@ -482,7 +489,8 @@ class DeltaServiceImpl implements DeltaService
     // removes rows where the first column is null or empty
     current = current.findAll { it[column0Source] }
 
-    String column0OrderBy = deltaDefinition.columnsDefinition[0].orderBy
+    String column0OrderBy = deltaDefinition.firstColumn.orderBy
+    String column0Name = deltaDefinition.firstColumn.name
 
     def delta
 
@@ -515,8 +523,11 @@ class DeltaServiceImpl implements DeltaService
         if(deltaDefinition.summary)
         {
           def summary = [:]
-          deltaDefinition.columnsDefinition.each { CustomDeltaColumnDefinition column ->
-            summary[column.name] = column.groupBy(entries."${column.source}")
+          columnsDefinitions.each { CustomDeltaColumnDefinition column ->
+            if(column.name == column0Name)
+              summary[column.name] = column0
+            else
+              summary[column.name] = column.groupBy(entries."${column.source}")
           }
           entries = [summary]
         }
@@ -525,8 +536,11 @@ class DeltaServiceImpl implements DeltaService
           def newEntries = []
           entries.each { entry ->
             def newEntry = [:]
-            deltaDefinition.columnsDefinition.each { CustomDeltaColumnDefinition column ->
-              newEntry[column.name] = entry."${column.source}"
+            columnsDefinitions.each { CustomDeltaColumnDefinition column ->
+              if(column.name == column0Name)
+                newEntry[column.name] = column0
+              else
+                newEntry[column.name] = entry."${column.source}"
             }
             newEntries << newEntry
           }
@@ -543,9 +557,6 @@ class DeltaServiceImpl implements DeltaService
         delta[column0] = row
       }
     }
-
-//    if(removeStatusInfoColumn)
-//      columnNames.remove("statusInfo")
 
     res.counts = counts
     res.totals = totals

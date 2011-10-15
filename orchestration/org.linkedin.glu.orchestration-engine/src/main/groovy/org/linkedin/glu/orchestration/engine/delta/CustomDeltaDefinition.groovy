@@ -45,20 +45,25 @@ public class CustomDeltaDefinition implements Externable
 
   boolean summary = true
 
-  String getFirstColumnName()
+  Collection<CustomDeltaColumnDefinition> getVisibleColumns()
   {
-    return columnsDefinition[0].name
+    return columnsDefinition.findAll { it.isVisible() }
   }
 
-  Collection<String> getTailColumnNames()
+  CustomDeltaColumnDefinition getFirstColumn()
   {
-    return columnsDefinition[1..-1].name
+    return visibleColumns[0]
+  }
+
+  Collection<CustomDeltaColumnDefinition> getTailColumns()
+  {
+    return visibleColumns[1..-1]
   }
 
   Map<String, String> getTailOrderBy()
   {
     Map<String, String> orderBy = [:]
-    columnsDefinition[1..-1].each { CustomDeltaColumnDefinition cdcd ->
+    visibleColumns[1..-1].each { CustomDeltaColumnDefinition cdcd ->
       if(cdcd.orderBy)
         orderBy[cdcd.name] = cdcd.orderBy
     }
@@ -67,6 +72,9 @@ public class CustomDeltaDefinition implements Externable
 
   CustomDeltaDefinition groupBy(String columnName)
   {
+    if(!columnName)
+      return this
+
     CustomDeltaColumnDefinition groupByColumn =
       columnsDefinition?.find {CustomDeltaColumnDefinition cdcd ->
         cdcd.name == columnName
@@ -98,6 +106,12 @@ public class CustomDeltaDefinition implements Externable
       summary: summary,
       columnsDefinition: columnsDefinition?.collect { it.toExternalRepresentation() }
     ]
+  }
+
+  @Override
+  protected Object clone()
+  {
+    fromExternalRepresentation(toExternalRepresentation())
   }
 
   static CustomDeltaDefinition fromExternalRepresentation(def er)
@@ -158,6 +172,15 @@ public class CustomDeltaDefinition implements Externable
 
         columnsDefinition << cdcd
       }
+    }
+
+    if(columnsDefinition.any { it.source == 'status' })
+    {
+      CustomDeltaColumnDefinition cdcd = new CustomDeltaColumnDefinition(source: 'statusInfo',
+                                                                         name: 'statusInfo',
+                                                                         visible: false)
+
+      columnsDefinition << cdcd
     }
 
     res.columnsDefinition = columnsDefinition

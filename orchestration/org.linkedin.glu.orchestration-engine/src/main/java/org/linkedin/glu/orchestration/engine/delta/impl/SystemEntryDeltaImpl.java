@@ -23,6 +23,7 @@ import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueNoDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueWithDelta;
 import org.linkedin.glu.orchestration.engine.planner.PlannerService;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
+import org.linkedin.glu.utils.collections.ComparableTreeSet;
 import org.linkedin.groovy.util.state.StateMachine;
 import org.linkedin.groovy.util.state.StateMachineImpl;
 import org.linkedin.util.lang.LangUtils;
@@ -126,7 +127,7 @@ public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
     if(expectedEntry != null && expectedEntry.hasTags())
     {
       Set<String> tags = expectedEntry.getTags();
-      values.put("tags", new SystemEntryValueNoDelta<Object>(new TreeSet<String>(tags)));
+      values.put("tags", new SystemEntryValueNoDelta<Object>(new ComparableTreeSet<String>(tags)));
       for(String tag : tags)
       {
         values.put("tags." + tag, new SystemEntryValueNoDelta<String>(expectedEntry.getKey()));
