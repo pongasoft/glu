@@ -21,8 +21,6 @@ import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.linkedin.glu.orchestration.engine.delta.DeltaService
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.CustomGroupByDelta
-import org.linkedin.glu.agent.tracker.AgentsTracker.AccuracyLevel
-import org.linkedin.groovy.util.json.JsonUtils
 
 /**
  * @author ypujante@linkedin.com

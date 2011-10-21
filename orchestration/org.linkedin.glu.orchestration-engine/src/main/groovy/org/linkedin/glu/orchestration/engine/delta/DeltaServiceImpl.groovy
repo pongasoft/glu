@@ -47,6 +47,9 @@ class DeltaServiceImpl implements DeltaService
   @Initializable
   boolean notRunningOverridesVersionMismatch = false
 
+  @Initializable(required = true)
+  CustomDeltaDefinitionStorage customDeltaDefinitionStorage
+
   String prettyPrint(SystemModelDelta delta)
   {
     computeDeltaAsJSON([delta: delta, prettyPrint: true])

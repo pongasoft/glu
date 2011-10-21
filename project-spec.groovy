@@ -50,6 +50,8 @@ spec.scmUrl = "git@github.com:linkedin/${spec.name}.git"
  */
 spec.external = [
   commonsCli: 'commons-cli:commons-cli:1.2',
+  grailsBootstrap: "org.grails:grails-bootstrap:${spec.versions.grails}",
+  grailsCore: "org.grails:grails-core:${spec.versions.grails}",
   groovy: "org.codehaus.groovy:groovy:${spec.versions.groovy}",
   httpClient: "org.apache.httpcomponents:httpclient:4.0",
   ivy: 'org.apache.ivy:ivy:2.2.0',

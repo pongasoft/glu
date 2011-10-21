@@ -24,10 +24,12 @@ dependencies {
   compile project(':agent:org.linkedin.glu.agent-tracker')
   compile spec.external.linkedinZookeeperImpl
   compile spec.external.linkedinUtilsGroovy
+  compile spec.external.grailsBootstrap
+  compile spec.external.grailsCore
+  compile spec.external.slf4jLog4j
 
   groovy spec.external.groovy
   testCompile spec.external.junit
-  testRuntime spec.external.slf4jLog4j
 }
 
 sourceSets.main.java.srcDirs = []

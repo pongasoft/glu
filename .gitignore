@@ -8,3 +8,7 @@ build
 out
 console/org.linkedin.glu.console-webapp/target
 console/org.linkedin.glu.console-webapp/lib
+grails-plugins/org.linkedin.glu.grails.plugins.external-domain-classes/target
+grails-plugins/org.linkedin.glu.grails.plugins.external-domain-classes/lib
+grails-plugins/org.linkedin.glu.grails.plugins.external-domain-classes/plugin.xml
+

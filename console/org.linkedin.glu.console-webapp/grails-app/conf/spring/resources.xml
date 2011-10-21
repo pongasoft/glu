@@ -218,10 +218,19 @@
   <!-- *********************** -->
   <!-- deltaService            -->
   <!-- *********************** -->
+  <bean id="customDeltaDefinitionSerializer"
+        class="org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinitionSerializerImpl"/>
+
+  <bean id="customDeltaDefinitionStorage"
+        class="org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinitionStorageImpl">
+    <property name="customDeltaDefinitionSerializer" ref="customDeltaDefinitionSerializer"/>
+  </bean>
+
   <bean id="deltaService" class="org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl">
     <property name="agentsService" ref="agentsService"/>
     <property name="fabricService" ref="fabricService"/>
     <property name="deltaMgr" ref="deltaMgr"/>
+    <property name="customDeltaDefinitionStorage" ref="customDeltaDefinitionStorage"/>
   </bean>
 
   <!-- *********************** -->

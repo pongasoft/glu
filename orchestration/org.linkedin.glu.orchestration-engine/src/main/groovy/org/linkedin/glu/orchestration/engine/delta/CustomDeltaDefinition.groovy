@@ -31,6 +31,11 @@ public class CustomDeltaDefinition implements Externable
   String name
 
   /**
+   * An (optional) description
+   */
+  String description
+
+  /**
    * It is a list because the order is important! The first column in the list will be used as
    * the 'group by' column
    */
@@ -101,6 +106,7 @@ public class CustomDeltaDefinition implements Externable
   {
     return [
       name: name,
+      description: description,
       customFilter: customFilter?.toExternalRepresentation(),
       errorsOnly: errorsOnly,
       summary: summary,
@@ -120,6 +126,7 @@ public class CustomDeltaDefinition implements Externable
       return null
 
     CustomDeltaDefinition res = new CustomDeltaDefinition(name: er.name,
+                                                          description: er.description,
                                                           customFilter: SystemFilterBuilder.parse(er.customFilter),
                                                           errorsOnly: er.errorsOnly,
                                                           summary: er.summary)

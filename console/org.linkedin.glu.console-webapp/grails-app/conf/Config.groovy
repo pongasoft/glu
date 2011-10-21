@@ -87,6 +87,9 @@ grails.converters.encoding="UTF-8"
 // enabled native2ascii conversion of i18n properties files
 grails.enable.native2ascii = true
 
+// extra packages with domain classes
+grails.external.domain.packages = ['org.linkedin.glu.orchestration.engine.delta']
+
 // see ConsoleConfig for explanation
 console.dev.defaults =
   [
@@ -194,9 +197,9 @@ environments {
 
         //debug 'org.linkedin.zookeeper.tracker', 'org.linkedin.glu.agent.tracker'
 
-        // trace 'org.hibernate.SQL', 'org.hibernate.type'
-        // trace 'org.codehaus.groovy.grails.orm'
-        // trace 'org.codehaus.groovy.grails.orm.hibernate'
+//        trace 'org.hibernate.SQL', 'org.hibernate.type'
+//        trace 'org.codehaus.groovy.grails.orm'
+//        trace 'org.codehaus.groovy.grails.orm.hibernate'
 
 
         warn   'org.mortbay.log'

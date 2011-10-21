@@ -35,6 +35,9 @@ dependencies {
   runtime spec.external.log4j
 }
 
+def externalDomainClassesProject =
+  evaluationDependsOn(':grails-plugins:org.linkedin.glu.grails.plugins.external-domain-classes')
+
 def facets = """
 <component name="FacetManager">
   <facet type="Spring" name="Spring">
@@ -72,6 +75,23 @@ ideaModule {
     // add grails library
     root.asNode().component.find { it.@name == 'NewModuleRootManager'}.appendNode('orderEntry', [type: 'library', name: "grails-${spec.versions.grails}", level: 'application'])
   }
+}
+
+/**
+ * We need to install the plugin compiled locally
+ */
+task installPlugins(dependsOn: ':grails-plugins:org.linkedin.glu.grails.plugins.external-domain-classes:package-plugin') << {
+  File pluginFile = externalDomainClassesProject.tasks.getByPath('package-plugin').artifactFile
+
+  if(!new File(System.getProperty('user.home'), ".grails/${spec.versions.grails}/projects/${project.name}/plugins/${externalDomainClassesProject.pluginName}-${externalDomainClassesProject.pluginVersion}").exists())
+  {
+    logger.lifecycle "Installing ${externalDomainClassesProject.pluginName}-${externalDomainClassesProject.pluginVersion} plugin"
+    ant.exec(dir: '.', executable: "grails") {
+      arg(line: "install-plugin ${pluginFile.canonicalPath}")
+    }
+  }
+  else
+  logger.lifecycle "Plugin ${externalDomainClassesProject.pluginName}-${externalDomainClassesProject.pluginVersion} already installed..."
 }
 
 project.clean << {
@@ -127,7 +147,7 @@ console.truststorePath="${new File(keysDir, 'agent.truststore').canonicalPath}"
 
 def warFile = new File("${buildDir}/distributions/${project.name}-${project.version}.war")
 
-task war(dependsOn: lib) << {
+task war(dependsOn: [lib, installPlugins]) << {
   ant.exec(dir: '.', executable: "grails") {
     arg(line: "-Dgrails.project.war.file=${warFile} -Dbuild.version=${project.version} war")
   }
