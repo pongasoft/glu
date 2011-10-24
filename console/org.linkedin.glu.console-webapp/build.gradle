@@ -139,7 +139,7 @@ console.truststorePath="${new File(keysDir, 'agent.truststore').canonicalPath}"
 
 ['run-app', 'test-app'].each { taskName ->
   task "${taskName}"(dependsOn: lib) << {
-    ant.exec(dir: '.', executable: "grails") {
+    ant.exec(dir: '.', executable: "grails", failonerror: true) {
       arg(line: "${taskName}")
     }
   }

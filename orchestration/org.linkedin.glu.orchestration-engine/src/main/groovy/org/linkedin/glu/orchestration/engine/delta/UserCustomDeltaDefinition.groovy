@@ -27,17 +27,13 @@ class UserCustomDeltaDefinition
     content(nullable: false, blank: false)
     // name of this entry must be unique for a given user only...
     name(nullable: false, blank: false, unique: 'username', validator: { val, obj ->
-      println "name validator: [${val}] / [${obj.customDeltaDefinition.name}] "
       return val == obj.customDeltaDefinition.name
     })
     description(nullable: true, blank: true, validator: { val, obj ->
-      println "description validator: [${val}] / [${obj.customDeltaDefinition.description}] "
       return val == obj.customDeltaDefinition.description
     })
     username(nullable: true, blank: false)
-    contentVersion(nullable: false)
-    shareable(nullable: false, validator: { val, obj ->
-      println "shareable validator: [${val}] / [${obj.username}] "
+    shareable(validator: { val, obj ->
       // does not make sense to have shareable set to false when the username is undefined!
       if(!val)
         return obj.username != null
@@ -100,6 +96,12 @@ class UserCustomDeltaDefinition
 
   String getContent()
   {
+    if(_content == null && customDeltaDefinitionSerializer)
+    {
+      _content = customDeltaDefinitionSerializer.serialize(_customDeltaDefinition)
+      contentVersion = customDeltaDefinitionSerializer.contentVersion
+    }
+
     return _content
   }
 
@@ -110,32 +112,24 @@ class UserCustomDeltaDefinition
 
   CustomDeltaDefinition getCustomDeltaDefinition()
   {
+    if(_customDeltaDefinition == null)
+      _customDeltaDefinition = customDeltaDefinitionSerializer?.deserialize(_content, contentVersion)
+
     return _customDeltaDefinition
   }
 
   void setCustomDeltaDefinition(CustomDeltaDefinition customDeltaDefinition)
   {
     _customDeltaDefinition = customDeltaDefinition
+    _content = null
     name = customDeltaDefinition.name
     description = customDeltaDefinition.description
-  }
-
-  void beforeInsert()
-  {
-    println "before insert ${username}/${name}"
-    _content = customDeltaDefinitionSerializer.serialize(customDeltaDefinition)
-  }
-
-  void beforeUpdate()
-  {
-    println "before update ${username}/${name}"
-    _content = customDeltaDefinitionSerializer.serialize(customDeltaDefinition)
   }
 
   void afterLoad()
   {
     println "after load ${username}/${name}"
-    customDeltaDefinition = serializer.deserialize(content, contentVersion)
+    customDeltaDefinition = customDeltaDefinitionSerializer.deserialize(content, contentVersion)
   }
 
   static transients = ['customDeltaDefinition', '_customDeltaDefinition', '_content', 'customDeltaDefinitionSerializer']

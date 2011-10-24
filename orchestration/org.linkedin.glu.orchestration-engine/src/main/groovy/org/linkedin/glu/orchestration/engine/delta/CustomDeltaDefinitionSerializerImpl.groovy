@@ -43,6 +43,9 @@ public class CustomDeltaDefinitionSerializerImpl implements CustomDeltaDefinitio
   @Override
   String serialize(CustomDeltaDefinition cdd, boolean prettyPrint)
   {
+    if(cdd == null)
+      return null
+    
     def json = JsonUtils.toJSON(cdd.toExternalRepresentation())
     if(prettyPrint)
       return json?.toString(prettyPrintIndent)
@@ -53,6 +56,9 @@ public class CustomDeltaDefinitionSerializerImpl implements CustomDeltaDefinitio
   @Override
   CustomDeltaDefinition deserialize(String content, int contentVersion)
   {
+    if(content == null)
+      return null
+    
     // currently only 1 version so easy to implement
     if(contentVersion != LATEST_CONTENT_VERSION)
       throw new IllegalArgumentException("unsupported version ${contentVersion}")

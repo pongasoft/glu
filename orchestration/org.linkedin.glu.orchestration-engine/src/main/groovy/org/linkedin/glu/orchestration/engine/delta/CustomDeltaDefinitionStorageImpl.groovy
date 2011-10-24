@@ -28,8 +28,6 @@ public class CustomDeltaDefinitionStorageImpl implements CustomDeltaDefinitionSt
   @Override
   boolean save(UserCustomDeltaDefinition definition)
   {
-    definition.customDeltaDefinitionSerializer = customDeltaDefinitionSerializer
-    println definition.validate()
     definition.save()
   }
 

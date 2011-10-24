@@ -21,7 +21,6 @@ import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinitionSerializ
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.UserCustomDeltaDefinition
-import org.springframework.dao.DataIntegrityViolationException
 import org.linkedin.glu.orchestration.engine.delta.LightUserCustomDeltaDefinition
 
 /**
@@ -64,93 +63,88 @@ public class CustomDeltaDefinitionStorageTests extends GroovyTestCase
     ]
   ]
 
-//  public void testSave()
-//  {
-//    assertEquals(0, customDeltaDefinitionStorage.findAllByUsername('user1', true, [:]).list.size())
-//    assertEquals(0, customDeltaDefinitionStorage.findAllByUsername('user1', false, [:]).list.size())
-//    assertEquals(0, customDeltaDefinitionStorage.findAllShareable(false, [:]).list.size())
-//    assertEquals(0, customDeltaDefinitionStorage.findAllShareable(true, [:]).list.size())
-//
-//    assertNull(customDeltaDefinitionStorage.findByUsernameAndName('user1', 'd1'))
-//
-//    UserCustomDeltaDefinition ud11 =
-//      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
-//                                    username: 'user1')
-//
-//    // it should work because there is nothing in the database
-//    assertTrue(customDeltaDefinitionStorage.save(ud11))
-//
-//    UserCustomDeltaDefinition ud11Read =
-//      customDeltaDefinitionStorage.findByUsernameAndName('user1', 'd1')
-//
-//    checkCustomDeltaDefinition(ud11.customDeltaDefinition, ud11Read.customDeltaDefinition)
-//    assertEquals(ud11.id, ud11Read.id)
-//    assertEquals('d1', ud11Read.name)
-//    assertEquals('desc1', ud11Read.description)
-//
-//    UserCustomDeltaDefinition ud12 =
-//      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
-//                                    username: 'user2')
-//
-//    // it should work because it is a different user using the same name
-//    assertTrue(customDeltaDefinitionStorage.save(ud12))
-//
-//    // creating an entry with no username
-//    UserCustomDeltaDefinition ud1N =
-//      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
-//                                    username: null)
-//
-//    assertTrue(customDeltaDefinitionStorage.save(ud1N))
-//
-//    // adding another one for user 1
-//    cdd.name = 'd2'
-//    UserCustomDeltaDefinition ud21 =
-//      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
-//                                    username: 'user1',
-//                                    shareable: false)
-//
-//    // it should work because there is nothing in the database
-//    assertTrue(customDeltaDefinitionStorage.save(ud21))
-//
-//    // testing find all shareable with details
-//    def map = customDeltaDefinitionStorage.findAllShareable(true, [:])
-//    assertEquals(3, map.count)
-//    assertEquals(3, map.list.size())
-//    assertTrue(map.list.id.containsAll([ud11.id, ud12.id, ud1N.id]))
-//    map.list.each { assertTrue(it instanceof UserCustomDeltaDefinition) }
-//
-//    // testing find all shareable without details
-//    map = customDeltaDefinitionStorage.findAllShareable(false, [:])
-//    assertEquals(3, map.count)
-//    assertEquals(3, map.list.size())
-//    assertTrue(map.list.id.containsAll([ud11.id, ud12.id, ud1N.id]))
-//    map.list.each { assertTrue(it instanceof LightUserCustomDeltaDefinition) }
-//
-//  }
-//
-//  /**
-//   * The problem is that as soon as an exception is thrown, the current session is dead this is
-//   * why this goes in a different test method
-//   */
-//  void testDuplicateEntry()
-//  {
-//    UserCustomDeltaDefinition ud11 =
-//      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
-//                                    username: 'user1')
-//
-//    // it should work because there is nothing in the database
-//    assertTrue(customDeltaDefinitionStorage.save(ud11))
-//
-//    ud11 =
-//      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
-//                                    username: 'user1')
-//
-//    // it should fail because there is already a row in the database
-//    shouldFail(DataIntegrityViolationException) {
-//      customDeltaDefinitionStorage.save(ud11)
-//    }
-//  }
+  /**
+   * Test for save functionnality
+   */
+  public void testSave()
+  {
+    assertEquals(0, customDeltaDefinitionStorage.findAllByUsername('user1', true, [:]).list.size())
+    assertEquals(0, customDeltaDefinitionStorage.findAllByUsername('user1', false, [:]).list.size())
+    assertEquals(0, customDeltaDefinitionStorage.findAllShareable(false, [:]).list.size())
+    assertEquals(0, customDeltaDefinitionStorage.findAllShareable(true, [:]).list.size())
 
+    assertNull(customDeltaDefinitionStorage.findByUsernameAndName('user1', 'd1'))
+
+    UserCustomDeltaDefinition ud11 =
+      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
+                                    username: 'user1')
+
+    // it should work because there is nothing in the database
+    assertTrue(customDeltaDefinitionStorage.save(ud11))
+
+    UserCustomDeltaDefinition ud11Read =
+      customDeltaDefinitionStorage.findByUsernameAndName('user1', 'd1')
+
+    checkCustomDeltaDefinition(ud11.customDeltaDefinition, ud11Read.customDeltaDefinition)
+    assertEquals(ud11.id, ud11Read.id)
+    assertEquals('d1', ud11Read.name)
+    assertEquals('desc1', ud11Read.description)
+
+    // it should not work because there is already an entry for this user with this name
+    UserCustomDeltaDefinition ud11Duplicate =
+      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
+                                    username: 'user1')
+
+    assertFalse(customDeltaDefinitionStorage.save(ud11Duplicate))
+    assertEquals(1, ud11Duplicate.errors.errorCount)
+    assertEquals(1, ud11Duplicate.errors.fieldErrorCount)
+    def errors = ud11Duplicate.errors.getFieldErrors('name')
+    assertEquals(1, errors.size())
+    assertEquals('d1', errors[0].rejectedValue)
+
+    UserCustomDeltaDefinition ud12 =
+      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
+                                    username: 'user2')
+
+    // it should work because it is a different user using the same name
+    assertTrue(customDeltaDefinitionStorage.save(ud12))
+
+    // creating an entry with no username
+    UserCustomDeltaDefinition ud1N =
+      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
+                                    username: null)
+
+    assertTrue(customDeltaDefinitionStorage.save(ud1N))
+
+    // adding another one for user 1
+    cdd.name = 'd2'
+    UserCustomDeltaDefinition ud21 =
+      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
+                                    username: 'user1',
+                                    shareable: false)
+
+    // it should work because there is nothing in the database
+    assertTrue(customDeltaDefinitionStorage.save(ud21))
+
+    // testing find all shareable with details
+    def map = customDeltaDefinitionStorage.findAllShareable(true, [:])
+    assertEquals(3, map.count)
+    assertEquals(3, map.list.size())
+    assertTrue(map.list.id.containsAll([ud11.id, ud12.id, ud1N.id]))
+    map.list.each { assertTrue(it instanceof UserCustomDeltaDefinition) }
+
+    // testing find all shareable without details
+    map = customDeltaDefinitionStorage.findAllShareable(false, [:])
+    assertEquals(3, map.count)
+    assertEquals(3, map.list.size())
+    assertTrue(map.list.id.containsAll([ud11.id, ud12.id, ud1N.id]))
+    map.list.each { assertTrue(it instanceof LightUserCustomDeltaDefinition) }
+
+  }
+
+  /**
+   * Test for constraint: shareable should be <code>true</code> when no username
+   */
   void testShareableShouldBeTrueWhenNoUser()
   {
     // creating an entry with no username
@@ -160,8 +154,34 @@ public class CustomDeltaDefinitionStorageTests extends GroovyTestCase
                                     shareable: false)
 
     assertFalse(customDeltaDefinitionStorage.save(ud1N))
+    assertEquals(1, ud1N.errors.errorCount)
+    assertEquals(1, ud1N.errors.fieldErrorCount)
+    def errors = ud1N.errors.getFieldErrors('shareable')
+    assertEquals(1, errors.size())
+    assertEquals(Boolean.FALSE, errors[0].rejectedValue)
+  }
 
-    println ud1N.errors
+  /**
+   * Test for constraint: name and description must match
+   */
+  void testNameAndDescriptionConstraints()
+  {
+    // creating an entry
+    UserCustomDeltaDefinition ud11 =
+      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
+                                    username: 'user1')
+    ud11.name = 'nonMatchingName'
+    ud11.description = 'nonMatchingDescription'
+
+    assertFalse(customDeltaDefinitionStorage.save(ud11))
+    assertEquals(2, ud11.errors.errorCount)
+    assertEquals(2, ud11.errors.fieldErrorCount)
+    def errors = ud11.errors.getFieldErrors('name')
+    assertEquals(1, errors.size())
+    assertEquals('nonMatchingName', errors[0].rejectedValue)
+    errors = ud11.errors.getFieldErrors('description')
+    assertEquals(1, errors.size())
+    assertEquals('nonMatchingDescription', errors[0].rejectedValue)
   }
 
   private void checkCustomDeltaDefinition(CustomDeltaDefinition expected,

@@ -29,7 +29,6 @@ class LightUserCustomDeltaDefinition
     name(nullable: false)
     description(nullable: true)
     username(nullable: true)
-    shareable(nullable: false)
   }
 
   static mapping = {

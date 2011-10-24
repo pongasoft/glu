@@ -1865,6 +1865,7 @@ class TestDeltaService extends GroovyTestCase
 
     expected = [
       name: 'd1',
+      description: null,
       customFilter: null,
       errorsOnly: false,
       summary: true,

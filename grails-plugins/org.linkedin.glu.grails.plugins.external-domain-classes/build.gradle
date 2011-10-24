@@ -96,7 +96,3 @@ task([type: SingleArtifactTask, dependsOn: 'plugin'], 'package-plugin') {
         configurations: ['zip']
     ]
 }
-
-task test(overwrite:true, dependsOn: 'test-app') << {
-  // nothing to do... test-app will do it
-}
