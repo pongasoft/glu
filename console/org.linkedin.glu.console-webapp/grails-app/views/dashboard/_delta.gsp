@@ -16,7 +16,7 @@
   --}%
 
 <%@ page import="org.linkedin.glu.console.filters.UserPreferencesFilters; org.linkedin.glu.grails.utils.ConsoleConfig; org.linkedin.glu.agent.tracker.AgentsTracker.AccuracyLevel" %>
-<h1>${request.userSession?.name?.encodeAsHTML()} / ${request?.userSession?.dirty} <g:if test="${request.userSession?.customFilter}"><g:link controller="dashboard" action="delta" params="[reset: true]">Reset</g:link></g:if></h1>
+<h1>${request.userSession?.customDeltaDefinition?.name?.encodeAsHTML()}<g:if test="${request?.userSession?.customDeltaDefinitionDirty}"> | <g:link controller="dashboard" action="delta" params="[reset: true]">Reset</g:link></g:if><g:if test="${request.userSession?.customFilter}"> | <g:link controller="dashboard" action="delta" params="[systemFilter: '-']">Clear Filter</g:link></g:if></h1>
 %{--<g:set var="columnsTail" value="${columnNames[1..-1]}"/>--}%
 %{--<g:set var="columns" value="${ConsoleConfig.getInstance().defaults.dashboard}"/>--}%
 <div id="__delta">

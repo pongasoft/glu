@@ -23,6 +23,7 @@ import org.linkedin.glu.orchestration.engine.delta.DeltaService
 import org.linkedin.glu.orchestration.engine.delta.CustomGroupByDelta
 
 import org.linkedin.glu.orchestration.engine.session.UserSession
+import org.linkedin.glu.provisioner.core.model.SystemModel
 
 /**
  * @author ypujante@linkedin.com
@@ -78,10 +79,15 @@ class DashboardController extends ControllerBase
   private def doComputeDelta()
   {
     UserSession userSession = request.userSession
+    SystemModel model = request.system
 
     if(params.reset)
-      userSession.reset()
-    
+    {
+      userSession.resetCustomDeltaDefinition()
+      model = model.filterBy(userSession.customFilter)
+      request.system = model
+    }
+
     userSession.setGroupBy(params.groupBy)
 
     CustomGroupByDelta groupByDelta =

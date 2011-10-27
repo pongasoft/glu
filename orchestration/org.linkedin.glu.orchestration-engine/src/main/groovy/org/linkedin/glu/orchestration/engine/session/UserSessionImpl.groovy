@@ -37,13 +37,13 @@ class UserSessionImpl implements UserSession
   }
 
   @Override
-  boolean isDirty()
+  boolean isCustomDeltaDefinitionDirty()
   {
     return current != original
   }
 
   @Override
-  void reset()
+  void resetCustomDeltaDefinition()
   {
     current = original.clone()
   }
@@ -64,18 +64,6 @@ class UserSessionImpl implements UserSession
   String getGroupBy()
   {
     customDeltaDefinition.groupBy
-  }
-
-  @Override
-  String getName()
-  {
-    return customDeltaDefinition.name
-  }
-
-  @Override
-  String getDescription()
-  {
-    return customDeltaDefinition.description
   }
 
   @Override

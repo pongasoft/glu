@@ -23,17 +23,13 @@ import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
  * @author yan@pongasoft.com */
 interface UserSession
 {
+  String getUsername()
+
   CustomDeltaDefinition getCustomDeltaDefinition()
 
-  boolean isDirty()
+  boolean isCustomDeltaDefinitionDirty()
 
-  void reset()
-
-  String getName()
-
-  String getDescription()
-
-  String getUsername()
+  void resetCustomDeltaDefinition()
 
   void setGroupBy(String groupBy)
   String getGroupBy()
