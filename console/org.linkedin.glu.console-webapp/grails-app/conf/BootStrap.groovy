@@ -27,11 +27,14 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.console.domain.DbUserCredentials
 import org.linkedin.glu.orchestration.engine.system.SystemService
+import org.linkedin.glu.orchestration.engine.delta.DeltaService
+import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
 
 class BootStrap {
 
   ConsoleConfig consoleConfig
   SystemService systemService
+  DeltaService deltaService
 
   def init = { servletContext ->
     log.info "Starting up... [${Environment.current} mode]"
@@ -119,6 +122,12 @@ class BootStrap {
 
       log.info "Successfully created (original) admin user. MAKE SURE YOU LOG IN AND CHANGE THE PASSWORD!"
     }
+
+    // initialzing default custom delta definition
+    CustomDeltaDefinition defaultCustomDeltaDefinition =
+      CustomDeltaDefinition.fromDashboard(consoleConfig.defaults.dashboard)
+    if(defaultCustomDeltaDefinition)
+      deltaService.saveDefaultCustomDeltaDefinition(defaultCustomDeltaDefinition)
 
     log.info "Console started."
   }

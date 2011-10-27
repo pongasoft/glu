@@ -32,9 +32,13 @@ import org.linkedin.glu.utils.core.Externable
 import org.linkedin.glu.agent.tracker.AgentsTracker.AccuracyLevel
 import org.linkedin.glu.orchestration.engine.delta.impl.DeltaUtils
 import org.linkedin.glu.utils.collections.ComparableTreeSet
+import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
+import java.security.AccessControlException
 
 class DeltaServiceImpl implements DeltaService
 {
+  public static final String DEFAULT_CUSTOM_DELTA_DEFINITION_NAME = "<default>"
+
   @Initializable
   AgentsService agentsService
 
@@ -49,6 +53,9 @@ class DeltaServiceImpl implements DeltaService
 
   @Initializable(required = true)
   CustomDeltaDefinitionStorage customDeltaDefinitionStorage
+
+  @Initializable
+  AuthorizationService authorizationService
 
   String prettyPrint(SystemModelDelta delta)
   {
@@ -583,6 +590,91 @@ class DeltaServiceImpl implements DeltaService
     SystemModel currentModel = agentsService.getCurrentSystemModel(fabric)
 
     computeCustomGroupByDelta(expectedModel, currentModel, deltaDefinition)
+  }
+
+  @Override
+  CustomGroupByDelta computeCustomGroupByDelta(SystemModel expectedModel,
+                                               UserCustomDeltaDefinition userDeltaDefinition)
+  {
+    computeCustomGroupByDelta(expectedModel, userDeltaDefinition?.customDeltaDefinition)
+  }
+
+  @Override
+  boolean saveUserCustomDeltaDefinition(UserCustomDeltaDefinition definition)
+  {
+    if(definition.username != authorizationService.executingPrincipal)
+      throw new AccessControlException("${definition.username} is not the owner!")
+    
+    customDeltaDefinitionStorage.save(definition)
+  }
+
+  @Override
+  UserCustomDeltaDefinition findUserCustomDeltaDefinitionByName(String name)
+  {
+    customDeltaDefinitionStorage.findByUsernameAndName(authorizationService.executingPrincipal,
+                                                       name)
+  }
+
+  @Override
+  Map findAllUserCustomDeltaDefinition(boolean includeDetails, Object params)
+  {
+    customDeltaDefinitionStorage.findAllByUsername(authorizationService.executingPrincipal,
+                                                   includeDetails,
+                                                   params)
+  }
+
+  @Override
+  Map findAllUserCustomDeltaDefinitionShareable(boolean includeDetails, Object params)
+  {
+    customDeltaDefinitionStorage.findAllShareable(includeDetails, params)
+  }
+
+  @Override
+  UserCustomDeltaDefinition findDefaultCustomDeltaDefinition()
+  {
+    customDeltaDefinitionStorage.findByUsernameAndName(null,
+                                                       DEFAULT_CUSTOM_DELTA_DEFINITION_NAME)
+  }
+
+  @Override
+  UserCustomDeltaDefinition findDefaultUserCustomDeltaDefinition(String defaultName)
+  {
+    String username = authorizationService.executingPrincipal
+
+    UserCustomDeltaDefinition res = findUserCustomDeltaDefinitionByName(defaultName)
+
+    if(!res && defaultName != DEFAULT_CUSTOM_DELTA_DEFINITION_NAME)
+    {
+      res = findUserCustomDeltaDefinitionByName(DEFAULT_CUSTOM_DELTA_DEFINITION_NAME)
+    }
+
+    if(!res)
+    {
+      UserCustomDeltaDefinition ucdd =
+        cloneForUser(username, findDefaultCustomDeltaDefinition())
+      saveUserCustomDeltaDefinition(ucdd)
+      res = ucdd
+    }
+
+    return res
+  }
+
+  private UserCustomDeltaDefinition cloneForUser(String username, UserCustomDeltaDefinition ucdd)
+  {
+    ucdd = ucdd?.clone()
+    ucdd?.username = username
+    return ucdd
+  }
+
+  @Override
+  boolean saveDefaultCustomDeltaDefinition(CustomDeltaDefinition definition)
+  {
+    UserCustomDeltaDefinition ucdd = findDefaultCustomDeltaDefinition()
+    if(!ucdd)
+      ucdd = new UserCustomDeltaDefinition()
+    definition.name = DEFAULT_CUSTOM_DELTA_DEFINITION_NAME
+    ucdd.customDeltaDefinition = definition
+    return saveUserCustomDeltaDefinition(ucdd)
   }
 
   private Collection<String> extractFilteredTags(SystemModel model)

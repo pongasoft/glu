@@ -63,6 +63,15 @@ public class TagsSystemFilter implements SystemFilter
     return 't'
   }
 
+  @Override
+  String toDSL()
+  {
+    if(allTags)
+      return "tags='${tags.join(';')}'".toString()
+    else
+      return "tags.hasAny('${tags.join(';')}')".toString()
+  }
+
   String toString()
   {
     if(allTags)

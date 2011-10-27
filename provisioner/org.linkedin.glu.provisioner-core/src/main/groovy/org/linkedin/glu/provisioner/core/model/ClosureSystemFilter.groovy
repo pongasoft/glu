@@ -45,6 +45,12 @@ class ClosureSystemFilter implements SystemFilter
     return [(kind): name]
   }
 
+  @Override
+  String toDSL()
+  {
+    throw new RuntimeException("Not implemented yet")
+  }
+
   def boolean filter(SystemEntry entry)
   {
     return closure(entry);

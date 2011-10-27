@@ -126,10 +126,14 @@ class UserCustomDeltaDefinition
     description = customDeltaDefinition.description
   }
 
-  void afterLoad()
+  UserCustomDeltaDefinition clone()
   {
-    println "after load ${username}/${name}"
-    customDeltaDefinition = customDeltaDefinitionSerializer.deserialize(content, contentVersion)
+    new UserCustomDeltaDefinition(dateCreated: dateCreated,
+                                  lastUpdated: lastUpdated,
+                                  username: username,
+                                  shareable: shareable,
+                                  customDeltaDefinitionSerializer: customDeltaDefinitionSerializer,
+                                  customDeltaDefinition: customDeltaDefinition.clone())
   }
 
   static transients = ['customDeltaDefinition', '_customDeltaDefinition', '_content', 'customDeltaDefinitionSerializer']

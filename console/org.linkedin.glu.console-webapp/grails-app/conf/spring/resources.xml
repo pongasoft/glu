@@ -231,6 +231,18 @@
     <property name="fabricService" ref="fabricService"/>
     <property name="deltaMgr" ref="deltaMgr"/>
     <property name="customDeltaDefinitionStorage" ref="customDeltaDefinitionStorage"/>
+    <property name="authorizationService" ref="authorizationService"/>
+  </bean>
+
+  <!-- *********************** -->
+  <!-- sessionService         -->
+  <!-- *********************** -->
+  <bean id="sessionService" class="org.linkedin.glu.orchestration.engine.session.SessionServiceImpl">
+    <property name="authorizationService" ref="authorizationService"/>
+    <property name="deltaService" ref="deltaService"/>
+    <!-- userSessionCache is defined in resources.groovy for ease of
+         configuration! -->
+    <property name="userSessionCache" ref="userSessionCache"/>
   </bean>
 
   <!-- *********************** -->

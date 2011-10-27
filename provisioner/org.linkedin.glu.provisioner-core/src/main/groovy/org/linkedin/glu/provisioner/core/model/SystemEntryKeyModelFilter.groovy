@@ -40,6 +40,12 @@ class SystemEntryKeyModelFilter implements SystemFilter
     return 'k';
   }
 
+  @Override
+  String toDSL()
+  {
+    throw new RuntimeException("Not implemented yet")
+  }
+
   def String toString()
   {
     return "k(${keys.join(',')})".toString();

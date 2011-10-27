@@ -22,6 +22,7 @@ import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.UserCustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.LightUserCustomDeltaDefinition
+import org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl
 
 /**
  * @author yan@pongasoft.com */
@@ -70,8 +71,9 @@ public class CustomDeltaDefinitionStorageTests extends GroovyTestCase
   {
     assertEquals(0, customDeltaDefinitionStorage.findAllByUsername('user1', true, [:]).list.size())
     assertEquals(0, customDeltaDefinitionStorage.findAllByUsername('user1', false, [:]).list.size())
-    assertEquals(0, customDeltaDefinitionStorage.findAllShareable(false, [:]).list.size())
-    assertEquals(0, customDeltaDefinitionStorage.findAllShareable(true, [:]).list.size())
+    // bootstrap initializes 1 entry
+    assertEquals(1, customDeltaDefinitionStorage.findAllShareable(false, [:]).list.size())
+    assertEquals(1, customDeltaDefinitionStorage.findAllShareable(true, [:]).list.size())
 
     assertNull(customDeltaDefinitionStorage.findByUsernameAndName('user1', 'd1'))
 
@@ -126,18 +128,22 @@ public class CustomDeltaDefinitionStorageTests extends GroovyTestCase
     // it should work because there is nothing in the database
     assertTrue(customDeltaDefinitionStorage.save(ud21))
 
+    UserCustomDeltaDefinition udDN =
+      customDeltaDefinitionStorage.findByUsernameAndName(null,
+                                                         DeltaServiceImpl.DEFAULT_CUSTOM_DELTA_DEFINITION_NAME)
+
     // testing find all shareable with details
     def map = customDeltaDefinitionStorage.findAllShareable(true, [:])
-    assertEquals(3, map.count)
-    assertEquals(3, map.list.size())
-    assertTrue(map.list.id.containsAll([ud11.id, ud12.id, ud1N.id]))
+    assertEquals(4, map.count)
+    assertEquals(4, map.list.size())
+    assertTrue(map.list.id.containsAll([ud11.id, ud12.id, ud1N.id, udDN.id]))
     map.list.each { assertTrue(it instanceof UserCustomDeltaDefinition) }
 
     // testing find all shareable without details
     map = customDeltaDefinitionStorage.findAllShareable(false, [:])
-    assertEquals(3, map.count)
-    assertEquals(3, map.list.size())
-    assertTrue(map.list.id.containsAll([ud11.id, ud12.id, ud1N.id]))
+    assertEquals(4, map.count)
+    assertEquals(4, map.list.size())
+    assertTrue(map.list.id.containsAll([ud11.id, ud12.id, ud1N.id, udDN.id]))
     map.list.each { assertTrue(it instanceof LightUserCustomDeltaDefinition) }
 
   }

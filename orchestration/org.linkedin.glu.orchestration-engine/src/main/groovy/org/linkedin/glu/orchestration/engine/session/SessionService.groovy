@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,28 +14,23 @@
  * the License.
  */
 
-package org.linkedin.glu.provisioner.core.model
+package org.linkedin.glu.orchestration.engine.session
+
+import org.linkedin.glu.utils.security.ExpectPrincipal
 
 /**
- * Base class for logic filter chain
- * @author ypujante@linkedin.com */
-abstract class LogicSystemFilterChain implements SystemFilter
+ * @author yan@pongasoft.com */
+public interface SessionService
 {
-  Collection<SystemFilter> filters = []
+  /**
+   * Return user session (note that it may expire if not used for a while!)
+   */
+  @ExpectPrincipal
+  UserSession findUserSession(String userCustomDeltaDefinitionDefaultName)
 
-  def toExternalRepresentation()
-  {
-    return [(kind): filters.collect { it.toExternalRepresentation()}];
-  }
-
-  @Override
-  String toDSL()
-  {
-    "${kind}{${filters*.toDSL().join(';')}}".toString()
-  }
-
-  def String toString()
-  {
-    return "${kind}{${filters*.toString().join(';')}}";
-  }
+  /**
+   * Clears the user session
+   */
+  @ExpectPrincipal
+  void clearUserSession()
 }

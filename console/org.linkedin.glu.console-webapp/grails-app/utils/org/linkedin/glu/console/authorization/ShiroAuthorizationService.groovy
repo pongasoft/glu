@@ -22,6 +22,7 @@ import org.apache.shiro.SecurityUtils
 import org.linkedin.glu.console.domain.RoleName
 import org.apache.shiro.authz.AuthorizationException
 import java.security.AccessControlException
+import org.apache.shiro.UnavailableSecurityManagerException
 
 /**
  * @author yan@pongasoft.com */
@@ -53,6 +54,13 @@ public class ShiroAuthorizationService implements AuthorizationService
   @Override
   String getExecutingPrincipal()
   {
-    SecurityUtils.getSubject()?.principal?.toString()
+    try
+    {
+      return SecurityUtils.getSubject()?.principal?.toString()
+    }
+    catch(UnavailableSecurityManagerException e)
+    {
+      return null
+    }
   }
 }

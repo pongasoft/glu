@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,28 +14,21 @@
  * the License.
  */
 
-package org.linkedin.glu.provisioner.core.model
+package org.linkedin.glu.utils.security;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Base class for logic filter chain
- * @author ypujante@linkedin.com */
-abstract class LogicSystemFilterChain implements SystemFilter
+ * Annotation which specifies that a method is expecting a principal usually passed by a different
+ * mean (thread local, etc...).
+ * 
+ * @author yan@pongasoft.com
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface ExpectPrincipal
 {
-  Collection<SystemFilter> filters = []
-
-  def toExternalRepresentation()
-  {
-    return [(kind): filters.collect { it.toExternalRepresentation()}];
-  }
-
-  @Override
-  String toDSL()
-  {
-    "${kind}{${filters*.toDSL().join(';')}}".toString()
-  }
-
-  def String toString()
-  {
-    return "${kind}{${filters*.toString().join(';')}}";
-  }
 }

@@ -75,6 +75,11 @@ public class CustomDeltaDefinition implements Externable
     return orderBy
   }
 
+  String getGroupBy()
+  {
+    firstColumn.groupBy
+  }
+
   CustomDeltaDefinition groupBy(String columnName)
   {
     if(!columnName)
@@ -107,7 +112,7 @@ public class CustomDeltaDefinition implements Externable
     return [
       name: name,
       description: description,
-      customFilter: customFilter?.toExternalRepresentation(),
+      customFilter: customFilter?.toDSL(),
       errorsOnly: errorsOnly,
       summary: summary,
       columnsDefinition: columnsDefinition?.collect { it.toExternalRepresentation() }
@@ -115,7 +120,7 @@ public class CustomDeltaDefinition implements Externable
   }
 
   @Override
-  protected Object clone()
+  CustomDeltaDefinition clone()
   {
     fromExternalRepresentation(toExternalRepresentation())
   }

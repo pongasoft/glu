@@ -33,4 +33,10 @@ class FlattenSystemFilter extends NameEqualsValueSystemFilter
   {
     return entry.flatten()."${name}" == value
   }
+
+  @Override
+  String toDSL()
+  {
+    throw new RuntimeException("Not implemented yet")
+  }
 }

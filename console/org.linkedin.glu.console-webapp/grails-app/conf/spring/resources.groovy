@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,6 +15,12 @@
  * the License.
  */
 
+import org.springframework.cache.ehcache.EhCacheFactoryBean
+import org.linkedin.util.clock.Timespan
+
 // Place your Spring DSL code here
 beans = {
+  userSessionCache(EhCacheFactoryBean) {
+    timeToIdle = Timespan.parse('30m').durationInSeconds
+  }
 }

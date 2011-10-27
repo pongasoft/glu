@@ -27,6 +27,7 @@ dependencies {
   compile spec.external.grailsBootstrap
   compile spec.external.grailsCore
   compile spec.external.slf4jLog4j
+  compile spec.external.ehcacheCore
 
   groovy spec.external.groovy
   testCompile spec.external.junit

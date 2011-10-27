@@ -29,6 +29,12 @@ interface SystemFilter
   def toExternalRepresentation()
 
   /**
+   * @return a representation that can be reparsed as a dsl
+   * @see SystemFilterBuilder#parse
+   */
+  String toDSL()
+
+  /**
    * @return <code>true</code> if the entry should be part of the filter, <code>false</code>
    *         otherwise
    */

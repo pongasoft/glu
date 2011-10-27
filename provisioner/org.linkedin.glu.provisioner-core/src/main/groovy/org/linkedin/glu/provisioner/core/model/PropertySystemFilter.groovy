@@ -58,8 +58,14 @@ class PropertySystemFilter extends NameEqualsValueSystemFilter
     }
   }
 
-  def String toString()
+  @Override
+  String toDSL()
   {
     return "${name}='${value}'".toString();
+  }
+
+  def String toString()
+  {
+    return toDSL()
   }
 }

@@ -103,6 +103,25 @@ public class SystemFilterBuilder
       return new LogicAndSystemFilterChain(filters: filters)
   }
 
+  /**
+   * Convenient call to create a chain of filters that are 'anded' together. Handle properly
+   * <code>null</code> and 'adjacent' 'and' filters.
+   */
+  static SystemFilter and(Collection<SystemFilter> filters)
+  {
+    if(!filters)
+      return null
+
+    Iterator<SystemFilter> iterator = filters.iterator()
+
+    SystemFilter res = iterator.next()
+
+    while(iterator.hasNext())
+      res = and(res, iterator.next())
+    
+    return res
+  }
+
 
   /**
    * Parses the dsl (see documentation)
@@ -111,7 +130,6 @@ public class SystemFilterBuilder
   {
     if(dsl == null)
       return null
-
 
     def builder = new SystemFilterBuilder(filter: new LogicAndSystemFilterChain())
 

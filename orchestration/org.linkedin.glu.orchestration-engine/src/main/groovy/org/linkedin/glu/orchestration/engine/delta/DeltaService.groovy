@@ -17,6 +17,7 @@
 package org.linkedin.glu.orchestration.engine.delta
 
 import org.linkedin.glu.provisioner.core.model.SystemModel
+import org.linkedin.glu.utils.security.ExpectPrincipal
 
 interface DeltaService
 {
@@ -61,4 +62,65 @@ interface DeltaService
   CustomGroupByDelta computeCustomGroupByDelta(SystemModel expectedModel,
                                                CustomDeltaDefinition deltaDefinition)
 
+  /**
+   * Compute the custom "group by" delta using the custom delta definition provided
+   */
+  CustomGroupByDelta computeCustomGroupByDelta(SystemModel expectedModel,
+                                               UserCustomDeltaDefinition userDeltaDefinition)
+
+  /**
+   * Save the details
+   */
+  @ExpectPrincipal
+  boolean saveUserCustomDeltaDefinition(UserCustomDeltaDefinition definition)
+
+  /**
+   * Initializes the default user custome delta definition
+   */
+  boolean saveDefaultCustomDeltaDefinition(CustomDeltaDefinition definition)
+
+  /**
+   * Return the default value
+   */
+  UserCustomDeltaDefinition findDefaultCustomDeltaDefinition()
+
+  /**
+   * Return the default configuration for the user with the given name but if not found will
+   * create a default one based on {@link #findDefaultCustomDeltaDefinition()}
+   */
+  @ExpectPrincipal
+  UserCustomDeltaDefinition findDefaultUserCustomDeltaDefinition(String defaultName)
+
+  /**
+   * Return the unique entry for a given username by name
+   *
+   * @return <code>null</code> if no such entry
+   */
+  @ExpectPrincipal
+  UserCustomDeltaDefinition findUserCustomDeltaDefinitionByName(String name)
+
+  /**
+   * Return all the entries for the 'current' user
+   *
+   * params can be what grails accept for paginating queries: <code>max</code>,
+   * <code>offset</code>, <code>sort</code>, <code>order</code>
+   * @return a map with list: the list of {@link UserCustomDeltaDefinition} or
+   *         {@link LightUserCustomDeltaDefinition} and
+   *         count: the total number of entries
+   */
+  @ExpectPrincipal
+  Map findAllUserCustomDeltaDefinition(boolean includeDetails,
+                                       params)
+
+  /**
+   * Return only the shareable entries
+   *
+   * params can be what grails accept for paginating queries: <code>max</code>,
+   * <code>offset</code>, <code>sort</code>, <code>order</code>
+   * @return a map with list: the list of {@link UserCustomDeltaDefinition} or
+   *         {@link LightUserCustomDeltaDefinition} and
+   *         count: the total number of entries
+   */
+  Map findAllUserCustomDeltaDefinitionShareable(boolean includeDetails,
+                                                params)
 }

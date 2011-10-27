@@ -28,6 +28,11 @@ class LogicNotSystemFilter implements SystemFilter
     return [(kind): filter.toExternalRepresentation()]
   }
 
+  @Override
+  String toDSL()
+  {
+    return "not{${filter.toDSL()}}".toString()
+  }
 
   def boolean filter(SystemEntry entry)
   {

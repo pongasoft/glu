@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,22 +15,17 @@
  * the License.
  */
 
-import org.linkedin.glu.console.domain.RoleName
+package org.linkedin.glu.console.filters
+
+import javax.servlet.http.HttpServletResponse
 import org.apache.shiro.SecurityUtils
 import org.apache.shiro.authc.UsernamePasswordToken
-import org.linkedin.glu.grails.utils.ConsoleHelper
-import org.linkedin.glu.console.domain.DbSystemModel
-import org.linkedin.glu.orchestration.engine.fabric.FabricService
-import org.linkedin.glu.grails.utils.ConsoleConfig
-import javax.servlet.http.HttpServletResponse
+import org.linkedin.glu.console.domain.RoleName
 
 /**
  * @author ypujante@linkedin.com */
 class AuthFilters
 {
-  FabricService fabricService
-  ConsoleConfig consoleConfig
-
   def onUnauthorized(subject, filter)
   {
     if(filter.name == 'rest')
@@ -45,6 +41,7 @@ class AuthFilters
         def subject = SecurityUtils.getSubject()
         if(subject?.principal)
           request.user = [username: subject.principal]
+        return true
       }
     }
 
@@ -101,71 +98,10 @@ class AuthFilters
 
     all(controller: '*', action: '*') {
       before = {
-        def authorized = accessControl {
+        accessControl {
           role(RoleName.USER)
-        }
-
-        if(!authorized)
-          return false
-
-        // 1) request first
-        def fabric = ConsoleHelper.getRequestValue(params, request, 'fabric')
-
-        if(fabric)
-        {
-          fabric = fabricService.findFabric(fabric)
-        }
-
-        // 2) last resort (when only 1 fabric, simply select it...)
-        if(!fabric)
-        {
-          def fabricNames = fabricService.listFabricNames()
-          if(fabricNames.size() == 1)
-          {
-            fabric = fabricService.findFabric(fabricNames[0])
-          }
-        }
-
-        // save the fabric in the request
-        request.fabric = fabric
-
-        if(fabric)
-        {
-          def system = DbSystemModel.findCurrent(fabric)?.systemModel
-
-          if(system)
-          {
-            system = system.clone()
-
-            consoleConfig.defaults.model.each { info ->
-              def value = ConsoleHelper.getRequestValue(params, flash, request, info.name)
-              if(value)
-              {
-                value = system.metadata[info.name]?.getAt(value)
-                if(value)
-                {
-                  system = system.filterByMetadata(info.name, value.name)
-                  request."${info.name}" = value
-                }
-              }
-            }
-
-            def filter = ConsoleHelper.getRequestValue(params, request, 'systemFilter')
-
-            if(filter)
-              system = system.filterBy(filter)
-
-            request.system = system
-          }
-        }
-      }
-
-      after = {
-        ['fabric', *consoleConfig.defaults.model.name].each {
-          ConsoleHelper.saveCookie(response, it, request[it]?.name)
         }
       }
     }
   }
-
 }
