@@ -34,5 +34,6 @@
   <li><g:link controller="system" action="list">System</g:link></li>
 </ul>
 <g:render template="delta"/>
+<g:render template="/plan/selectPlan" model="[title: 'tbd', filter: request.system.filters, hasDelta: false]"/>
 </body>
 </html>

@@ -24,6 +24,7 @@ import org.linkedin.glu.orchestration.engine.delta.CustomGroupByDelta
 
 import org.linkedin.glu.orchestration.engine.session.UserSession
 import org.linkedin.glu.provisioner.core.model.SystemModel
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 
 /**
  * @author ypujante@linkedin.com
@@ -84,9 +85,17 @@ class DashboardController extends ControllerBase
     if(params.reset)
     {
       userSession.resetCustomDeltaDefinition()
-      model = model.filterBy(userSession.customFilter)
+      model = model.unfilter().filterBy(userSession.customFilter)
       request.system = model
     }
+
+    // adjust summary
+    userSession.customDeltaDefinition.summary =
+      GluGroovyLangUtils.getOptionalBoolean(params.summary, userSession.customDeltaDefinition.summary)
+
+    // adjust errorsOnly
+    userSession.customDeltaDefinition.errorsOnly =
+      GluGroovyLangUtils.getOptionalBoolean(params.errorsOnly, userSession.customDeltaDefinition.errorsOnly)
 
     userSession.setGroupBy(params.groupBy)
 

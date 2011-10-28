@@ -202,10 +202,8 @@ public class ConsoleTagLib
       default:
         if(column.linkable)
         {
-          out << cl.linkToSystemFilter(name: column.source,
-                                       value: value,
-                                       groupBy: column.name,
-                                       displayName: column.name) {
+          out << cl.linkToFilteredDashboard(systemFilter: "${column.source}='${value}'",
+                                            groupBy: column.name) {
             out << value.encodeAsHTML()
           }
         }
@@ -232,15 +230,13 @@ public class ConsoleTagLib
           out << "<li class=\"tag ${tagsService.getTagCssClass(tag) ?: ''}\">"
           if(linkable)
           {
-            out << cl.linkToSystemFilter(name: 'tags',
-                                         groupBy: 'tags',
-                                         value: tag,
-                                         displayName: 'tags') {
-              out << tag
+            out << cl.linkToFilteredDashboard(systemFilter: "tags='${tag}'",
+                                              groupBy: 'tags') {
+              out << tag.encodeAsHTML()
             }
           }
           else
-           out << tag
+           out << tag.encodeAsHTML()
           out << "</li>"
         }
         out << "</ul>"
@@ -285,6 +281,23 @@ public class ConsoleTagLib
                   params: [
                     systemFilter: "${name}='${value}'",
                     title: title,
+                    groupBy: groupBy,
+                    ]) {
+      out << body()
+    }
+  }
+
+  /**
+   * Create a link to the dashboard (filtered)
+   */
+  def linkToFilteredDashboard = { args, body ->
+    def systemFilter = args.systemFilter
+    def groupBy = args.groupBy ?: name
+
+    out << g.link(controller: 'dashboard',
+                  action: 'delta',
+                  params: [
+                    systemFilter: systemFilter,
                     groupBy: groupBy,
                     ]) {
       out << body()
