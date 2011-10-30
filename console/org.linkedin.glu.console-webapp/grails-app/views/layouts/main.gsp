@@ -21,6 +21,7 @@
   <title>
     <cl:withFabric>[${fabric}] </cl:withFabric><g:layoutTitle default="GLU Console"/>
   </title>
+  <link rel="stylesheet" href="${resource(dir:'css/twitter-bootstrap',file:'bootstrap.min.css')}"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'main.css')}"/>
   <link rel="shortcut icon" href="${resource(dir:'images',file:'favicon.ico')}" type="image/x-icon"/>
   <style type="text/css">
@@ -51,10 +52,11 @@
   </style>
   <g:layoutHead/>
   <cl:renderCustomCss/>
-  <g:javascript library="prototype" />
-  <g:javascript library="yui" />
-  <g:javascript src="prototype/effects.js" />
-  <g:javascript library="application" />
+  <g:javascript library="jquery" plugin="jquery"/>
+  <g:javascript src="twitter-bootstrap/bootstrap-modal.js" />
+  %{--<g:javascript library="yui" />--}%
+  %{--<g:javascript src="prototype/effects.js" />--}%
+  %{--<g:javascript library="application" />--}%
 </head>
 <body onload="${pageProperty(name:'body.onload')}">
 <g:set var="zkStatus" value="zk-unknown" scope="request"/>

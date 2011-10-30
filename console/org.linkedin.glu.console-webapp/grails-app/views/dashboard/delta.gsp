@@ -34,6 +34,9 @@
   <li><g:link controller="system" action="list">System</g:link></li>
 </ul>
 <g:render template="delta"/>
+<div id="select-a-plan" class="modal hide">
 <g:render template="/plan/selectPlan" model="[title: 'tbd', filter: request.system.filters, hasDelta: false]"/>
+</div>
+<a class="btn danger" data-controls-modal="select-a-plan" data-backdrop="static" >Select Delta</a>
 </body>
 </html>

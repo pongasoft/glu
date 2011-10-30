@@ -84,6 +84,8 @@ grails.views.default.codec="none" // none, html, base64
 grails.views.gsp.encoding="UTF-8"
 grails.converters.encoding="UTF-8"
 
+grails.views.javascript.library="jquery"
+
 // enabled native2ascii conversion of i18n properties files
 grails.enable.native2ascii = true
 

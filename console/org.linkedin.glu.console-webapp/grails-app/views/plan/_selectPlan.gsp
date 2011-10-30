@@ -17,23 +17,24 @@
 <div id="select-plan">
   <g:form controller="plan" action="redirectView">
     <table id="select-plan-radio">
-      <g:each in="${['SEQUENTIAL', 'PARALLEL']}" var="stepType">
-        <tr>
-          <th colspan="3">${title}</th>
-        </tr>
-        <g:each in="['Deploy', 'Bounce', 'Redeploy', 'Undeploy']" var="planType">
-          <g:if test="${planType != 'Deploy' || hasDelta}">
-            <tr class="${planType.toUpperCase()}">
-              <td>${planType}</td>
+      <tr>
+        <th colspan="6">${title}</th>
+      </tr>
+      <g:each in="['Deploy', 'Bounce', 'Redeploy', 'Undeploy']" var="planType">
+        <g:if test="${planType != 'Deploy' || hasDelta}">
+          <tr class="${planType.toUpperCase()}">
+            <td>${planType}</td>
+            <g:each in="${['SEQUENTIAL', 'PARALLEL']}" var="stepType">
               <td>${stepType}</td>
               <td><input type="radio" name="planDetails" value="${JsonUtils.toJSON([planType: planType, stepType: stepType, name: planType + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="${remoteFunction(controller: 'plan', action:'create', update:[success:'plan-preview'], params: "'json=' + this.value")}" /></td>
-            </tr>
-          </g:if>
-        </g:each>
+            </g:each>
+          </tr>
+        </g:if>
       </g:each>
       <tr>
-        <td colspan="3" align="center">
+        <td colspan="6" align="center">
           <input type="submit" name="view" value="Select this plan" onClick="document.getElementById('planIdSelector').value=document.getElementById('planId').value;return true;">
+          <a href="#" class="close">&times;</a>
           <input type="hidden" name="planId" id="planIdSelector" value="undefined" />
           <span class="spinner" style="display:none;">
             <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" />
@@ -41,6 +42,6 @@
         </td>
       </tr>
     </table>
-    <div id="plan-preview" class="planDetails">Select a plan</div>
+    <div id="plan-preview" style="width: 100%; height: 20em; overflow-y: auto;">Select a plan</div>
   </g:form>
 </div>
