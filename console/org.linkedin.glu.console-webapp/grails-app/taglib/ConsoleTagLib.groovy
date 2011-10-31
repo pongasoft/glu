@@ -729,6 +729,36 @@ public class ConsoleTagLib
   }
 
   /**
+   * Renders the drop down for selecting a fabric
+   */
+  def renderFabricSelectDropdown = { args ->
+    def fabric = args.fabric ?: request.fabric?.name
+
+    def fabricNames = fabricService.listFabricNames().sort()
+    fabricNames.remove(fabric)
+
+    if(fabricNames.size() > 0)
+    {
+      out << '<li class="dropdown">'
+      out << "<a href=\"#\" class=\"dropdown-toggle\">${fabric.encodeAsHTML()}</a>"
+      out << '<ul class="dropdown-menu">'
+      fabricNames.each { fabricName ->
+        out << "<li>"
+        out << g.link(controller: 'fabric', action: 'select', id: fabricName) { fabricName.encodeAsHTML() }
+        out << "</li>"
+      }
+      out << '</ul>'
+      out << '</li>'
+    }
+    else
+    {
+      out << "<li>"
+      out << g.link(controller: 'fabric', action: 'select') { fabric.encodeAsHTML() }
+      out << "</li>"
+    }
+  }
+
+  /**
    * Simple tag to get the fabric object: if fabric is not present then simply call with
    * <code>null</code>
    */
@@ -811,7 +841,7 @@ public class ConsoleTagLib
     def entry = args.entry
     if(params.__nvbe == entry)
     {
-      out << 'class="selected"'
+      out << 'class="active"'
     }
   }
 

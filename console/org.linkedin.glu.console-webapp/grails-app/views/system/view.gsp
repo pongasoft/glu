@@ -45,11 +45,11 @@
   <g:set var="editable" value="${!ConsoleConfig.getInstance().defaults.disableModelUpdate}"/>
   <g:render template="system" model="[systems: [systemDetails]]"/>
   <g:form action="save" method="post">
-    <textarea rows="40" cols="150" id="content" name="content" ${editable ? '' : 'readonly="true"'}>${params.content ?: systemDetails.systemModel}</textarea>
+    <textarea rows="40" style="width: 100%" id="content" name="content" ${editable ? '' : 'readonly="true"'}>${params.content ?: systemDetails.systemModel}</textarea>
     <g:hiddenField name="id" value="${params.id}"/>
     <g:if test="${editable}">
       <div class="buttons">
-        <span class="button"><input class="save" type="submit" value="Save changes"/></span>
+        <input class="save btn" type="submit" value="Save changes"/>
       </div>
     </g:if>
   </g:form>

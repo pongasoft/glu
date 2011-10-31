@@ -470,7 +470,7 @@ class DeltaServiceImpl implements DeltaService
 
       if(column0Value)
       {
-        if(row.state == 'ERROR')
+        if(row.state == DeltaState.ERROR)
         {
           counts.errors++
           counts.instances++
@@ -481,7 +481,7 @@ class DeltaServiceImpl implements DeltaService
             counts.instances++
         }
       }
-      if(row.state == 'ERROR')
+      if(row.state == DeltaState.ERROR)
         totals.errors++
       totals.instances++
     }
