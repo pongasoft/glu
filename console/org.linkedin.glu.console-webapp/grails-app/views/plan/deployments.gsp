@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -18,7 +19,7 @@
 <html>
 <g:set var="filters" value="[usernameFilter: 'Username', startTimeFilter: 'Start Time', endTimeFilter: 'End Time', durationFilter: 'Duration', statusFilter: 'Status', actionsFilter: 'Actions']"></g:set>
 <head>
-  <title>GLU Console - Deployments</title>
+  <title>Deployments</title>
   <meta name="layout" content="main"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'status-colors.css')}"/>
   <style type="text/css">
@@ -76,8 +77,8 @@ function showHide()
     </g:javascript>
 </head>
 <body onload="autoRefresh();">
-<ul class="submenu">
-  <li class="selected">Recent</li>
+<ul class="tabs">
+  <li class="active"><a href="#">Recent</a></li>
   <li><g:link action="archived">Archived</g:link></li>
 </ul>
 <g:if test="${groupBy != null}">

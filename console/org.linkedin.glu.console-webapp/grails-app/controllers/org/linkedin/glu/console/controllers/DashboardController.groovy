@@ -25,6 +25,7 @@ import org.linkedin.glu.orchestration.engine.delta.CustomGroupByDelta
 import org.linkedin.glu.orchestration.engine.session.UserSession
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
+import org.linkedin.glu.orchestration.engine.system.SystemService
 
 /**
  * @author ypujante@linkedin.com
@@ -33,6 +34,7 @@ class DashboardController extends ControllerBase
 {
   DeltaService deltaService
   ConsoleConfig consoleConfig
+  SystemService systemService
 
   def beforeInterceptor = {
     // we make sure that the fabric is always set before executing any action
@@ -74,6 +76,21 @@ class DashboardController extends ControllerBase
 
     [
       sources: sources
+    ]
+  }
+
+  /**
+   * Called for deploying
+   */
+  def deploy = {
+    CustomGroupByDelta groupByDelta = doComputeDelta()
+
+    def missingAgents = systemService.getMissingAgents(request.fabric, request.system)
+
+    [
+      title: 'tbd',
+      hasDelta: groupByDelta.counts['errors'] > 0,
+      missingAgents: missingAgents
     ]
   }
 

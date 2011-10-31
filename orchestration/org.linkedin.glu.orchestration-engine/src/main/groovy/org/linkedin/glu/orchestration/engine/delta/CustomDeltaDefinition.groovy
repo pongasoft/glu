@@ -186,10 +186,21 @@ public class CustomDeltaDefinition implements Externable
       }
     }
 
+    // status requires statusInfo to work properly
     if(columnsDefinition.any { it.source == 'status' })
     {
       CustomDeltaColumnDefinition cdcd = new CustomDeltaColumnDefinition(source: 'statusInfo',
                                                                          name: 'statusInfo',
+                                                                         visible: false)
+
+      columnsDefinition << cdcd
+    }
+
+    // state is required to display colors properly
+    if(!columnsDefinition.any { it.source == 'state' })
+    {
+      CustomDeltaColumnDefinition cdcd = new CustomDeltaColumnDefinition(source: 'state',
+                                                                         name: 'state',
                                                                          visible: false)
 
       columnsDefinition << cdcd

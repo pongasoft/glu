@@ -18,7 +18,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
-  <title>GLU Console - System List</title>
+  <title>System List</title>
   <meta name="layout" content="main"/>
   <style type="text/css">
   table td {
@@ -31,16 +31,16 @@
   }
   </style>
 </head>
+<shiro:hasRole name="RELEASE"><g:set var="isReleaseUser" value="true"/></shiro:hasRole>
 <body>
-<ul class="submenu">
-  <li><g:link controller="dashboard">Dashboard</g:link></li>
-  <li class="selected">System</li>
-  <li><g:link action="delta">Current</g:link></li>
+<ul class="tabs">
+  <li class="active"><a href="#">List</a></li>
+  <g:if test="${isReleaseUser}"><li><g:link action="choose">Load</g:link></li></g:if>
 </ul>
 <div class="paginateButtons">
   <g:paginate total="${total}"/>
 </div>
-<g:render template="system" model="[systems: systems, columns: [:], currentSystem: currentSystem]"/>
+<g:render template="model" model="[systems: systems, columns: [:], currentSystem: currentSystem]"/>
 <div class="paginateButtons">
   <g:paginate total="${total}"/>
 </div>

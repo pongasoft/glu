@@ -18,7 +18,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
-  <title>GLU Console - Agent: ${model.agent?.agentName}</title>
+  <title>Agent: ${model.agent?.agentName}</title>
   <meta name="layout" content="main"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'agents-view.css')}"/>
   <script type="text/javascript" src="${resource(dir:'js',file:'console_yui.js')}"></script>

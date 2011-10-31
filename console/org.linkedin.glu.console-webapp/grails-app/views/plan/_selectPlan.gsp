@@ -16,7 +16,7 @@
 <%@ page import="org.linkedin.groovy.util.json.JsonUtils; org.linkedin.glu.provisioner.plan.api.IStep.Type" %>
 <div id="select-plan">
   <g:form controller="plan" action="redirectView">
-    <table id="select-plan-radio">
+    <table id="select-plan-radio" style="width: auto;">
       <tr>
         <th colspan="6">${title}</th>
       </tr>
@@ -32,9 +32,19 @@
         </g:if>
       </g:each>
       <tr>
-        <td colspan="6" align="center">
-          <input type="submit" name="view" value="Select this plan" onClick="document.getElementById('planIdSelector').value=document.getElementById('planId').value;return true;">
-          <a href="#" class="close">&times;</a>
+        <td colspan="6" style="text-align: center;">
+          <input class="btn primary" type="submit" name="view" value="Select this plan" onClick="document.getElementById('planIdSelector').value=document.getElementById('planId').value;return true;">
+          <g:if test="${missingAgents}">
+            <a class="btn danger" data-controls-modal="missing-agents" data-backdrop="static" >Missing Agents</a>
+            <div id="missing-agents" class="modal hide">
+              <h2>Missing agents [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]<a href="#" class="close">Close</a></h2>
+              <ul>
+                <g:each in="${missingAgents}" var="agentName">
+                  <li>${agentName.encodeAsHTML()}</li>
+                </g:each>
+              </ul>
+            </div>
+          </g:if>
           <input type="hidden" name="planId" id="planIdSelector" value="undefined" />
           <span class="spinner" style="display:none;">
             <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" />
@@ -42,6 +52,6 @@
         </td>
       </tr>
     </table>
-    <div id="plan-preview" style="width: 100%; height: 20em; overflow-y: auto;">Select a plan</div>
+    <div id="plan-preview">Select a plan</div>
   </g:form>
 </div>

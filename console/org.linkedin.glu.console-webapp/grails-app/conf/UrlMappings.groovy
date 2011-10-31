@@ -32,6 +32,7 @@ class UrlMappings
     "/dashboard/renderDelta"(controller: 'dashboard', action: 'renderDelta') { __nvbe = 'Dashboard' }
     "/dashboard/index"(controller: 'dashboard', action: 'index') { __nvbe = 'Dashboard' }
     "/dashboard/customize"(controller: 'dashboard', action: 'customize') { __nvbe = 'Dashboard' }
+    "/dashboard/deploy"(controller: 'dashboard', action: 'deploy') { __nvbe = 'Dashboard' }
 
     // agents
     "/agents"(controller: 'agents', action: 'list') { __nvbe = 'Dashboard' }
@@ -42,32 +43,20 @@ class UrlMappings
     "/agents/fileContent/$id"(controller: 'agents', action: 'fileContent') { __nvbe = 'System' }
 
     // plan
-    "/plan/view/$id"(controller: 'plan', action: 'view') { __nvbe = 'Plans' }
-    "/plan/redirectView"(controller: 'plan', action: 'redirectView') { __nvbe = 'Plans' }
-    "/plan/deployments/$id?"(controller: 'plan', action: 'deployments') { __nvbe = 'Plans' }
-    "/plan/renderDeploymentDetails/$id?"(controller: 'plan', action: 'renderDeploymentDetails') { __nvbe = 'Plans' }
-    "/plan/renderDeployments"(controller: 'plan', action: 'renderDeployments') { __nvbe = 'Plans' }
-    "/plan/archived/$id?"(controller: 'plan', action: 'archived') { __nvbe = 'Plans' }
-    "/plan/create"(controller: 'plan', action: 'create') { __nvbe = 'Plans' }
+    "/plan/view/$id"(controller: 'plan', action: 'view') { __nvbe = 'Deployments' }
+    "/plan/redirectView"(controller: 'plan', action: 'redirectView') { __nvbe = 'Deployments' }
+    "/plan/deployments/$id?"(controller: 'plan', action: 'deployments') { __nvbe = 'Deployments' }
+    "/plan/renderDeploymentDetails/$id?"(controller: 'plan', action: 'renderDeploymentDetails') { __nvbe = 'Deployments' }
+    "/plan/renderDeployments"(controller: 'plan', action: 'renderDeployments') { __nvbe = 'Deployments' }
+    "/plan/archived/$id?"(controller: 'plan', action: 'archived') { __nvbe = 'Deployments' }
+    "/plan/create"(controller: 'plan', action: 'create') { __nvbe = 'Deployments' }
 
     // fabric
     "/fabric/select/$id?"(controller: 'fabric', action: 'select') { __nvbe = 'Admin' }
 
-    // system
-    "/system"(controller: 'system', action: 'delta') { __nvbe = 'System' }
-    "/system/list"(controller: 'system', action: 'list') { __nvbe = 'System' }
-    "/system/view/$id"(controller: 'system', action: 'view') { __nvbe = 'System' }
-    "/system/filter"(controller: 'system', action: 'filter') { __nvbe = 'System' }
-    "/system/filter/values/$id/$value?"(controller: 'system', action: 'filter_values') { __nvbe = 'System' }
-
-    // applications
-    "/applications/show/$id"(controller: 'applications', action: 'show') { __nvbe = 'Dashboard' }
-
-    // cluster
-    "/cluster/show/$id"(controller: 'cluster', action: 'show') { __nvbe = 'Dashboard' }
-
-    // metrics
-    "/metrics/bomHistory/$id"(controller: 'metrics', action: 'bomHistory') { __nvbe = 'System' }
+    // model
+    "/model/list"(controller: 'model', action: 'list') { __nvbe = 'Model' }
+    "/model/view/$id"(controller: 'model', action: 'view') { __nvbe = 'Model' }
 
     // auth
     "/auth/$action?/$id?"(controller: 'auth')
@@ -150,14 +139,11 @@ class UrlMappings
     "/admin/user/save"(controller: 'user', action: 'save') { __nvbe = 'Admin' }
 
     // model
-    "/admin/model/choose"(controller: 'model', action: 'choose') { __nvbe = 'Model' }
-    "/admin/model/load"(controller: 'model', action: 'load') { __nvbe = 'Model' }
-    "/admin/model/upload"(controller: 'model', action: 'upload') { __nvbe = 'Model' }
-
-    // system
-    "/admin/system/save"(controller: 'system', action: 'save') { __nvbe = 'System' }
-    "/admin/system/setAsCurrent"(controller: 'system', action: 'setAsCurrent') { __nvbe = 'System' }
-    "/admin/system/addEntry"(controller: 'system', action: 'addEntry') { __nvbe = 'System' }
+    "/release/model/choose"(controller: 'model', action: 'choose') { __nvbe = 'Model' }
+    "/release/model/load"(controller: 'model', action: 'load') { __nvbe = 'Model' }
+    "/release/model/upload"(controller: 'model', action: 'upload') { __nvbe = 'Model' }
+    "/release/model/save"(controller: 'model', action: 'save') { __nvbe = 'model' }
+    "/release/model/setAsCurrent"(controller: 'model', action: 'setAsCurrent') { __nvbe = 'model' }
 
     // audit log
     "/admin/auditLog/list"(controller: 'auditLog', action: 'list') { __nvbe = 'Admin' }

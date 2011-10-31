@@ -16,7 +16,7 @@
 
 <html>
 <head>
-  <title>GLU Console - Help</title>
+  <title>Help</title>
   <meta name="layout" content="main"/>
 </head>
 <body>

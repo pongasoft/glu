@@ -28,6 +28,7 @@ import org.linkedin.glu.console.provisioner.services.storage.SystemStorageExcept
 import org.linkedin.glu.grails.utils.ConsoleHelper
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
+import org.linkedin.glu.console.domain.DbSystemModel
 
 /**
  * @author: ypujante@linkedin.com
@@ -41,6 +42,78 @@ public class ModelController extends ControllerBase
   def beforeInterceptor = {
     // we make sure that the fabric is always set before executing any action
     return ensureCurrentFabric()
+  }
+
+  /**
+   * Listing all systems (paginated)
+   */
+  def list = {
+    def map =
+      systemService.findSystems(request.fabric.name, false, params)
+
+    [
+        systems: map.systems,
+        total: map.count
+    ]
+  }
+
+  /**
+   * Viewing a single system (json textarea)
+   */
+  def view = {
+    def system = systemService.findDetailsBySystemId(params.id)
+    [systemDetails: system]
+  }
+
+  /**
+   * Saving the current system
+   */
+  def save = {
+    def system = DbSystemModel.findBySystemId(params.id)
+
+    try
+    {
+      def systemModel = DbSystemModel.SERIALIZER.deserialize(params.content)
+      if(systemModel.fabric != request.fabric.name)
+      {
+        flash.error = "Fabric mismatch: ${systemModel.fabric} != ${request.fabric.name}"
+        render(view: 'view', id: params.id, model: [system: system])
+        return
+      }
+      systemModel.id = null
+      if(systemService.saveCurrentSystem(systemModel))
+        flash.message = "New system properly saved [${systemModel.id}]"
+      else
+        flash.message = "Already current system"
+      redirect(action: 'view', id: systemModel.id)
+    }
+    catch(Throwable th)
+    {
+      flashException("Could not save the new model: ${th.message}", th)
+      render(view: 'view', id: params.id, model: [system: system])
+    }
+  }
+
+  /**
+   * Set the system provided as the current one
+   */
+  def setAsCurrent = {
+    try
+    {
+      boolean res = systemService.setAsCurrentSystem(request.fabric.name, params.id)
+
+      if(res)
+        flash.message = "Current system has been set to [${params.id}]"
+      else
+        flash.message = "Current system is already [${params.id}]"
+
+      redirect(action: 'list')
+    }
+    catch(Throwable th)
+    {
+      flashException("Could not set the model as the current one: ${th.message}", th)
+      render(action: 'list')
+    }
   }
 
   def choose = {

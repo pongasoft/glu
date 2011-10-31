@@ -18,7 +18,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
-  <title>GLU Console - Agents</title>
+  <title>Agents</title>
   <meta name="layout" content="main"/>
   <script type="text/javascript" src="${resource(dir:'js',file:'console.js')}"></script>
   <style type="text/css">

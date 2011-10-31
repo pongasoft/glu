@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="${resource(dir:'css',file:'fabric-listAgentFabrics.css')}"/>
   <script type="text/javascript" src="${resource(dir:'js', file:'console.js')}"></script>
   <meta name="layout" content="main"/>
-  <title>GLU Console - Agents/Fabric</title>
+  <title>Agents/Fabric</title>
   <style type="text/css">
   .missing-old {
     color: black;

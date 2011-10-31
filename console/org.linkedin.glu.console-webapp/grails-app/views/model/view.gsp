@@ -18,7 +18,7 @@
 <%@ page import="org.linkedin.glu.grails.utils.ConsoleConfig" contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
-  <title>GLU Console - View System ${params.id}</title>
+  <title>View System ${params.id}</title>
   <meta name="layout" content="main"/>
   <style type="text/css">
   textarea {
@@ -35,21 +35,26 @@
   </style>
 </head>
 <body>
-<ul class="submenu">
-  <li><g:link controller="dashboard">Dashboard</g:link></li>
-  <li><g:link action="list">System</g:link></li>
-  <li><g:link action="delta">Current</g:link></li>
-  <li class="selected">View [${params.id}]</li>
+<shiro:hasRole name="RELEASE"><g:set var="isReleaseUser" value="true"/></shiro:hasRole>
+<ul class="tabs">
+  <li><g:link action="list">List</g:link></li>
+  <g:if test="${isReleaseUser}"><li><g:link action="choose">Load</g:link></li></g:if>
+  <li class="active"><a href="#">View [${params.id}]</a></li>
 </ul>
 <g:if test="${systemDetails}">
   <g:set var="editable" value="${!ConsoleConfig.getInstance().defaults.disableModelUpdate}"/>
-  <g:render template="system" model="[systems: [systemDetails]]"/>
+  <g:render template="model" model="[systems: [systemDetails]]"/>
   <g:form action="save" method="post">
+    <g:if test="${editable}">
+      <div class="actions">
+        <input class="save btn primary" type="submit" value="Save changes"/>
+      </div>
+    </g:if>
     <textarea rows="40" style="width: 100%" id="content" name="content" ${editable ? '' : 'readonly="true"'}>${params.content ?: systemDetails.systemModel}</textarea>
     <g:hiddenField name="id" value="${params.id}"/>
     <g:if test="${editable}">
-      <div class="buttons">
-        <input class="save btn" type="submit" value="Save changes"/>
+      <div class="actions">
+        <input class="save btn primary" type="submit" value="Save changes"/>
       </div>
     </g:if>
   </g:form>

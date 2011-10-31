@@ -15,7 +15,7 @@
   - the License.
   --}%
 
-<%@ page import="org.linkedin.util.lang.MemorySize; org.linkedin.glu.grails.utils.ConsoleConfig; org.linkedin.glu.console.controllers.SystemController" %>
+<%@ page import="org.linkedin.util.lang.MemorySize; org.linkedin.glu.grails.utils.ConsoleConfig" %>
 <g:set var="columns" value="${columns == null ? ConsoleConfig.getInstance().defaults.system : columns}"/>
 <g:form action="setAsCurrent" method="post">
 <table>
@@ -34,7 +34,7 @@
   <tbody>
   <g:each in="${systems}" status="i" var="system">
     <tr class="${(i % 2) == 0 ? 'odd' : 'even'} ${(system.systemId == request.system?.id) ? 'current' : ''}">
-      <td class="systemId"><g:link controller="system" action="view" id="${system.systemId}">${system.systemId}</g:link></td>
+      <td class="systemId"><g:link controller="model" action="view" id="${system.systemId}">${system.systemId}</g:link></td>
       <td>${system.fabric}</td>
       <td><cl:formatDate date="${system.dateCreated}"/></td>
       <g:set var="stats" value="${system.systemModel?.computeStats(columns.keySet()) ?: [:]}"/>

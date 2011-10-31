@@ -40,20 +40,9 @@
   background: #888888;
 }
 
-td.detail a:link {
-  text-decoration: underline;
-  color: #0000ee;
-}
-td.detail a:visited {
-  text-decoration: underline;
-  color: #0000ee;
-}
-td.detail a:hover {
-  text-decoration: underline;
-  color: #0000ee;
-}
 #__delta_content td {
   white-space: nowrap;
+  text-align: center;
 }
 #__delta_content td.column0 {
   vertical-align: top;
@@ -67,7 +56,7 @@ td.detail a:hover {
   vertical-align: top;
 }
 #__delta_content table {
-  width: auto;
+  width: 100%;
 }
 #__delta_content table th {
   text-align: center;

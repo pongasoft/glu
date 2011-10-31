@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -48,28 +49,43 @@
 </head>
 <body>
 <div class="body">
-  <h1>Load Model</h1>
+  <ul class="tabs">
+    <li><g:link action="list">List</g:link></li>
+    <li class="active"><a href="#">Load</a></li>
+  </ul>
 
-  <h2>From JSON (Upload)</h2>
-
-  <g:form action="upload" method="post" enctype="multipart/form-data">
-    <input type="file" name="jsonFile" />
-    <g:actionSubmit action="load" value="Upload"/>
-  </g:form>
-
-  <h2 class="separator">From JSON (URI)</h2>
-  <g:form action="load">
-    <table>
-      <tr>
-        <th>Json Uri:</th>
-        <td> <g:textField name="jsonUri" value="${params.jsonUri}" class="input"/> </td>
-      </tr>
-    </table>
-    <p>
-      <g:actionSubmit action="load" value="Load"/>
-    </p>
-  </g:form>
-
+  <div class="row">
+    <div class="span12">
+      <g:form class="form-stacked" action="upload" method="post" enctype="multipart/form-data">
+        <fieldset>
+          <legend>From JSON (Upload)</legend>
+          <div class="clearfix">
+            <div class="input">
+              <input type="file" name="jsonFile" />
+            </div>
+          </div>
+        </fieldset>
+        <div class="actions">
+          <g:actionSubmit class="btn primary" action="load" value="Upload"/>
+        </div>
+      </g:form>
+    </div>
   </div>
+  <div class="row">
+    <div class="span12">
+      <g:form class="form-stacked" action="load">
+        <fieldset>
+          <legend>From JSON (URI)</legend>
+          <div class="clearfix">
+            <g:textField name="jsonUri" value="${params.jsonUri}" class="input"/>
+          </div>
+        </fieldset>
+        <div class="actions">
+          <g:actionSubmit class="btn primary" action="load" value="Load"/>
+        </div>
+      </g:form>
+    </div>
+  </div>
+</div>
 </body>
 </html>

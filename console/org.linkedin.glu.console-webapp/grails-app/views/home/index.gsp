@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -16,7 +17,7 @@
 
 <html>
 <head>
-  <title>GLU Console - ${user.username.encodeAsHTML()}</title>
+  <title>${user.username.encodeAsHTML()}</title>
   <meta name="layout" content="main"/>
 </head>
 <body>

@@ -16,7 +16,7 @@
 
 <html>
 <head>
-  <title>GLU Console - Forum</title>
+  <title>Forum</title>
   <meta name="layout" content="main"/>
 </head>
 <body>

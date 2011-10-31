@@ -17,21 +17,35 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
-  <title>Customize Dashboard</title>
+  <title>Deploy - Dashboard</title>
   <meta name="layout" content="main"/>
+  <style type="text/css">
+  ul {
+    padding: 0;
+    margin: 0;
+  }
+  li {
+   list-style: none;
+  }
+  input.stepCheckBox {
+    display: none;
+  }
+  input.quickSelect {
+    display: none;
+  }
+  </style>
 </head>
 <body>
-<ul class="submenu">
-  <li><g:link controller="dashboard">Dashboard</g:link></li>
-  <li class="selected">Customize</li>
-  <li><g:link controller="system" action="list">System</g:link></li>
+<ul class="tabs">
+  <li><g:link action="delta">View</g:link></li>
+  <li class="active"><a href="#">Deploy<g:if test="${hasDelta}"> / <span class="label important">delta</span></g:if></a></li>
+  <li><g:link controller="dashboard" action="customize">Customize</g:link></li>
 </ul>
-<table>
-  <g:each in="${sources}" var="source">
-    <tr>
-      <td>${source.encodeAsHTML()}</td>
-    </tr>
-  </g:each>
-</table>
+<g:if test="${request.system}">
+  <g:render template="/plan/selectPlan" model="[title: title, hasDelta: hasDelta]"/>
+</g:if>
+<g:else>
+  <h2>No System selected.</h2>
+</g:else>
 </body>
 </html>

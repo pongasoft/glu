@@ -166,8 +166,6 @@ class UserPreferencesFilters
 
     userSession.setCustomFilter(filter)
 
-    println "request filter = ${filter} => ${userSession.customFilter?.toDSL()}"
-
     request.userSession = userSession
 
     return userSession
