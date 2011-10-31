@@ -45,7 +45,7 @@
         <th><g:link controller="dashboard" action="delta" params="[summary: !request.userSession.customDeltaDefinition.summary]">I:${delta.counts['instances']}</g:link></th>
         <th><g:link controller="dashboard" action="delta" params="[errorsOnly: !request.userSession.customDeltaDefinition.errorsOnly]">E:${delta.counts['errors']}</g:link></th>
         <g:each in="${delta.tailColumns.name}" var="column" status="columnIdx">
-          <th class="${column}"><g:link controller="dashboard" action="delta" params="[groupBy: column]">
+          <th><g:link controller="dashboard" action="delta" params="[groupBy: column]">
             <g:if test="${delta.counts[column] == null}">${column.encodeAsHTML()}</g:if>
             <g:else>${column.encodeAsHTML()}:${delta.counts[column]}</g:else>
           </g:link></th>
@@ -84,7 +84,7 @@
                 </g:if>
               </g:if>
               <g:else>
-                <td class="${entry.status == 'delta' ? 'DELTA' : entry.state} detail ${column.name}">
+                <td class="${entry.status == 'delta' ? 'DELTA' : entry.state} detail">
                   <cl:formatDeltaValue column="${column}" values="${entry}" row="d-${line}-${rowIdx}"/>
                 </td>
               </g:else>

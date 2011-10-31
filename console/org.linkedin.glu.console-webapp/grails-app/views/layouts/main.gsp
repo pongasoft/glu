@@ -18,19 +18,20 @@
 <%@ page import="org.linkedin.glu.grails.utils.ConsoleConfig" %>
 <html>
 <head>
-  <title>
-    <cl:withFabric>[${fabric}] </cl:withFabric><g:layoutTitle default="GLU Console"/>
-  </title>
+  <title><cl:withFabric>[${fabric}] </cl:withFabric><g:layoutTitle/> - GLU Console</title>
   <link rel="stylesheet" href="${resource(dir:'css/twitter-bootstrap',file:'bootstrap.min.css')}"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'main.css')}"/>
   <link rel="shortcut icon" href="${resource(dir:'images',file:'favicon.ico')}" type="image/x-icon"/>
   <style type="text/css">
   <cl:withFabric>
     .topbar .fill {
-      background-color: ${fabric.color};
+      background: ${fabric.color};
       background: -webkit-gradient(linear, left top, right top, color-stop(.2, ${fabric.color}),color-stop(1, #ffffff)) fixed no-repeat 0 100%;
       background: -moz-linear-gradient(left,${fabric.color} 20%,#ffffff) fixed no-repeat 0 100%;
     }
+  .topbar a {
+    text-shadow: 1px 1px 1px ${fabric.color};
+  }
   </cl:withFabric>
   div#footer {
     margin-top: 2em;

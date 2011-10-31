@@ -18,13 +18,16 @@
 body {
   background: #fff;
   color: black;
-  font: 13px arial, helvetica, sans-serif;
   padding-top: 40px; /* 40px to make the container go all the way to the bottom of the topbar */
 }
 
 .topbar a {
   color: black;
-  text-shadow: 1px 1px 0 rgba(128, 128, 128, 0.25);
+  font-weight: bold;
+}
+
+.container {
+  width: 99%;
 }
 
 dl {

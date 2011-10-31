@@ -744,7 +744,7 @@ public class ConsoleTagLib
       out << '<ul class="dropdown-menu">'
       fabricNames.each { fabricName ->
         out << "<li>"
-        out << g.link(controller: 'fabric', action: 'select', id: fabricName) { fabricName.encodeAsHTML() }
+        out << g.link(controller: 'dashboard', action: 'delta', params: [fabric: fabricName]) { fabricName.encodeAsHTML() }
         out << "</li>"
       }
       out << '</ul>'

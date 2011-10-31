@@ -18,7 +18,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
-  <title>GLU Console - Dashboard</title>
+  <title>Dashboard</title>
   <meta name="layout" content="main"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'delta.css')}"/>
   <script type="text/javascript" src="${resource(dir:'js',file:'delta.js')}"></script>
@@ -28,8 +28,8 @@
   <script type="text/javascript" src="${resource(dir:'js',file:'console_yui.js')}"></script>
 </head>
 <body>
-<ul class="submenu">
-  <li class="selected">Dashboard</li>
+<ul class="tabs">
+  <li class="active"><a href="#">View</a></li>
   <li><g:link controller="dashboard" action="customize">Customize</g:link></li>
   <li><g:link controller="system" action="list">System</g:link></li>
 </ul>
