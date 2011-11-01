@@ -56,9 +56,6 @@
   <g:javascript library="jquery" plugin="jquery"/>
   <g:javascript src="twitter-bootstrap/bootstrap-modal.js" />
   <g:javascript src="twitter-bootstrap/bootstrap-dropdown.js" />
-  <g:javascript library="yui" />
-  <g:javascript src="prototype/effects.js" />
-  <g:javascript library="application" />
 </head>
 <body onload="${pageProperty(name:'body.onload')}">
 <g:set var="zkStatus" value="zk-unknown" scope="request"/>
@@ -69,6 +66,7 @@
     <div class="container">
       <ul class="nav">
         <li ${cl.navbarEntryClass(entry: 'Dashboard')} id="tab-dashboard"><g:link controller="dashboard">Dashboard</g:link></li>
+        <li ${cl.navbarEntryClass(entry: 'Agents')} id="tab-agents"><g:link controller="agents" action="list">Agents</g:link></li>
         <g:if test="${fabric}">
           <li ${cl.navbarEntryClass(entry: 'Plans')} id="tab-plans"><g:link controller="plan" action="deployments">Deployments</g:link></li>
           <li ${cl.navbarEntryClass(entry: 'Model')} id="tab-model"><g:link controller="model" action="list">Model</g:link></li>

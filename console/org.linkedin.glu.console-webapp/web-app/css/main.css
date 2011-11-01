@@ -38,6 +38,10 @@ table {
   border-collapse: collapse;
 }
 
+li {
+  color: black;
+}
+
 /*table th {*/
   /*text-align: left;*/
   /*background-color: #005a87;*/
@@ -66,6 +70,8 @@ form .input {
 
 .modal {
   padding: 0.5em;
+  max-height: 40em;
+  overflow-y: auto;
 }
 
 /*#header {*/

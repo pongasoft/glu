@@ -19,6 +19,10 @@
   <link rel="shortcut icon" href="${resource(dir:'images',file:'favicon.ico')}" type="image/x-icon"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'main.css')}"/>
   <style type="text/css">
+  body {
+    padding-top: 0;
+  }
+
   .logo {
     float: right;
   }

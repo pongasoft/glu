@@ -26,6 +26,9 @@
       border-top: 1px solid black;
       padding-top: 1.5em;
     }
+    table {
+      width: auto;
+    }
   </style>
 </head>
 <body>

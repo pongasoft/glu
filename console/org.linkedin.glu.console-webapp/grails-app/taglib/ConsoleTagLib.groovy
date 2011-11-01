@@ -416,7 +416,7 @@ public class ConsoleTagLib
     def pid = args.pid
     if(pid)
     {
-      out << g.link(controller: 'agents', action: 'ps', id: agent, params: [pid: pid]) {
+      out << g.link('class': args.class, controller: 'agents', action: 'ps', id: agent, params: [pid: pid]) {
         out << body()
       }
     }
@@ -469,7 +469,7 @@ public class ConsoleTagLib
 
         if(!specialKeys.contains(key))
         {
-          out << "<li class=\"${key.encodeAsHTML()}\">" << key.encodeAsHTML()
+          out << "<li class=\"m2u-${key.encodeAsHTML()}\">" << key.encodeAsHTML()
           if(value instanceof Map && value)
           {
             args.map = value

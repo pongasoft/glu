@@ -537,7 +537,9 @@ class DeltaServiceImpl implements DeltaService
             if(column.name == column0Name)
               summary[column.name] = column0
             else
-              summary[column.name] = column.groupBy(entries."${column.source}")
+            {
+              summary[column.name] = column.groupBy(entries."${column.source}".findAll { it != null })
+            }
           }
           entries = [summary]
         }

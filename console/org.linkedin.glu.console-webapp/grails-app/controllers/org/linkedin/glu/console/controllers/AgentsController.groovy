@@ -32,6 +32,7 @@ import org.linkedin.glu.agent.tracker.AgentInfo
 import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor
 import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 import org.linkedin.glu.orchestration.engine.fabric.FabricService
+import org.linkedin.glu.orchestration.engine.system.SystemService
 
 /**
  * @author ypujante@linkedin.com
@@ -43,10 +44,30 @@ class AgentsController extends ControllerBase
   PlannerService plannerService
   DeltaService deltaService
   FabricService fabricService
+  SystemService systemService
 
   def beforeInterceptor = {
     // we make sure that the fabric is always set before executing any action
     return ensureCurrentFabric()
+  }
+
+  /**
+   * List all the agents  */
+  def list = {
+    def agents = agentsService.getAgentInfos(request.fabric)
+
+    def missingAgents = systemService.getMissingAgents(request.fabric, request.system.unfilter())
+
+    def allAgents = new TreeMap<String, AgentInfo>(agents)
+    missingAgents.each { agent ->
+      if(!allAgents.containsKey(agent))
+        allAgents[agent] = null
+    }
+
+    [
+      agents: allAgents,
+      missingAgents: missingAgents as Set
+    ]
   }
 
   /**
@@ -124,12 +145,12 @@ class AgentsController extends ControllerBase
     def agent = agentsService.getAgentInfo(request.fabric, params.id)
 
     def model = [:]
-    def allPlans = [:]
 
-    def title = "agent [${params.id}]".toString()
     def filter = "agent='${params.id}'".toString()
 
     def system = request.system.filterBy(filter)
+
+    boolean hasDelta = deltaService.computeRawDelta(system).delta?.hasErrorDelta()
 
     if(agent)
     {
@@ -142,14 +163,12 @@ class AgentsController extends ControllerBase
       model = computeAgentModel(request.fabric,
                                 agent,
                                 mountPoints,
-                                allPlans.deploy && allPlans.deploy[0]?.hasLeafSteps())
+                                hasDelta)
     }
 
     return [
       model: model,
-      title: title,
-      filter: filter,
-      hasDelta: deltaService.computeRawDelta(system).delta?.hasErrorDelta()
+      hasDelta: hasDelta
     ]
   }
 

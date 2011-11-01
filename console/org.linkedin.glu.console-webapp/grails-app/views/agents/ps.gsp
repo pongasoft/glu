@@ -28,15 +28,15 @@
 </head>
 <body>
 <g:if test="${params.pid}">
-  <ul class="submenu">
-    <li><g:link controller="dashboard">Dashboard</g:link></li>
+  <ul class="tabs">
+    <li><g:link controller="agents" action="list">List</g:link></li>
     <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
     <li><g:link action="ps" id="${params.id}">All Processes</g:link></li>
-    <li class="selected">process[${params.pid}]</li>
+    <li class="active"><a href="#">process[${params.pid}]</a></li>
   </ul>
   <g:if test="${ps[params.pid]}">
     <g:form action="kill" id="${params.id}" params="[pid: params.pid]">
-      <g:textField name="signal" value="3"/> <g:submitButton name="kill" value="Send Signal"/>
+      <g:textField name="signal" value="3"/> <g:submitButton class="btn primary" name="kill" value="Send Signal"/>
     </g:form>
     <cl:mapToUL map="${ps[params.pid]}" specialKeys="${['args']}" var="specialEntry">
       <li>
@@ -54,10 +54,10 @@
   </g:else>
 </g:if>
 <g:else>
-  <ul class="submenu">
-    <li><g:link controller="dashboard">Dashboard</g:link></li>
+  <ul class="tabs">
+    <li><g:link controller="agents" action="list">List</g:link></li>
     <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
-    <li class="selected">All Processes</li>
+    <li class="active"><a href="#">All Processes</a></li>
   </ul>
   <table>
     <tr>

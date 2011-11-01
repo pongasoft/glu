@@ -77,4 +77,10 @@ dl {
 
 ul.summary {
   font-size: 1.5em;
+  margin-left: 0;
+}
+
+ul.summary li {
+  margin-top: .5em;
+  list-style: none;
 }

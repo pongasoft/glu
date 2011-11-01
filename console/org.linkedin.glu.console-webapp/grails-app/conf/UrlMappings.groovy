@@ -35,12 +35,12 @@ class UrlMappings
     "/dashboard/deploy"(controller: 'dashboard', action: 'deploy') { __nvbe = 'Dashboard' }
 
     // agents
-    "/agents"(controller: 'agents', action: 'list') { __nvbe = 'Dashboard' }
-    "/agents/view/$id"(controller: 'agents', action: 'view') { __nvbe = 'System' }
-    "/agents/ps/$id"(controller: 'agents', action: 'ps') { __nvbe = 'System' }
-    "/agents/fullStackTrace/$id"(controller: 'agents', action: 'fullStackTrace') { __nvbe = 'System' }
-    "/agents/tailLog/$id"(controller: 'agents', action: 'tailLog') { __nvbe = 'System' }
-    "/agents/fileContent/$id"(controller: 'agents', action: 'fileContent') { __nvbe = 'System' }
+    "/agents"(controller: 'agents', action: 'list') { __nvbe = 'Agents' }
+    "/agents/view/$id"(controller: 'agents', action: 'view') { __nvbe = 'Agents' }
+    "/agents/ps/$id"(controller: 'agents', action: 'ps') { __nvbe = 'Agents' }
+    "/agents/fullStackTrace/$id"(controller: 'agents', action: 'fullStackTrace') { __nvbe = 'Agents' }
+    "/agents/tailLog/$id"(controller: 'agents', action: 'tailLog') { __nvbe = 'Agents' }
+    "/agents/fileContent/$id"(controller: 'agents', action: 'fileContent') { __nvbe = 'Agents' }
 
     // plan
     "/plan/view/$id"(controller: 'plan', action: 'view') { __nvbe = 'Deployments' }

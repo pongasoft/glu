@@ -36,6 +36,9 @@
     color: black;
     background: #dddddd;
   }
+    table {
+      width: auto;
+    }
   </style>
 </head>
 <body>
