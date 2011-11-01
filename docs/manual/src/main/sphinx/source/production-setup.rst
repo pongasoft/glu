@@ -272,7 +272,7 @@ At the end of this step, it may be a little confusing so let's recap what you sh
 |                          |                    |                    |* ``glu.agent.keystorePassword`` (``XXXXXXX``         |
 |                          |                    |                    |  encrypted)                                          |
 |                          |                    |                    |                                                      |
-|                          |                    |                    |* ``glu.agent.keyPassword`` (``ZZZZZZZ`` encrypted)   |
+|                          |                    |                    |* ``glu.agent.keyPassword`` (``YYYYYYY`` encrypted)   |
 +--------------------------+--------------------+--------------------+------------------------------------------------------+
 |``agent.truststore``      |All clients of the  |locally to the      |* ``console.truststorePath`` (where is the file       |
 |                          |agent (console and  |client              |  located)                                            |
