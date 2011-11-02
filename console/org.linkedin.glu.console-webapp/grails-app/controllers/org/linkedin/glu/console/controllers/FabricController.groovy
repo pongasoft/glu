@@ -52,7 +52,7 @@ class FabricController extends ControllerBase
       if(newFabric)
       {
         request.fabric = newFabric
-        flash.message = "Selected fabric '${params.id}'"
+        flash.success = "Selected fabric '${params.id}'"
       }
       else
         flash.error = "Unknown fabric '${params.id}'"
@@ -133,7 +133,7 @@ class FabricController extends ControllerBase
 
     if(errors)
     {
-      flash.message = "There were ${errors.size()} warning(s)"
+      flash.warning = "There were ${errors.size()} warning(s)"
       flash.errors = errors
     }
     else
@@ -151,9 +151,9 @@ class FabricController extends ControllerBase
     boolean cleared = fabricService.clearAgentFabric(params.id, request.fabric.name)
 
     if(cleared)
-      flash.message = "Fabric [${request.fabric.name}] was cleared for agent [${params.id}]."
+      flash.success = "Fabric [${request.fabric.name}] was cleared for agent [${params.id}]."
     else
-      flash.message = "Fabric [${request.fabric.name}] for agent [${params.id}] was already cleared."
+      flash.info = "Fabric [${request.fabric.name}] for agent [${params.id}] was already cleared."
 
     redirect(action: listAgentFabrics)
   }
@@ -173,7 +173,7 @@ class FabricController extends ControllerBase
 
     if(!fabricInstance)
     {
-      flash.message = "Fabric not found with id ${params.id}"
+      flash.warning = "Fabric not found with id ${params.id}"
       redirect(action: list)
     }
     else
@@ -188,19 +188,19 @@ class FabricController extends ControllerBase
       {
         fabricInstance.delete(flush: true)
         fabricService.resetCache()
-        flash.message = "Fabric ${params.id} deleted"
+        flash.success = "Fabric ${params.id} deleted"
         audit('fabric.deleted', params.id.toString())
         redirect(action: list)
       }
       catch (org.springframework.dao.DataIntegrityViolationException e)
       {
-        flash.message = "Fabric ${params.id} could not be deleted"
+        flash.warning = "Fabric ${params.id} could not be deleted"
         redirect(action: show, id: params.id)
       }
     }
     else
     {
-      flash.message = "Fabric not found with id ${params.id}"
+      flash.warning = "Fabric not found with id ${params.id}"
       redirect(action: list)
     }
   }
@@ -210,7 +210,7 @@ class FabricController extends ControllerBase
 
     if(!fabricInstance)
     {
-      flash.message = "Fabric not found with id ${params.id}"
+      flash.warning = "Fabric not found with id ${params.id}"
       redirect(action: list)
     }
     else
@@ -238,7 +238,7 @@ class FabricController extends ControllerBase
       if(!fabricInstance.hasErrors() && fabricInstance.save())
       {
         fabricService.resetCache()
-        flash.message = "Fabric ${params.id} updated"
+        flash.success = "Fabric ${params.id} updated"
         audit('fabric.updated', params.id.toString(), params.toString())
         redirect(action: show, id: fabricInstance.id)
       }
@@ -249,7 +249,7 @@ class FabricController extends ControllerBase
     }
     else
     {
-      flash.message = "Fabric not found with id ${params.id}"
+      flash.warning = "Fabric not found with id ${params.id}"
       redirect(action: list)
     }
   }
@@ -265,7 +265,7 @@ class FabricController extends ControllerBase
     if(!fabricInstance.hasErrors() && fabricInstance.save())
     {
       fabricService.resetCache()
-      flash.message = "Fabric ${fabricInstance.id} created"
+      flash.success = "Fabric ${fabricInstance.id} created"
       audit('fabric.updated', fabricInstance.id.toString(), params.toString())
       systemService.saveCurrentSystem(new SystemModel(fabric: fabricInstance.name))
       redirect(action: show, id: fabricInstance.id)

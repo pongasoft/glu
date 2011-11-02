@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -13,16 +14,33 @@
   - License for the specific language governing permissions and limitations under
   - the License.
   --}%
-<div id="flash">
-<g:each in="['message', 'error']" var="ft">
+<g:each in="['warning', 'success', 'error', 'info']" var="ft">
   <g:if test="${flash[ft]}">
-    <div class="flash-${ft}"><g:if test="${!(flash[ft] instanceof Collection)}">${flash[ft]}</g:if><g:else>
-      <ul><g:each in="${flash[ft]}" var="msg"><li>${msg}</li></g:each></ul>
-    </g:else></div>
+    <div id="flash" class="alert-message ${ft} fade in" data-alert="alert" >
+      <a class="close" href="#">&times;</a>
+      <g:if test="${flash[ft] instanceof Collection}">
+        <ul>
+          <g:each in="${flash[ft]}" var="msg">
+            <li>${msg.encodeAsHTML()}</li>
+          </g:each>
+        </ul>
+      </g:if>
+      <g:else>
+        <p>${flash[ft].encodeAsHTML()}</p>
+      </g:else>
+      <g:if test="${flash.stackTrace}">
+        <div class="alert-actions">
+          <a class="btn" data-controls-modal="flash-stackTrace" data-backdrop="static" >View Full Stack Trace</a>
+          <div id="flash-stackTrace" class="modal hide">
+            <a href="#" class="close">&times;</a>
+            <div class="modal-header">Stack Trace</div>
+            <div class="modal-body">
+              <pre>${flash.stackTrace}</pre>
+            </div>
+          </div>
+        </div>
+      </g:if>
+    </div>
   </g:if>
 </g:each>
-<g:if test="${flash.stackTrace}">
-  <div class="flash-stackTrace">${flash.stackTrace}</div>
-</g:if>
 <cl:clearFlash/>
-</div>

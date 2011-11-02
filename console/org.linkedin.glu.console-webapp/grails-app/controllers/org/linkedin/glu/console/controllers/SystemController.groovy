@@ -54,7 +54,7 @@ class SystemController extends ControllerBase
 
       def newCurrentSystem = systemService.saveCurrentSystem(currentSystem).systemModel
 
-      flash.message = "Successfully added ${params.agent}:${params.mountPoint} entry."
+      flash.success = "Successfully added ${params.agent}:${params.mountPoint} entry."
 
       redirect(action: 'view', id: newCurrentSystem.systemId)
     }
@@ -110,7 +110,7 @@ class SystemController extends ControllerBase
         if(params.value == '*')
         {
           request."${params.id}" = null
-          flash.message = "Selected All [${params.id}]"
+          flash.success = "Selected All [${params.id}]"
         }
         else
         {
@@ -118,7 +118,7 @@ class SystemController extends ControllerBase
           if(selection?.name)
           {
             request."${params.id}" = selection
-            flash.message = "Selected ${params.id}=${params.value}"
+            flash.success = "Selected ${params.id}=${params.value}"
           }
           else
           {

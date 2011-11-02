@@ -71,7 +71,7 @@ public class PlanController extends ControllerBase
     }
     else
     {
-      flash.message = "Plan ${params.id} not found"
+      flash.warning = "Plan ${params.id} not found"
     }
   }
 
@@ -89,7 +89,7 @@ public class PlanController extends ControllerBase
     }
     else
     {
-      flash.message = "Plan ${params.id} not found"
+      flash.warning = "Plan ${params.id} not found"
       redirect(action: 'view')
     }
   }
@@ -114,7 +114,7 @@ public class PlanController extends ControllerBase
     }
     else
     {
-      flash.message = "Plan ${params.id} not found"
+      flash.warning = "Plan ${params.id} not found"
       redirect(action: 'view')
     }
   }
@@ -224,7 +224,7 @@ public class PlanController extends ControllerBase
    * Archives all deployments */
   def archiveAllDeployments = {
     def count = deploymentService.archiveAllDeployments(request.fabric.name)
-    flash.message = "Successfully archived ${count} deployment(s)."
+    flash.success = "Successfully archived ${count} deployment(s)."
     redirect(action: 'deployments')
   }
 

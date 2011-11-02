@@ -82,9 +82,9 @@ public class ModelController extends ControllerBase
       }
       systemModel.id = null
       if(systemService.saveCurrentSystem(systemModel))
-        flash.message = "New system properly saved [${systemModel.id}]"
+        flash.success = "New system properly saved [${systemModel.id}]"
       else
-        flash.message = "Already current system"
+        flash.info = "Already current system"
       redirect(action: 'view', id: systemModel.id)
     }
     catch(Throwable th)
@@ -103,9 +103,9 @@ public class ModelController extends ControllerBase
       boolean res = systemService.setAsCurrentSystem(request.fabric.name, params.id)
 
       if(res)
-        flash.message = "Current system has been set to [${params.id}]"
+        flash.success = "Current system has been set to [${params.id}]"
       else
-        flash.message = "Current system is already [${params.id}]"
+        flash.info = "Current system is already [${params.id}]"
 
       redirect(action: 'list')
     }
@@ -131,7 +131,7 @@ public class ModelController extends ControllerBase
       }
       else
       {
-        flash.message = "Model loaded succesfully"
+        flash.success = "Model loaded succesfully"
         redirect(controller: 'dashboard')
       }
     }

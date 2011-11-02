@@ -43,7 +43,7 @@
 </head>
 <body>
 <div class="body">
-  <g:if test="${flash.message && flash.errors}">
+  <g:if test="${flash.success && flash.errors}">
     <h1>Warnings</h1>
     <table>
       <tr>

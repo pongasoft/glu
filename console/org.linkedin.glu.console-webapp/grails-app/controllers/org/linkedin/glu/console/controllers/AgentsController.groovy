@@ -111,7 +111,7 @@ class AgentsController extends ControllerBase
     }
     else
     {
-      flash.message = "No agent to upgrade"
+      flash.warning = "No agent to upgrade"
       redirect(action: 'listVersions')
     }
   }
@@ -133,7 +133,7 @@ class AgentsController extends ControllerBase
     }
     else
     {
-      flash.message = "No agent to cleanup"
+      flash.warning = "No agent to cleanup"
       redirect(action: 'listVersions')
     }
   }
@@ -203,9 +203,9 @@ class AgentsController extends ControllerBase
       boolean cleared = agentsService.clearAgentInfo(request.fabric, params.id)
       fabricService.clearAgentFabric(params.id, request.fabric.name)
       if(cleared)
-        flash.message = "Agent [${params.id}] was cleared."
+        flash.success = "Agent [${params.id}] was cleared."
       else
-        flash.message = "Agent [${params.id}] was already cleared."
+        flash.info = "Agent [${params.id}] was already cleared."
     }
     catch (IllegalStateException e)
     {

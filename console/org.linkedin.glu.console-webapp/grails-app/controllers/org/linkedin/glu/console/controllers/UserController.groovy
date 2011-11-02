@@ -43,7 +43,7 @@ class UserController extends ControllerBase
 
     if(!userInstance)
     {
-      flash.message = "User not found with id ${params.id}"
+      flash.warning = "User not found with id ${params.id}"
       redirect(action: list)
     }
     else
@@ -58,18 +58,18 @@ class UserController extends ControllerBase
       {
         userInstance.delete(flush: true)
         audit('user.delete', userInstance.username)
-        flash.message = "User ${params.id} deleted"
+        flash.success = "User ${params.id} deleted"
         redirect(action: list)
       }
       catch (org.springframework.dao.DataIntegrityViolationException e)
       {
-        flash.message = "User ${params.id} could not be deleted"
+        flash.warning = "User ${params.id} could not be deleted"
         redirect(action: show, id: params.id)
       }
     }
     else
     {
-      flash.message = "User not found with id ${params.id}"
+      flash.warning = "User not found with id ${params.id}"
       redirect(action: list)
     }
   }
@@ -79,7 +79,7 @@ class UserController extends ControllerBase
 
     if(!userInstance)
     {
-      flash.message = "User not found with id ${params.id}"
+      flash.warning = "User not found with id ${params.id}"
       redirect(action: list)
     }
     else
@@ -109,7 +109,7 @@ class UserController extends ControllerBase
       userInstance.setRoles(role)
       if(!userInstance.hasErrors() && userInstance.save())
       {
-        flash.message = "User ${userInstance.username} updated"
+        flash.success = "User ${userInstance.username} updated"
         audit('user.updated', userInstance.username, "roles: ${role}")
         redirect(action: show, id: userInstance.id)
       }
@@ -120,7 +120,7 @@ class UserController extends ControllerBase
     }
     else
     {
-      flash.message = "User not found with id ${params.id}"
+      flash.warning = "User not found with id ${params.id}"
       redirect(action: list)
     }
   }
@@ -162,7 +162,7 @@ class UserController extends ControllerBase
 
     if(userInstance.save() && ucr.save())
     {
-      flash.message = "User created."
+      flash.success = "User created."
       audit('user.create', userInstance.username)
       redirect(action: 'show', id: userInstance.id)
     }
@@ -222,7 +222,7 @@ class UserController extends ControllerBase
     ucr.password = params.newPassword
     if(!ucr.hasErrors() && ucr.save())
     {
-      flash.message = "Your password has been changed."
+      flash.success = "Your password has been changed."
       redirect(action: 'credentials')
       return
     }

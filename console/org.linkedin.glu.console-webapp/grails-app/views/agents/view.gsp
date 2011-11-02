@@ -46,9 +46,11 @@
   </ul>
   <div id="agent-details" class="modal hide">
     <a href="#" class="close">&times;</a>
-    <div class="container">
-      <cl:mapToTable map="${model.agent.agentProperties.findAll { !it.key.startsWith('java.') }}"/>
+    <div class="modal-header">Agent Details</div>
+    <div class="modal-body">
+     <cl:mapToTable map="${model.agent.agentProperties.findAll { !it.key.startsWith('java.') }}"/>
     </div>
+    <div class="modal-footer">Modal footer</div>
   </div>
 
   <g:each in="${ConsoleUtils.sortBy(model.mountPoints.keySet(), 'path')}" var="key" status="idx">

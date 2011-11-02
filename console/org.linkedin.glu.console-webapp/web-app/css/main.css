@@ -69,9 +69,11 @@ form .input {
 }
 
 .modal {
-  padding: 0.5em;
-  max-height: 40em;
-  overflow-y: auto;
+  width: auto;
+  height: auto;
+  max-width: 50%;
+  max-height: 80%;
+  overflow: auto;
 }
 
 /*#header {*/
@@ -180,29 +182,32 @@ form .input {
   background: #dddddd;
 }
 
-.flash-error {
-  font-size: 2em;
-  color: white;
-  background-color: red;
-  padding: 0.5em;
+#flash {
   margin-top: 1em;
-  margin-bottom: 1em;
-  border: solid 1px #550000;
 }
+/*.flash-error {*/
+  /*font-size: 2em;*/
+  /*color: white;*/
+  /*background-color: red;*/
+  /*padding: 0.5em;*/
+  /*margin-top: 1em;*/
+  /*margin-bottom: 1em;*/
+  /*border: solid 1px #550000;*/
+/*}*/
 
-.flash-stackTrace {
-  display: none;
-}
+/*.flash-stackTrace {*/
+  /*display: none;*/
+/*}*/
 
-.flash-message {
-  font-size: 1.3em;
-  color: white;
-  background-color: green;
-  padding: 0.5em;
-  margin-top: 1em;
-  margin-bottom: 1em;
-  border: solid 1px #005500;
-}
+/*.flash-message {*/
+  /*font-size: 1.3em;*/
+  /*color: white;*/
+  /*background-color: green;*/
+  /*padding: 0.5em;*/
+  /*margin-top: 1em;*/
+  /*margin-bottom: 1em;*/
+  /*border: solid 1px #005500;*/
+/*}*/
 
 .example {
   color: #aaaaaa;
