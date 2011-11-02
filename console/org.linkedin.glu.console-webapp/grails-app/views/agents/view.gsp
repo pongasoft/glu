@@ -18,7 +18,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
-  <title>Agent: ${model.agent?.agentName}</title>
+  <title>Agent [${model.agent?.agentName}]</title>
   <meta name="layout" content="main"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'agents-view.css')}"/>
   <script type="text/javascript" src="${resource(dir:'js',file:'console_jquery.js')}"></script>
@@ -28,6 +28,7 @@
   <ul class="tabs">
     <li><g:link controller="agents" action="list">List</g:link></li>
     <li class="active"><a href="#">agent [${model.agent.agentName}]</a></li>
+    <li><g:link action="plans" id="${model.agent.agentName}">Plans</g:link></li>
     <li><g:link action="ps" id="${model.agent.agentName}">All Processes</g:link></li>
   </ul>
   &nbsp;
@@ -39,7 +40,7 @@
     </li>
     <li>
       <a class="btn" data-controls-modal="agent-details" data-backdrop="static" >View Details</a>
-      <g:link class="btn ${hasDelta ? 'danger' : ''}" controller="dashboard" action="deploy" params="[systemFilter: 'agent=\'' + model.agent.agentName + '\'', groupBy: 'agent']">Deploy</g:link>
+      <g:link class="btn ${hasDelta ? 'danger' : ''}" controller="agents" action="plans" id="${model.agent.agentName}">Deploy</g:link>
       <cl:linkToPs class="btn" agent="${model.agent.agentName}" pid="${model.agent.agentProperties['glu.agent.pid']}">ps</cl:linkToPs>
       <g:link class="btn" action="sync" id="${model.agent.agentName}">ZooKeeper Sync</g:link></li>
   </ul>
@@ -53,7 +54,7 @@
   <g:each in="${ConsoleUtils.sortBy(model.mountPoints.keySet(), 'path')}" var="key" status="idx">
     <g:set var="mountPoint" value="${model.mountPoints[key]}"/>
     <a name="${mountPoint.mountPoint}" id="${mountPoint.mountPoint}"></a>
-    <h2 class="${cl.mountPointState(mountPoint: mountPoint)}"><cl:linkToSystemFilter name="mountPoint" value="${key}">${key.encodeAsHTML()}</cl:linkToSystemFilter> <cl:renderTags tags="${mountPoint.tags}" linkable="${true}"/>
+    <h2 class="${cl.mountPointState(mountPoint: mountPoint)}"><cl:linkToFilteredDashboard systemFilter="mountPoint='${key}'" groupBy="mountPoint">${key.encodeAsHTML()}</cl:linkToFilteredDashboard> <cl:renderTags tags="${mountPoint.tags}" linkable="${true}"/>
     </h2>
     <ul class="summary">
       <cl:mountPointLogs agent="${model.agent.agentName}" mountPoint="${mountPoint}"/>

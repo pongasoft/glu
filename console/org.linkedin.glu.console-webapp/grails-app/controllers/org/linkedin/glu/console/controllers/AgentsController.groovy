@@ -148,7 +148,8 @@ class AgentsController extends ControllerBase
 
     def filter = "agent='${params.id}'".toString()
 
-    def system = request.system.filterBy(filter)
+    def system = request.system.unfilter().filterBy(filter)
+    request.system = system
 
     boolean hasDelta = deltaService.computeRawDelta(system).delta?.hasErrorDelta()
 
@@ -168,6 +169,28 @@ class AgentsController extends ControllerBase
 
     return [
       model: model,
+      hasDelta: hasDelta
+    ]
+  }
+
+  /**
+   * Renders the plans subtab
+   */
+  def plans = {
+    def agent = agentsService.getAgentInfo(request.fabric, params.id)
+
+    def title = "agent [${params.id}]".toString()
+    def filter = "agent='${params.id}'".toString()
+
+    def system = request.system.unfilter().filterBy(filter)
+    request.system = system
+
+    boolean hasDelta = deltaService.computeRawDelta(system).delta?.hasErrorDelta()
+
+    return [
+      agent: agent,
+      title: title,
+      filter: filter,
       hasDelta: hasDelta
     ]
   }

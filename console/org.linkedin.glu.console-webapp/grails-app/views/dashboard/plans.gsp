@@ -1,6 +1,5 @@
 %{--
-  - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -18,21 +17,35 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
-  <title>Dashboard</title>
+  <title>Plans - Dashboard</title>
   <meta name="layout" content="main"/>
-  <link rel="stylesheet" href="${resource(dir:'css',file:'delta.css')}"/>
-  <script type="text/javascript" src="${resource(dir:'js',file:'delta.js')}"></script>
-  <g:javascript>
-<cl:renderDeltaJS/>
-  </g:javascript>
-  <script type="text/javascript" src="${resource(dir:'js',file:'console_yui.js')}"></script>
+  <style type="text/css">
+  ul {
+    padding: 0;
+    margin: 0;
+  }
+  li {
+   list-style: none;
+  }
+  input.stepCheckBox {
+    display: none;
+  }
+  input.quickSelect {
+    display: none;
+  }
+  </style>
 </head>
 <body>
 <ul class="tabs">
-  <li class="active"><a href="#">View</a></li>
-  <li><g:link controller="dashboard" action="plans">Plans</g:link></li>
+  <li><g:link action="delta">View</g:link></li>
+  <li class="active"><a href="#">Plans</a></li>
   <li><g:link controller="dashboard" action="customize">Customize</g:link></li>
 </ul>
-<g:render template="delta"/>
+<g:if test="${request.system}">
+  <g:render template="/plan/selectPlan" model="[title: title, filter: filter, hasDelta: hasDelta]"/>
+</g:if>
+<g:else>
+  <h2>No System selected.</h2>
+</g:else>
 </body>
 </html>

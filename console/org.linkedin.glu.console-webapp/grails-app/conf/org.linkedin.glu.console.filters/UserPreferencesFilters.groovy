@@ -25,6 +25,8 @@ import org.linkedin.glu.orchestration.engine.fabric.Fabric
 
 import org.linkedin.glu.orchestration.engine.session.UserSession
 import org.linkedin.glu.orchestration.engine.session.SessionService
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
+import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -69,10 +71,10 @@ class UserPreferencesFilters
           }
 
           // saving the name in the cookie
-          if(request.sessionUserCustomDeltaDefinition)
+          if(request.userSession)
             ConsoleHelper.saveCookie(response,
                                      CUSTOM_DELTA_DEFINITION_COOKIE_NAME,
-                                     request.sessionUserCustomDeltaDefinition.name)
+                                     request.userSession.customDeltaDefinition.name)
         }
       }
     }
@@ -124,20 +126,32 @@ class UserPreferencesFilters
       {
         system = system.clone()
 
-        consoleConfig.defaults.model.each { info ->
-          def value = ConsoleHelper.getRequestValue(params, flash, request, info.name)
-          if(value)
-          {
-            value = system.metadata[info.name]?.getAt(value)
+        // if a systemFilter parameter is provided, use it
+        String filter = params.systemFilter
+
+        if(filter != null)
+        {
+          system = system.unfilter().filterBy(filter)
+        }
+        else
+        {
+          // set the filter based on the selection in the top navbar
+          consoleConfig.defaults.model.each { info ->
+            def value = ConsoleHelper.getRequestValue(params, flash, request, info.name)
             if(value)
             {
-              system = system.filterByMetadata(info.name, value.name)
-              request."${info.name}" = value
+              value = system.metadata[info.name]?.getAt(value)
+              if(value)
+              {
+                system = system.filterByMetadata(info.name, value.name)
+                request."${info.name}" = value
+              }
             }
           }
-        }
 
-        system = system.filterBy(userSession?.customFilter)
+          // if a custom filter is provided, use it
+          system = system.filterBy(userSession?.customFilter)
+        }
 
         // save the system in the request
         request.system = system
@@ -159,13 +173,34 @@ class UserPreferencesFilters
     String cddName =
       ConsoleHelper.getRequestValue(params, request, CUSTOM_DELTA_DEFINITION_COOKIE_NAME)
 
-    UserSession userSession  =
-      sessionService.findUserSession(cddName)
+    // locate user session
+    UserSession userSession = sessionService.findUserSession(cddName)
 
-    String filter = ConsoleHelper.getRequestValue(params, request, 'systemFilter')
+    // do we reset the session?
+    if(ConsoleHelper.getOptionalBooleanParamsValue(params, 'session.reset', false))
+      userSession.resetCustomDeltaDefinition()
 
-    userSession.setCustomFilter(filter)
+    // set custom filter
+    String sessionFilter = params['session.systemFilter']
+    userSession.setCustomFilter(sessionFilter)
 
+    // adjust summary
+    userSession.customDeltaDefinition.summary =
+      ConsoleHelper.getOptionalBooleanParamsValue(params,
+                                                  'session.summary',
+                                                  userSession.customDeltaDefinition.summary)
+
+    // adjust errorsOnly
+    userSession.customDeltaDefinition.errorsOnly =
+      ConsoleHelper.getOptionalBooleanParamsValue(params,
+                                                  'session.errorsOnly',
+                                                  userSession.customDeltaDefinition.errorsOnly)
+
+    // set groupBy
+    String groupBy = params['session.groupBy']
+    userSession.setGroupBy(groupBy)
+
+    // finally store the user session in the request
     request.userSession = userSession
 
     return userSession

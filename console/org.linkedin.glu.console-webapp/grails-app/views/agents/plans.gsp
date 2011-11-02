@@ -14,10 +14,12 @@
   - the License.
   --}%
 
+
+
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
-  <title>Deploy - Dashboard</title>
+  <title>Plans - agent [${params.id}]</title>
   <meta name="layout" content="main"/>
   <style type="text/css">
   ul {
@@ -36,16 +38,21 @@
   </style>
 </head>
 <body>
-<ul class="tabs">
-  <li><g:link action="delta">View</g:link></li>
-  <li class="active"><a href="#">Deploy<g:if test="${hasDelta}"> / <span class="label important">delta</span></g:if></a></li>
-  <li><g:link controller="dashboard" action="customize">Customize</g:link></li>
-</ul>
-<g:if test="${request.system}">
+<g:if test="${agent}">
+  <ul class="tabs">
+    <li><g:link controller="agents" action="list">List</g:link></li>
+    <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
+    <li class="active"><a href="#">Plans</a></li>
+    <li><g:link action="ps" id="${params.id}">All Processes</g:link></li>
+  </ul>
   <g:render template="/plan/selectPlan" model="[title: title, hasDelta: hasDelta]"/>
 </g:if>
 <g:else>
-  <h2>No System selected.</h2>
+  <ul class="tabs">
+    <li><g:link controller="agents" action="list">List</g:link></li>
+    <li class="active"><a href="#">agent [${params.id}]</a></li>
+  </ul>
+  <h2>No such agent ${params.id} [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h2>
 </g:else>
 </body>
 </html>

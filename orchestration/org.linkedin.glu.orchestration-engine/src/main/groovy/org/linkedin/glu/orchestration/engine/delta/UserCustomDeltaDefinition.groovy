@@ -33,6 +33,7 @@ class UserCustomDeltaDefinition
       return val == obj.customDeltaDefinition.description
     })
     username(nullable: true, blank: false)
+    fabric(nullable: true, blank: false)
     shareable(validator: { val, obj ->
       // does not make sense to have shareable set to false when the username is undefined!
       if(!val)
@@ -73,6 +74,11 @@ class UserCustomDeltaDefinition
    * username may be <code>null</code> for 'any' user (custom deltas that belong to any user).
    */
   String username
+
+  /**
+   * The fabric to which the filter should only apply (<code>null</code> means any fabric)
+   */
+  String fabric
 
   /**
    * If a user creates a custom delta, by default other users can see it too
@@ -131,6 +137,7 @@ class UserCustomDeltaDefinition
     new UserCustomDeltaDefinition(dateCreated: dateCreated,
                                   lastUpdated: lastUpdated,
                                   username: username,
+                                  fabric: fabric,
                                   shareable: shareable,
                                   customDeltaDefinitionSerializer: customDeltaDefinitionSerializer,
                                   customDeltaDefinition: customDeltaDefinition.clone())

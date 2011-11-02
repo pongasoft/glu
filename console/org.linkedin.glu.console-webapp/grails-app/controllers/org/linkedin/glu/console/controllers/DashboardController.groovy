@@ -80,9 +80,9 @@ class DashboardController extends ControllerBase
   }
 
   /**
-   * Called for deploying
+   * Called for viewing the plans
    */
-  def deploy = {
+  def plans = {
     CustomGroupByDelta groupByDelta = doComputeDelta()
 
     def missingAgents = systemService.getMissingAgents(request.fabric, request.system)
@@ -96,30 +96,9 @@ class DashboardController extends ControllerBase
 
   private def doComputeDelta()
   {
-    UserSession userSession = request.userSession
-    SystemModel model = request.system
-
-    if(params.reset)
-    {
-      userSession.resetCustomDeltaDefinition()
-      model = model.unfilter().filterBy(userSession.customFilter)
-      request.system = model
-    }
-
-    // adjust summary
-    userSession.customDeltaDefinition.summary =
-      GluGroovyLangUtils.getOptionalBoolean(params.summary, userSession.customDeltaDefinition.summary)
-
-    // adjust errorsOnly
-    userSession.customDeltaDefinition.errorsOnly =
-      GluGroovyLangUtils.getOptionalBoolean(params.errorsOnly, userSession.customDeltaDefinition.errorsOnly)
-
-    userSession.setGroupBy(params.groupBy)
-
     CustomGroupByDelta groupByDelta =
       deltaService.computeCustomGroupByDelta(request.system,
-                                             userSession.customDeltaDefinition)
-
+                                             request.userSession.customDeltaDefinition)
     return groupByDelta
   }
 }

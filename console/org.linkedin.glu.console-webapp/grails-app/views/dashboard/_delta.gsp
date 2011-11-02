@@ -16,36 +16,16 @@
   --}%
 
 <%@ page import="org.linkedin.glu.console.filters.UserPreferencesFilters; org.linkedin.glu.grails.utils.ConsoleConfig; org.linkedin.glu.agent.tracker.AgentsTracker.AccuracyLevel" %>
-<h1>${request.userSession?.customDeltaDefinition?.name?.encodeAsHTML()}<g:if test="${request?.userSession?.customDeltaDefinitionDirty}"> | <g:link controller="dashboard" action="delta" params="[reset: true]">Reset</g:link></g:if><g:if test="${request.userSession?.customFilter}"> | ${request.userSession.customFilter.toDSL().encodeAsHTML()} [<g:link controller="dashboard" action="delta" params="[systemFilter: '-']">Clear Filter</g:link>]</g:if></h1>
-%{--<g:set var="columnsTail" value="${columnNames[1..-1]}"/>--}%
-%{--<g:set var="columns" value="${ConsoleConfig.getInstance().defaults.dashboard}"/>--}%
+<h1>${request.userSession?.customDeltaDefinition?.name?.encodeAsHTML()}<g:if test="${request?.userSession?.customDeltaDefinitionDirty}"> | <g:link controller="dashboard" action="delta" params="['session.reset': true]">Reset</g:link></g:if><g:if test="${request.userSession?.customFilter}"> | ${request.userSession.customFilter.toDSL().encodeAsHTML()} [<g:link controller="dashboard" action="delta" params="['session.systemFilter': '-']">Clear Filter</g:link>]</g:if></h1>
 <div id="__delta">
-  %{--<div id="__delta_menu">--}%
-    %{--<ul class="submenu">--}%
-      %{--<li>Group By:</li>--}%
-      %{--<g:each in="${groupByColumns}" var="column" status="columnIdx">--}%
-        %{--<li>--}%
-          %{--<g:if test="${column == columnNames[0]}"><input type="hidden" id="groupBy" name="groupBy" value="${column}" />${columns[column].name}:${totals[column]}</g:if>--}%
-          %{--<g:else>--}%
-            %{--<a href="#" onclick="render('${column}');return false;">${columns[column].name}:${totals[column]}</a>--}%
-            %{--<cl:checkBoxInitFromParams name="${column}" id="${column}" checkedByDefault="${columns[column].checked}" onclick="${columnNames.contains(column) ? 'showHideColumn(\'' + column + '\');' : 'renderSame();'}"/>--}%
-          %{--</g:else>--}%
-        %{--</li>--}%
-      %{--</g:each>--}%
-    %{--</ul>--}%
-      %{--<g:each in="${columns.findAll {k,v -> !v.groupBy}}" var="e">--}%
-        %{--<li>${e.value.name}: <cl:checkBoxInitFromParams name="${e.key}" id="${e.key}" checkedByDefault="${e.value.checked}" onclick="${columnNames.contains(e.key) ? 'showHideColumn(\'' + e.key + '\');' : 'renderSame();'}"/></li>--}%
-      %{--</g:each>--}%
-    %{--</ul>--}%
-  %{--</div>--}%
   <div id="__delta_content">
     <table>
       <tr>
         <th>${delta.firstColumn.name?.encodeAsHTML()}</th>
-        <th><g:link controller="dashboard" action="delta" params="[summary: !request.userSession.customDeltaDefinition.summary]">I:${delta.counts['instances']}</g:link></th>
-        <th><g:link controller="dashboard" action="delta" params="[errorsOnly: !request.userSession.customDeltaDefinition.errorsOnly]">E:${delta.counts['errors']}</g:link></th>
+        <th><g:link controller="dashboard" action="delta" params="['session.summary': !request.userSession.customDeltaDefinition.summary]">I:${delta.counts['instances']}</g:link></th>
+        <th><g:link controller="dashboard" action="delta" params="['session.errorsOnly': !request.userSession.customDeltaDefinition.errorsOnly]">E:${delta.counts['errors']}</g:link></th>
         <g:each in="${delta.tailColumns.name}" var="column" status="columnIdx">
-          <th><g:link controller="dashboard" action="delta" params="[groupBy: column]">
+          <th><g:link controller="dashboard" action="delta" params="['session.groupBy': column]">
             <g:if test="${delta.counts[column] == null}">${column.encodeAsHTML()}</g:if>
             <g:else>${column.encodeAsHTML()}:${delta.counts[column]}</g:else>
           </g:link></th>

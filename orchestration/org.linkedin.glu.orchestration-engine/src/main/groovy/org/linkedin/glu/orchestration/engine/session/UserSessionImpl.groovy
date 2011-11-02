@@ -53,10 +53,9 @@ class UserSessionImpl implements UserSession
   {
     if(groupBy)
     {
-      def newCurrent = original.clone()
-      newCurrent.customDeltaDefinition = newCurrent.customDeltaDefinition.groupBy(groupBy)
-      newCurrent.customDeltaDefinition.customFilter = current.customDeltaDefinition.customFilter
-      current = newCurrent
+      def tmp = original.clone()
+      tmp.customDeltaDefinition = tmp.customDeltaDefinition.groupBy(groupBy)
+      current.customDeltaDefinition.columnsDefinition = tmp.customDeltaDefinition.columnsDefinition
     }
   }
 

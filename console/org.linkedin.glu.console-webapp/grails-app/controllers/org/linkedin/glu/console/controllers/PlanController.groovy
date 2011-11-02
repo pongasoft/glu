@@ -131,7 +131,7 @@ public class PlanController extends ControllerBase
     }
 
     if(args.systemFilter)
-      args.system = request.system.filterBy(args.systemFilter)
+      args.system = request.system.unfilter().filterBy(args.systemFilter)
     else
       args.system = request.system
     args.type = args.stepType ?: Type.SEQUENTIAL

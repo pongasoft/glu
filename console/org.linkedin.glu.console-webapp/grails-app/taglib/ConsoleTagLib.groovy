@@ -268,26 +268,6 @@ public class ConsoleTagLib
   }
 
   /**
-   * Create a link to the system filter page
-   */
-  def linkToSystemFilter = { args, body ->
-    def name = args.name
-    def value = args.value
-    def groupBy = args.groupBy ?: name
-    def title = args.title ?: "${args.displayName ?: name} [${value}]"
-
-    out << g.link(controller: 'system',
-                  action: 'filter',
-                  params: [
-                    systemFilter: "${name}='${value}'",
-                    title: title,
-                    groupBy: groupBy,
-                    ]) {
-      out << body()
-    }
-  }
-
-  /**
    * Create a link to the dashboard (filtered)
    */
   def linkToFilteredDashboard = { args, body ->
@@ -297,8 +277,8 @@ public class ConsoleTagLib
     out << g.link(controller: 'dashboard',
                   action: 'delta',
                   params: [
-                    systemFilter: systemFilter,
-                    groupBy: groupBy,
+                    'session.systemFilter': systemFilter,
+                    'session.groupBy': groupBy,
                     ]) {
       out << body()
     }

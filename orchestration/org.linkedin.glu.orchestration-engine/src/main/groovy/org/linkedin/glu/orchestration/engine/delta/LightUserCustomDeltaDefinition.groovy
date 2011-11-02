@@ -29,6 +29,7 @@ class LightUserCustomDeltaDefinition
     name(nullable: false)
     description(nullable: true)
     username(nullable: true)
+    fabric(nullable: true)
   }
 
   static mapping = {
@@ -60,6 +61,11 @@ class LightUserCustomDeltaDefinition
    * username may be <code>null</code> for 'any' user (custom deltas that belong to any user).
    */
   String username
+
+  /**
+   * The fabric to which the filter should only apply (<code>null</code> means any fabric)
+   */
+  String fabric
 
   /**
    * If a user creates a custom delta, by default other users can see it too

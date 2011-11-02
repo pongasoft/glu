@@ -32,6 +32,7 @@ import org.linkedin.util.io.resource.Resource
 import org.linkedin.util.codec.HexaCodec
 import org.linkedin.util.codec.OneWayMessageDigestCodec
 import org.linkedin.util.codec.OneWayCodec
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 
 /**
  * @author ypujante@linkedin.com */
@@ -57,6 +58,16 @@ class ConsoleHelper
       value = getCookieValue(request, name)
 
     return value
+  }
+
+  /**
+   * Locates an optinal boolean value in the request.
+   */
+  static boolean getOptionalBooleanParamsValue(def params,
+                                               String name,
+                                               boolean defaultValue)
+  {
+    GluGroovyLangUtils.getOptionalBoolean(params[name], defaultValue)
   }
 
   /**

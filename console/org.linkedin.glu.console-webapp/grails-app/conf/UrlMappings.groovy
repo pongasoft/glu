@@ -32,7 +32,7 @@ class UrlMappings
     "/dashboard/renderDelta"(controller: 'dashboard', action: 'renderDelta') { __nvbe = 'Dashboard' }
     "/dashboard/index"(controller: 'dashboard', action: 'index') { __nvbe = 'Dashboard' }
     "/dashboard/customize"(controller: 'dashboard', action: 'customize') { __nvbe = 'Dashboard' }
-    "/dashboard/deploy"(controller: 'dashboard', action: 'deploy') { __nvbe = 'Dashboard' }
+    "/dashboard/plans"(controller: 'dashboard', action: 'plans') { __nvbe = 'Dashboard' }
 
     // agents
     "/agents"(controller: 'agents', action: 'list') { __nvbe = 'Agents' }
@@ -41,6 +41,7 @@ class UrlMappings
     "/agents/fullStackTrace/$id"(controller: 'agents', action: 'fullStackTrace') { __nvbe = 'Agents' }
     "/agents/tailLog/$id"(controller: 'agents', action: 'tailLog') { __nvbe = 'Agents' }
     "/agents/fileContent/$id"(controller: 'agents', action: 'fileContent') { __nvbe = 'Agents' }
+    "/agents/plans/$id"(controller: 'agents', action: 'plans') { __nvbe = 'Agents' }
 
     // plan
     "/plan/view/$id"(controller: 'plan', action: 'view') { __nvbe = 'Deployments' }
@@ -57,6 +58,9 @@ class UrlMappings
     // model
     "/model/list"(controller: 'model', action: 'list') { __nvbe = 'Model' }
     "/model/view/$id"(controller: 'model', action: 'view') { __nvbe = 'Model' }
+
+    // TODO HIGH YP:  added back temporarily for testing
+    "/system/filter/values/$id/$value?"(controller: 'system', action: 'filter_values') { __nvbe = 'System' }
 
     // auth
     "/auth/$action?/$id?"(controller: 'auth')

@@ -38,7 +38,6 @@ class SystemController extends ControllerBase
     return ensureCurrentFabric()
   }
 
-
   /**
    * Add a single entry to the model
    */
@@ -103,7 +102,7 @@ class SystemController extends ControllerBase
    * List/select the values for a filter.
    */
   def filter_values = {
-    def system = DbSystemModel.findCurrent(request.fabric)?.systemModel
+    def system = request.system
     if(system)
     {
       if(params.value)

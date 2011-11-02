@@ -131,6 +131,11 @@ public class SystemFilterBuilder
     if(dsl == null)
       return null
 
+    dsl = dsl.trim()
+
+    if(dsl == '' || dsl == '-')
+      return null
+
     def builder = new SystemFilterBuilder(filter: new LogicAndSystemFilterChain())
 
     Script script = new GroovyShell(new BindingBuilder(systemFilterBuilder: builder)).parse(dsl)
