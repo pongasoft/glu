@@ -21,11 +21,6 @@
   <title>System List</title>
   <meta name="layout" content="main"/>
   <style type="text/css">
-  table td {
-    padding: 0.2em;
-    text-align: center;
-  }
-
   .current {
     background: #eeeeff;
   }

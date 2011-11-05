@@ -13,7 +13,6 @@
   - License for the specific language governing permissions and limitations under
   - the License.
   --}%
-
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
@@ -21,17 +20,42 @@
   <meta name="layout" content="main"/>
 </head>
 <body>
-<ul class="submenu">
-  <li><g:link controller="dashboard">Dashboard</g:link></li>
-  <li class="selected">Customize</li>
-  <li><g:link controller="system" action="list">System</g:link></li>
+<ul class="tabs">
+  <li><g:link
+    action="delta">${request.userSession.currentCustomDeltaDefinitionName.encodeAsHTML()}</g:link></li>
+  <li><g:link controller="dashboard" action="plans">Plans</g:link></li>
+  <li class="active"><a href="#">Customize</a></li>
 </ul>
-<table>
-  <g:each in="${sources}" var="source">
-    <tr>
-      <td>${source.encodeAsHTML()}</td>
-    </tr>
-  </g:each>
-</table>
+<g:form method="post" controller="dashboard" action="customize">
+  <fieldset>
+    <legend>Name: ${ucdd.name.encodeAsHTML()} <span class="help-inline">(to edit this field, change it in the content)</span></legend>
+    <div class="clearfix">
+      <label for="cddContent">Content (json)</label>
+      <textarea class="noFullWidth" id="cddContent" name="content" rows="25" cols="100">${prettyPrintedContent.encodeAsHTML()}</textarea>
+    </div><!-- /clearfix -->
+    <div class="clearfix">
+      <label for="cddShareable">Shareable</label>
+      <g:checkBox id="cddShareable" name="shareable" value="${ucdd?.shareable}"/>
+  </div><!-- /clearfix -->
+  </fieldset>
+  <div class="actions">
+    <input type="submit" class="btn primary" name="update" value="Save changes"/>
+    <input type="submit" class="btn" name="delete" value="Delete"
+                    onclick="return confirm('Are you sure?');"/>
+    <a class="btn" data-controls-modal="dashboardSources" data-backdrop="true" data-keyboard="true">View Possible Sources</a>
+  </div>
+</g:form>
+<div id="dashboardSources" class="modal hide">
+  <a href="#" class="close">&times;</a>
+  <div class="modal-header">Possible sources (based on current system)</div>
+  <div class="modal-body">
+    <table class="condensed-table">
+      <g:each in="${sources}" var="source">
+        <tr>
+          <td>${source.encodeAsHTML()}</td>
+        </tr>
+      </g:each>
+    </table>
+  </div>
 </body>
 </html>

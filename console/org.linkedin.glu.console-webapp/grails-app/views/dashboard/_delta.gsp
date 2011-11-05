@@ -16,10 +16,19 @@
   --}%
 
 <%@ page import="org.linkedin.glu.console.filters.UserPreferencesFilters; org.linkedin.glu.grails.utils.ConsoleConfig; org.linkedin.glu.agent.tracker.AgentsTracker.AccuracyLevel" %>
+<table class="bordered-table condensed-table">
+  <tr>
+    <th>System</th>
+    <td class="systemId"><g:link controller="model" action="view" id="${system.id}">${system.id}</g:link></td>
+    <th>Filter</th>
+    <td><g:if test="${request.system.filters}">${request.system.filters.toString().encodeAsHTML()}</g:if><g:else>-</g:else></td>
+  </tr>
+</table>
 <h1>${request.userSession?.customDeltaDefinition?.name?.encodeAsHTML()}<g:if test="${request?.userSession?.customDeltaDefinitionDirty}"> | <g:link controller="dashboard" action="delta" params="['session.reset': true]">Reset</g:link></g:if><g:if test="${request.userSession?.customFilter}"> | ${request.userSession.customFilter.toDSL().encodeAsHTML()} [<g:link controller="dashboard" action="delta" params="['session.systemFilter': '-']">Clear Filter</g:link>]</g:if></h1>
 <div id="__delta">
   <div id="__delta_content">
-    <table>
+    <table class="bordered-table tight-table">
+      <thead>
       <tr>
         <th>${delta.firstColumn.name?.encodeAsHTML()}</th>
         <th><g:link controller="dashboard" action="delta" params="['session.summary': !request.userSession.customDeltaDefinition.summary]">I:${delta.counts['instances']}</g:link></th>
@@ -31,6 +40,7 @@
           </g:link></th>
         </g:each>
       </tr>
+      </thead>
       <g:if test="${delta.accuracy == AccuracyLevel.INACCURATE}">
         <tr id="__delta_inaccurate">
           <td colspan="${3 + delta.tailColumns.size()}">

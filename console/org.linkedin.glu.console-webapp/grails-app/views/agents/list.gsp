@@ -19,23 +19,20 @@
 <head>
   <title>Agents</title>
   <meta name="layout" content="main"/>
-  <link rel="stylesheet" href="${resource(dir:'css',file:'delta.css')}"/>
-  <script type="text/javascript" src="${resource(dir:'js',file:'delta.js')}"></script>
-  <g:javascript>
-<cl:renderDeltaJS/>
-  </g:javascript>
-  <script type="text/javascript" src="${resource(dir:'js',file:'console_yui.js')}"></script>
 </head>
 <body>
 <ul class="tabs">
   <li class="active"><a href="#">List</a></li>
 </ul>
-<table>
+<table class="bordered-table tight-table">
+  <thead>
   <tr>
     <th>Agent</th>
     <th>Version</th>
     <th>Hostname</th>
   </tr>
+  </thead>
+  <tbody>
   <g:each in="${agents}" var="entry">
     <tr>
       <td><g:link controller="agents" action="view" id="${entry.key}">${entry.key.encodeAsHTML()}</g:link></td>
@@ -43,6 +40,7 @@
       <td>${entry.value?.hostname?.encodeAsHTML() ?: '--'}</td>
     </tr>
   </g:each>
+  </tbody>
 </table>
 </body>
 </html>

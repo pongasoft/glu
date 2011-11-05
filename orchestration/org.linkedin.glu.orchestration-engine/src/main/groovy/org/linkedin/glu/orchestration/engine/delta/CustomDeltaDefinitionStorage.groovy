@@ -26,6 +26,11 @@ public interface CustomDeltaDefinitionStorage
   boolean save(UserCustomDeltaDefinition definition)
 
   /**
+   * Delete the details
+   */
+  boolean delete(UserCustomDeltaDefinition definition)
+
+  /**
    * Return the unique entry for a given username by name
    * 
    * @return <code>null</code> if no such entry

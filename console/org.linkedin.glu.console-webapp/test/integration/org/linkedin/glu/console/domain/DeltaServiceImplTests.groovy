@@ -103,89 +103,62 @@ public class DeltaServiceImplTests extends GroovyTestCase
   }
 
   /**
-   * Test for session behavior
+   * Test for save as new user custom delta definition
    */
-  void testSession()
+  void testSaveAsNew()
   {
-    assertNull(deltaService.findUserCustomDeltaDefinitionByName(DeltaServiceImpl.DEFAULT_CUSTOM_DELTA_DEFINITION_NAME))
-
-    // 'user1' has no default => it will return the global default
-    UserSession default1 =
-      deltaService.findUserSession('dashboard1')
-    assertEquals('user1', default1.username)
-    assertEquals(DeltaServiceImpl.DEFAULT_CUSTOM_DELTA_DEFINITION_NAME, default1.name)
-
-    // this verifies that a new entry in the database has been created
-    UserCustomDeltaDefinition default2 =
-      deltaService.findUserCustomDeltaDefinitionByName(DeltaServiceImpl.DEFAULT_CUSTOM_DELTA_DEFINITION_NAME)
-    assertEquals(default1.id, default2.id)
-
-    // user2 has a <default> entry
-    executingPrincipal = 'user2'
-    assertNull(deltaService.findUserCustomDeltaDefinitionByName(DeltaServiceImpl.DEFAULT_CUSTOM_DELTA_DEFINITION_NAME))
-
+    // saving name1/desc1
     CustomDeltaDefinition definition = toCustomDeltaDefinition(cdd)
-    definition.name = DeltaServiceImpl.DEFAULT_CUSTOM_DELTA_DEFINITION_NAME
-    definition.description = 'user2-<default>'
-    UserCustomDeltaDefinition ucdd =
-      new UserCustomDeltaDefinition(username: 'user2',
+    definition.name = 'name1'
+    definition.description = 'desc1'
+    UserCustomDeltaDefinition ucdd1 =
+      new UserCustomDeltaDefinition(username: 'user1',
                                     customDeltaDefinition: definition)
-    assertTrue(deltaService.saveUserCustomDeltaDefinition(ucdd))
+    assertTrue(deltaService.saveUserCustomDeltaDefinition(ucdd1))
+    println "ucdd1.id=${ucdd1.id}"
 
-    // verifying that the <default> entry was used
-    default1 =
-      deltaService.findUserSession('dashboard1')
-    assertEquals('user2', default1.username)
-    assertEquals(DeltaServiceImpl.DEFAULT_CUSTOM_DELTA_DEFINITION_NAME, default1.name)
-    assertEquals("user2-<default>", default1.description)
-
-    default2 =
-      deltaService.findUserCustomDeltaDefinitionByName(DeltaServiceImpl.DEFAULT_CUSTOM_DELTA_DEFINITION_NAME)
-    assertEquals(default1.id, default2.id)
-
-    // user3 has a dashboard1 entry
-    executingPrincipal = 'user3'
-    assertNull(deltaService.findUserCustomDeltaDefinitionByName(DeltaServiceImpl.DEFAULT_CUSTOM_DELTA_DEFINITION_NAME))
-
+    // saving name2/desc2
     definition = toCustomDeltaDefinition(cdd)
-    definition.name = 'dashboard1'
-    definition.description = 'user3-dashboard1'
-    ucdd =
-      new UserCustomDeltaDefinition(username: 'user3',
+    definition.name = 'name2'
+    definition.description = 'desc2'
+    UserCustomDeltaDefinition ucdd2 =
+      new UserCustomDeltaDefinition(username: 'user1',
                                     customDeltaDefinition: definition)
-    assertTrue(deltaService.saveUserCustomDeltaDefinition(ucdd))
+    assertTrue(deltaService.saveUserCustomDeltaDefinition(ucdd2))
+    println "ucdd2.id=${ucdd2.id}"
 
-    // verifying that the dashboard1 entry was used
-    default1 =
-      deltaService.findUserSession('dashboard1')
-    assertEquals('user3', default1.username)
-    assertEquals('dashboard1', default1.name)
-    assertEquals("user3-dashboard1", default1.description)
+    // saving name2 as new name3
+    ucdd2 = deltaService.findUserCustomDeltaDefinitionByName('name2')
+    definition = toCustomDeltaDefinition(cdd)
+    definition.name = 'name3'
+    definition.description = 'desc3'
+    ucdd2.customDeltaDefinition = definition
+    UserCustomDeltaDefinition ucdd3 = deltaService.saveAsNewUserCustomDeltaDefinition(ucdd2)
+    assertFalse(ucdd3.hasErrors())
+    println "ucdd3.id=${ucdd3.id}"
 
-    default2 =
-      deltaService.findUserCustomDeltaDefinitionByName('dashboard1')
-    assertEquals(default1.id, default2.id)
+    ucdd3 = deltaService.findUserCustomDeltaDefinitionByName('name3')
+    assertEquals('name3', ucdd3.name)
+    assertEquals('desc3', ucdd3.description)
+    println "ucdd3.id=${ucdd3.id}"
 
-    // no default entry was created
-    assertNull(deltaService.findUserCustomDeltaDefinitionByName(DeltaServiceImpl.DEFAULT_CUSTOM_DELTA_DEFINITION_NAME))
-
-    // session still active... no change
-    default1 =
-      deltaService.findUserSession('dashboard2')
-    assertEquals(default1.id, default2.id)
-
-    // clearing the definition
-    deltaService.clearUserSession()
-
-    // dashboard2 does not exist and <default> does not exist either... will be created
-    default1 =
-      deltaService.findUserSession('dashboard2')
-    assertEquals('user3', default1.username)
-    assertEquals(DeltaServiceImpl.DEFAULT_CUSTOM_DELTA_DEFINITION_NAME, default1.name)
-    assertNotSame(default1.id, default2.id)
-    assertNotNull(deltaService.findUserCustomDeltaDefinitionByName(DeltaServiceImpl.DEFAULT_CUSTOM_DELTA_DEFINITION_NAME))
-
+    // saving name2 as name1 (will fail => diplicate name)
+    ucdd2 = deltaService.findUserCustomDeltaDefinitionByName('name2')
+    println "ucdd2.id=${ucdd2.id}"
+    definition = toCustomDeltaDefinition(cdd)
+    definition.name = 'name1'
+    definition.description = 'desc4'
+    ucdd2.customDeltaDefinition = definition
+    UserCustomDeltaDefinition ucdd4 = deltaService.saveAsNewUserCustomDeltaDefinition(ucdd2)
+    println "ucdd4.id=${ucdd4.id}"
+    assertTrue(ucdd4.hasErrors())
+    assertEquals(1, ucdd4.errors.errorCount)
+    assertEquals(1, ucdd4.errors.fieldErrorCount)
+    def errors = ucdd4.errors.getFieldErrors('name')
+    assertEquals(1, errors.size())
+    assertEquals('name1', errors[0].rejectedValue)
   }
+
 
   CustomDeltaDefinition toCustomDeltaDefinition(LinkedHashMap<String, Serializable> cdd)
   {

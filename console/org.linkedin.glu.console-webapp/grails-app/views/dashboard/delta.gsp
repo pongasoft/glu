@@ -21,18 +21,32 @@
   <title>Dashboard</title>
   <meta name="layout" content="main"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'delta.css')}"/>
-  <script type="text/javascript" src="${resource(dir:'js',file:'delta.js')}"></script>
-  <g:javascript>
-<cl:renderDeltaJS/>
-  </g:javascript>
-  <script type="text/javascript" src="${resource(dir:'js',file:'console_yui.js')}"></script>
 </head>
 <body>
 <ul class="tabs">
-  <li class="active"><a href="#">View</a></li>
+  <li class="active" data-dropdown="dropdown">
+    <cl:renderDashboardSelectDropdown/>
+  </li>
   <li><g:link controller="dashboard" action="plans">Plans</g:link></li>
   <li><g:link controller="dashboard" action="customize">Customize</g:link></li>
 </ul>
+<div id="saveAsNew" class="modal hide">
+  <a href="#" class="close">&times;</a>
+  <div class="modal-header">Save as new dashboard</div>
+  <div class="modal-body">
+   <g:form class="form-stacked" controller="dashboard" action="saveAsNewCustomDashboard">
+     <fieldset>
+       <legend>New Name</legend>
+       <div class="clearfix">
+         <input id="customDashboardNewName" type="text" name="name" value="${request.userSession?.currentCustomDeltaDefinitionName?.encodeAsHTML()}"/>
+       </div><!-- /clearfix -->
+     </fieldset>
+     <div class="actions">
+       <input type="submit" class="btn primary" name="update" value="Save"/>
+     </div>
+   </g:form>
+  </div>
+</div>
 <g:render template="delta"/>
 </body>
 </html>

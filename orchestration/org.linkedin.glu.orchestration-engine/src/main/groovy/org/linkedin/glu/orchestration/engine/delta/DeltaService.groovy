@@ -69,10 +69,24 @@ interface DeltaService
                                                UserCustomDeltaDefinition userDeltaDefinition)
 
   /**
-   * Save the details
+   * Save in the storage
    */
   @ExpectPrincipal
   boolean saveUserCustomDeltaDefinition(UserCustomDeltaDefinition definition)
+
+  /**
+   * Duplicate the definition provided instead of renaming
+   *
+   * @return the saved object (check for errors on it)
+   */
+  @ExpectPrincipal
+  UserCustomDeltaDefinition saveAsNewUserCustomDeltaDefinition(UserCustomDeltaDefinition definition)
+
+  /**
+   * delete from storage
+   */
+  @ExpectPrincipal
+  boolean deleteUserCustomDeltaDefinition(UserCustomDeltaDefinition definition)
 
   /**
    * Initializes the default user custome delta definition

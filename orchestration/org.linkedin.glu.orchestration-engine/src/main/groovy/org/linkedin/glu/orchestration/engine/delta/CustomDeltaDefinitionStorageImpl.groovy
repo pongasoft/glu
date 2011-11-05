@@ -28,7 +28,19 @@ public class CustomDeltaDefinitionStorageImpl implements CustomDeltaDefinitionSt
   @Override
   boolean save(UserCustomDeltaDefinition definition)
   {
-    definition.save()
+    definition.save([flush: true])
+  }
+
+  @Override
+  boolean delete(UserCustomDeltaDefinition definition)
+  {
+    // TODO MED YP: somehow definition.delete([flush: true]) is not working and giving the following
+    // messsage: org.springframework.dao.InvalidDataAccessApiUsageException: Write operations are
+    // not allowed in read-only mode (FlushMode.MANUAL): Turn your Session into
+    // FlushMode.COMMIT/AUTO or remove 'readOnly' marker from transaction definition.
+    
+    UserCustomDeltaDefinition.executeUpdate("delete UserCustomDeltaDefinition u where u.id=?",
+                                            [definition.id])
   }
 
   @Override

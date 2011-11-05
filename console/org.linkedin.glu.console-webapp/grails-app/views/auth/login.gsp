@@ -18,6 +18,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <title>GLU Console Login</title>
   <link rel="shortcut icon" href="${resource(dir:'images',file:'favicon.ico')}" type="image/x-icon"/>
+  <link rel="stylesheet" href="${resource(dir:'css/twitter-bootstrap',file:'bootstrap.min.css')}"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'main.css')}"/>
   <style type="text/css">
   body {
@@ -42,6 +43,8 @@
     color: #aaaaaa;
   }
   </style>
+  <g:javascript library="jquery" plugin="jquery"/>
+  <g:javascript src="twitter-bootstrap/bootstrap-alerts.js" />
 </head>
 <body>
 <g:render template="/layouts/flash"/>
@@ -51,7 +54,7 @@
     <h1>Console Login</h1>
   <g:form action="signIn">
     <input type="hidden" name="targetUri" value="${targetUri}" />
-    <table>
+    <table class="noFullWidth">
       <tbody>
         <tr>
           <th>Username:</th>
@@ -63,7 +66,7 @@
         </tr>
         <tr>
           <td></td>
-          <td><input type="submit" value="Sign in" /></td>
+          <td><input class="btn primary" type="submit" value="Sign in" /></td>
         </tr>
       </tbody>
     </table>

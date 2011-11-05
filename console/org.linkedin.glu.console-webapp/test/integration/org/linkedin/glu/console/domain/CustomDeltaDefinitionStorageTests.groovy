@@ -23,6 +23,7 @@ import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.UserCustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.LightUserCustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl
+import org.json.JSONException
 
 /**
  * @author yan@pongasoft.com */
@@ -188,6 +189,56 @@ public class CustomDeltaDefinitionStorageTests extends GroovyTestCase
     errors = ud11.errors.getFieldErrors('description')
     assertEquals(1, errors.size())
     assertEquals('nonMatchingDescription', errors[0].rejectedValue)
+  }
+
+  /**
+   * Make sure that content is always valid...
+   */
+  void testUpdateContent()
+  {
+    assertNull(customDeltaDefinitionStorage.findByUsernameAndName('user1', 'd1'))
+
+    UserCustomDeltaDefinition ud11 =
+      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
+                                    username: 'user1')
+    assertTrue(customDeltaDefinitionStorage.save(ud11))
+
+    UserCustomDeltaDefinition ud11Read =
+      customDeltaDefinitionStorage.findByUsernameAndName('user1', 'd1')
+
+    // not a json string... should fail (using updateContent method)
+    shouldFail(JSONException) {
+      ud11Read.updateContent('abc')
+    }
+
+    // should not affect the underlying object!
+    ud11Read =
+      customDeltaDefinitionStorage.findByUsernameAndName('user1', 'd1')
+    assertTrue(ud11Read.content != 'abc')
+
+    // setting content explicitely will make update fail => should not be updated!
+    ud11Read.content = 'abc'
+    assertFalse(customDeltaDefinitionStorage.save(ud11Read))
+  }
+
+  /**
+   * Test fror deleting a custom delta definition
+   */
+  void testDelete()
+  {
+    assertNull(customDeltaDefinitionStorage.findByUsernameAndName('user1', 'd1'))
+
+    UserCustomDeltaDefinition ud11 =
+      new UserCustomDeltaDefinition(customDeltaDefinition: toCustomDeltaDefinition(cdd),
+                                    username: 'user1')
+    assertTrue(customDeltaDefinitionStorage.save(ud11))
+
+    UserCustomDeltaDefinition ud11Read =
+      customDeltaDefinitionStorage.findByUsernameAndName('user1', 'd1')
+    assertNotNull(ud11Read)
+    println customDeltaDefinitionStorage.delete(ud11Read)
+
+    assertNull(customDeltaDefinitionStorage.findByUsernameAndName('user1', 'd1'))
   }
 
   private void checkCustomDeltaDefinition(CustomDeltaDefinition expected,

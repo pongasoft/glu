@@ -39,7 +39,7 @@
       <g:link action="fileContent" id="${model.agent.agentName}" params="[location: model.agent.agentProperties['glu.agent.logDir']]">more...</g:link></g:if>
     </li>
     <li>
-      <a class="btn" data-controls-modal="agent-details" data-backdrop="static" >View Details</a>
+      <a class="btn" data-controls-modal="agent-details" data-backdrop="true" data-keyboard="true">View Details</a>
       <g:link class="btn ${hasDelta ? 'danger' : ''}" controller="agents" action="plans" id="${model.agent.agentName}">Deploy</g:link>
       <cl:linkToPs class="btn" agent="${model.agent.agentName}" pid="${model.agent.agentProperties['glu.agent.pid']}">ps</cl:linkToPs>
       <g:link class="btn" action="sync" id="${model.agent.agentName}">ZooKeeper Sync</g:link></li>
@@ -50,7 +50,6 @@
     <div class="modal-body">
      <cl:mapToTable map="${model.agent.agentProperties.findAll { !it.key.startsWith('java.') }}"/>
     </div>
-    <div class="modal-footer">Modal footer</div>
   </div>
 
   <g:each in="${ConsoleUtils.sortBy(model.mountPoints.keySet(), 'path')}" var="key" status="idx">

@@ -26,6 +26,8 @@ interface UserSession
   String getUsername()
 
   CustomDeltaDefinition getCustomDeltaDefinition()
+  String getCurrentCustomDeltaDefinitionName()
+  Collection<String> getCustomDeltaDefinitionNames()
 
   boolean isCustomDeltaDefinitionDirty()
 

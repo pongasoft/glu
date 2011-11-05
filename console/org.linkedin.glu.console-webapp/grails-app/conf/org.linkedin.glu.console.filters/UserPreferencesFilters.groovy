@@ -173,6 +173,10 @@ class UserPreferencesFilters
     String cddName =
       ConsoleHelper.getRequestValue(params, request, CUSTOM_DELTA_DEFINITION_COOKIE_NAME)
 
+    // do we clear the session entirely?
+    if(ConsoleHelper.getOptionalBooleanParamsValue(params, 'session.clear', false))
+      sessionService.clearUserSession()
+
     // locate user session
     UserSession userSession = sessionService.findUserSession(cddName)
 

@@ -37,7 +37,7 @@
 </head>
 <body>
 <ul class="tabs">
-  <li><g:link action="delta">View</g:link></li>
+  <li><g:link action="delta">${request.userSession.currentCustomDeltaDefinitionName.encodeAsHTML()}</g:link></li>
   <li class="active"><a href="#">Plans</a></li>
   <li><g:link controller="dashboard" action="customize">Customize</g:link></li>
 </ul>

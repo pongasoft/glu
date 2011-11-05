@@ -30,6 +30,7 @@ import org.linkedin.glu.orchestration.engine.tags.TagsService
 import org.linkedin.glu.orchestration.engine.fabric.FabricService
 import org.linkedin.groovy.util.lang.GroovyLangUtils
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaColumnDefinition
+import org.linkedin.glu.console.filters.UserPreferencesFilters
 
 /**
  * Tag library for the console.
@@ -739,6 +740,42 @@ public class ConsoleTagLib
   }
 
   /**
+   * Renders the drop down in the subtab section under the dashboard tab
+   */
+  def renderDashboardSelectDropdown = {
+    out << "<a href=\"#\" class=\"dropdown-toggle\">${request.userSession?.currentCustomDeltaDefinitionName?.encodeAsHTML()}</a>"
+    out << "<ul class=\"dropdown-menu\">"
+    out << "<li>"
+    out << g.link(controller: 'dashboard', action: 'index', params: ['session.reset': true]) {
+      "Reset"
+    }
+    out << "</li>"
+    out << "<li class=\"divider\"></li>"
+
+    def otherNames = request.userSession?.customDeltaDefinitionNames
+    if(otherNames)
+    {
+      otherNames = new TreeSet(otherNames)
+      otherNames.remove(request.userSession?.currentCustomDeltaDefinitionName)
+    }
+    otherNames.each { name ->
+      out << "<li>"
+      def redirectParams = [:]
+      redirectParams[UserPreferencesFilters.CUSTOM_DELTA_DEFINITION_COOKIE_NAME] = name
+      redirectParams['session.clear'] = true
+      out << g.link(controller: 'dashboard', action: 'index', params: redirectParams) {
+        name.encodeAsHTML()
+      }
+      out << "</li>"
+      out << "<li class=\"divider\"></li>"
+    }
+    out << "<li>"
+    out << "<a class=\"btn\" data-controls-modal=\"saveAsNew\" data-backdrop=\"true\" data-keyboard=\"true\">Save as new</a>"
+    out << "</li>"
+    out << "</ul>"
+  }
+
+  /**
    * Simple tag to get the fabric object: if fabric is not present then simply call with
    * <code>null</code>
    */
@@ -859,27 +896,6 @@ public class ConsoleTagLib
       // the last entry in the URI
       return extractURIPathPart(uri, -1)
     }
-  }
-
-  /**
-   * Render the delta javascript: since it uses g.remoteFunction it cannot be put in javascript itself...
-   */
-  def renderDeltaJS = { args ->
-    def filter = args.filter
-    def columns = args.columns ?: ConsoleConfig.getInstance().defaults.dashboard
-    out << 'function render(groupBy) {\n'
-    out << "var p = computeRenderParams(groupBy, ['${columns.keySet().join('\',\'')}']);\n"
-    if(filter)
-    {
-      def encodedFilter = filter.encodeAsURL()
-      out << "p = p + '&systemFilter=${encodedFilter}';\n"
-    }
-    out << "${g.remoteFunction(controller: 'dashboard', action: 'renderDelta', params: "p", before: 'showSpinner()', update:[success: '__delta', failure: '__delta_content'])}\n"
-    out << "}\n"
-
-    out << """function renderSame() {
-    render(null);
-}"""
   }
 
   /**

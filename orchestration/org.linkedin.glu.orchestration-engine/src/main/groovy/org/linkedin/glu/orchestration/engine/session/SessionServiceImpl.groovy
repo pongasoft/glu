@@ -47,12 +47,14 @@ public class SessionServiceImpl implements SessionService
   {
     String username = authorizationService.executingPrincipal
 
-    UserSession res =
+    UserSessionImpl res =
       userSessionCache.get(username)?.objectValue
 
     if(!res)
     {
       res = toSUCDD(deltaService.findDefaultUserCustomDeltaDefinition(defaultName))
+      res.customDeltaDefinitionNames =
+        deltaService.findAllUserCustomDeltaDefinition(false, [:]).list.name
     }
 
     userSessionCache.put(new Element(username, res))
@@ -60,7 +62,7 @@ public class SessionServiceImpl implements SessionService
     return res
   }
 
-  private UserSession toSUCDD(UserCustomDeltaDefinition ucdd)
+  private UserSessionImpl toSUCDD(UserCustomDeltaDefinition ucdd)
   {
     if(ucdd == null)
       return null

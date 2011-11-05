@@ -32,6 +32,7 @@ class UrlMappings
     "/dashboard/renderDelta"(controller: 'dashboard', action: 'renderDelta') { __nvbe = 'Dashboard' }
     "/dashboard/index"(controller: 'dashboard', action: 'index') { __nvbe = 'Dashboard' }
     "/dashboard/customize"(controller: 'dashboard', action: 'customize') { __nvbe = 'Dashboard' }
+    "/dashboard/saveAsNewCustomDashboard"(controller: 'dashboard', action: 'saveAsNewCustomDashboard') { __nvbe = 'Dashboard' }
     "/dashboard/plans"(controller: 'dashboard', action: 'plans') { __nvbe = 'Dashboard' }
 
     // agents

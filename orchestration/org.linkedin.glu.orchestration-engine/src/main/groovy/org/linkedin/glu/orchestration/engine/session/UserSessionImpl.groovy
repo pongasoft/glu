@@ -29,11 +29,24 @@ class UserSessionImpl implements UserSession
 {
   UserCustomDeltaDefinition current
   UserCustomDeltaDefinition original
+  Collection<String> customDeltaDefinitionNames
 
   @Override
   CustomDeltaDefinition getCustomDeltaDefinition()
   {
     return current.customDeltaDefinition
+  }
+
+  @Override
+  String getCurrentCustomDeltaDefinitionName()
+  {
+    return customDeltaDefinition.name
+  }
+
+  @Override
+  Collection<String> getCustomDeltaDefinitionNames()
+  {
+    return customDeltaDefinitionNames
   }
 
   @Override

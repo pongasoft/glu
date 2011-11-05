@@ -13,10 +13,18 @@
   - License for the specific language governing permissions and limitations under
   - the License.
   --}%
-<%@ page import="org.linkedin.groovy.util.json.JsonUtils; org.linkedin.glu.provisioner.plan.api.IStep.Type" %>
+<%@ page import="org.linkedin.groovy.util.json.JsonUtils" %>
+<table class="horizontal noFullWidth">
+  <tr>
+    <th>System</th>
+    <td class="systemId"><g:link controller="model" action="view" id="${system.id}">${system.id}</g:link></td>
+    <th>Filter</th>
+    <td><g:if test="${request.system.filters}">${request.system.filters.toString().encodeAsHTML()}</g:if><g:else>-</g:else></td>
+  </tr>
+</table>
 <div id="select-plan">
   <g:form controller="plan" action="redirectView">
-    <table id="select-plan-radio" style="width: auto;">
+    <table id="select-plan-radio" class="noFullWidth bordered-table tight-table">
       <tr>
         <th colspan="6">${title}</th>
       </tr>
@@ -35,14 +43,16 @@
         <td colspan="6" style="text-align: center;">
           <input class="btn primary" type="submit" name="view" value="Select this plan" onClick="document.getElementById('planIdSelector').value=document.getElementById('planId').value;return true;">
           <g:if test="${missingAgents}">
-            <a class="btn danger" data-controls-modal="missing-agents" data-backdrop="static" >Missing Agents</a>
+            <a class="btn danger" data-controls-modal="missing-agents" data-backdrop="true" data-keyboard="true" >Missing Agents</a>
             <div id="missing-agents" class="modal hide">
-              <h2>Missing agents [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]<a href="#" class="close">Close</a></h2>
-              <ul>
-                <g:each in="${missingAgents}" var="agentName">
-                  <li>${agentName.encodeAsHTML()}</li>
-                </g:each>
-              </ul>
+              <div class="modal-header">Missing agents [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]<a href="#" class="close">&times;</a></div>
+              <div class="modal-body">
+                <ul>
+                  <g:each in="${missingAgents}" var="agentName">
+                    <li>${agentName.encodeAsHTML()}</li>
+                  </g:each>
+                </ul>
+              </div>
             </div>
           </g:if>
           <input type="hidden" name="planId" id="planIdSelector" value="undefined" />

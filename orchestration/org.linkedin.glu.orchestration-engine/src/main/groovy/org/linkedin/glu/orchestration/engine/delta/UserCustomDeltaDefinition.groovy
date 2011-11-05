@@ -17,20 +17,40 @@
 package org.linkedin.glu.orchestration.engine.delta
 
 import grails.persistence.Entity
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * @author yan@pongasoft.com */
 @Entity
 class UserCustomDeltaDefinition
 {
+  public static final String MODULE = UserCustomDeltaDefinition.class.getName ();
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
+
   static constraints = {
-    content(nullable: false, blank: false)
+    content(nullable: false, blank: false, validator: { val, obj ->
+      try
+      {
+        def serializer = obj.customDeltaDefinitionSerializer
+        def ppc1 = obj.prettyPrintedContent
+        def ppc2 = serializer.deserialize(val, serializer.contentVersion)
+        ppc2 = serializer.serialize(ppc2, true)
+        return ppc1 == ppc2
+      }
+      catch (Exception e)
+      {
+        if(log.isDebugEnabled())
+          log.debug("Exception while deserializing the object", e)
+        return false
+      }
+    })
     // name of this entry must be unique for a given user only...
     name(nullable: false, blank: false, unique: 'username', validator: { val, obj ->
-      return val == obj.customDeltaDefinition.name
+      return val == obj.customDeltaDefinition?.name
     })
     description(nullable: true, blank: true, validator: { val, obj ->
-      return val == obj.customDeltaDefinition.description
+      return val == obj.customDeltaDefinition?.description
     })
     username(nullable: true, blank: false)
     fabric(nullable: true, blank: false)
@@ -111,15 +131,39 @@ class UserCustomDeltaDefinition
     return _content
   }
 
+  String getPrettyPrintedContent()
+  {
+    return customDeltaDefinitionSerializer?.serialize(customDeltaDefinition, true)
+  }
+
   void setContent(String content)
   {
     _content = content
   }
 
+  void updateContent(String content)
+  {
+    _customDeltaDefinition = customDeltaDefinitionSerializer?.deserialize(content, contentVersion)
+    _content = null
+    name = _customDeltaDefinition.name
+    description = _customDeltaDefinition.description
+  }
+
   CustomDeltaDefinition getCustomDeltaDefinition()
   {
     if(_customDeltaDefinition == null)
-      _customDeltaDefinition = customDeltaDefinitionSerializer?.deserialize(_content, contentVersion)
+    {
+      try
+      {
+        _customDeltaDefinition = customDeltaDefinitionSerializer?.deserialize(_content, contentVersion)
+      }
+      catch(Exception e)
+      {
+        // ok will be ignored and remain null
+        if(log.isDebugEnabled())
+          log.debug("Exception while deserializing the object", e)
+      }
+    }
 
     return _customDeltaDefinition
   }
@@ -143,5 +187,11 @@ class UserCustomDeltaDefinition
                                   customDeltaDefinition: customDeltaDefinition.clone())
   }
 
-  static transients = ['customDeltaDefinition', '_customDeltaDefinition', '_content', 'customDeltaDefinitionSerializer']
+  static transients = [
+    'customDeltaDefinition',
+    '_customDeltaDefinition',
+    '_content',
+    'customDeltaDefinitionSerializer',
+    'prettyPrintedContent'
+  ]
 }

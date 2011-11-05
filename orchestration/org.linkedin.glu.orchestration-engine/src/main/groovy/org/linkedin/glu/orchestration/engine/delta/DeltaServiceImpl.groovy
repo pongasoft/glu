@@ -611,6 +611,28 @@ class DeltaServiceImpl implements DeltaService
   }
 
   @Override
+  UserCustomDeltaDefinition saveAsNewUserCustomDeltaDefinition(UserCustomDeltaDefinition definition)
+  {
+    if(definition.username != authorizationService.executingPrincipal)
+      throw new AccessControlException("${definition.username} is not the owner!")
+
+    definition = cloneForUser(definition.username, definition)
+
+    customDeltaDefinitionStorage.save(definition)
+
+    return definition
+  }
+
+  @Override
+  boolean deleteUserCustomDeltaDefinition(UserCustomDeltaDefinition definition)
+  {
+    if(definition.username != authorizationService.executingPrincipal)
+      throw new AccessControlException("${definition.username} is not the owner!")
+
+    customDeltaDefinitionStorage.delete(definition)
+  }
+
+  @Override
   UserCustomDeltaDefinition findUserCustomDeltaDefinitionByName(String name)
   {
     customDeltaDefinitionStorage.findByUsernameAndName(authorizationService.executingPrincipal,

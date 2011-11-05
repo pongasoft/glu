@@ -30,7 +30,7 @@
       </g:else>
       <g:if test="${flash.stackTrace}">
         <div class="alert-actions">
-          <a class="btn" data-controls-modal="flash-stackTrace" data-backdrop="static" >View Full Stack Trace</a>
+          <a class="btn" data-controls-modal="flash-stackTrace" data-backdrop="true" data-keyboard="true" >View Full Stack Trace</a>
           <div id="flash-stackTrace" class="modal hide">
             <a href="#" class="close">&times;</a>
             <div class="modal-header">Stack Trace</div>
