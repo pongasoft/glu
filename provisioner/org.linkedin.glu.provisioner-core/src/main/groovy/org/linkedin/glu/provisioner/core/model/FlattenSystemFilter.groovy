@@ -39,4 +39,11 @@ class FlattenSystemFilter extends NameEqualsValueSystemFilter
   {
     throw new RuntimeException("Not implemented yet")
   }
+
+  boolean equals(o)
+  {
+    if(!(o instanceof FlattenSystemFilter)) return false;
+    return super.equals(o)
+  }
+
 }

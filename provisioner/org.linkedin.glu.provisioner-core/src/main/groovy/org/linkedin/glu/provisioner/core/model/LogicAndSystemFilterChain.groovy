@@ -39,4 +39,10 @@ class LogicAndSystemFilterChain extends LogicSystemFilterChain
   {
     return 'and'
   }
+
+  boolean equals(o)
+  {
+    if(!(o instanceof LogicAndSystemFilterChain)) return false;
+    return super.equals(o)
+  }
 }

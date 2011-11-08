@@ -48,4 +48,21 @@ class LogicNotSystemFilter implements SystemFilter
   {
     return "not{${filter.toString()}}"
   }
+
+  boolean equals(o)
+  {
+    if(this.is(o)) return true;
+    if(!(o instanceof LogicNotSystemFilter)) return false;
+
+    LogicNotSystemFilter that = (LogicNotSystemFilter) o;
+
+    if(filter != that.filter) return false;
+
+    return true;
+  }
+
+  int hashCode()
+  {
+    return (filter != null ? filter.hashCode() : 0);
+  }
 }

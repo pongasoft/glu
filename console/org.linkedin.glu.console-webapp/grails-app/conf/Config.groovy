@@ -136,10 +136,11 @@ console.dev.defaults =
 
     disableModelUpdate: false,
 
-      model:
+      shortcutFilters:
       [
           [
               name: 'product',
+              source: 'metadata.product',
               header: ['version']
           ]
       ],

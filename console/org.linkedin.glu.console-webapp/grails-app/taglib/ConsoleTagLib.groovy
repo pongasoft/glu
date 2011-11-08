@@ -31,6 +31,8 @@ import org.linkedin.glu.orchestration.engine.fabric.FabricService
 import org.linkedin.groovy.util.lang.GroovyLangUtils
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaColumnDefinition
 import org.linkedin.glu.console.filters.UserPreferencesFilters
+import org.linkedin.glu.provisioner.core.model.SystemFilterBuilder
+import org.linkedin.glu.provisioner.core.model.PropertySystemFilter
 
 /**
  * Tag library for the console.
@@ -42,6 +44,7 @@ public class ConsoleTagLib
 
   TagsService tagsService
   FabricService fabricService
+  ConsoleConfig consoleConfig
 
   Clock clock = SystemClock.instance()
 
@@ -730,9 +733,7 @@ public class ConsoleTagLib
     }
     else
     {
-      out << "<li>"
-      out << g.link(controller: 'fabric', action: 'select') { fabric.encodeAsHTML() }
-      out << "</li>"
+      out << "<li><a href=\"#\">${fabric.encodeAsHTML()}</a></li>"
     }
   }
 
@@ -770,6 +771,81 @@ public class ConsoleTagLib
     out << "<a class=\"btn\" data-controls-modal=\"saveAsNew\" data-backdrop=\"true\" data-keyboard=\"true\">Save as new</a>"
     out << "</li>"
     out << "</ul>"
+  }
+
+  /**
+   * Defined in the config file under the dashboard.shortcutFilters section
+   */
+  def renderDashboardShortcutFilters = {
+    consoleConfig.defaults.shortcutFilters?.each { shortcutFilter ->
+      def name = shortcutFilter.name
+      def source = shortcutFilter.source ?: "metadata.${name}".toString()
+      def headerKeys = shortcutFilter.header ?: []
+
+      def possibleValues = request.system.metadata[name]
+      if(possibleValues)
+      {
+        String selectedFilter = null
+
+        def dd = new TreeMap()
+
+        possibleValues.each { value ->
+          value = value.value
+          def entry = [:]
+
+          // filter
+          entry.filter = "${source}='${value.name}'".toString()
+
+          // display name
+          def displayName = [value.name]
+          headerKeys.each { headerKey ->
+            def headerValue = value[headerKey]
+            if(headerValue)
+              displayName << headerValue
+          }
+          entry.displayName = displayName.join(':').encodeAsHTML()
+
+          if(SystemFilterBuilder.definesSubsetOrEqual(new PropertySystemFilter(name: source,
+                                                                               value: value.name),
+                                                      request.system.filters))
+          {
+            selectedFilter = entry.displayName
+          }
+          else
+          {
+            dd[value.name] = entry
+          }
+        }
+
+
+
+        out << '<li class="dropdown">'
+        out << "<a href=\"#\" class=\"dropdown-toggle\">"
+        if(selectedFilter)
+          out << selectedFilter.encodeAsHTML()
+        else
+          out << "All [${name}]"
+        out << "</a>"
+        out << '<ul class="dropdown-menu">'
+        dd.values().each { v ->
+          out << "<li>"
+          out << g.link(controller: 'dashboard', action: 'delta', params: ["session.systemFilter": v.filter]) {
+            v.displayName.encodeAsHTML()
+          }
+          out << "</li>"
+        }
+        if(selectedFilter)
+        {
+          out << "<li>"
+          out << g.link(controller: 'dashboard', action: 'delta', params: ["session.systemFilter": "-"]) {
+            'All'
+          }
+          out << '</li>'
+        }
+        out << '</ul>'
+        out << '</li>'
+      }
+    }
   }
 
   /**

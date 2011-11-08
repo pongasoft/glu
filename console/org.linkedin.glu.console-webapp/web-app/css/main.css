@@ -45,7 +45,6 @@ dl {
 
 .bordered-table th {
   border-color: #888888;
-  /*color: white;*/
   background-color: #f0f0ff;
 }
 
@@ -63,6 +62,7 @@ table.xtight-table th, table.xtight-table td {
 
 pre {
   white-space: pre;
+  word-wrap: normal;
   overflow-y: auto;
 }
 
@@ -73,32 +73,6 @@ li {
 .noFullWidth {
   width: auto;
 }
-
-/*table th {*/
-  /*text-align: left;*/
-  /*background-color: #005a87;*/
-  /*border: solid 1px #000000;*/
-  /*border-bottom-width: 2px;*/
-  /*padding: .3em;*/
-  /*color: #ffffff;*/
-/*}*/
-
-/*table th {*/
-  /*background-color: #eeeeee;*/
-  /*text-align: center;*/
-  /*border: solid 1px #005a87;*/
-  /*border-bottom-width: 2px;*/
-  /*padding: .3em;*/
-/*}*/
-
-/*table.horizontal th {*/
-  /*border-right-width: 2px;*/
-  /*border-bottom-width: 1px;*/
-/*}*/
-
-/*table td {*/
-  /*border: solid 1px #005a87;*/
-/*}*/
 
 form .input {
   margin-left: inherit;
@@ -119,96 +93,6 @@ select,
   height: inherit;
 }
 
-/*#header {*/
-  /*border: solid 1px #005a87;*/
-  /*border-right-width: 2px;*/
-  /*border-bottom-width: 2px;*/
-/*}*/
-
-/*#header #fabric .zk-notConnected {*/
-  /*color: red;*/
-  /*font-weight: bold;*/
-/*}*/
-
-/*#header ul li {*/
-  /*background: #005a87;*/
-  /*border-top: solid 1px #ffffff;*/
-  /*border-right: solid 1px #ffffff;*/
-  /*border-left: solid 1px #004976;*/
-  /*display: inline-block;*/
-  /*margin: 0;*/
-  /*padding: .2em;*/
-  /*margin-right: .5em;*/
-  /*min-width: 5em;*/
-  /*text-align: center;*/
-/*}*/
-
-/*#header ul {*/
-  /*margin: 0;*/
-  /*padding: 0;*/
-/*}*/
-
-/*#header ul li a:link {*/
-  /*text-decoration: none;*/
-  /*color: white;*/
-/*}*/
-
-/*#header ul li a:hover {*/
-  /*text-decoration: none;*/
-  /*color: white;*/
-/*}*/
-
-/*#header ul li a:visited {*/
-  /*text-decoration: none;*/
-  /*color: white;*/
-/*}*/
-
-/*#header ul li.selected {*/
-  /*background: #ffffff;*/
-  /*border-top: solid 1px #004976;*/
-  /*border-right: solid 1px #004976;*/
-  /*border-left: solid 1px #ffffff;*/
-/*}*/
-
-/*#header ul li.selected a:link {*/
-  /*color: #005a87;*/
-/*}*/
-
-/*#header ul li.selected a:hover {*/
-  /*color: #005a87;*/
-/*}*/
-
-/*#header ul li.selected a:visited {*/
-  /*color: #005a87;*/
-/*}*/
-
-/*#header #header-info {*/
-  /*display: block;*/
-  /*text-align: right;*/
-  /*font-style: italic;*/
-  /*font-size: 2em;*/
-  /*padding-right: .5em;*/
-/*}*/
-
-/*#header #header-info a:hover {*/
-  /*border-bottom: solid 1px #005a87;*/
-  /*color: black;*/
-/*}*/
-
-/*#header #header-info a:link {*/
-  /*text-decoration: none;*/
-  /*color: black;*/
-/*}*/
-
-/*#header #header-info a:visited {*/
-  /*text-decoration: none;*/
-  /*color: black;*/
-/*}*/
-
-/*div.env-unknown {*/
-  /*background: -webkit-gradient(linear, left top, right top, from(#555555), to(#ffffff)) #eeeeee;*/
-/*}*/
-
 .ERROR {
   background: #ffdddd;
 }
@@ -228,29 +112,6 @@ select,
 #flash {
   margin-top: 1em;
 }
-/*.flash-error {*/
-  /*font-size: 2em;*/
-  /*color: white;*/
-  /*background-color: red;*/
-  /*padding: 0.5em;*/
-  /*margin-top: 1em;*/
-  /*margin-bottom: 1em;*/
-  /*border: solid 1px #550000;*/
-/*}*/
-
-/*.flash-stackTrace {*/
-  /*display: none;*/
-/*}*/
-
-/*.flash-message {*/
-  /*font-size: 1.3em;*/
-  /*color: white;*/
-  /*background-color: green;*/
-  /*padding: 0.5em;*/
-  /*margin-top: 1em;*/
-  /*margin-bottom: 1em;*/
-  /*border: solid 1px #005500;*/
-/*}*/
 
 .example {
   color: #aaaaaa;
@@ -271,41 +132,6 @@ select,
 .error-status {
   color: red;
 }
-
-/*ul.submenu {*/
-  /*font-size: 1.2em;*/
-  /*padding: 0.5em 0.5em 0.1em 0em;*/
-  /*margin: 0 0 0.2em 0;*/
-/*}*/
-/*ul.submenu li {*/
-  /*list-style: none;*/
-  /*clear: both;*/
-  /*display: inline;*/
-  /*text-align: left;*/
-  /*margin-right: 10px;*/
-/*}*/
-
-/*ul.submenu li.selected {*/
-  /*color: black;*/
-  /*font-size: 1.5em;*/
-/*}*/
-
-/*ul.submenu a:link {*/
-  /*text-decoration: none;*/
-  /*color: gray;*/
-  /*border: solid 1px white;*/
-/*}*/
-
-/*ul.submenu a:visited {*/
-  /*text-decoration: none;*/
-  /*border: solid 1px white;*/
-  /*color: gray;*/
-/*}*/
-
-/*ul.submenu a:hover {*/
-  /*border: solid 1px black;*/
-  /*color: black;*/
-/*}*/
 
 .hidden {
   display: none;

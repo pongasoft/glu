@@ -79,4 +79,25 @@ public class TagsSystemFilter implements SystemFilter
     else
       return "t[${tags.join(';')}]".toString()
   }
+
+  boolean equals(o)
+  {
+    if(this.is(o)) return true;
+    if(!(o instanceof TagsSystemFilter)) return false;
+
+    TagsSystemFilter that = (TagsSystemFilter) o;
+
+    if(allTags != that.allTags) return false;
+    if(tags != that.tags) return false;
+
+    return true;
+  }
+
+  int hashCode()
+  {
+    int result;
+    result = (tags != null ? tags.hashCode() : 0);
+    result = 31 * result + (allTags ? 1 : 0);
+    return result;
+  }
 }

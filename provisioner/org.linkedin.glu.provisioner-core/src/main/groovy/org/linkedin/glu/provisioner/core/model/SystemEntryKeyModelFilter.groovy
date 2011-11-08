@@ -50,4 +50,21 @@ class SystemEntryKeyModelFilter implements SystemFilter
   {
     return "k(${keys.join(',')})".toString();
   }
+
+  boolean equals(o)
+  {
+    if(this.is(o)) return true;
+    if(!(o instanceof SystemEntryKeyModelFilter)) return false;
+
+    SystemEntryKeyModelFilter that = (SystemEntryKeyModelFilter) o;
+
+    if(keys != that.keys) return false;
+
+    return true;
+  }
+
+  int hashCode()
+  {
+    return (keys != null ? keys.hashCode() : 0);
+  }
 }

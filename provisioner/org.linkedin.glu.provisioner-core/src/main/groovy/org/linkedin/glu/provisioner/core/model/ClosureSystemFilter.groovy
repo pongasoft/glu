@@ -60,4 +60,25 @@ class ClosureSystemFilter implements SystemFilter
   {
     return "c(${name})".toString()
   }
+
+  boolean equals(o)
+  {
+    if(this.is(o)) return true;
+    if(!(o instanceof ClosureSystemFilter)) return false;
+
+    ClosureSystemFilter that = (ClosureSystemFilter) o;
+
+    if(closure != that.closure) return false;
+    if(name != that.name) return false;
+
+    return true;
+  }
+
+  int hashCode()
+  {
+    int result;
+    result = (name != null ? name.hashCode() : 0);
+    result = 31 * result + (closure != null ? closure.hashCode() : 0);
+    return result;
+  }
 }

@@ -30,7 +30,7 @@
     text-align: center;
   }
   .current {
-    background: #eeeeff;
+    background: #aaffaa;
   }
   </style>
 </head>
@@ -41,7 +41,7 @@
   <g:if test="${isReleaseUser}"><li><g:link action="choose">Load</g:link></li></g:if>
   <li class="active"><a href="#">View [${params.id}]</a></li>
 </ul>
-<g:if test="${systemDetails}">
+<g:if test="${systemDetails != null}">
   <g:set var="editable" value="${!ConsoleConfig.getInstance().defaults.disableModelUpdate}"/>
   <g:render template="model" model="[systems: [systemDetails]]"/>
   <g:form action="save" method="post">

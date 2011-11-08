@@ -68,4 +68,11 @@ class PropertySystemFilter extends NameEqualsValueSystemFilter
   {
     return toDSL()
   }
+
+  boolean equals(o)
+  {
+    // tokens is a 'cached' value so it will be the same if the names are the same!
+    if(!(o instanceof PropertySystemFilter)) return false;
+    return super.equals(o)
+  }
 }

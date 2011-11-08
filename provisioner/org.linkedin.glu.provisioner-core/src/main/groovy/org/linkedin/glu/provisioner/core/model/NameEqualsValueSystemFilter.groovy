@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -33,5 +34,26 @@ abstract class NameEqualsValueSystemFilter implements SystemFilter
   def String toString()
   {
     return "${kind}(${name}=${value})".toString();
+  }
+
+  boolean equals(o)
+  {
+    if(this.is(o)) return true;
+    if(!(o instanceof NameEqualsValueSystemFilter)) return false;
+
+    NameEqualsValueSystemFilter that = (NameEqualsValueSystemFilter) o;
+
+    if(name != that.name) return false;
+    if(value != that.value) return false;
+
+    return true;
+  }
+
+  int hashCode()
+  {
+    int result;
+    result = (name != null ? name.hashCode() : 0);
+    result = 31 * result + (value != null ? value.hashCode() : 0);
+    return result;
   }
 }

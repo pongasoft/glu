@@ -90,7 +90,7 @@ public class ModelController extends ControllerBase
     catch(Throwable th)
     {
       flashException("Could not save the new model: ${th.message}", th)
-      render(view: 'view', id: params.id, model: [system: system])
+      render(view: 'view', id: params.id, model: [systemDetails: system])
     }
   }
 

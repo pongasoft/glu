@@ -16,15 +16,14 @@
   --}%
 
 <%@ page import="org.linkedin.glu.console.filters.UserPreferencesFilters; org.linkedin.glu.grails.utils.ConsoleConfig; org.linkedin.glu.agent.tracker.AgentsTracker.AccuracyLevel" %>
-<table class="bordered-table condensed-table">
+<table class="bordered-table tight-table">
   <tr>
     <th>System</th>
     <td class="systemId"><g:link controller="model" action="view" id="${system.id}">${system.id}</g:link></td>
     <th>Filter</th>
-    <td><g:if test="${request.system.filters}">${request.system.filters.toString().encodeAsHTML()}</g:if><g:else>-</g:else></td>
+    <td><g:if test="${request.system.filters}">${request.system.filters.toString().encodeAsHTML()} [<g:link controller="dashboard" action="delta" params="['session.systemFilter': '-']">&times;</g:link>]</g:if><g:else>-</g:else></td>
   </tr>
 </table>
-<h1>${request.userSession?.customDeltaDefinition?.name?.encodeAsHTML()}<g:if test="${request?.userSession?.customDeltaDefinitionDirty}"> | <g:link controller="dashboard" action="delta" params="['session.reset': true]">Reset</g:link></g:if><g:if test="${request.userSession?.customFilter}"> | ${request.userSession.customFilter.toDSL().encodeAsHTML()} [<g:link controller="dashboard" action="delta" params="['session.systemFilter': '-']">Clear Filter</g:link>]</g:if></h1>
 <div id="__delta">
   <div id="__delta_content">
     <table class="bordered-table xtight-table">

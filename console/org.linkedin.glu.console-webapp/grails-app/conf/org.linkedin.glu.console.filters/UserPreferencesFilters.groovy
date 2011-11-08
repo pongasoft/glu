@@ -66,7 +66,7 @@ class UserPreferencesFilters
       after = {
         if(request.user)
         {
-          ['fabric', *consoleConfig.defaults.model.name].each {
+          ['fabric'].each {
             ConsoleHelper.saveCookie(response, it, request[it]?.name)
           }
 
@@ -135,20 +135,6 @@ class UserPreferencesFilters
         }
         else
         {
-          // set the filter based on the selection in the top navbar
-          consoleConfig.defaults.model.each { info ->
-            def value = ConsoleHelper.getRequestValue(params, flash, request, info.name)
-            if(value)
-            {
-              value = system.metadata[info.name]?.getAt(value)
-              if(value)
-              {
-                system = system.filterByMetadata(info.name, value.name)
-                request."${info.name}" = value
-              }
-            }
-          }
-
           // if a custom filter is provided, use it
           system = system.filterBy(userSession?.customFilter)
         }

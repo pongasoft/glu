@@ -79,13 +79,13 @@
       <ul class="nav secondary-nav">
         <cl:whenDisconnectedFabric><li><span class="label important">not connected!</span></li></cl:whenDisconnectedFabric>
         <cl:renderFabricSelectDropdown/>
-        <g:each in="${ConsoleConfig.getInstance().defaults.model}" var="h">
-          <li><g:link controller="system" action="filter_values" id="${h.name}"><span id="header-info-${h.name}">${request[h.name]?.name ?: 'All [' + h.name + ']'}</span><g:each in="${h.header}" var="m"><g:if test="${request[h.name]?.getAt(m)}">:${request[h.name][m]}</g:if></g:each></g:link></li>
-        </g:each>
+        <cl:renderDashboardShortcutFilters/>
         <g:each in="${ConsoleConfig.getInstance().defaults.header}" var="hm">
           <g:each in="${hm}" var="k">
             <g:each in="${k.value}" var="rv">
-              <li><span id="header-info-${k.key}-${rv}">${request['system']?.(k.key)?.get(rv)}</span></li>
+              <g:if test="${request['system']?.(k.key)?.get(rv)}">
+              <li><span id="header-info-${k.key}-${rv}"><a href="#">${request['system']?.(k.key)?.get(rv)}</a></span></li>
+              </g:if>
             </g:each>
           </g:each>
         </g:each>

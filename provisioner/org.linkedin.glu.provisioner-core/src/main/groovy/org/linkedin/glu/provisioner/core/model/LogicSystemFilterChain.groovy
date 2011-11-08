@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,7 +22,7 @@ package org.linkedin.glu.provisioner.core.model
  * @author ypujante@linkedin.com */
 abstract class LogicSystemFilterChain implements SystemFilter
 {
-  Collection<SystemFilter> filters = []
+  Set<SystemFilter> filters = new LinkedHashSet<SystemFilter>()
 
   def toExternalRepresentation()
   {
@@ -37,5 +38,22 @@ abstract class LogicSystemFilterChain implements SystemFilter
   def String toString()
   {
     return "${kind}{${filters*.toString().join(';')}}";
+  }
+
+  boolean equals(o)
+  {
+    if(this.is(o)) return true;
+    if(!(o instanceof LogicSystemFilterChain)) return false;
+
+    LogicSystemFilterChain that = (LogicSystemFilterChain) o;
+
+    if(filters != that.filters) return false;
+
+    return true;
+  }
+
+  int hashCode()
+  {
+    return (filters != null ? filters.hashCode() : 0);
   }
 }

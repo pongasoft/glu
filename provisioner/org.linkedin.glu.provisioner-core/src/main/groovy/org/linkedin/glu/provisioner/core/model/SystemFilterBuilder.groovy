@@ -73,7 +73,7 @@ public class SystemFilterBuilder
     if(f2 == null)
       return f1
 
-    Collection<SystemFilter> filters = []
+    Set<SystemFilter> filters = new LinkedHashSet<SystemFilter>()
 
     if(f1 instanceof LogicAndSystemFilterChain)
     {
@@ -98,7 +98,7 @@ public class SystemFilterBuilder
       return null
 
     if(filters.size() == 1)
-      return filters[0]
+      return filters.iterator().next()
     else
       return new LogicAndSystemFilterChain(filters: filters)
   }
@@ -122,6 +122,28 @@ public class SystemFilterBuilder
     return res
   }
 
+  /**
+   * This call is a 'simplified' version as it for example does not check for a filter like
+   * <code>not(not(filter))</code>...
+   *
+   * @return <code>true</code> if <code>filter1</code> defines a subset of <code>filter2</code>
+   * or is equal to it
+   */
+  static boolean definesSubsetOrEqual(SystemFilter filter1, SystemFilter filter2)
+  {
+    if(filter1 != filter2)
+    {
+      if(filter2 instanceof LogicAndSystemFilterChain)
+      {
+        return filter2.filters.contains(filter1)
+      }
+      return false
+    }
+    else
+    {
+      return true
+    }
+  }
 
   /**
    * Parses the dsl (see documentation)
@@ -238,7 +260,7 @@ public class SystemFilterBuilder
         return null
 
       if(filter.filters.size() == 1)
-        return optimizeFilter(filter.filters[0])
+        return optimizeFilter(filter.filters.iterator().next())
     }
 
     return filter
