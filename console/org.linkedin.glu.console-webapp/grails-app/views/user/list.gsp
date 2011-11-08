@@ -24,15 +24,15 @@
 </head>
 <body>
 <div class="body">
-  <ul class="submenu">
-    <li><g:link controller="user" action="create">Create</g:link></li>
+  <ul class="tabs">
+    <li class="active"><a href="#">User List</a></li>
+    <li><g:link action="create">New</g:link></li>
   </ul>
-  <h1>User List</h1>
   <div class="paginateButtons">
     <g:paginate total="${userInstanceTotal}" max="100"/>
   </div>
   <div class="list">
-    <table>
+    <table class="bordered-table condensed-table">
       <thead>
       <tr>
         <g:sortableColumn property="username" title="Username"/>

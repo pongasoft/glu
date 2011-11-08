@@ -44,7 +44,7 @@
   <g:javascript>
 <cl:renderDeltaJS filter="${params.systemFilter}"/>
   </g:javascript>
-  <script type="text/javascript" src="${resource(dir:'js',file:'console_yui.js')}"></script>
+  <script type="text/javascript" src="${resource(dir:'js',file:'console_jquery.js')}"></script>
 </head>
 <body>
 <div class="body">

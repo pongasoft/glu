@@ -20,32 +20,6 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="layout" content="main"/>
   <title>Load Model</title>
-  <script type="text/javascript" src="${resource(dir:'js',file:'console_yui.js')}"></script>
-  <style type="text/css">
-  table {
-    width: 100%;
-  }
-  td {
-   vertical-align: top;
-  }
-  .input {
-    width: 100%;
-  }
-
-    th {
-      width: 20%;
-    }
-    td.headline {
-      padding-top: 1em;
-      padding-bottom: 1em;
-      
-    }
-
-    .separator {
-      border-top: 1px solid black;
-      padding-top: 1.5em;
-    }
-  </style>
 </head>
 <body>
 <div class="body">

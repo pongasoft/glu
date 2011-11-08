@@ -39,9 +39,9 @@
   <ul class="tabs">
     <li><g:link action="deployments">Recent</g:link></li>
     <li><g:link action="archived">Archived</g:link></li>
-    <li class="active"><a href="#">${deployment.description.encodeAsHTML()}</a></li>
+    <li class="active"><a href="#">Archived [${deployment.description.encodeAsHTML()}]</a></li>
   </ul>
-  <table id="deployment">
+  <table id="deployment" class="bordered-table condensed-table">
     <tr>
       <th>Username</th>
       <th>Start Date</th>
@@ -85,7 +85,7 @@ ${deployment.details.encodeAsHTML()}
   <div class="paginateButtons">
     <g:paginate total="${count}" max="25"/>
   </div>
-  <table id="deployments">
+  <table id="deployments" class="bordered-table condensed-table">
     <tr>
       <th>Description</th>
       <th>Username</th>

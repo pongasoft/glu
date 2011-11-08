@@ -51,26 +51,31 @@ class UserController extends ControllerBase
   }
 
   def delete = {
-    def userInstance = User.get(params.id)
-    if(userInstance)
-    {
-      try
+    User.withTransaction {
+      def userInstance = User.get(params.id)
+      if(userInstance)
       {
-        userInstance.delete(flush: true)
-        audit('user.delete', userInstance.username)
-        flash.success = "User ${params.id} deleted"
+        try
+        {
+          audit('user.delete', userInstance.username)
+          userInstance.setRoles(null)
+          userInstance.save([flush: true])
+          User.executeUpdate("delete User u where u.id=?", [userInstance.id])
+          DbUserCredentials.executeUpdate("delete DbUserCredentials duc where duc.username=?", [userInstance.username])
+          flash.success = "User ${params.id} deleted"
+          redirect(action: list)
+        }
+        catch (org.springframework.dao.DataIntegrityViolationException e)
+        {
+          flashException("User ${params.id} could not be deleted", e)
+          redirect(action: show, id: params.id)
+        }
+      }
+      else
+      {
+        flash.warning = "User not found with id ${params.id}"
         redirect(action: list)
       }
-      catch (org.springframework.dao.DataIntegrityViolationException e)
-      {
-        flash.warning = "User ${params.id} could not be deleted"
-        redirect(action: show, id: params.id)
-      }
-    }
-    else
-    {
-      flash.warning = "User not found with id ${params.id}"
-      redirect(action: list)
     }
   }
 
@@ -107,7 +112,7 @@ class UserController extends ControllerBase
         }
       }
       userInstance.setRoles(role)
-      if(!userInstance.hasErrors() && userInstance.save())
+      if(!userInstance.hasErrors() && userInstance.save([flush: true]))
       {
         flash.success = "User ${userInstance.username} updated"
         audit('user.updated', userInstance.username, "roles: ${role}")
@@ -132,45 +137,47 @@ class UserController extends ControllerBase
   }
 
   def save = {
-    def userInstance = new User(username: params.username)
+    User.withTransaction {
+      def userInstance = new User(username: params.username)
 
-    if(!params.password)
-    {
-      flash.error = "Please input a password"
-      render(view: 'create', model: [userInstance: userInstance])
-      return
-    }
+      if(!params.password)
+      {
+        flash.error = "Please input a password"
+        render(view: 'create', model: [userInstance: userInstance])
+        return
+      }
 
-    if(params.passwordAgain != params.password)
-    {
-      flash.error = "password is different from password again"
-      render(view: 'create', model: [userInstance: userInstance])
-      return
-    }
+      if(params.passwordAgain != params.password)
+      {
+        flash.error = "password is different from password again"
+        render(view: 'create', model: [userInstance: userInstance])
+        return
+      }
 
-    userInstance.setRoles(RoleName.USER)
+      userInstance.setRoles(RoleName.USER)
 
-    DbUserCredentials ucr = new DbUserCredentials(username: params.username,
-                                                  password: params.password)
+      DbUserCredentials ucr = new DbUserCredentials(username: params.username,
+                                                    password: params.password)
 
-    if(!userInstance.validate() || !ucr.validate())
-    {
-      flash.error = "Error while saving user: ${userInstance.errors} / ${ucr.errors}"
-      render(view: 'create', model: [userInstance: userInstance])
-      return
-    }
+      if(!userInstance.validate() || !ucr.validate())
+      {
+        flash.error = "Error while saving user: ${userInstance.errors} / ${ucr.errors}"
+        render(view: 'create', model: [userInstance: userInstance])
+        return
+      }
 
-    if(userInstance.save() && ucr.save())
-    {
-      flash.success = "User created."
-      audit('user.create', userInstance.username)
-      redirect(action: 'show', id: userInstance.id)
-    }
-    else
-    {
-      flash.error = "Error while saving user: ${userInstance.errors} / ${ucr.errors}"
-      render(view: 'create', model: [userInstance: userInstance])
-      return
+      if(userInstance.save([flush:true]) && ucr.save([flush:true]))
+      {
+        flash.success = "User created."
+        audit('user.create', userInstance.username)
+        redirect(action: 'show', id: userInstance.id)
+      }
+      else
+      {
+        flash.error = "Error while saving user: ${userInstance.errors} / ${ucr.errors}"
+        render(view: 'create', model: [userInstance: userInstance])
+        return
+      }
     }
   }
 

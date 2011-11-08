@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -22,14 +23,14 @@
   <title>Show Fabric</title>
 </head>
 <body>
-<div class="nav">
-  <span class="menuButton"><g:link class="list" action="list">Fabric List</g:link></span>
-  <span class="menuButton"><g:link class="create" action="create">New Fabric</g:link></span>
-</div>
+<ul class="tabs">
+  <li><g:link action="list">Fabric List</g:link></li>
+  <li class="active"><a href="#">Fabric [${fabricInstance.name}]</a></li>
+  <li><g:link controller="fabric" action="edit" id="${fabricInstance.id}">Edit</g:link></li>
+</ul>
 <div class="body">
-  <h1>Show Fabric</h1>
   <div class="dialog">
-    <table>
+    <table class="bordered-table condensed-table noFullWidth">
       <tbody>
 
       <tr class="prop">
@@ -70,7 +71,7 @@
       </tbody>
     </table>
   </div>
-  <g:link controller="fabric" action="edit" id="${fabricInstance.id}">Edit</g:link>
+  <g:link controller="fabric" class="btn primary" action="edit" id="${fabricInstance.id}">Edit</g:link>
 </div>
 </body>
 </html>

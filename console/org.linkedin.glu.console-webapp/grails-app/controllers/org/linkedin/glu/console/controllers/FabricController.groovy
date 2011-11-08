@@ -186,7 +186,7 @@ class FabricController extends ControllerBase
     {
       try
       {
-        fabricInstance.delete(flush: true)
+        Fabric.executeUpdate("delete Fabric f where f.id=?", [fabricInstance.id])
         fabricService.resetCache()
         flash.success = "Fabric ${params.id} deleted"
         audit('fabric.deleted', params.id.toString())

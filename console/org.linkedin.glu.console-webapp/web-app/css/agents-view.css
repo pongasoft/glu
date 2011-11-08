@@ -66,6 +66,10 @@ dt.stackTraceHeader {
   white-space: pre;
 }
 
+dd.stackTraceBody {
+  margin-left: 1.5em;
+}
+
 li.error {
   color: #880000;
   font-weight: bold;

@@ -27,7 +27,7 @@
 <h1>${request.userSession?.customDeltaDefinition?.name?.encodeAsHTML()}<g:if test="${request?.userSession?.customDeltaDefinitionDirty}"> | <g:link controller="dashboard" action="delta" params="['session.reset': true]">Reset</g:link></g:if><g:if test="${request.userSession?.customFilter}"> | ${request.userSession.customFilter.toDSL().encodeAsHTML()} [<g:link controller="dashboard" action="delta" params="['session.systemFilter': '-']">Clear Filter</g:link>]</g:if></h1>
 <div id="__delta">
   <div id="__delta_content">
-    <table class="bordered-table tight-table">
+    <table class="bordered-table xtight-table">
       <thead>
       <tr>
         <th>${delta.firstColumn.name?.encodeAsHTML()}</th>

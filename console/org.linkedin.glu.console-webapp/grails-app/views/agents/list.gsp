@@ -24,7 +24,7 @@
 <ul class="tabs">
   <li class="active"><a href="#">List</a></li>
 </ul>
-<table class="bordered-table tight-table">
+<table class="bordered-table xtight-table">
   <thead>
   <tr>
     <th>Agent</th>

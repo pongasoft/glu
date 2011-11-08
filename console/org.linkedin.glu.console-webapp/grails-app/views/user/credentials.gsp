@@ -42,7 +42,7 @@ You currently do not have a GLU specific password and your LDAP password credent
 </g:else>
 </div>
 <g:form action="updatePassword" method="post">
-  <table>
+  <table class="noFullWidth">
     <tr>
       <th>Current Password:</th>
       <td><g:passwordField name="currentPassword"/></td>
@@ -57,7 +57,7 @@ You currently do not have a GLU specific password and your LDAP password credent
     </tr>
   </table>
   <div class="buttons">
-    <span class="button"><input class="updatePassword" type="submit" value="Save password"/></span>
+    <span class="button"><input class="btn primary" type="submit" value="Save password"/></span>
   </div>
 </g:form>
 

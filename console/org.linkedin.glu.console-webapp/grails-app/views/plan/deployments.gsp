@@ -38,7 +38,7 @@
       display: inline-block;
     }
   </style>
-  <script type="text/javascript" src="${resource(dir:'js',file:'console_yui.js')}"></script>
+  <script type="text/javascript" src="${resource(dir:'js',file:'console_jquery.js')}"></script>
     <g:javascript>
 function shouldRefresh()
 {
@@ -49,12 +49,12 @@ function autoRefresh()
   if(shouldRefresh())
   {
     setTimeout('refresh()', ${params.refreshRate ?: '2000'});
-    showElement('autoRefreshSpinner');
+    show('#autoRefreshSpinner');
     showHide();
   }
   else
   {
-    hideElement('autoRefreshSpinner');
+    hide('#autoRefreshSpinner');
   }
 }
 function refresh()
@@ -65,13 +65,13 @@ function refresh()
   }
   else
   {
-    hideElement('autoRefreshSpinner');
+    hide('#autoRefreshSpinner');
   }
 }
 function showHide()
 {
   <g:each in="${filters.keySet()}" var="filter">
-    toggleClassChildren('asyncDetails', '${filter}', !document.getElementById('${filter}').checked, 'hidden');
+    toggleClass('#asyncDetails .${filter}', !document.getElementById('${filter}').checked, 'hidden');
   </g:each>
 }
     </g:javascript>
@@ -82,14 +82,13 @@ function showHide()
   <li><g:link action="archived">Archived</g:link></li>
 </ul>
 <g:if test="${groupBy != null}">
-  <ul class="submenu">
-    <li>Auto Refresh: <cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
-      <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/>
-      <g:each in="${filters}" var="filter">
+  <h3>
+    Auto Refresh: <cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
+    <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/>
+    <g:each in="${filters}" var="filter">
       |  ${filter.value}: <cl:checkBoxInitFromParams name="${filter.key}" id="${filter.key}" onclick="showHide();"/>
-      </g:each>
-    </li>
-  </ul>
+    </g:each>
+  </h3>
   <div id="asyncDetails">
     <g:render template="deployments" model="[groupBy: groupBy]"/>
   </div>

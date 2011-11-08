@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -19,7 +20,7 @@
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="layout" content="main"/>
-  <title>AuditLog List</title>
+  <title>AuditLog</title>
   <style type="text/css">
   table {
     width: 100%;
@@ -34,12 +35,12 @@
 </head>
 <body>
 <div class="body">
-  <h1>AuditLog List</h1>
+  <h1>AuditLog</h1>
   <div class="paginateButtons">
     <g:paginate total="${auditLogInstanceTotal}" max="100"/>
   </div>
   <div class="list">
-    <table>
+    <table class="bordered-table xtight-table">
       <thead>
       <tr>
 

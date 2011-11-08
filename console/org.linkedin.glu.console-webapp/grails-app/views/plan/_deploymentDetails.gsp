@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -19,16 +20,16 @@
     Aborted
   </g:if>
   <g:else>
-    <ul class="submenu">
-      <li><g:link action="deployments" id="${deployment.id}">Refresh</g:link></li>
+    <h3>
+      <g:link action="deployments" id="${deployment.id}">Refresh</g:link>
     <g:if test="${deployment.planExecution.paused}">
-      <li><g:link action="resumeDeployment" id="${deployment.id}">Resume</g:link></li>
+      | <g:link action="resumeDeployment" id="${deployment.id}">Resume</g:link>
     </g:if>
     <g:else>
-      <li><g:link action="pauseDeployment" id="${deployment.id}">Pause</g:link></li>
+      | <g:link action="pauseDeployment" id="${deployment.id}">Pause</g:link>
     </g:else>
-    <li><g:link action="abortDeployment" id="${deployment.id}">Abort</g:link></li>
-    </ul>
+    | <g:link action="abortDeployment" id="${deployment.id}">Abort</g:link>
+    </h3>
   </g:else>
 </g:if>
 <g:set var="progress" value="${deployment.progressTracker.steps}"/>

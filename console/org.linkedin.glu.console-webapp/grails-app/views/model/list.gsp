@@ -22,7 +22,7 @@
   <meta name="layout" content="main"/>
   <style type="text/css">
   .current {
-    background: #eeeeff;
+    background: #aaffaa;
   }
   </style>
 </head>

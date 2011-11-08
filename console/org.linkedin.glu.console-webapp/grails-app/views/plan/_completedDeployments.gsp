@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -17,7 +18,7 @@
 <%@ page import="org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus" %>
 <h2>Completed deployments [${deployments?.size()}] [<g:link action="archiveAllDeployments" controller="plan" onClick="return confirm('Are you sure you want to archive all deployments ?');">Archive All</g:link>]</h2>
 <g:if test="${deployments}">
-  <table id="completedDeployments">
+  <table class="bordered-table condensed-table" id="completedDeployments">
     <tr>
       <th class="descriptionFilter">Description</th>
       <th class="usernameFilter">Username</th>

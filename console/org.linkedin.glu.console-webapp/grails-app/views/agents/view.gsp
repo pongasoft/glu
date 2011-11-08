@@ -82,10 +82,10 @@
           </g:if>
           <g:else>
             <dd>
-              <dl><g:remoteLink update="stackTraceBody_${mountPoint.mountPoint}" action="fullStackTrace" id="${model.agent.agentName}" params="[mountPoint: mountPoint.mountPoint]">View Full Stack Trace</g:remoteLink></dl>
+              <dl><g:remoteLink update="stackTraceBody-${idx}" action="fullStackTrace" id="${model.agent.agentName}" params="[mountPoint: mountPoint.mountPoint]">View Full Stack Trace</g:remoteLink></dl>
             </dd>
             <dd class="errorStackTrace">
-              <dl id="stackTraceBody_${mountPoint.mountPoint}">
+              <dl id="stackTraceBody-${idx}">
                 <g:each in="${specialEntry.value}" var="ste">
                   <dt class="stackTraceHeader">* ${ste.name.encodeAsHTML()}: "${ste.message?.encodeAsHTML()}"</dt>
                 </g:each>

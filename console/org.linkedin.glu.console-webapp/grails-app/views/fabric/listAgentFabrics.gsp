@@ -70,7 +70,7 @@
     </p>
     <g:set var="status" value="['missing-old': 'Agent is most likely down', 'missing-new': 'Agent is most likely new', 'unknown': 'Unknown to this fabric']"/>
     <g:form name="unassignedAgents" action="setAgentsFabrics">
-      <table>
+      <table class="bordered-table condensed-table">
         <tr>
           <th>Agent</th>
           <th>Fabric</th>
@@ -87,7 +87,7 @@
           </tr>
         </g:each>
       </table>
-      <g:submitButton name="Assign Fabric"/>
+      <g:submitButton class="btn primary" name="Assign Fabric"/>
     </g:form>
   </g:if>
   <g:else>
@@ -95,7 +95,7 @@
   </g:else>
 
   <h1>Assigned agents</h1>
-  <table>
+  <table class="bordered-table condensed-table">
     <tr>
       <th>Agent</th>
       <th>Fabric</th>

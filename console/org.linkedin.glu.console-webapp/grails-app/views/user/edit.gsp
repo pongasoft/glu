@@ -1,6 +1,7 @@
 
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -23,11 +24,12 @@
         <title>Edit User</title>
     </head>
     <body>
-        <div class="nav">
-            <span class="menuButton"><g:link class="list" action="list">User List</g:link></span>
-        </div>
+    <ul class="tabs">
+      <li><g:link action="list">User List</g:link></li>
+      <li><g:link action="show" id="${userInstance.id}">User [${userInstance.username}]</g:link></li>
+      <li class="active"><a href="#">Edit</a></li>
+    </ul>
         <div class="body">
-            <h1>Edit User</h1>
             <g:hasErrors bean="${userInstance}">
             <div class="errors">
                 <g:renderErrors bean="${userInstance}" as="list" />
@@ -37,7 +39,7 @@
                 <input type="hidden" name="id" value="${userInstance?.id}" />
                 <input type="hidden" name="version" value="${userInstance?.version}" />
                 <div class="dialog">
-                    <table>
+                  <table class="bordered-table condensed-table noFullWidth">
                         <tbody>
                         
                             <tr class="prop">
@@ -65,8 +67,8 @@
                     </table>
                 </div>
                 <div class="buttons">
-                    <span class="button"><g:actionSubmit class="save" value="Update" /></span>
-                    <span class="button"><g:actionSubmit class="delete" onclick="return confirm('Are you sure?');" value="Delete" /></span>
+                    <span class="button"><g:actionSubmit class="btn primary" value="Update" /></span>
+                    <span class="button"><g:actionSubmit class="btn" onclick="return confirm('Are you sure?');" value="Delete" /></span>
                 </div>
             </g:form>
         </div>

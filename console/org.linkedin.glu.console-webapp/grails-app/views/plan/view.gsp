@@ -35,8 +35,8 @@
   <div id="plan_${plan.id}">
   <g:form method="post" controller="plan" action="filter" id="${plan.id}">
     <g:hiddenField name="stepId" value="${plan.id}"/>
-    <g:actionSubmit action="filter" value="Filter"/>
-    <g:actionSubmit action="execute" value="Execute" onClick="return confirm('Are you sure you want to execute this plan ?');"/>
+    <g:actionSubmit class="btn primary" action="execute" value="Execute" onClick="return confirm('Are you sure you want to execute this plan ?');"/>
+    <g:actionSubmit class="btn" action="filter" value="Filter"/>
     <g:render template="plan" model="[plan: plan]"/>
   </g:form>
   </div>

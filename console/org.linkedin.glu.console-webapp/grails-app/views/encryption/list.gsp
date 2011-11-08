@@ -22,13 +22,13 @@
   <meta name="layout" content="main"/>
 </head>
 <body>
-<ul class="submenu">
-  <li  class="selected">List</li>
+<ul class="tabs">
+  <li class="active"><a href="#">List</a></li>
   <li><g:link action="create">New</g:link></li>
   <li><g:link action="encrypt">Encrypt/Decrypt</g:link></li>
-</ul
+</ul>
 <h3>Number of keys in KeyStore: ${count}</h3>
-<table>
+<table class="bordered-table condensed-table noFullWidth">
   <tr>
     <th>KeyName</th>
     <th>Base64 Encoded Value</th>

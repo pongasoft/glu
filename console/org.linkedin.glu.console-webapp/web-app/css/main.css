@@ -34,12 +34,36 @@ dl {
   margin-top: 1px;
 }
 
-table {
+.bordered-table {
   border-collapse: collapse;
+  border-color: #888888;
+}
+
+.bordered-table td {
+  border-color: #888888;
+}
+
+.bordered-table th {
+  border-color: #888888;
+  /*color: white;*/
+  background-color: #f0f0ff;
+}
+
+.bordered-table th + th, .bordered-table td + td, .bordered-table th + td {
+  border: 1px solid #888888;
 }
 
 table.tight-table th, table.tight-table td {
+  padding: 0.2em;
+}
+
+table.xtight-table th, table.xtight-table td {
   padding: 0 0.1em 0 0.1em;
+}
+
+pre {
+  white-space: pre;
+  overflow-y: auto;
 }
 
 li {
@@ -76,9 +100,9 @@ li {
   /*border: solid 1px #005a87;*/
 /*}*/
 
-/*form .input {*/
-  /*margin-left: inherit;*/
-/*}*/
+form .input {
+  margin-left: inherit;
+}
 
 .modal {
   width: auto;
@@ -293,6 +317,10 @@ dl.plan dd {
 
 dl.plan .LEAF {
   margin: .2em 0em .2em 0em;
+}
+
+dl dt {
+  font-weight: normal;
 }
 
 .paginateButtons {

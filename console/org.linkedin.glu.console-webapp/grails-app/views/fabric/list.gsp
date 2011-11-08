@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -22,13 +23,13 @@
   <title>Fabric List</title>
 </head>
 <body>
-<div class="nav">
-  <span class="menuButton"><g:link class="create" action="create">New Fabric</g:link></span>
-</div>
+<ul class="tabs">
+  <li class="active"><a href="#">Fabric List</a></li>
+  <li><g:link action="create">New</g:link></li>
+</ul>
 <div class="body">
-  <h1>Fabric List</h1>
   <div class="list">
-    <table>
+    <table class="bordered-table condensed-table">
       <thead>
       <tr>
 
@@ -56,7 +57,7 @@
 
           <td>${fieldValue(bean: fabricInstance, field: 'zkSessionTimeout')}</td>
 
-          <td>${fieldValue(bean: fabricInstance, field: 'color')}</td>
+          <td style="background-color: ${fieldValue(bean: fabricInstance, field: 'color')};"><span style="color: white;">${fieldValue(bean: fabricInstance, field: 'color')}</span></td>
 
         </tr>
       </g:each>

@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2011 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -20,19 +21,19 @@
   <meta name="layout" content="main"/>
   <title>Create New Encryption Key</title>
   <link rel="stylesheet" href="${resource(dir:'css',file:'main.css')}"/>
-  <script type="text/javascript" src="${resource(dir:'js',file:'console_yui.js')}"></script>
+  <script type="text/javascript" src="${resource(dir:'js',file:'console_jquery.js')}"></script>
 </head>
 <body>
-<ul class="submenu">
+<ul class="tabs">
   <li><g:link action="list">List</g:link></li>
-  <li class="selected">New</li>
+  <li class="active"><a href="#">New</a></li>
   <li><g:link action="encrypt">Encrypt/Decrypt</g:link></li>
 </ul>
 <div class="body">
   <h3>Create New Encryption Key</h3>
   <g:form action="ajaxSave" method="post">
     <div class="dialog">
-      <table>
+      <table class="bordered-table condensed-table noFullWidth">
         <tbody>
 
         <tr class="prop">
@@ -44,7 +45,7 @@
         </tbody>
       </table>
     </div>
-    <g:submitToRemote action="ajaxSave" update="status" value='Create'/>
+    <g:submitToRemote class="btn primary" action="ajaxSave" update="status" value='Create'/>
   </g:form>
 
   <div id="status" class="info">Output Area</div>

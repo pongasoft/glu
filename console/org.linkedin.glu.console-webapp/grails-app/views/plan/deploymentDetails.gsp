@@ -40,7 +40,7 @@
       display: inline-block;
     }
   </style>
-  <script type="text/javascript" src="${resource(dir:'js',file:'console_yui.js')}"></script>
+  <script type="text/javascript" src="${resource(dir:'js',file:'console_jquery.js')}"></script>
   <g:javascript>
 function shouldRefresh()
 {
@@ -56,18 +56,18 @@ function shouldRefresh()
 function showErrorsOnly()
 {
   var show = document.getElementById('showErrorsOnly').checked;
-  toggleClassChildren('deployment-details', 'COMPLETED', show, 'hidden');
+  toggleClass('#deployment-details .COMPLETED', show, 'hidden');
 }
 function autoRefresh()
 {
   if(shouldRefresh())
   {
     setTimeout('refresh()', 1000);
-    showElement('autoRefreshSpinner');
+    show('#autoRefreshSpinner');
   }
   else
   {
-    hideElement('autoRefreshSpinner');
+    hide('#autoRefreshSpinner');
   }
 }
 function onRefreshComplete()
@@ -87,23 +87,23 @@ function refresh()
   }
   else
   {
-    hideElement('autoRefreshSpinner');
+    hide('#autoRefreshSpinner');
   }
 }
   </g:javascript>
 </head>
 <body onload="showErrorsOnly();autoRefresh();">
-<ul class="submenu">
+<ul class="tabs">
   <li><g:link action="deployments">Recent</g:link></li>
-  <li class="selected">${deployment.description.encodeAsHTML()}</li>
+  <li class="active"><a href="#">Recent [${deployment.description.encodeAsHTML()}]</a></li>
+  <li><g:link action="archived">Archived</g:link></li>
 </ul>
 
-<ul class="submenu">
-  <li>Show Errors Only: <cl:checkBoxInitFromParams name="showErrorsOnly" id="showErrorsOnly" onclick="showErrorsOnly();"/></li>
-  <li>Auto Refresh: <cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
-    <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/>
-</li>
-</ul>
+<h3>
+  Show Errors Only: <cl:checkBoxInitFromParams name="showErrorsOnly" id="showErrorsOnly" onclick="showErrorsOnly();"/> |
+  Auto Refresh: <cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
+  <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/>
+</h3>
 
 <div id="asyncDetails">
   <g:render template="deploymentDetails" model="[deployment: deployment]"/>

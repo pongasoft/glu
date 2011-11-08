@@ -191,6 +191,7 @@ public class CustomDeltaDefinition implements Externable
     {
       CustomDeltaColumnDefinition cdcd = new CustomDeltaColumnDefinition(source: 'statusInfo',
                                                                          name: 'statusInfo',
+                                                                         groupBy: 'vals',
                                                                          visible: false)
 
       columnsDefinition << cdcd

@@ -42,7 +42,7 @@
         <td>${stats[columnName] ?: 0}</td>
       </g:each>
       <td><g:if test="${system.size}">${new MemorySize(system.size)}</g:if><g:else>N/A</g:else></td>
-      <td><input type="radio" name="id" value="${system.systemId}" ${system.systemId == request.system?.id ? 'checked="checked"' : ''} onclick="if(confirm('Are you sure you want to set system [${system.systemId}] as the curren one?')) {this.form.submit()} else return false;"/></td>
+      <td><input type="radio" name="id" value="${system.systemId}" ${system.systemId == request.system?.id ? 'checked="checked"' : ''} onclick="if(confirm('Are you sure you want to set system [${system.systemId}] as the current one?')) {this.form.submit()} else return false;"/></td>
     </tr>
   </g:each>
   </tbody>
