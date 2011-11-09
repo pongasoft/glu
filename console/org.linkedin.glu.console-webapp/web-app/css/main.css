@@ -216,3 +216,21 @@ ul.tags.with-links a:hover {
   margin-left: .5em;
   float: left;
 }
+
+td.systemFilter li {
+  list-style: none;
+}
+
+td.systemFilter ul {
+  margin-left: .5em;
+  margin-bottom: 0;
+}
+
+li.filter-LogicSystemFilterChain {
+  list-style: none;
+  font-weight: bold;
+}
+
+.summary-checkbox, .errorsOnly-checkbox {
+  text-align: center;
+}

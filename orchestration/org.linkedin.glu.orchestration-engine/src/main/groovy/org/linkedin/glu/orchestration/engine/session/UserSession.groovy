@@ -39,15 +39,18 @@ interface UserSession
   /**
    * Processes the custom filter this way assuming <code>F</code> is a parseable filter
    *
-   * <code>+F</code> means {@link #addCustomFilter(SystemFilter)}
-   * <code>~F</code> means {@link #resetAndAddCustomFilter(SystemFilter)}
-   * <code>F</code> (or <code>-F</code>) means {@link #clearAndSetCustomFilter(SystemFilter)}
+   * <code>~</code> means {@link #resetCustomFilter()}
    * <code>-</code> means {@link #clearCustomFilter()}
+   * <code>+F</code> means {@link #addCustomFilter(SystemFilter)}
+   * <code>-F</code> means {@link #removeCustomFilter(SystemFilter)}
+   * <code>~F</code> means {@link #resetAndAddCustomFilter(SystemFilter)}
+   * <code>F</code> means {@link #clearAndSetCustomFilter(SystemFilter)}
    */
   void setCustomFilter(String customFilter)
 
   // custom filter manipulation
   void addCustomFilter(SystemFilter customFilter)
+  void removeCustomFilter(SystemFilter customFilter)
   void resetAndAddCustomFilter(SystemFilter customFilter)
   void clearAndSetCustomFilter(SystemFilter customFilter)
   void resetCustomFilter()

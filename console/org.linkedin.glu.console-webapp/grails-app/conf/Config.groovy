@@ -100,6 +100,8 @@ hibernate.flush.mode="manual"
 console.dev.defaults =
   [
     customCss: null,
+
+//    dashboardAgentLinksToAgent: false,
     
       dashboard:
       [

@@ -87,10 +87,12 @@ class UserSessionImpl implements UserSession
   /**
    * Processes the custom filter this way assuming <code>F</code> is a parseable filter
    *
-   * <code>+F</code> means {@link #addCustomFilter(SystemFilter)}
-   * <code>~F</code> means {@link #resetAndAddCustomFilter(SystemFilter)}
-   * <code>F</code> (or <code>-F</code>) means {@link #clearAndSetCustomFilter(SystemFilter)}
+   * <code>~</code> means {@link #resetCustomFilter()}
    * <code>-</code> means {@link #clearCustomFilter()}
+   * <code>+F</code> means {@link #addCustomFilter(SystemFilter)}
+   * <code>-F</code> means {@link #removeCustomFilter(SystemFilter)}
+   * <code>~F</code> means {@link #resetAndAddCustomFilter(SystemFilter)}
+   * <code>F</code> means {@link #clearAndSetCustomFilter(SystemFilter)}
    */
   @Override
   void setCustomFilter(String filter)
@@ -106,34 +108,40 @@ class UserSessionImpl implements UserSession
     if(filter == '-')
     {
       clearCustomFilter()
+      return
     }
-    else
+
+    if(filter == '~')
     {
-      if(filter.size() < 2)
-        throw new IllegalArgumentException("invalid filter ${filter}")
+      resetCustomFilter()
+      return
+    }
 
-      switch(filter[0])
-      {
-        case '+':
-          filter = filter[1..-1]
-          break
+    if(filter.size() < 2)
+      throw new IllegalArgumentException("invalid filter ${filter}")
 
-        case '~':
-          resetCustomFilter()
-          filter = filter[1..-1]
-          break
+    switch(filter[0])
+    {
+      case '+':
+        filter = filter[1..-1]
+        addCustomFilter(SystemFilterBuilder.parse(filter))
+        break
 
-        case '-':
-          clearCustomFilter()
-          filter = filter[1..-1]
-          break
+      case '-':
+        filter = filter[1..-1]
+        removeCustomFilter(SystemFilterBuilder.parse(filter))
+        break
 
-        default:
-          clearCustomFilter()
-          break
-      }
+      case '~':
+        resetCustomFilter()
+        filter = filter[1..-1]
+        addCustomFilter(SystemFilterBuilder.parse(filter))
+        break
 
-      addCustomFilter(SystemFilterBuilder.parse(filter))
+      default:
+        clearCustomFilter()
+        addCustomFilter(SystemFilterBuilder.parse(filter))
+        break
     }
   }
 
@@ -141,6 +149,13 @@ class UserSessionImpl implements UserSession
   {
     customDeltaDefinition.customFilter =
       SystemFilterBuilder.and(customDeltaDefinition.customFilter, customFilter)
+  }
+
+  @Override
+  void removeCustomFilter(SystemFilter customFilter)
+  {
+    customDeltaDefinition.customFilter =
+      SystemFilterBuilder.unand(customDeltaDefinition.customFilter, customFilter)
   }
 
   void resetAndAddCustomFilter(SystemFilter customFilter)

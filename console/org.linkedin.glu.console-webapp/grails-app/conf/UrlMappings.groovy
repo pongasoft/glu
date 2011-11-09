@@ -29,6 +29,7 @@ class UrlMappings
      */
     // dashboard
     "/dashboard"(controller: 'dashboard', action: 'delta') { __nvbe = 'Dashboard' }
+    "/dashboard/redelta"(controller: 'dashboard', action: 'redelta') { __nvbe = 'Dashboard' }
     "/dashboard/renderDelta"(controller: 'dashboard', action: 'renderDelta') { __nvbe = 'Dashboard' }
     "/dashboard/index"(controller: 'dashboard', action: 'index') { __nvbe = 'Dashboard' }
     "/dashboard/customize"(controller: 'dashboard', action: 'customize') { __nvbe = 'Dashboard' }
@@ -59,9 +60,6 @@ class UrlMappings
     // model
     "/model/list"(controller: 'model', action: 'list') { __nvbe = 'Model' }
     "/model/view/$id"(controller: 'model', action: 'view') { __nvbe = 'Model' }
-
-    // TODO HIGH YP:  added back temporarily for testing
-    "/system/filter/values/$id/$value?"(controller: 'system', action: 'filter_values') { __nvbe = 'System' }
 
     // auth
     "/auth/$action?/$id?"(controller: 'auth')

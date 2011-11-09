@@ -19,31 +19,9 @@
     <th>System</th>
     <td class="systemId"><g:link controller="model" action="view" id="${request.system.id}">${request.system.id}</g:link></td>
     <th>Filter</th>
-    <td><g:if test="${request.system.filters}">${request.system.filters.toString().encodeAsHTML()}</g:if><g:else>-</g:else></td>
+    <td class="systemFilter"><cl:renderSystemFilter filter="${request.system.filters}" renderRemoteLink="${false}"/></td>
   </tr>
 </table>
-%{--<g:set var="columns" value="${columns == null ? ConsoleConfig.getInstance().defaults.system : columns}"/>--}%
-%{--<table class="bordered-table xtight-table">--}%
-  %{--<thead>--}%
-  %{--<tr>--}%
-    %{--<th>System</th>--}%
-    %{--<th>Filter</th>--}%
-    %{--<g:each in="${columns.values()}" var="column">--}%
-      %{--<th>${column.name}</th>--}%
-    %{--</g:each>--}%
-  %{--</tr>--}%
-  %{--</thead>--}%
-  %{--<tbody>--}%
-  %{--<tr>--}%
-    %{--<td class="systemId"><g:link controller="model" action="view" id="${request.system.id}">${request.system.id}</g:link></td>--}%
-    %{--<td><g:if test="${request.system.filters}">${request.system.filters.toString().encodeAsHTML()}</g:if><g:else>-</g:else></td>--}%
-    %{--<g:set var="stats" value="${request.system.computeStats(columns.keySet()) ?: [:]}"/>--}%
-    %{--<g:each in="${columns.keySet()}" var="columnName">--}%
-      %{--<td>${stats[columnName] ?: 0}</td>--}%
-    %{--</g:each>--}%
-  %{--</tr>--}%
-  %{--</tbody>--}%
-%{--</table>--}%
 <div id="select-plan">
   <g:form controller="plan" action="redirectView">
     <table id="select-plan-radio" class="noFullWidth bordered-table tight-table">

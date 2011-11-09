@@ -171,8 +171,11 @@ class UserPreferencesFilters
       userSession.resetCustomDeltaDefinition()
 
     // set custom filter
-    String sessionFilter = params['session.systemFilter']
-    userSession.setCustomFilter(sessionFilter)
+    def sessionFilter = params['session.systemFilter']
+    if(sessionFilter instanceof String)
+      userSession.setCustomFilter(sessionFilter)
+    else
+      sessionFilter?.each { userSession.setCustomFilter(it) }
 
     // adjust summary
     userSession.customDeltaDefinition.summary =

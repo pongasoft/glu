@@ -104,6 +104,47 @@ public class SystemFilterBuilder
   }
 
   /**
+   * This is the 'opposite' of <code>and</code>: tries to remove f2 from f1 (if possible... this
+   * call is simplified in the sense that it does not handle complex scenarios)
+   */
+  static SystemFilter unand(SystemFilter f1, SystemFilter f2)
+  {
+    if(f1 == null)
+      return null
+
+    if(f2 == null)
+      return f1
+
+    if(f2 == f1)
+      return null
+
+    Set<SystemFilter> filters = new LinkedHashSet<SystemFilter>()
+
+    if(f1 instanceof LogicAndSystemFilterChain)
+    {
+      filters.addAll(f1.filters.collect { it })
+
+      if(f2 instanceof LogicAndSystemFilterChain)
+      {
+        filters.removeAll(f2.filters)
+      }
+      else
+      {
+        filters.remove(f2)
+      }
+    }
+
+    if(!filters)
+      return null
+
+    if(filters.size() == 1)
+      return filters.iterator().next()
+    else
+      return new LogicAndSystemFilterChain(filters: filters)
+  }
+
+
+  /**
    * Convenient call to create a chain of filters that are 'anded' together. Handle properly
    * <code>null</code> and 'adjacent' 'and' filters.
    */

@@ -33,6 +33,11 @@ import org.linkedin.glu.orchestration.engine.delta.CustomDeltaColumnDefinition
 import org.linkedin.glu.console.filters.UserPreferencesFilters
 import org.linkedin.glu.provisioner.core.model.SystemFilterBuilder
 import org.linkedin.glu.provisioner.core.model.PropertySystemFilter
+import org.linkedin.glu.provisioner.core.model.SystemFilter
+import org.linkedin.glu.provisioner.core.model.LogicSystemFilterChain
+import org.linkedin.glu.provisioner.core.model.NameEqualsValueSystemFilter
+import org.linkedin.glu.provisioner.core.model.TagsSystemFilter
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 
 /**
  * Tag library for the console.
@@ -191,8 +196,19 @@ public class ConsoleTagLib
       case 'agent':
         if(column.linkable)
         {
-          out << g.link(controller: 'agents', action: 'view', id: value.encodeAsHTML()) {
-            out << value.encodeAsHTML()
+          if(GluGroovyLangUtils.getOptionalBoolean(consoleConfig.defaults.dashboardAgentLinksToAgent,
+                                                   true))
+          {
+            out << g.link(controller: 'agents', action: 'view', id: value.encodeAsHTML()) {
+              out << value.encodeAsHTML()
+            }
+          }
+          else
+          {
+            out << cl.linkToFilteredDashboard(systemFilter: "${column.source}='${value}'",
+                                              groupBy: column.name) {
+              out << value.encodeAsHTML()
+            }
           }
         }
         else
@@ -272,6 +288,48 @@ public class ConsoleTagLib
   }
 
   /**
+   * Recursively displays the system filter
+   */
+  def renderSystemFilter = { args ->
+    SystemFilter filter = args.filter
+    boolean renderRemoteLink = GluGroovyLangUtils.getOptionalBoolean(args.renderRemoteLink, true)
+
+    switch(filter)
+    {
+      case LogicSystemFilterChain:
+        out << "<li class=\"filter-LogicSystemFilterChain\">${filter.kind.encodeAsHTML()}</li>"
+        out << "<ul>"
+        filter.filters.each { SystemFilter f ->
+          out << "<li>"
+          out << cl.renderSystemFilter(filter: f)
+          out << "</li>"
+        }
+        out << "</ul>"
+        break
+
+      case NameEqualsValueSystemFilter:
+      case TagsSystemFilter:
+        out << filter.toDSL().encodeAsHTML()
+        if(renderRemoteLink)
+        {
+          out << '['
+          out << g.link(controller: 'dashboard',
+                        action: 'redelta',
+                        params: [
+                        'session.systemFilter': "-${filter.toDSL()}",
+                        ]) {
+            '&times;'
+          }
+          out << ']'
+        }
+        break
+
+      default:
+        out << (filter?.toString()?.encodeAsHTML() ?: '-')
+    }
+  }
+
+  /**
    * Create a link to the dashboard (filtered)
    */
   def linkToFilteredDashboard = { args, body ->
@@ -279,10 +337,10 @@ public class ConsoleTagLib
     def groupBy = args.groupBy ?: name
 
     out << g.link(controller: 'dashboard',
-                  action: 'delta',
+                  action: 'redelta',
                   params: [
-                    'session.systemFilter': systemFilter,
-                    'session.groupBy': groupBy,
+                    'session.systemFilter': "+${systemFilter}",
+//                    'session.groupBy': groupBy,
                     ]) {
       out << body()
     }
@@ -725,7 +783,7 @@ public class ConsoleTagLib
       out << '<ul class="dropdown-menu">'
       fabricNames.each { fabricName ->
         out << "<li>"
-        out << g.link(controller: 'dashboard', action: 'delta', params: [fabric: fabricName]) { fabricName.encodeAsHTML() }
+        out << g.link(controller: 'dashboard', action: 'redelta', params: [fabric: fabricName]) { fabricName.encodeAsHTML() }
         out << "</li>"
       }
       out << '</ul>'
@@ -744,7 +802,7 @@ public class ConsoleTagLib
     out << "<a href=\"#\" class=\"dropdown-toggle\">${request.userSession?.currentCustomDeltaDefinitionName?.encodeAsHTML()}</a>"
     out << "<ul class=\"dropdown-menu\">"
     out << "<li>"
-    out << g.link(controller: 'dashboard', action: 'index', params: ['session.reset': true]) {
+    out << g.link(controller: 'dashboard', action: 'redelta', params: ['session.reset': true]) {
       "Reset"
     }
     out << "</li>"
@@ -761,7 +819,7 @@ public class ConsoleTagLib
       def redirectParams = [:]
       redirectParams[UserPreferencesFilters.CUSTOM_DELTA_DEFINITION_COOKIE_NAME] = name
       redirectParams['session.clear'] = true
-      out << g.link(controller: 'dashboard', action: 'index', params: redirectParams) {
+      out << g.link(controller: 'dashboard', action: 'redelta', params: redirectParams) {
         name.encodeAsHTML()
       }
       out << "</li>"
@@ -785,7 +843,8 @@ public class ConsoleTagLib
       def possibleValues = request.system.metadata[name]
       if(possibleValues)
       {
-        String selectedFilter = null
+        String selectedFilterDisplayName = null
+        SystemFilter selectedFilter = null
 
         def dd = new TreeMap()
 
@@ -794,7 +853,7 @@ public class ConsoleTagLib
           def entry = [:]
 
           // filter
-          entry.filter = "${source}='${value.name}'".toString()
+          entry.filter = "+${source}='${value.name}'".toString()
 
           // display name
           def displayName = [value.name]
@@ -805,11 +864,13 @@ public class ConsoleTagLib
           }
           entry.displayName = displayName.join(':').encodeAsHTML()
 
-          if(SystemFilterBuilder.definesSubsetOrEqual(new PropertySystemFilter(name: source,
-                                                                               value: value.name),
+          PropertySystemFilter filter = new PropertySystemFilter(name: source,
+                                                                 value: value.name)
+          if(SystemFilterBuilder.definesSubsetOrEqual(filter,
                                                       request.system.filters))
           {
-            selectedFilter = entry.displayName
+            selectedFilterDisplayName = entry.displayName
+            selectedFilter = filter
           }
           else
           {
@@ -817,27 +878,31 @@ public class ConsoleTagLib
           }
         }
 
-
-
         out << '<li class="dropdown">'
         out << "<a href=\"#\" class=\"dropdown-toggle\">"
-        if(selectedFilter)
-          out << selectedFilter.encodeAsHTML()
+        if(selectedFilterDisplayName)
+          out << selectedFilterDisplayName.encodeAsHTML()
         else
           out << "All [${name}]"
         out << "</a>"
         out << '<ul class="dropdown-menu">'
         dd.values().each { v ->
           out << "<li>"
-          out << g.link(controller: 'dashboard', action: 'delta', params: ["session.systemFilter": v.filter]) {
-            v.displayName.encodeAsHTML()
+          def filter = v.filter
+          // YP note: there seems to be a bug (caching) with grails when using an array with
+          // params and g.link... need to build by hand!
+          def href = "${g.createLink(controller: 'dashboard', action: 'delta')}?session.systemFilter=${URLEncoder.encode(filter)}"
+          if(selectedFilter)
+          {
+            href = "${href}&session.systemFilter=-${URLEncoder.encode(selectedFilter.toDSL())}"
           }
+          out << "<a href=\"${href}\">${v.displayName.encodeAsHTML()}</a>"
           out << "</li>"
         }
         if(selectedFilter)
         {
           out << "<li>"
-          out << g.link(controller: 'dashboard', action: 'delta', params: ["session.systemFilter": "-"]) {
+          out << g.link(controller: 'dashboard', action: 'redelta', params: ["session.systemFilter": "-${selectedFilter.toDSL()}".toString()]) {
             'All'
           }
           out << '</li>'

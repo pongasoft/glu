@@ -68,6 +68,10 @@ class DashboardController extends ControllerBase
     return [delta: doComputeDelta()]
   }
 
+  def redelta = {
+    redirect(action: 'delta')
+  }
+
   /**
    * Called in order to customize the dashboard
    */
