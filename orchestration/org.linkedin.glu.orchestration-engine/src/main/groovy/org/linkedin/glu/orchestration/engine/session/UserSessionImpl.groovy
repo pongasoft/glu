@@ -22,6 +22,10 @@ import org.linkedin.glu.provisioner.core.model.SystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemFilterBuilder
 import org.linkedin.glu.orchestration.engine.delta.UserCustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
+import org.linkedin.glu.provisioner.core.model.PropertySystemFilter
+import org.linkedin.glu.orchestration.engine.delta.CustomDeltaColumnDefinition
+import org.linkedin.glu.provisioner.core.model.LogicSystemFilterChain
+import org.linkedin.glu.provisioner.core.model.SystemFilterHelper
 
 /**
  * @author yan@pongasoft.com */
@@ -30,6 +34,7 @@ class UserSessionImpl implements UserSession
   UserCustomDeltaDefinition current
   UserCustomDeltaDefinition original
   Collection<String> customDeltaDefinitionNames
+  String fabric
 
   @Override
   CustomDeltaDefinition getCustomDeltaDefinition()
@@ -148,20 +153,20 @@ class UserSessionImpl implements UserSession
   void addCustomFilter(SystemFilter customFilter)
   {
     customDeltaDefinition.customFilter =
-      SystemFilterBuilder.and(customDeltaDefinition.customFilter, customFilter)
+      SystemFilterHelper.and(customDeltaDefinition.customFilter, customFilter)
   }
 
   @Override
   void removeCustomFilter(SystemFilter customFilter)
   {
     customDeltaDefinition.customFilter =
-      SystemFilterBuilder.unand(customDeltaDefinition.customFilter, customFilter)
+      SystemFilterHelper.unand(customDeltaDefinition.customFilter, customFilter)
   }
 
   void resetAndAddCustomFilter(SystemFilter customFilter)
   {
     customDeltaDefinition.customFilter =
-      SystemFilterBuilder.and(original.customDeltaDefinition.customFilter, customFilter)
+      SystemFilterHelper.and(original.customDeltaDefinition.customFilter, customFilter)
   }
 
   void clearAndSetCustomFilter(SystemFilter customFilter)
@@ -185,5 +190,41 @@ class UserSessionImpl implements UserSession
   SystemFilter getCustomFilter()
   {
     customDeltaDefinition.customFilter
+  }
+
+  @Override
+  String getCustomFilterDisplayName()
+  {
+    SystemFilter filter = customFilter
+
+    if(filter == null)
+      return "Fabric [${fabric}]".toString()
+
+    return computeFilterDisplayName(filter, 0)
+  }
+
+  /**
+   * Internal recursive call to build the display name
+   */
+  private String computeFilterDisplayName(SystemFilter filter, int level)
+  {
+    switch(filter)
+    {
+      case PropertySystemFilter:
+        def name = customDeltaDefinition.columnsDefinition.find {
+          it.source == filter.name
+        }?.name ?: filter.name
+        return "${name} [${filter.value}]".toString()
+
+      case LogicSystemFilterChain:
+        def separator = (filter.kind == 'and' ? '-' : filter.kind)
+        def res = filter.filters.collect { computeFilterDisplayName(it, level + 1) }.join (" ${separator} ")
+        if(level > 0)
+          res = "(${res})"
+        return res.toString()
+
+      default:
+        return filter.toString()
+    }
   }
 }

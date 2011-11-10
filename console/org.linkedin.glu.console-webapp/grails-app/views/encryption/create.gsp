@@ -21,7 +21,6 @@
   <meta name="layout" content="main"/>
   <title>Create New Encryption Key</title>
   <link rel="stylesheet" href="${resource(dir:'css',file:'main.css')}"/>
-  <script type="text/javascript" src="${resource(dir:'js',file:'console_jquery.js')}"></script>
 </head>
 <body>
 <ul class="tabs">

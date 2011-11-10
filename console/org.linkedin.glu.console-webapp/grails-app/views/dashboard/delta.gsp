@@ -21,7 +21,6 @@
   <title>Dashboard</title>
   <meta name="layout" content="main"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'delta.css')}"/>
-  <script type="text/javascript" src="${resource(dir:'js',file:'console_jquery.js')}"></script>
 </head>
 <body>
 <ul class="tabs">

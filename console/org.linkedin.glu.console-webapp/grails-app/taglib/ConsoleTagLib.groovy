@@ -31,13 +31,16 @@ import org.linkedin.glu.orchestration.engine.fabric.FabricService
 import org.linkedin.groovy.util.lang.GroovyLangUtils
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaColumnDefinition
 import org.linkedin.glu.console.filters.UserPreferencesFilters
-import org.linkedin.glu.provisioner.core.model.SystemFilterBuilder
+
 import org.linkedin.glu.provisioner.core.model.PropertySystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemFilter
 import org.linkedin.glu.provisioner.core.model.LogicSystemFilterChain
-import org.linkedin.glu.provisioner.core.model.NameEqualsValueSystemFilter
-import org.linkedin.glu.provisioner.core.model.TagsSystemFilter
+
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
+import org.linkedin.glu.provisioner.core.model.ClosureSystemFilter
+import org.linkedin.glu.provisioner.core.model.SystemEntryKeyModelFilter
+import org.linkedin.glu.provisioner.core.model.FlattenSystemFilter
+import org.linkedin.glu.provisioner.core.model.SystemFilterHelper
 
 /**
  * Tag library for the console.
@@ -292,7 +295,7 @@ public class ConsoleTagLib
    */
   def renderSystemFilter = { args ->
     SystemFilter filter = args.filter
-    boolean renderRemoteLink = GluGroovyLangUtils.getOptionalBoolean(args.renderRemoteLink, true)
+    boolean renderRemoveLink = GluGroovyLangUtils.getOptionalBoolean(args.renderRemoveLink, true)
 
     switch(filter)
     {
@@ -301,31 +304,39 @@ public class ConsoleTagLib
         out << "<ul>"
         filter.filters.each { SystemFilter f ->
           out << "<li>"
-          out << cl.renderSystemFilter(filter: f)
+          out << cl.renderSystemFilter(filter: f, renderRemoveLink: renderRemoveLink)
           out << "</li>"
         }
         out << "</ul>"
         break
 
-      case NameEqualsValueSystemFilter:
-      case TagsSystemFilter:
-        out << filter.toDSL().encodeAsHTML()
-        if(renderRemoteLink)
-        {
-          out << '['
-          out << g.link(controller: 'dashboard',
-                        action: 'redelta',
-                        params: [
-                        'session.systemFilter': "-${filter.toDSL()}",
-                        ]) {
-            '&times;'
-          }
-          out << ']'
-        }
+      case ClosureSystemFilter:
+      case SystemEntryKeyModelFilter:
+      case FlattenSystemFilter:
+        // toDSL throws an exception... currently
+        out << filter.toString().encodeAsHTML()
         break
 
       default:
-        out << (filter?.toString()?.encodeAsHTML() ?: '-')
+        if(filter)
+        {
+          out << filter.toDSL().encodeAsHTML()
+          if(renderRemoveLink)
+          {
+            out << '['
+            out << g.link(controller: 'dashboard',
+                          action: 'redelta',
+                          params: [
+                          'session.systemFilter': "-${filter.toDSL()}",
+                          ]) {
+              '&times;'
+            }
+            out << ']'
+          }
+        }
+        else
+          out << '-'
+        break
     }
   }
 
@@ -463,10 +474,13 @@ public class ConsoleTagLib
 
   def mapToTable = { args ->
     def map = args.map
+    def clazz = args.class
 
     if(map)
     {
-      out << '<table>'
+      if(clazz)
+        clazz = "class=\"${clazz.encodeAsHTML()}\""
+      out << "<table ${clazz}>"
       map.keySet().sort().each { key ->
         def value = map[key]
         out << '<tr>'
@@ -866,8 +880,8 @@ public class ConsoleTagLib
 
           PropertySystemFilter filter = new PropertySystemFilter(name: source,
                                                                  value: value.name)
-          if(SystemFilterBuilder.definesSubsetOrEqual(filter,
-                                                      request.system.filters))
+          if(SystemFilterHelper.definesSubsetOrEqual(filter,
+                                                     request.system.filters))
           {
             selectedFilterDisplayName = entry.displayName
             selectedFilter = filter

@@ -57,6 +57,7 @@
   <g:javascript src="twitter-bootstrap/bootstrap-modal.js" />
   <g:javascript src="twitter-bootstrap/bootstrap-dropdown.js" />
   <g:javascript src="twitter-bootstrap/bootstrap-alerts.js" />
+  <script type="text/javascript" src="${resource(dir:'js',file:'console_jquery.js')}"></script>
 </head>
 <body onload="${pageProperty(name:'body.onload')}">
 <g:set var="zkStatus" value="zk-unknown" scope="request"/>

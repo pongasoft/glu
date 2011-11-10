@@ -42,7 +42,7 @@
   <li><g:link controller="dashboard" action="customize">Customize</g:link></li>
 </ul>
 <g:if test="${request.system}">
-  <g:render template="/plan/selectPlan" model="[title: title, filter: filter, hasDelta: hasDelta]"/>
+  <g:render template="/plan/selectPlan" model="[title: title, hasDelta: hasDelta]"/>
 </g:if>
 <g:else>
   <h2>No System selected.</h2>

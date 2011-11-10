@@ -56,6 +56,7 @@ class UserPreferencesFilters
         // Initializes the custom delta definition
         UserSession userSession =
           initUserSession(params, request)
+        userSession?.setFabric(fabric?.name)
 
         // Initializes the system
         initSystemModel(fabric, userSession, params, flash, request)

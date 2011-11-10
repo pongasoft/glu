@@ -19,14 +19,14 @@
     <th>System</th>
     <td class="systemId"><g:link controller="model" action="view" id="${request.system.id}">${request.system.id}</g:link></td>
     <th>Filter</th>
-    <td class="systemFilter"><cl:renderSystemFilter filter="${request.system.filters}" renderRemoteLink="${false}"/></td>
+    <td class="systemFilter"><cl:renderSystemFilter filter="${request.system.filters}" renderRemoveLink="false"/></td>
   </tr>
 </table>
 <div id="select-plan">
   <g:form controller="plan" action="redirectView">
     <table id="select-plan-radio" class="noFullWidth bordered-table tight-table">
       <tr>
-        <th colspan="6">${title}</th>
+        <th colspan="6">${title?.encodeAsHTML()}</th>
       </tr>
       <g:each in="['Deploy', 'Bounce', 'Redeploy', 'Undeploy']" var="planType">
         <g:if test="${planType != 'Deploy' || hasDelta}">

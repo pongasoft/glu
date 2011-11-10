@@ -74,10 +74,7 @@ public class TagsSystemFilter implements SystemFilter
 
   String toString()
   {
-    if(allTags)
-      return "t(${tags.join(';')})".toString()
-    else
-      return "t[${tags.join(';')}]".toString()
+    toDSL()
   }
 
   boolean equals(o)

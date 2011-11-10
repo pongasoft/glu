@@ -177,7 +177,7 @@ class DashboardController extends ControllerBase
     def missingAgents = systemService.getMissingAgents(request.fabric, request.system)
 
     [
-      title: 'tbd',
+      title: request.userSession.customFilterDisplayName,
       hasDelta: groupByDelta.counts['errors'] > 0,
       missingAgents: missingAgents
     ]

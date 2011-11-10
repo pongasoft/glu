@@ -40,7 +40,6 @@
       display: inline-block;
     }
   </style>
-  <script type="text/javascript" src="${resource(dir:'js',file:'console_jquery.js')}"></script>
   <g:javascript>
 function shouldRefresh()
 {

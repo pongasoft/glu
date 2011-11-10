@@ -30,6 +30,10 @@ body {
   width: 99%;
 }
 
+.tabs {
+  margin-bottom: .8em;
+}
+
 dl {
   margin-top: 1px;
 }
@@ -111,6 +115,15 @@ select,
 
 #flash {
   margin-top: 1em;
+}
+
+#flash-stackTrace pre {
+  background: #ffdddd;
+  color: black;
+  font-family: monospace;
+  overflow-y: auto;
+  max-height: 30em;
+  text-shadow: none;
 }
 
 .example {

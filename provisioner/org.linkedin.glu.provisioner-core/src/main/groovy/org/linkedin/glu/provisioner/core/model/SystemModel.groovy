@@ -331,7 +331,7 @@ class SystemModel implements MetadataProvider
     if(filter == null)
       return this
 
-    def newFilters = SystemFilterBuilder.and(filters, filter)
+    def newFilters = SystemFilterHelper.and(filters, filter)
 
     SystemModel model = new SystemModel(id: id,
                                         fabric: fabric,

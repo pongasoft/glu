@@ -21,7 +21,6 @@
   <title>Agent [${model.agent?.agentName}]</title>
   <meta name="layout" content="main"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'agents-view.css')}"/>
-  <script type="text/javascript" src="${resource(dir:'js',file:'console_jquery.js')}"></script>
 </head>
 <body>
 <g:if test="${model}">
@@ -39,17 +38,13 @@
       <g:link action="fileContent" id="${model.agent.agentName}" params="[location: model.agent.agentProperties['glu.agent.logDir']]">more...</g:link></g:if>
     </li>
     <li>
-      <a class="btn" data-controls-modal="agent-details" data-backdrop="true" data-keyboard="true">View Details</a>
+      <a href="#" class="btn" onclick="toggleShowHide('#agent-details');return false;">View Details</a>
       <g:link class="btn ${hasDelta ? 'danger' : ''}" controller="agents" action="plans" id="${model.agent.agentName}">Deploy</g:link>
       <cl:linkToPs class="btn" agent="${model.agent.agentName}" pid="${model.agent.agentProperties['glu.agent.pid']}">ps</cl:linkToPs>
       <g:link class="btn" action="sync" id="${model.agent.agentName}">ZooKeeper Sync</g:link></li>
   </ul>
-  <div id="agent-details" class="modal hide">
-    <a href="#" class="close">&times;</a>
-    <div class="modal-header">Agent Details</div>
-    <div class="modal-body">
-     <cl:mapToTable map="${model.agent.agentProperties.findAll { !it.key.startsWith('java.') }}"/>
-    </div>
+  <div id="agent-details" class="hidden">
+    <cl:mapToTable class="bordered-table xtight-table noFullWidth" map="${model.agent.agentProperties.findAll { !it.key.startsWith('java.') }}"/>
   </div>
 
   <g:each in="${ConsoleUtils.sortBy(model.mountPoints.keySet(), 'path')}" var="key" status="idx">

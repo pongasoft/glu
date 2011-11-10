@@ -57,4 +57,9 @@ interface UserSession
   void clearCustomFilter()
 
   SystemFilter getCustomFilter()
+
+  String getCustomFilterDisplayName()
+
+  String getFabric()
+  void setFabric(String fabric)
 }

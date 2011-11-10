@@ -101,7 +101,7 @@ console.dev.defaults =
   [
     customCss: null,
 
-//    dashboardAgentLinksToAgent: false,
+    dashboardAgentLinksToAgent: false,
     
       dashboard:
       [

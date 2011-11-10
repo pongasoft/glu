@@ -130,10 +130,13 @@ public class PlanController extends ControllerBase
       args = JsonUtils.fromJSON(params.json)
     }
 
+    def system
+
     if(args.systemFilter)
-      args.system = request.system.unfilter().filterBy(args.systemFilter)
+      system = request.system.unfilter().filterBy(args.systemFilter)
     else
-      args.system = request.system
+      system = request.system
+    args.system = system
     args.type = args.stepType ?: Type.SEQUENTIAL
 
     if(args.planType)
@@ -142,6 +145,8 @@ public class PlanController extends ControllerBase
         plannerService."compute${args.planType.capitalize()}Plan"(args, null)
       if(plan?.hasLeafSteps())
       {
+        if(system.filters)
+          plan.metadata.filter = system.filters.toString()
         session.plan = plan
         render(template: 'plan', model: [plan: plan])
       }
