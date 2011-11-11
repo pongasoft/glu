@@ -22,5 +22,6 @@
   <Call class="org.eclipse.jetty.util.log.Log" name="debug"><Arg>Configure console-jetty-context.xml</Arg></Call>
   <Set name="contextPath">/console</Set>
   <Set name="war"><SystemProperty name="org.linkedin.glu.console.root"/>/glu/repository/wars/@console.webapp@/</Set>
+  <Set name="tempDirectory"><SystemProperty name="org.linkedin.glu.console.root"/>/tmp</Set>
 </Configure>
 
