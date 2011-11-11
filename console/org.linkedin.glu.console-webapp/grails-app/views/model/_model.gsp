@@ -34,7 +34,7 @@
   <tbody>
   <g:each in="${systems}" status="i" var="system">
     <tr class="${(i % 2) == 0 ? 'odd' : 'even'} ${(system.systemId == request.system?.id) ? 'current' : ''}">
-      <td class="systemId"><g:link controller="model" action="view" id="${system.systemId}">${system.systemId}</g:link></td>
+      <td><cl:renderSystemId id="${system.systemId}" name="${system.name}"/></td>
       <td>${system.fabric}</td>
       <td><cl:formatDate date="${system.dateCreated}"/></td>
       <g:set var="stats" value="${system.systemModel?.computeStats(columns.keySet()) ?: [:]}"/>

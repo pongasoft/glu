@@ -14,10 +14,10 @@
   - the License.
   --}%
 <%@ page import="org.linkedin.groovy.util.json.JsonUtils" %>
-<table class="bordered-table tight-table">
+<table class="bordered-table xtight-table">
   <tr>
-    <th>System</th>
-    <td class="systemId"><g:link controller="model" action="view" id="${request.system.id}">${request.system.id}</g:link></td>
+    <th>Model</th>
+    <td><cl:renderSystemId system="${request.system}"/></td>
     <th>Filter</th>
     <td class="systemFilter"><cl:renderSystemFilter filter="${request.system.filters}" renderRemoveLink="false"/></td>
   </tr>

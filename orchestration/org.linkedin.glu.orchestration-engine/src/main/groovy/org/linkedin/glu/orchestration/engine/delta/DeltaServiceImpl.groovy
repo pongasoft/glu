@@ -346,7 +346,6 @@ class DeltaServiceImpl implements DeltaService
 
       def entries = isErrorsFilter ? errors : list
 
-
       if(entries)
       {
         if(isSummaryFilter)
@@ -439,7 +438,6 @@ class DeltaServiceImpl implements DeltaService
       current = newCurrent
     }
 
-    def columnSources = columnsDefinitions.source.unique()
     def orderBy = deltaDefinition.tailOrderBy
 
     def allTags = new HashSet()
@@ -447,21 +445,23 @@ class DeltaServiceImpl implements DeltaService
     Map<String, ? extends Object> counts = [errors: 0, instances: 0]
     Map<String, ? extends Object> totals = [errors: 0, instances: 0]
 
-    columnSources.each { String column ->
+    columnsDefinitions.each { CustomDeltaColumnDefinition columnDefinition ->
+      def column = columnDefinition.name
       counts[column] = new HashSet()
       totals[column] = new HashSet()
     }
 
-    // TODO HIGH YP:  need to revisit counts as it does not currently account for error filtering
     current.each { row ->
       def column0Value = row[column0Source]
-      columnSources.each { column ->
-        if(column != HIDDEN_TAG_COLUMN && row[column])
+      columnsDefinitions.each { CustomDeltaColumnDefinition columnDefinition ->
+        def columnSource = columnDefinition.source
+        def columnName = columnDefinition.name
+        if(columnSource != HIDDEN_TAG_COLUMN && row[columnSource])
         {
           if(column0Value)
-            counts[column] << row[column]
+            counts[columnName] << row[columnSource]
 
-          totals[column] << row[column]
+          totals[columnName] << row[columnSource]
         }
       }
 
@@ -486,7 +486,8 @@ class DeltaServiceImpl implements DeltaService
       totals.instances++
     }
 
-    columnSources.each { column ->
+    columnsDefinitions.each { CustomDeltaColumnDefinition columnDefinition ->
+      def column = columnDefinition.name
       counts[column] = counts[column].size()
       totals[column] = totals[column].size()
     }

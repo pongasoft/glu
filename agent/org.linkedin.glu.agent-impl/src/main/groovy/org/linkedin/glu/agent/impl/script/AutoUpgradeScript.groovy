@@ -158,7 +158,7 @@ class AutoUpgradeScript
 
   /**
    * Returns the upgrade log
-   * // TODO HIGH YP: need to stream instead
+   * // TODO MED YP: need to stream instead
    */
   public String getUpgradeLog()
   {

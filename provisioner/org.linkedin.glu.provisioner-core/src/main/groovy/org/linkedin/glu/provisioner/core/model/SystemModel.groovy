@@ -56,6 +56,14 @@ class SystemModel implements MetadataProvider
   private SystemModel _unfilteredModel = null
 
   /**
+   * @return the metadata called 'name'
+   */
+  String getName()
+  {
+    metadata.name
+  }
+
+  /**
    * @return the sha1 of the content (does not include the id) */
   String computeContentSha1()
   {

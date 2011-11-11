@@ -33,6 +33,7 @@ class DbSystemModel
     systemId(nullable: false, blank: false, unique: true, validator: {val, obj ->
       return val == obj.systemModel.id
     })
+    name(nullable: true, blank: true)
     size(nullable: true)
   }
 
@@ -48,6 +49,7 @@ class DbSystemModel
   String systemId
   private String _content
   Integer size
+  String name
 
   String getContent()
   {
@@ -60,6 +62,7 @@ class DbSystemModel
     _systemModel = SERIALIZER.deserialize(content)
     fabric = _systemModel.fabric
     systemId = _systemModel.id
+    name = _systemModel.name
   }
 
   String contentSerializer = SERIALIZER.type
@@ -83,6 +86,7 @@ class DbSystemModel
     fabric = systemModel.fabric
     systemId = systemModel.id
     size = _content.size()
+    name = systemModel.name
   }
 
   static transients = ['metadata', 'systemModel', '_systemModel', '_content']

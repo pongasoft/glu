@@ -41,6 +41,7 @@ import org.linkedin.glu.provisioner.core.model.ClosureSystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemEntryKeyModelFilter
 import org.linkedin.glu.provisioner.core.model.FlattenSystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemFilterHelper
+import org.linkedin.glu.provisioner.core.model.SystemModel
 
 /**
  * Tag library for the console.
@@ -150,9 +151,10 @@ public class ConsoleTagLib
 
     if(value instanceof Map)
     {
-      if(value.count)
+      if(value.count != null)
       {
-        out << value.count.encodeAsHTML()
+        if(value.count > 0)
+          out << "<div class=\"count\">${value.count.encodeAsHTML()}</div>"
         return
       }
     }
@@ -966,42 +968,43 @@ public class ConsoleTagLib
   }
 
   /**
-   * Display a link to the bom ref
+   * Renders the system id
    */
-  def linkToBom = { args ->
-    def bom = args.bom
-    def ref = args.ref
+  def renderSystemId = { args ->
+    String systemId
+    String name
 
-    if(ref)
+    if(args.system)
     {
-      def entry = bom?.bom?.find(ref)
-
-      if(entry)
-      {
-        def artifact = extractArtifact(entry.coordinates) ?: ''
-        def version = extractVersion(entry.coordinates)
-
-        if(ref.name == artifact)
-        {
-          out << g.link(controller: 'dbBom', action: 'show', id: bom.id, fragment: ref.name, 'class': 'bom-ref', title: "${entry.coordinates}".encodeAsHTML()) {
-            out << "<span class=\"bom-detail\">${artifact?.encodeAsHTML()} - ${version?.encodeAsHTML()}</span>"
-          }
-        }
-        else
-        {
-          out << g.link(controller: 'dbBom', action: 'show', id: bom.id, fragment: ref.name, 'class': 'bom-ref', title: "${entry.coordinates}".encodeAsHTML()) {
-          out << ref.name.encodeAsHTML()
-          }
-          out << " <span class=\"bom-detail\">[${artifact?.encodeAsHTML()} - ${version?.encodeAsHTML()}]</span>"
-        }
-      }
-      else
-      {
-        out << "${ref.name} [invalid]"
-      }
+      SystemModel system = args.system
+      systemId = system.id
+      name = system.name
     }
-  }
+    else
+    {
+      systemId = args.id
+      name = args.name
+    }
+    boolean renderLinkToSystem = GluGroovyLangUtils.getOptionalBoolean(args.renderLinkToSystem,
+                                                                       true)
 
+    String text
+
+    if(name)
+    {
+      text = "<span class=\"systemId\">${systemId[0..9]}</span> [${name.encodeAsHTML()}]"
+    }
+    else
+      text = "<span class=\"systemId\">${systemId}</span>"
+
+
+    if(renderLinkToSystem)
+      out << g.link(controller: 'model', action: 'view', id: systemId, title: systemId) {
+        text
+      }
+    else
+      out << text
+  }
 
   /**
    * Return the class for the given navbar entry 

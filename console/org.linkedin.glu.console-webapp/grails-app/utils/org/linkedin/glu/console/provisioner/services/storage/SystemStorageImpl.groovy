@@ -164,6 +164,7 @@ public class SystemStorageImpl implements SystemStorage
                            fabric: model.fabric,
                            systemId: model.systemId,
                            size: model.size ?: model.content?.size(),
+                           name: model.name,
                            systemModel: model.systemModel)
   }
 
@@ -175,6 +176,7 @@ public class SystemStorageImpl implements SystemStorage
     new SystemModelDetails(dateCreated: model.dateCreated,
                            fabric: model.fabric,
                            systemId: model.systemId,
-                           size: model.size)
+                           size: model.size,
+                           name: model.name)
   }
 }

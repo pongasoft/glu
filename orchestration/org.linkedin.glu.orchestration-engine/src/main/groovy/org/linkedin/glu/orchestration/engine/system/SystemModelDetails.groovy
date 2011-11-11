@@ -26,6 +26,7 @@ public class SystemModelDetails
   String fabric
   String systemId
   Integer size
+  String name
   SystemModel systemModel
 
   Map<String, Object> getMetadata()

@@ -39,7 +39,7 @@ public class InMemoryDeploymentStorage implements DeploymentStorage
   @Override
   Map getArchivedDeployments(String fabric, boolean includeDetails, params)
   {
-    // TODO HIGH YP: currently ignoring params entirely!!
+    // TODO MED YP: currently ignoring params entirely!!
     [
       deployments: deployments.values().findAll { it.fabric == fabric },
       count: getArchivedDeploymentsCount(fabric)

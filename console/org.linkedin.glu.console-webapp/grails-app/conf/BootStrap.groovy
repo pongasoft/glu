@@ -73,7 +73,7 @@ class BootStrap {
 
         // create an empty system
         def emptySystem = new SystemModel(fabric: fabric)
-        emptySystem.metadata.product = [:]
+        emptySystem.metadata.name = "Empty System Model"
         systemService.saveCurrentSystem(emptySystem)
       }
 

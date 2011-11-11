@@ -57,14 +57,17 @@
     }
   ],
   "fabric": "glu-dev-1",
-  "metadata": {"product": {
-    "product1": {
-      "name": "product1",
-      "version": "1.0.0"
+  "metadata": {
+    "product": {
+      "product1": {
+        "name": "product1",
+        "version": "1.0.0"
+      },
+      "product2": {
+        "name": "product2",
+        "version": "2.0.0"
+      }
     },
-    "product2": {
-      "name": "product2",
-      "version": "2.0.0"
-    }
-  }}
+    "name": "Tutorial System Model"
+  }
 }

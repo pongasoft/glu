@@ -61,9 +61,6 @@
 #__delta_content table th {
   text-align: center;
 }
-#__delta_content table td {
-  text-align: left;
-}
 #__delta_inaccurate td {
   color: red;
   font-size: 1.5em;

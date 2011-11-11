@@ -131,15 +131,15 @@ class TestSystemFilters extends GroovyTestCase
   public void testTagsFiltering()
   {
     // tags testing
-    checkFiltering("tags='e:tag1'", "t(e:tag1)", ["h1:/m/1", "h1:/m/2"])
+    checkFiltering("tags='e:tag1'", "tags='e:tag1'", ["h1:/m/1", "h1:/m/2"])
 
-    checkFiltering("tags='e:tag3;a:tag1'", "t(a:tag1;e:tag3)", ["h1:/m/2"])
-    checkFiltering("tags=='e:tag3;a:tag1'", "t(a:tag1;e:tag3)", ["h1:/m/2"])
-    checkFiltering("tags.hasAll('e:tag3;a:tag1')", "t(a:tag1;e:tag3)", ["h1:/m/2"])
-    checkFiltering("tags.hasAll(['e:tag3', 'a:tag1'])", "t(a:tag1;e:tag3)", ["h1:/m/2"])
+    checkFiltering("tags='e:tag3;a:tag1'", "tags='a:tag1;e:tag3'", ["h1:/m/2"])
+    checkFiltering("tags=='e:tag3;a:tag1'", "tags='a:tag1;e:tag3'", ["h1:/m/2"])
+    checkFiltering("tags.hasAll('e:tag3;a:tag1')", "tags='a:tag1;e:tag3'", ["h1:/m/2"])
+    checkFiltering("tags.hasAll(['e:tag3', 'a:tag1'])", "tags='a:tag1;e:tag3'", ["h1:/m/2"])
 
-    checkFiltering("tags.hasAny('e:tag3;a:tag1')", "t[a:tag1;e:tag3]", ["h1:/m/1", "h1:/m/2", "h2:/m/1"])
-    checkFiltering("tags.hasAny(['e:tag3', 'a:tag1'])", "t[a:tag1;e:tag3]", ["h1:/m/1", "h1:/m/2", "h2:/m/1"])
+    checkFiltering("tags.hasAny('e:tag3;a:tag1')", "tags.hasAny('a:tag1;e:tag3')", ["h1:/m/1", "h1:/m/2", "h2:/m/1"])
+    checkFiltering("tags.hasAny(['e:tag3', 'a:tag1'])", "tags.hasAny('a:tag1;e:tag3')", ["h1:/m/1", "h1:/m/2", "h2:/m/1"])
   }
 
   private checkFiltering(String filterString, String expectedToString, expectedEntries)

@@ -18,8 +18,8 @@
 <%@ page import="org.linkedin.glu.console.filters.UserPreferencesFilters; org.linkedin.glu.grails.utils.ConsoleConfig; org.linkedin.glu.agent.tracker.AgentsTracker.AccuracyLevel" %>
   <table class="bordered-table xtight-table">
     <tr>
-      <th>System</th>
-      <td class="systemId"><g:link controller="model" action="view" id="${system.id}">${system.id}</g:link></td>
+      <th>Model</th>
+      <td><cl:renderSystemId system="${request.system}"/></td>
       <th>Summary</th>
       <td class="summary-checkbox"><g:checkBox name="session.summary" onclick="parent.location='${g.createLink(controller: 'dashboard', action: 'redelta', params: ['session.summary': !request.userSession.customDeltaDefinition.summary])}'" value="${request.userSession.customDeltaDefinition.summary}"/></td>
       <th>Errors Only</th>
@@ -69,10 +69,10 @@
                     <cl:formatDeltaValue column="${column}" values="${entry}"/>
                   </td>
                   <td rowspan="${entries.size()}" class="${rowState} totalCount">
-                    ${row.instancesCount}
+                    <div class="count">${row.instancesCount}</div>
                   </td>
                   <td rowspan="${entries.size()}" class="${rowState} errorsCount">
-                    ${row.errorsCount}
+                    <div class="count">${row.errorsCount}</div>
                   </td>
                 </g:if>
               </g:if>

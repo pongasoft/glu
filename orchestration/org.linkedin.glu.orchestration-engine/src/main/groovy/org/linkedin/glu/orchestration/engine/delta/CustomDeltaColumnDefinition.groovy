@@ -65,7 +65,7 @@ public class CustomDeltaColumnDefinition implements Externable
   void setGroupBy(String gb)
   {
     if(!SUPPORTED_GROUP_BY.contains(gb))
-      throw new IllegalArgumentException("${gb} is not a valid group by value")
+      throw new IllegalArgumentException("${gb} is not a valid group by value [${SUPPORTED_GROUP_BY.join(',')}]")
 
     groupBy = gb
   }
@@ -73,7 +73,7 @@ public class CustomDeltaColumnDefinition implements Externable
   void setOrderBy(String ob)
   {
     if(ob != null && !SUPPORTED_ORDER_BY.contains(ob))
-      throw new IllegalArgumentException("${ob} is not a valid order by value")
+      throw new IllegalArgumentException("${ob} is not a valid order by value [${SUPPORTED_ORDER_BY.join(',')}]")
 
     orderBy = ob
   }

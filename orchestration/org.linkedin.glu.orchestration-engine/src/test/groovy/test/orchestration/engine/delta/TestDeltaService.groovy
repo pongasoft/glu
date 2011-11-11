@@ -1602,10 +1602,12 @@ class TestDeltaService extends GroovyTestCase
 """
 
     delta = checkCustomGroupByDelta(res, expected, [], cdd)
-    assertEquals(0, delta.counts['errors'])
-    assertEquals(0, delta.counts['instances'])
-    assertEquals(0, delta.totals['errors'])
+    assertEquals(4, delta.counts['errors'])
+    assertEquals(4, delta.counts['instances'])
+    assertEquals(4, delta.totals['errors'])
     assertEquals(4, delta.totals['instances'])
+    assertEquals(2, delta.counts['ag'])
+    assertEquals(3, delta.counts['mp'])
 
     // summary = false, using tags (not first column)
     cdd = [

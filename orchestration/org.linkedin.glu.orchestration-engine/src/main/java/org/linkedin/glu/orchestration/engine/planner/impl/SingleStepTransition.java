@@ -158,7 +158,7 @@ public class SingleStepTransition extends SingleEntryTransition
       }
       else
       {
-        // TODO HIGH YP:  handle actionArgs
+        // TODO MED YP:  handle actionArgs
         Map actionArgs = null;
 
         ScriptTransitionActionDescriptor ad = new ScriptTransitionActionDescriptor();

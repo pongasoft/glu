@@ -20,6 +20,7 @@ class LightDbSystemModel
 {
   static constraints = {
     size(nullable: true)
+    name(nullable: true)
   }
 
   static mapping = {
@@ -30,4 +31,5 @@ class LightDbSystemModel
   String fabric
   String systemId
   Integer size
+  String name
 }
