@@ -23,10 +23,15 @@
   <link rel="stylesheet" href="${resource(dir:'css',file:'agents-list.css')}"/>
 </head>
 <body>
+<ul class="tabs">
+  <li><g:link controller="agents" action="list">List</g:link></li>
+  <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
+  <li><g:link action="plans" id="${params.id}">Plans</g:link></li>
+  <li><g:link action="ps" id="${params.id}">All Processes</g:link></li>
+  <li class="active"><a href="#">Directory [${params.location.encodeAsHTML()}]</a></li>
+</ul>
 <g:if test="${dir != null}">
-  <h1>Directory: <g:link action="view" id="${params.id}">${params.id}</g:link>:${params.location.encodeAsHTML()}</h1>
-
-  <table>
+  <table class="bordered-table tight-table">
     <g:if test="${new File(params.location).parent}">
       <tr>
         <td><g:link action="fileContent" id="${params.id}" params="[location: new File(params.location).parent]">../</g:link></td>
@@ -45,7 +50,7 @@
   </table>
 </g:if>
 <g:else>
-  <h1>${params.location.encodeAsHTML()}: No Such file or directory</h1>
+  ${params.location.encodeAsHTML()}: No Such file or directory
 </g:else>
 
 </body>

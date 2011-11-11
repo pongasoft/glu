@@ -75,6 +75,7 @@ class AuthFilters
             def credentials = decodedPair.split(':', 2)
             SecurityUtils.subject.login(new UsernamePasswordToken(credentials[0],
                                                                   credentials[1]))
+            request.user = [username: SecurityUtils.subject.principal]
           }
           catch(Exception e)
           {

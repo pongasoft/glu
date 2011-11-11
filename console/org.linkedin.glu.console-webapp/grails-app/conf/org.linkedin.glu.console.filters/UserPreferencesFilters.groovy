@@ -25,8 +25,6 @@ import org.linkedin.glu.orchestration.engine.fabric.Fabric
 
 import org.linkedin.glu.orchestration.engine.session.UserSession
 import org.linkedin.glu.orchestration.engine.session.SessionService
-import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
-import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -50,13 +48,11 @@ class UserPreferencesFilters
           return
         }
 
-        // Initializes the fabric
-        Fabric fabric = initFabric(params, request)
+        // Initializes the user session
+        UserSession userSession = initUserSession(params, request)
 
-        // Initializes the custom delta definition
-        UserSession userSession =
-          initUserSession(params, request)
-        userSession?.setFabric(fabric?.name)
+        // Initializes the fabric
+        Fabric fabric = initFabric(params, request, userSession)
 
         // Initializes the system
         initSystemModel(fabric, userSession, params, flash, request)
@@ -84,10 +80,10 @@ class UserPreferencesFilters
   /**
    * look for the fabric in request and or cookies
    */
-  Fabric initFabric(params, request)
+  Fabric initFabric(params, request, UserSession userSession)
   {
-    // 1) request first
-    def fabric = ConsoleHelper.getRequestValue(params, request, 'fabric')
+    // 1) request first then user session then cookie
+    def fabric = params.fabric ?: (userSession.fabric ?: ConsoleHelper.getCookieValue(request, 'fabric'))
 
     if(fabric)
     {
@@ -100,12 +96,13 @@ class UserPreferencesFilters
       def fabricNames = fabricService.listFabricNames()
       if(fabricNames.size() == 1)
       {
-        fabric = fabricService.findFabric(fabricNames[0])
+        fabric = fabricService.findFabric(fabricNames.iterator().next())
       }
     }
 
-    // save the fabric in the request
+    // save the fabric in the request and in the session
     request.fabric = fabric
+    userSession.fabric = fabric?.name
 
     return fabric
   }

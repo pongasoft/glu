@@ -398,7 +398,7 @@ public class ConsoleTagLib
         break;
 
       case 'error':
-        out << "<a href=\"#\" title=\"${args.statusInfo.encodeAsHTML()}\" class=\"statusInfo\" onclick=\"toggleShowHide('si-${args.row}');return false;\">ERROR</a><dt id=\"si-${args.row}\" class=\"hidden\">${args.statusInfo.encodeAsHTML()}</dt>"
+        out << "<a href=\"#\" title=\"${args.statusInfo.encodeAsHTML()}\" class=\"statusInfo\" onclick=\"toggleShowHide('#si-${args.row}');return false;\">ERROR</a><dt id=\"si-${args.row}\" class=\"hidden\">${args.statusInfo.encodeAsHTML()}</dt>"
         break;
 
       case 'unknown':
@@ -784,6 +784,18 @@ public class ConsoleTagLib
   }
 
   /**
+   * Simple tag to get the fabric object: if there is no such fabric then the body is called
+   */
+  def withoutFabric = { args, body ->
+    def var = args.var ?: 'fabric'
+    def fabric = args.fabric ?: request.fabric
+    if(!fabric)
+    {
+      out << body((var): fabric)
+    }
+  }
+
+  /**
    * Renders the drop down for selecting a fabric
    */
   def renderFabricSelectDropdown = { args ->
@@ -807,7 +819,8 @@ public class ConsoleTagLib
     }
     else
     {
-      out << "<li><a href=\"#\">${fabric.encodeAsHTML()}</a></li>"
+      if(fabric)
+        out << "<li><a href=\"#\">${fabric.encodeAsHTML()}</a></li>"
     }
   }
 
@@ -851,6 +864,9 @@ public class ConsoleTagLib
    * Defined in the config file under the dashboard.shortcutFilters section
    */
   def renderDashboardShortcutFilters = {
+    if(!request.system)
+      return
+    
     consoleConfig.defaults.shortcutFilters?.each { shortcutFilter ->
       def name = shortcutFilter.name
       def source = shortcutFilter.source ?: "metadata.${name}".toString()

@@ -97,5 +97,7 @@
       "name": "product2",
       "version": "2.0.0"
     }
-  }}
+  },
+    "name": "Tutorial System Model"
+  }
 }

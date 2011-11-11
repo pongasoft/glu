@@ -89,6 +89,10 @@ console.defaults =
       // customCss can be a String (use """ notation in order to make it easy) or a URI
       customCss: null,
 
+      // set to true if you want the agent links on the dashboard to go to the individual agent
+      // page rather than adding a filter
+      dashboardAgentLinksToAgent: false,
+
       dashboard:
       [
           mountPoint: [checked: true, name: 'mountPoint', groupBy: true, linkFilter: true],
@@ -122,10 +126,11 @@ console.defaults =
           'metadata.cluster': [name: 'cluster']
       ],
 
-      model:
+      shortcutFilters:
       [
           [
               name: 'product',
+              source: 'metadata.product',
               header: ['version']
           ]
       ],

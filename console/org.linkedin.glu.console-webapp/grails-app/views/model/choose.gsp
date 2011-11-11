@@ -51,7 +51,7 @@
         <fieldset>
           <legend>From JSON (URI)</legend>
           <div class="clearfix">
-            <g:textField name="jsonUri" value="${params.jsonUri}" class="input"/>
+            <g:textField name="jsonUri" value="${params.jsonUri}" class="xxlarge"/>
           </div>
         </fieldset>
         <div class="actions">

@@ -61,7 +61,7 @@
     <li><g:link action="plans" id="${params.id}">Plans</g:link></li>
     <li class="active"><a href="#">All Processes</a></li>
   </ul>
-  <table class="bordered-table tight-table">
+  <table class="bordered-table tight-table zebra-striped">
     <tr>
       <th>PID</th>
       <th>COMMAND</th>

@@ -267,7 +267,9 @@ class FabricController extends ControllerBase
       fabricService.resetCache()
       flash.success = "Fabric ${fabricInstance.id} created"
       audit('fabric.updated', fabricInstance.id.toString(), params.toString())
-      systemService.saveCurrentSystem(new SystemModel(fabric: fabricInstance.name))
+      def emptySystem = new SystemModel(fabric: fabricInstance.name)
+      emptySystem.metadata.name = "Empty System Model"
+      systemService.saveCurrentSystem(emptySystem)
       redirect(action: show, id: fabricInstance.id)
     }
     else

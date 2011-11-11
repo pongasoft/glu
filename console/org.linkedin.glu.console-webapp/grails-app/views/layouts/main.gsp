@@ -32,7 +32,7 @@
   .topbar a {
     text-shadow: 1px 1px 1px ${fabric.color};
   }
-  </cl:withFabric>
+  </cl:withFabric><cl:withoutFabric>.topbar .fill {background: #aaaaaa;}</cl:withoutFabric>
   div#footer {
     margin-top: 2em;
     border-top: solid 1px #dddddd;
