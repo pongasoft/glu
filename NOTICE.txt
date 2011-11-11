@@ -479,3 +479,22 @@ OTHER DEALINGS IN THE SOFTWARE.
      =========================================================================
 This product uses sphinx (http://sphinx.pocoo.org/) for the documentation generation (restructured
 text -> html) with the agogo theme (included with sphinx) both under a BSD License.
+
+    =========================================================================
+This product uses the twitter bootstrap css/javascript library with the following license
+(Apache 2.0) https://github.com/twitter/bootstrap/blob/master/LICENSE:
+/*!
+ * Bootstrap v1.4.0
+ *
+ * Copyright 2011 Twitter, Inc
+ * Licensed under the Apache License v2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Designed and built with all the love in the world @twitter by @mdo and @fat.
+ * Date: Sat Nov  5 17:07:48 PDT 2011
+ */
+
+     =========================================================================
+This product uses jquery with the following license (MIT):
+https://github.com/jquery/jquery/blob/master/MIT-LICENSE.txt
+

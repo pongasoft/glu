@@ -22,5 +22,6 @@ import org.linkedin.util.clock.Timespan
 beans = {
   userSessionCache(EhCacheFactoryBean) {
     timeToIdle = Timespan.parse('30m').durationInSeconds
+    timeToLive = 0 // use only the timeToIdle parameter...
   }
 }

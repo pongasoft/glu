@@ -1,6 +1,49 @@
 Latest changes
 ==============
 
+4.0.0-RC1 (2011/11/11)
+----------------------
+
+What is new in 4.0.0 ?
+^^^^^^^^^^^^^^^^^^^^^^
+
+4.0.0 contains a major redesign of the console with an easier to use interface and ability to create custom dashboards.
+
+* Top navigation changes:
+
+  * added ``Agents`` tab which lists all the agents (nodes) with direct access to individual agents
+  * renamed ``Plans`` into ``Deployments``
+  * ``System`` tab is gone and has been replaced with a combination of the ``Model`` tab and the ``Plans`` subtab in the dashboard
+  * ``Model`` tab is now used to view the models previously loaded as well as load a new one
+  * Fabric selection is now a drop down (same for filter shortcuts (``All [product]``))
+
+* Dashboard is now customizable and a user can create different dashboards. The dashboard represents a table view of the `delta`. Both columns and rows can be customized:
+
+  * columns can be customized: ability to add/remove/move any column. Clicking on a column name does a `'group by'` on the column and make it the first column (same functionality as the `'group by checkbox'` from the previous version). What is rendered in the column is customizable, from the sort order to the grouping functionality (when using `summary` view)
+  * rows can be customized: you can add a filter to the model which essentially filters which row is displayed. Clicking on a value in a cell now adds a filter (this functionality existed with the difference that it was `replacing` instead of `adding`). You can of course remove a filter.
+  * to customize the dashboard, there is a new subtab for it: ``Customize`` (this gives you access to the raw json representation of the dashboard which you can then tweak, like moving columns around or adding/removing new ones)
+  * the first subtab on the dashboard allows you to quickly switch between your saved dashboards and also contains a very useful ``Save as New`` entry which allows you to save what you see as a new dashboard (so instead of tweaking the json, you can add filters and move columns around and then save it as a new dashboard which you can then tweak)
+
+* Dashboard selection is now sticky which means if you move around and come back to the dashboard it will be in the same state. This is used for the ``Plans`` subtab of the dashboard which allows you to `act` on the delta: actions will be based on the filter currently set. If you want to act on the full system (old ``System`` tab), simply clear all filters.
+
+* You can now give a name to your model and it will be displayed in addition to the SHA-1 (``metadata.name``)
+
+* Downgraded security level for model manipulation (load/save) from ``ADMIN`` to ``RELEASE``
+
+* Clicking on the name of an agent in the dashboard table used to link to the agent. By default it now behaves like any other value: adding a filter. You can now access an agent using the ``Agents`` tab. If you want to revert to the previous behavior, use this configuration property: ``dashboardAgentLinksToAgent: true`` in ``console.defaults``.
+
+* Renamed ``console.defaults.model`` into ``console.defaults.shortcutFilters``: this functionality is now a simple shortcut that allows to switch between various predefined filters (example of usage: changing zones, changing products, changing teams, etc...)
+
+List of tickets
+^^^^^^^^^^^^^^^
+
+* Implemented `glu-17 <https://github.com/linkedin/glu/issues/17>`_: `Feature Request: make console views navigation friendly (bookmarkable)`
+* Implemented `glu-28 <https://github.com/linkedin/glu/issues/28>`_: `Feature Request: Add dates to the table at /console`
+* Implemented `glu-104 <https://github.com/linkedin/glu/issues/104>`_: `Make dashboard customizable by user`
+* Fixed `glu-105 <https://github.com/linkedin/glu/issues/105>`_: `Error count incorrect in glu dashboard`
+* Fixed `glu-107 <https://github.com/linkedin/glu/issues/107>`_: `CSS and some js become inaccessible after a while`
+* Fixed `glu-108 <https://github.com/linkedin/glu/issues/108>`_: `Key mistake in the summary section in the documentation`
+
 3.4.0 (2011/10/10)
 ------------------
 
