@@ -127,6 +127,12 @@ Directory structure
 
   .. note:: You need to have sphinx installed in order to build the documentation.
 
+  .. note:: The various screenshots have been taken from the live running webapp and using ImageMagick to 
+            rescale them::
+
+              convert xxx.png -resize 600 xxx.png
+      
+
 * ``packaging/org.linkedin.glu.packaging-all``:
   Creates a package which contains all prebuilt packages and is also used for the tutorial::
 

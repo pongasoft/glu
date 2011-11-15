@@ -7,6 +7,13 @@ Latest changes
 What is new in 4.0.0 ?
 ^^^^^^^^^^^^^^^^^^^^^^
 
+.. warning:: 2 configuration parameters have changed in the console configuration file and you need to rename them prior to starting the 
+             new console when upgrading (see the :ref:`configuration section <console-configuration>` for more details on the values)::
+
+               model  -> shortcutFilters
+               system -> model
+  
+
 4.0.0 contains a major redesign of the console with an easier to use interface and ability to create custom dashboards.
 
 * Top navigation changes:
@@ -17,7 +24,7 @@ What is new in 4.0.0 ?
   * ``Model`` tab is now used to view the models previously loaded as well as load a new one
   * Fabric selection is now a drop down (same for filter shortcuts (``All [product]``))
 
-* Dashboard is now customizable and a user can create different dashboards. The dashboard represents a table view of the `delta`. Both columns and rows can be customized:
+* Dashboard is now customizable and a user can create different dashboards (see the :ref:`dashboard section<console-dashboard>` for details). The dashboard represents a table view of the `delta`. Both columns and rows can be customized:
 
   * columns can be customized: ability to add/remove/move any column. Clicking on a column name does a `'group by'` on the column and make it the first column (same functionality as the `'group by checkbox'` from the previous version). What is rendered in the column is customizable, from the sort order to the grouping functionality (when using `summary` view)
   * rows can be customized: you can add a filter to the model which essentially filters which row is displayed. Clicking on a value in a cell now adds a filter (this functionality existed with the difference that it was `replacing` instead of `adding`). You can of course remove a filter.
@@ -33,6 +40,8 @@ What is new in 4.0.0 ?
 * Clicking on the name of an agent in the dashboard table used to link to the agent. By default it now behaves like any other value: adding a filter. You can now access an agent using the ``Agents`` tab. If you want to revert to the previous behavior, use this configuration property: ``dashboardAgentLinksToAgent: true`` in ``console.defaults``.
 
 * Renamed ``console.defaults.model`` into ``console.defaults.shortcutFilters``: this functionality is now a simple shortcut that allows to switch between various predefined filters (example of usage: changing zones, changing products, changing teams, etc...)
+
+* Renamed ``console.defaults.system`` into ``console.defaults.model``: to be consistent with the UI where you are looking at models
 
 List of tickets
 ^^^^^^^^^^^^^^^

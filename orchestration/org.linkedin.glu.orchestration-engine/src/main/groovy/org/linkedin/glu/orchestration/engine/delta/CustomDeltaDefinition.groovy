@@ -130,11 +130,14 @@ public class CustomDeltaDefinition implements Externable
     if(er == null)
       return null
 
+    boolean errorsOnly = GluGroovyLangUtils.getOptionalBoolean(er.errorsOnly, false)
+    boolean summary = GluGroovyLangUtils.getOptionalBoolean(er.summary, true)
+
     CustomDeltaDefinition res = new CustomDeltaDefinition(name: er.name,
                                                           description: er.description,
                                                           customFilter: SystemFilterBuilder.parse(er.customFilter),
-                                                          errorsOnly: er.errorsOnly,
-                                                          summary: er.summary)
+                                                          errorsOnly: errorsOnly,
+                                                          summary: summary)
 
     res.columnsDefinition = er.columnsDefinition?.collect {
       CustomDeltaColumnDefinition.fromExternalRepresentation(it) } ?: []
@@ -160,6 +163,13 @@ public class CustomDeltaDefinition implements Externable
     if(dashboard == null)
       return null
 
+    if(dashboard instanceof String)
+      return new CustomDeltaDefinitionSerializerImpl().deserialize(dashboard,
+                                                                   CustomDeltaDefinitionSerializerImpl.LATEST_CONTENT_VERSION)
+
+    if(dashboard instanceof Map && dashboard.columnsDefinition instanceof Collection)
+      return CustomDeltaDefinition.fromExternalRepresentation(dashboard)
+
     CustomDeltaDefinition res = new CustomDeltaDefinition(name: "dashboard",
                                                           customFilter: null,
                                                           errorsOnly: false,
@@ -167,44 +177,55 @@ public class CustomDeltaDefinition implements Externable
 
     def columnsDefinition = []
 
-    // dashboard is a map where the key is 'source'
-    dashboard.each { entry ->
-      CustomDeltaColumnDefinition cdcd = new CustomDeltaColumnDefinition(source: entry.key)
-
-      // value is a map 'defining' the column
-      def c = entry.value
-
-      if(c.checked)
-      {
-        cdcd.name = c.name
-        cdcd.linkable = GluGroovyLangUtils.getOptionalBoolean(c.linkFilter, true)
-
-        if(cdcd.source == 'tags')
-          cdcd.groupBy = 'uniqueVals'
-
+    if(dashboard instanceof Collection)
+    {
+      dashboard.each { entry ->
+        CustomDeltaColumnDefinition cdcd =
+          CustomDeltaColumnDefinition.fromExternalRepresentation(entry)
         columnsDefinition << cdcd
       }
     }
-
-    // status requires statusInfo to work properly
-    if(columnsDefinition.any { it.source == 'status' })
+    else
     {
-      CustomDeltaColumnDefinition cdcd = new CustomDeltaColumnDefinition(source: 'statusInfo',
-                                                                         name: 'statusInfo',
-                                                                         groupBy: 'vals',
-                                                                         visible: false)
+      // dashboard is a map where the key is 'source' (old dashboard...)
+      dashboard.each { entry ->
+        CustomDeltaColumnDefinition cdcd = new CustomDeltaColumnDefinition(source: entry.key)
 
-      columnsDefinition << cdcd
-    }
+        // value is a map 'defining' the column
+        def c = entry.value
 
-    // state is required to display colors properly
-    if(!columnsDefinition.any { it.source == 'state' })
-    {
-      CustomDeltaColumnDefinition cdcd = new CustomDeltaColumnDefinition(source: 'state',
-                                                                         name: 'state',
-                                                                         visible: false)
+        if(c.checked)
+        {
+          cdcd.name = c.name
+          cdcd.linkable = GluGroovyLangUtils.getOptionalBoolean(c.linkFilter, true)
 
-      columnsDefinition << cdcd
+          if(cdcd.source == 'tags')
+            cdcd.groupBy = 'uniqueVals'
+
+          columnsDefinition << cdcd
+        }
+      }
+
+      // status requires statusInfo to work properly
+      if(columnsDefinition.any { it.source == 'status' })
+      {
+        CustomDeltaColumnDefinition cdcd = new CustomDeltaColumnDefinition(source: 'statusInfo',
+                                                                           name: 'statusInfo',
+                                                                           groupBy: 'vals',
+                                                                           visible: false)
+
+        columnsDefinition << cdcd
+      }
+
+      // state is required to display colors properly
+      if(!columnsDefinition.any { it.source == 'state' })
+      {
+        CustomDeltaColumnDefinition cdcd = new CustomDeltaColumnDefinition(source: 'state',
+                                                                           name: 'state',
+                                                                           visible: false)
+
+        columnsDefinition << cdcd
+      }
     }
 
     res.columnsDefinition = columnsDefinition

@@ -257,47 +257,9 @@ If you want to customize the look and feel of the console and override or tweak 
       // as a URI (for security reasons should be local!)
       customCss: new URI("/glu/repository/css/custom.css")
 
-Dashboard
-"""""""""
-The dashboard can be configured with the following section::
-
-      dashboard:
-      [
-          mountPoint: [checked: true, name: 'mountPoint', groupBy: true, linkFilter: true],
-          agent: [checked: true, name: 'agent', groupBy: true],
-          'tag': [checked: false, name: 'tag', groupBy: true, linkFilter: true],
-          'tags': [checked: true, name: 'tags', linkFilter: true],
-          'metadata.container.name': [checked: true, name: 'container', groupBy: true, linkFilter: true],
-          'metadata.version': [checked: true, name: 'version', groupBy: true],
-          'metadata.product': [checked: true, name: 'product', groupBy: true, linkFilter: true],
-          'metadata.cluster': [checked: true, name: 'cluster', groupBy: true, linkFilter: true],
-          'initParameters.skeleton': [checked: false, name: 'skeleton', groupBy: true],
-          script: [checked: false, name: 'script', groupBy: true],
-          'metadata.modifiedTime': [checked: false, name: 'Last Modified', groupBy: false],
-          status: [checked: true, name: 'status', groupBy: true]
-      ]
-
-This configuration results in the following output (the window has been made smaller to fit all the options on a readable screenshot):
-
-.. image:: /images/configuration-dashboard.png
-   :align: center
-   :alt: Dashboard configuration
-
-``dashboard`` is a map with the following convention:
-
-* the key represent the :term:`dotted notation` of an entry (see: :ref:`goe-filter-syntax` for more details and examples on the dotted notation)
-* the value is another map with the following conventions:
-
-  ============== ==============
-  key            value
-  ============== ==============
-  ``name``       the display name of the column as well as *Group By* or *Show/Hide* section
-  ``checked``    ``true`` or ``false``: whether the checkbox next to the name should be checked by default or in other words if the column should be shown or hidden by default
-  ``groupBy``    ``true`` or ``false``: in which section does this option appears (*Group By* section or *Show/Hide* section). Some values do not make too much sense to allow them to do a *group by* on them (like the ``Last Modified`` which is (under the cover) a timestamp
-  ``linkFilter`` ``true`` or ``false``: if you want to allow the values in the table to be links to a filter (see :doc:`filtering`)
-  ============== ==============
-
-.. note:: This section will be enhanced in the future to allow even more configuration as well as how to *group* values.
+Default Dashboard
+"""""""""""""""""
+See the :ref:`section <console-default-dashboard>` on how to configure the ``dashboard`` section of the configuration file.
 
 Tags
 """"
@@ -316,12 +278,12 @@ You can specify the colors of each tag (foreground and background)::
 
 .. note:: the color value (ex: ``#005a87``) ends up being used in css so you can use whatever is legal in css (ex: ``red``)
 
-System
-""""""
+Model
+"""""
 
-The system page displays a summary and the columns are configurable in the following section::
+The model page displays a summary and the columns are configurable in the following section::
 
-      system:
+      model:
       [
          agent: [name: 'agent'],
         'tags.webapp': [name: 'webapp'],
@@ -335,14 +297,14 @@ This configuration results in the following output:
 
 .. image:: /images/configuration-system-600.png
    :align: center
-   :alt: System configuration
+   :alt: Model display configuration
 
-``system`` is a map with the following convention:
+``model`` is a map with the following convention:
 
 * the key represent the :term:`dotted notation` of an entry (see: :ref:`goe-filter-syntax` for more details and examples on the dotted notation)
 * the value is a map with (currently) one entry only: ``name`` which represents the (display) name of the column
 
-.. note:: Since 3.3.0, it takes effect only when showing a single system: for performance reasons the page which shows the list of systems no longer fetches the system and as such cannot display this information
+.. note:: Since 3.3.0, it takes effect only when showing a single model: for performance reasons the page which shows the list of models no longer fetches the model and as such cannot display this information
 
 .. _console-configuration-non-editable-model:
 
@@ -357,28 +319,30 @@ By default, the model is editable which means that there is a ``Save Changes`` b
 
 .. note:: Even if the model is not editable, it is always possible to *load* a new one by going to the ``Model`` tab. The idea behind this feature is to enforce the fact that the model should be properly versioned outside of glu and changing it should go through a proper flow that is beyond the scope of glu.
 
-Model
-"""""
+Shortcut Filters
+""""""""""""""""
 
-This entry allows you to configure what appears on the top right of the console (right after the fabric name) thus allowing you to tailor the display even further: it allows you to set a temporary :term:`filter` on all views. In the following example we *model* the concept of products (also known as lines), this is why this entry is called ``model``::
+This entry allows you to define a dropdown that will be populated based on the model metadata in order to quickly set a filter. In the screenshot below, clicking on ``'product2:2.0.0'`` in the dropdown is equivalent to removing the current filter on ``product1`` and adding a new one for ``product2`` simplifying going back and forth between globally used concepts (like teams or product lines or zones, etc...)::
 
-      model:
+      shortcutFilters:
       [
           [
               name: 'product',
+              source: 'metadata.product',
               header: ['version']
           ]
       ]
 
 This configuration results in the following output:
 
-.. image:: /images/configuration-model.png
+.. image:: /images/shortcut-filters.png
    :align: center
-   :alt: Model configuration
+   :alt: Shortcut filters
 
-The format of this entry is an array of maps (so you can have more than one and they will be delimited by a ``|``) where each map consists of:
+The format of this entry is an array of maps (so you can have more than one!) where each map consists of:
 
-* a ``name`` entry referring to the metadata section of the model (**not** of an entry). This should be a map with the given name and the following convention:
+* a ``name`` entry which will be displayed in the dropdown when no filter entry is selected ``All [<name>]``
+* a ``source`` which represents a :term:`dotted notation` of which data to use in the model. The data in the model should have the following structure:
 
   * the key is the value of the filter
   * the value is another map with the following convention:
@@ -386,12 +350,9 @@ The format of this entry is an array of maps (so you can have more than one and 
     * ``name`` is the display name of the value (in this example they are the same!)
     * other entries that are used in the ``header`` section (see below)
 
-
-  .. note:: the ``name`` value also maps to the metadata dotted notation for the filter (in this example it will be ``metadata.product``)
-
 * a ``header`` entry which is an array for extra information referring to entries in the metadata (see above)
 
-Example of system which produces the previous screen::
+Example of model which produces the previous screen::
 
   "metadata": {
     "product": { <================ value as defined in the model section (name: 'product')
@@ -409,29 +370,111 @@ Example of system which produces the previous screen::
 Header
 """"""
 
-This entry is very similar to the previous one (``model``) and allows you to add more information to the header in the console::
+This entry allows you to add more information to the header in the console::
 
       header:
       [
           metadata: ['drMode']
       ]
 
-This entry simply contains a ``metadata`` section which is an array of keys in the :term:`metadata` of the system (**not** of an entry).
+This entry simply contains a ``metadata`` section which is an array of keys in the :term:`metadata` of the model (**not** of an entry).
 
-Example of system::
+Example of model::
 
   "metadata": {
     "product": {...},
     "drMode": "primary"
  }
 
-The previous system and ``header`` configuration produce the following output:
+The previous model and ``header`` configuration produce the following output:
 
 .. image:: /images/configuration-header.png
    :align: center
    :alt: Header configuration
 
 .. tip:: Since every fabric has its own model, hence its own ``metadata`` section, this feature is a convenient way to display fabric specific information. In this example we can display which fabric represents the primary data center versus which one represents the secondary data center.
+
+Dashboard Agent Links
+"""""""""""""""""""""
+
+By default (new since 4.0.0), a link to an agent name in the dashboard has the same effect as all other links on the dashboard: it adds a filter. In this case it filters the model to see only the entries on this specific agent. The top level ``'Agents'`` tab allows you to navigate to the agent view. If you want to turn this off (thus reverting to the behavior prior to 4.0.0) use this entry (``dashboard`` section of the configuration file)::
+
+      dashboardAgentLinksToAgent: true
+
+.. _console-dashboard:
+
+Dashboard
+---------
+
+The dashboard is the main entry point of the console and is a visual representation of the :ref:`delta <goe-delta>`.
+
+.. image:: /images/console-dashboard-600.png
+   :align: center
+   :alt: Console dashboard
+
+.. _console-dashboard-customization:
+ 
+Customization
+^^^^^^^^^^^^^
+
+Since 4.0.0, the dashboard can be customized by every user the way they see fit. Every user can also define as many `dashboards` as they want and the dropdown allows to switch between dashboard quickly.
+
+.. image:: /images/console-dashboard-switch.png
+   :align: center
+   :alt: Console dashboard
+
+The easier way to create a new dashboard is to add filters and group by columns (by clicking on a column name) and then select ``'Save as new'``. The new dashboard can then be further customized by clicking on the ``'Customize'`` subtab which shows the definition of the dashboard as a json document::
+
+  {
+    "columnsDefinition": [
+      {
+        "groupBy": "uniqueCountOrUniqueVal",
+        "linkable": true,
+        "name": "cluster",
+        "orderBy": "asc",
+        "source": "metadata.cluster",
+        "visible": true
+      },
+     ... etc ...
+   ],
+    "customFilter": "metadata.cluster='c1'",
+    "errorsOnly": false,
+    "name": "c1 cluster",
+    "summary": false
+  }
+
+* ``name``: the name of the dashboard (will be displayed in the dropdown)
+* ``errorsOnly``: to display only rows that are in error
+* ``summary``: to display a summary view when there are more than one row with the same value (based on the first column). When this value is set to ``true`` then the ``groupBy`` entry of a column definition kicks in
+* ``columnsDefinition`` is an array which defines each column. The order in the array defines in which order columns will be displayed so it is easy to move columns around by simply moving them in the array. Each column is defined this way:
+
+  * ``name``: the name of the column as it appears in the dashboard
+  * ``source``: which data in the model needs to be displayed using the :term:`dotted notation` (see: :ref:`goe-filter-syntax` for more details and examples on the dotted notation)
+  * ``orderBy``: how to sort the column. Possible values are: ``asc / desc / null`` (``null`` means ignore for sorting purposes)
+  * ``groupBy``: how to group rows when using a ``summary`` view. Possible values are: ``uniqueVals / uniqueCount / uniqueCountOrUniqueVal / vals / count / min / max``
+  * ``linkable``: whether a link to add a filter should be displayed
+  * ``visible``: whether the column should be visible at all (useful mostly internally for derived values)
+
+.. _console-default-dashboard:
+
+Default Dashboard
+^^^^^^^^^^^^^^^^^
+
+When a user logs in the first time it is assigned a `default` dashboard. This dashboard is defined in the configuration file under the ``defaults.dashboard`` section and can be a json string or a simple groovy array of ``columnsDefinition`` as defined previously. This is the one that comes by default::
+
+      dashboard:
+      [
+        [ name: "mountPoint", source: "mountPoint" ],
+        [ name: "agent",      source: "agent"],
+        [ name: "tags",       source: "tags",       groupBy: "uniqueVals"],
+        [ name: "container",  source: "metadata.container.name"],
+        [ name: "version",    source: "metadata.version"],
+        [ name: "product",    source: "metadata.product"],
+        [ name: "cluster",    source: "metadata.cluster"],
+        [ name: "status",     source: "status" ],
+        [ name: "statusInfo", source: "statusInfo", groupBy: "vals", visible: false],
+        [ name: "state",      source: "state",                       visible: false]
+      ]
 
 
 .. _console-script-log-files:

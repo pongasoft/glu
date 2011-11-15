@@ -37,7 +37,7 @@ The most basic structure of the model is the following::
 
   {
     "fabric": "glu-dev-1",
-    "metadata": {}
+    "metadata": {"name": "My Model"}
     "agentTags": {},
     "entries": []
   }
@@ -72,7 +72,9 @@ The fabric section is required and specifies which :term:`fabric` this model is 
 ``metadata``
 ^^^^^^^^^^^^
 
-This section is of type :term:`metadata` and can contain any kind of information you want to store alongside your model. One way to think about it is `structured comments`. The console can be configured to display and/or use some of this information (TODO: add link). 
+This section is of type :term:`metadata` and can contain any kind of information you want to store alongside your model. One way to think about it is `structured comments`. The console can be configured to display and/or use some of this information (TODO: add link)
+
+.. tip:: The ``name`` entry will be used in the console in addition to the checksum of the model (if it is provided). It is strongly encouraged to give a unique name to a model so that it is easier to differentiate them in the console.
 
 .. _static-model-agentTags:
 

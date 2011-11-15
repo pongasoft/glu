@@ -117,23 +117,17 @@ When the console is launched for the very first time, the database is empty and 
 
 View the agent
 --------------
-1. Click on the ``'Dashboard'`` tab
-
-2. Click on ``agent:1`` (in the ``'Group By'`` section) (don't click on the checkbox, but on ``'agent:1'``)
-
-3. You should see a row in the table where the status says::
-
-    'nothing deployed'
-
-4. Click on ``'agent-1'`` (in the first column of the table) which brings you to the agent view.
+1. Click on the ``'Agents'`` tab where you will see a list of all agents (nodes). In this case there should be only 1 entry.
 
   .. image:: /images/tutorial/tutorial-dashboard-1-600.png
      :align: center
-     :alt: From the dashboard, click on agent-1
+     :alt: From the Agents list, click on agent-1
 
-5. Click on ``'View Details'`` which show/hide the details about the agent: this information is coming straight from agent-1 which was registered in ZooKeeper when the agent started.
+2. Click on ``agent-1`` (which is the name of the agent that was previously set up)
 
-6. You should see the properties ``glu.agent.port`` (``12906``) and ``glu.agent.pid`` representing the pid of the agent.
+3. Click on ``'View Details'`` which show/hide the details about the agent: this information is coming straight from agent-1 which was registered in ZooKeeper when the agent started.
+
+4. You should see the properties ``glu.agent.port`` (``12906``) and ``glu.agent.pid`` representing the pid of the agent.
 
   .. image:: /images/tutorial/tutorial-view-agent-1-600.png
      :align: center
@@ -160,7 +154,7 @@ View log files
 
 View processes (``ps``)
 -----------------------
-1. Go back to the agent view page and click ``'All Processes'``. This essentialy runs the ``'ps'`` command on the agent and returns the result.
+1. Click on the ``'All Processes'`` subtab. This essentialy runs the ``'ps'`` command on the agent and returns the result.
 
   .. image:: /images/tutorial/tutorial-ps-1-600.png
      :align: center
@@ -177,7 +171,7 @@ View processes (``ps``)
 
 Loading the model
 -----------------
-1. Click on the ``'Model'`` tab and enter::
+1. Click on the ``'Model'`` tab and ``'Load'`` subtab and enter::
 
     Json Uri: http://localhost:8080/glu/repository/systems/sample-webapp-system.json
 
@@ -205,15 +199,17 @@ Loading the model
 
    .. note:: From there, there are several ways to go about it (partially or all at once). Let's do it all for now.
 
-2. Click on the ``'System'`` tab.
+2. Click on the ``'Plans'`` subtab. You should see a table at the bottom of the page with ``Select a plan`` right next to it. Select the radio group control in the table that says ``Deploy PARALLEL`` (the row should be highlighted in red). It should immediately shows you the list of actions (and their ordering) that are going to be accomplished to 'fix' the delta.
 
-3. Click on the ``'Current'`` subtab. You should see a table at the bottom of the page with ``Select a plan`` right next to it. Select the radio group control in the table that says ``Deploy PARALLEL`` (the row should be highlighted in red). It should immediately shows you the list of actions (and their ordering) that are going to be accomplished to 'fix' the delta.
+3. Click ``'Select this plan'``.
 
-4. Click ``'Select this plan'``.
+   .. image:: /images/tutorial/tutorial-select-plan-3-600.png
+      :align: center
+      :alt: Select a plan page
 
-5. The next page allows you to *customize* the plan. Simply click ``'Execute'`` and confirm the action.
+4. The next page allows you to *customize* the plan. Simply click ``'Execute'`` and confirm the action.
 
-6. The next page will show you the plan again and will change as the plan gets executed. Since you selected ``PARALLEL`` all the actions will take place in parallel. The plan should conclude successfully.
+5. The next page will show you the plan again and will change as the plan gets executed. Since you selected ``PARALLEL`` all the actions will take place in parallel. The plan should conclude successfully.
 
    .. image:: /images/tutorial/tutorial-plan-success.png
       :align: center
@@ -225,7 +221,7 @@ Loading the model
          :align: center
          :alt: Agent log after deployment plan
 
-7. Go back to the ``Dashboard`` and everything should be green.
+6. Go back to the ``Dashboard`` and everything should be green.
 
    .. image:: /images/tutorial/tutorial-dashboard-3-600.png
       :align: center
@@ -233,7 +229,7 @@ Loading the model
 
    .. note:: the terminology 'entry' may sound a little vague right now, but it is associated to a unique mountPoint (or unique key) like ``/sample/i001`` on an agent with a script (called glu script) which represents the set of instructions necessary to start an application. In the course of this tutorial we use the `JettyGluScript <https://github.com/linkedin/glu/blob/master/scripts/org.linkedin.glu.script-jetty/src/main/groovy/JettyGluScript.groovy>`_ which starts a jetty webapp container and deploy some webapps in it.
 
-8. At this stage you have just started 3 jetty container with 4 webapps and you can verify that it worked::
+7. At this stage you have just started 3 jetty container with 4 webapps and you can verify that it worked::
 
      webapp1: /sample/i001 (port 9000)
 	/cp1: http://localhost:9000/cp1/monitor
@@ -248,7 +244,7 @@ Loading the model
 
 Viewing entry details
 ---------------------
-1. Click on ``'agent-1'`` on any of the 3 rows to go back to the agent page (same step as before).
+1. Click on the ``'Agents'`` tab and select ``'agent-1'`` from the list
 
    The page shows you now the 3 entries that were installed.
 
@@ -305,13 +301,13 @@ Detecting failures
 
 Changing the model
 ------------------
-1. Now click the ``'System'`` tab again.
+1. Now click the ``'Model'`` tab again.
 
-2. You should see a table with 1 entry which shows you the systems that you loaded.
+2. You should see a table with 2 entries which shows you the model that you loaded previously (the one highlighted) as well as the empty model (default one when creating a fabric)
 
    Click on the first id. You should now see the json document that you loaded previously. We are going to edit it in place.
 
-   The format is an array of entries representing each entry in the system (as explained previously).
+   The format is an array of entries representing each entry in the model (as explained previously).
 
 3. In the second entry (look for ``"port": 9001``, around the bottom of the text area), change the ``contextPath`` value to ``/cp3``. and click ``"Save Changes"``.
 
@@ -321,15 +317,15 @@ Changing the model
 
 4. Go back to the ``Dashboard``.
 
-   Note that the second row is now red and the status says ``'DELTA'``. If you click on the status you can view an explanation of the delta (in this case the context path is different).
+   Note that the second row is now yellow and the status says ``'DELTA'``. If you click on the status you can view an explanation of the delta (in this case the context path is different).
 
    .. image:: /images/tutorial/tutorial-dashboard-5.png
       :align: center
       :alt: Dashboard shows the delta
 
-   There is a delta: the system in the console is not matching with what is currently deployed. Hence it is red.
+   There is a delta: the system in the console is not matching with what is currently deployed. It is graphically represented as a different color.
 
-5. Click on ``'/sample/i002'`` and you land on a filtered view containing only the mountPoint you clicked on.
+5. Click on ``'/sample/i002'`` which sets a filter on the model: it excludes all the entries except the one where ``'mountPoint'`` is equal to ``'/sample/i002'``. Click on the ``'Plans'`` subtab.
 
 6. Choose ``'Deploy / SEQUENTIAL'``. Note that since there is only 1 entry, choosing ``SEQUENTIAL`` or ``PARALLEL`` will have the same effect.
 
@@ -349,23 +345,23 @@ Reloading the model and experiencing a failure
 ----------------------------------------------
 1. Manually edit the file: ``$GLU_TUTORIAL_ROOT/console-server/glu/repository/systems/sample-webapp-system.json``
 
-2. Change the contextPath in the very last entry from ``/cp4`` to ``/fail`` and save your changes
+2. Change the contextPath in the very last entry from ``/cp4`` to ``/fail`` and change the name of the model to ``Tutorial System Model (with failure)`` and save your changes (it will make it easier to differentiate the model in the UI by giving it a different name). 
 
 3. Go back to the console and reload the model:
 
-   Click on the ``'Model'`` tab and enter::
+   Click on the ``'Model'`` tab, ``'Load'`` subtab and enter::
 
      Json Uri: http://localhost:8080/glu/repository/systems/sample-webapp-system.json
 
    and click ``Load``.
 
-   .. note:: You should now have 2 rows that are red: you reloaded the model thus discarding the changes you had made to entry 2 and you changed entry 3.
+   .. note:: When you go back to the model, the filter you set previously will still be active. Make sure you click the ``'X'`` right next to it to remove it and see the whole, unfiltered model! You should now have 2 rows that are yello: you reloaded the model thus discarding the changes you had made to entry 2 and you changed entry 3.
 
       .. image:: /images/tutorial/tutorial-dashboard-6-600.png
          :align: center
          :alt: 2 rows are in error
 
-4. Click on the ``System`` tab and then on ``Current`` subtab and follow the same steps we did before to 'fix' the delta (select deploy in parallel and then execute the plan).
+4. Click on the ``'Plans'`` subtab and follow the same steps we executed before to 'fix' the delta (select deploy in parallel and then execute the plan).
 
    This time around you should see a failure: the last entry failed during boot time (this is artificially triggered by deploying it under ``/fail``). 
 
@@ -386,9 +382,9 @@ Reloading the model and experiencing a failure
 
 Using the console cli
 ---------------------
-1. Click on the ``System`` tab and on the currently selected system and make sure you change the ``/fail`` back to ``/cp4``.
+1. Click on the ``'Model'`` tab and set as current the very first model you loaded (it should be right above the ``Empty System Model`` one).
 
-2. In the console, click on the ``'Plans'`` tab and make sure you leave this window visible. Note that at this point you should see the list of all the plans you have already executed including the last one which failed.
+2. In the console, click on the ``'Deployments'`` tab and make sure you leave this window visible. Note that at this point you should see the list of all the plans you have already executed including the last one which failed.
 
    .. image:: /images/tutorial/tutorial-plans-600.png
       :align: center
@@ -434,7 +430,7 @@ Using the console cli
 
        100:COMPLETED
 
-   unless you did not change the context path to ``/cp4`` (you may want to try reverting the system to ``/fail`` as an exercise...).
+   unless you did not change the context path to ``/cp4`` (you may want to try reverting the model to ``/fail`` as an exercise...).
 
 7. Try a dry-run mode (``-n``)::
 

@@ -44,21 +44,15 @@ A model contains an array of entries. After the filter, the model contains a sub
 Filtering in the console
 ------------------------
 
-From the ``Dashboard``, the links represent individual filters.
+From the ``Dashboard``, the links represent individual filters: clicking on a link `adds` a filter. There is also a way to remove them.
+
+.. tip:: The ``Dashboard`` is a table view representation of the model. Adding a filter essentially `hides` some rows from the table.
 
 .. image:: /images/filtering-console-600.png
    :align: center
    :alt: Filtering in the console
 
-.. note:: the columns on the dashboard, as well as whether you can filter on them or not, is entirely configurable. See the :ref:`console configuration <console-configuration>` section for more details.
-
-This is the result of clicking on the link ``search-1`` from the previous screenshot which sets a filter: ``metadata.cluster='search-1``
-
-.. image:: /images/filtering-console-cluster-600.png
-   :align: center
-   :alt: Filtering in the console (cluster view)
-
-.. note:: the actions on the filtered view page, will only act on the filtered entries which in this specific case would be 2 entries since the 3rd entry is not part of this cluster.
+.. _goe-filter-cli:
 
 Filtering from the command line
 -------------------------------

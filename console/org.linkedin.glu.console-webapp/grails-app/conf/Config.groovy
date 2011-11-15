@@ -105,18 +105,16 @@ console.dev.defaults =
     
       dashboard:
       [
-          mountPoint: [checked: true, name: 'mountPoint', groupBy: true, linkFilter: true],
-          agent: [checked: true, name: 'agent', groupBy: true],
-          'tag': [checked: false, name: 'tag', groupBy: true, linkFilter: true],
-          'tags': [checked: true, name: 'tags', linkFilter: true],
-          'metadata.container.name': [checked: true, name: 'container', groupBy: true, linkFilter: true],
-          'metadata.version': [checked: true, name: 'version', groupBy: true],
-          'metadata.product': [checked: true, name: 'product', groupBy: true, linkFilter: true],
-          'metadata.cluster': [checked: true, name: 'cluster', groupBy: true, linkFilter: true],
-          'initParameters.skeleton': [checked: false, name: 'skeleton', groupBy: true],
-          script: [checked: false, name: 'script', groupBy: true],
-          'metadata.modifiedTime': [checked: false, name: 'Last Modified', groupBy: false],
-          status: [checked: true, name: 'status', groupBy: true]
+        [ name: "mountPoint", source: "mountPoint" ],
+        [ name: "agent",      source: "agent"],
+        [ name: "tags",       source: "tags",       groupBy: "uniqueVals"],
+        [ name: "container",  source: "metadata.container.name"],
+        [ name: "version",    source: "metadata.version"],
+        [ name: "product",    source: "metadata.product"],
+        [ name: "cluster",    source: "metadata.cluster"],
+        [ name: "status",     source: "status" ],
+        [ name: "statusInfo", source: "statusInfo", groupBy: "vals", visible: false],
+        [ name: "state",      source: "state",                       visible: false]
       ],
 
     tags:
@@ -125,7 +123,7 @@ console.dev.defaults =
       'e:tag1': [background: '#00875a', color: '#ffffff'],
     ],
 
-      system:
+      model:
       [
         agent: [name: 'agent'],
         'tags.a:tag1': [name: 'a:tag1'],

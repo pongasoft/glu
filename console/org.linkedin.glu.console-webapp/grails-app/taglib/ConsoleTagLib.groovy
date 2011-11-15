@@ -831,11 +831,10 @@ public class ConsoleTagLib
     out << "<a href=\"#\" class=\"dropdown-toggle\">${request.userSession?.currentCustomDeltaDefinitionName?.encodeAsHTML()}</a>"
     out << "<ul class=\"dropdown-menu\">"
     out << "<li>"
-    out << g.link(controller: 'dashboard', action: 'redelta', params: ['session.reset': true]) {
+    out << g.link('class': 'btn', controller: 'dashboard', action: 'redelta', params: ['session.reset': true]) {
       "Reset"
     }
     out << "</li>"
-    out << "<li class=\"divider\"></li>"
 
     def otherNames = request.userSession?.customDeltaDefinitionNames
     if(otherNames)
@@ -843,17 +842,22 @@ public class ConsoleTagLib
       otherNames = new TreeSet(otherNames)
       otherNames.remove(request.userSession?.currentCustomDeltaDefinitionName)
     }
-    otherNames.each { name ->
-      out << "<li>"
-      def redirectParams = [:]
-      redirectParams[UserPreferencesFilters.CUSTOM_DELTA_DEFINITION_COOKIE_NAME] = name
-      redirectParams['session.clear'] = true
-      out << g.link(controller: 'dashboard', action: 'redelta', params: redirectParams) {
-        name.encodeAsHTML()
+    if(otherNames)
+    {
+      out << "<li class=\"divider\"></li>"
+      otherNames.each { name ->
+        out << "<li>"
+        def redirectParams = [:]
+        redirectParams[UserPreferencesFilters.CUSTOM_DELTA_DEFINITION_COOKIE_NAME] = name
+        redirectParams['session.clear'] = true
+        out << g.link(controller: 'dashboard', action: 'redelta', params: redirectParams) {
+          name.encodeAsHTML()
+        }
+        out << "</li>"
       }
-      out << "</li>"
       out << "<li class=\"divider\"></li>"
     }
+
     out << "<li>"
     out << "<a class=\"btn\" data-controls-modal=\"saveAsNew\" data-backdrop=\"true\" data-keyboard=\"true\">Save as new</a>"
     out << "</li>"
