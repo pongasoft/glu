@@ -111,6 +111,10 @@ task lib(dependsOn: jar) << {
   ant.move(file: file('lib/ant-1.8.1.jar'), todir: workaroundDir)
   ant.move(file: file('lib/ant-launcher-1.8.1.jar'), todir: workaroundDir)
 
+  // issue is that we end up with duplicate files (with slightly different names!) because grails
+  // add them!
+  fileTree('lib').include('spring-*.jar').each { it.delete() }
+
   def keysDir = new File(rootDir, 'dev-keys')
   def secretKeyStoreDir = new File(buildDir, 'conf')
   copy {
