@@ -47,7 +47,7 @@
 </g:form>
 <div id="dashboardSources" class="modal hide">
   <a href="#" class="close">&times;</a>
-  <div class="modal-header">Possible sources (based on current system)</div>
+  <div class="modal-header">Possible sources (based on current model)</div>
   <div class="modal-body">
     <table class="condensed-table">
       <g:each in="${sources}" var="source">
