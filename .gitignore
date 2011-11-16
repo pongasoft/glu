@@ -8,7 +8,10 @@ build
 out
 console/org.linkedin.glu.console-webapp/target
 console/org.linkedin.glu.console-webapp/lib
-grails-plugins/org.linkedin.glu.grails.plugins.external-domain-classes/target
-grails-plugins/org.linkedin.glu.grails.plugins.external-domain-classes/lib
-grails-plugins/org.linkedin.glu.grails.plugins.external-domain-classes/plugin.xml
-
+console/org.linkedin.glu.console-webapp/web-app/images/grails_logo.jpg
+console/org.linkedin.glu.console-webapp/web-app/images/grails_logo.png
+console/org.linkedin.glu.console-webapp/web-app/images/leftnav_btm.png
+console/org.linkedin.glu.console-webapp/web-app/images/leftnav_midstretch.png
+console/org.linkedin.glu.console-webapp/web-app/images/leftnav_top.png
+console/org.linkedin.glu.console-webapp/web-app/images/springsource.png
+console/org.linkedin.glu.console-webapp/web-app/js/prototype

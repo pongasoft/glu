@@ -30,6 +30,7 @@ Before doing anything go to::
 
 and issue::
 
+    grails install-plugin ../../local-maven-repo/com/pongasoft/grails-external-domain-classes/1.0.0/grails-external-domain-classes-1.0.0.zip
     grails upgrade
 
 At the top simply run::
@@ -41,7 +42,6 @@ which should compile and run all the tests.
 Note: if you do not run the 'grails upgrade' command, you may see this messages::
 
     Plugin `shiro-1.1-SNAPSHOT <not installed. ...
-    Plugin [yui-2.7.0.1] not installed. ...
     Plugin [hibernate-1.3.5] not installed. ...
     Plugin [tomcat-1.3.5] not installed. ...
 
