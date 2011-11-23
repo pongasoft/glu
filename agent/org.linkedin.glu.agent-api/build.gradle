@@ -20,6 +20,7 @@ apply plugin: 'org.linkedin.release'
 
 dependencies {
   compile spec.external.linkedinUtilsCore
+  compile spec.external.slf4jLog4j
 
   groovy spec.external.groovy
 
