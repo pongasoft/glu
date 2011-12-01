@@ -139,7 +139,7 @@ class TestCapabilities extends GroovyTestCase
       // now we try with a file directly:
       shellScript = shellScript.file.canonicalPath
       assertEquals("Hello a b c", shell.exec("${shellScript} a b c"))
-      assertEquals("       1       1       6", shell.exec("${shellScript} | wc"))
+      assertEquals("       1       1       6".trim(), shell.exec("${shellScript} | wc").trim())
 
       // we make the shell script non executable
       fs.chmod(shellScript, '-x')
@@ -333,8 +333,8 @@ line 3 abcdef
         assertEquals(originalSizes[path - '.gz'] - size, res[shell.toResource(path)])
       }
 
-      assertTrue(GroovyCollectionsUtils.compareIgnoreType(expectedResult, res.keySet().path))
-      assertTrue(GroovyCollectionsUtils.compareIgnoreType(expectedResult, leavesPaths(root)))
+      assertEquals(expectedResult, res.keySet().path.sort())
+      assertEquals(expectedResult, leavesPaths(root).toArray().sort())
     }
   }
 
@@ -355,8 +355,9 @@ line 3 abcdef
       fs.eachChildRecurse(root) { r ->
         files << r.path
       }
+      files.sort()
 
-      def expectedFiles = ['/root/dir1', '/root/e.txt', '/root/dir1/a.txt', '/root/dir1/b.txt', '/root/dir1/dir2', '/root/dir1/dir2/c.txt', '/root/dir1/dir2/d.txt']
+      def expectedFiles = ['/root/dir1', '/root/e.txt', '/root/dir1/a.txt', '/root/dir1/b.txt', '/root/dir1/dir2', '/root/dir1/dir2/c.txt', '/root/dir1/dir2/d.txt'].sort()
       assertEquals(expectedFiles, files)
 
       // find only dirs under root
