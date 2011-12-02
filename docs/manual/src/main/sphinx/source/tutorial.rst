@@ -355,7 +355,7 @@ Reloading the model and experiencing a failure
 
    and click ``Load``.
 
-   .. note:: When you go back to the model, the filter you set previously will still be active. Make sure you click the ``'X'`` right next to it to remove it and see the whole, unfiltered model! You should now have 2 rows that are yello: you reloaded the model thus discarding the changes you had made to entry 2 and you changed entry 3.
+   .. note:: When you go back to the model, the filter you set previously will still be active. Make sure you click the ``'X'`` right next to it to remove it and see the whole, unfiltered model! You should now have 2 rows that are yellow: you reloaded the model thus discarding the changes you had made to entry 2 and you changed entry 3.
 
       .. image:: /images/tutorial/tutorial-dashboard-6-600.png
          :align: center

@@ -48,6 +48,7 @@ List of tickets
 
 * Implemented `glu-17 <https://github.com/linkedin/glu/issues/17>`_: `Feature Request: make console views navigation friendly (bookmarkable)`
 * Implemented `glu-28 <https://github.com/linkedin/glu/issues/28>`_: `Feature Request: Add dates to the table at /console`
+* Implemented `glu-44 <https://github.com/linkedin/glu/issues/44>`_: `handle dashboard.model properly`
 * Implemented `glu-104 <https://github.com/linkedin/glu/issues/104>`_: `Make dashboard customizable by user`
 * Fixed `glu-105 <https://github.com/linkedin/glu/issues/105>`_: `Error count incorrect in glu dashboard`
 * Fixed `glu-107 <https://github.com/linkedin/glu/issues/107>`_: `CSS and some js become inaccessible after a while`
