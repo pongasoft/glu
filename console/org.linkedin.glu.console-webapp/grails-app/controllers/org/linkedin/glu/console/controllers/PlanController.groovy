@@ -37,6 +37,7 @@ import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.orchestration.engine.deployment.ArchivedDeployment
 import org.linkedin.glu.orchestration.engine.deployment.Deployment
+import java.security.AccessControlException
 
 /**
  * @author ypujante@linkedin.com */
@@ -102,15 +103,22 @@ public class PlanController extends ControllerBase
 
     if(plan)
     {
-      session.plan = null
-
-      CurrentDeployment currentDeployment =
-        deploymentService.executeDeploymentPlan(request.system,
-                                                plan,
-                                                plan.name,
-                                                new ProgressTracker())
-
-      redirect(action: 'deployments', id: currentDeployment.id)
+      try
+      {
+        CurrentDeployment currentDeployment =
+          deploymentService.executeDeploymentPlan(request.system,
+                                                  plan,
+                                                  plan.name,
+                                                  new ProgressTracker())
+        session.plan = null
+        redirect(action: 'deployments', id: currentDeployment.id)
+      }
+      catch (AccessControlException e)
+      {
+        flash.error = e.message
+        redirect(action: 'view', id: params.id)
+        return
+      }
     }
     else
     {

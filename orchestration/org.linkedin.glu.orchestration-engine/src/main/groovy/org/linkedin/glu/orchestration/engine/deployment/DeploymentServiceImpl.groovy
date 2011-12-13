@@ -31,6 +31,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.groovy.util.clock.ClosureTimerTask
 import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
+import org.linkedin.glu.orchestration.engine.plugins.PluginService
 
 /**
  * System service.
@@ -67,6 +68,9 @@ class DeploymentServiceImpl implements DeploymentService, Startable, Destroyable
 
   @Initializable
   AuthorizationService authorizationService
+
+  @Initializable
+  PluginService pluginService
 
   private Map<String, CurrentDeployment> _deployments = [:]
   private Map<String, Plan> _plans = [:]
@@ -267,34 +271,44 @@ class DeploymentServiceImpl implements DeploymentService, Startable, Destroyable
     executeDeploymentPlan(system, plan, plan.name, null)
   }
 
-  CurrentDeployment executeDeploymentPlan(SystemModel system,
+  CurrentDeployment executeDeploymentPlan(SystemModel model,
                                           Plan plan,
                                           String description,
                                           IPlanExecutionProgressTracker progressTracker)
   {
+    pluginService?.executeMethod(DeploymentService,
+                                 "pre_executeDeploymentPlan",
+                                 [
+                                   model: model,
+                                   plan: plan,
+                                   description: description
+                                 ])
+
     synchronized(_deployments)
     {
       String username = authorizationService?.getExecutingPrincipal()
 
       ArchivedDeployment deployment =
         deploymentStorage.startDeployment(description,
-                                          system.fabric,
+                                          model.fabric,
                                           username,
                                           plan.toXml())
 
       def id = deployment.id
 
       def tracker = new ProgressTracker(deploymentStorage,
+                                        pluginService,
                                         progressTracker,
                                         id,
-                                        system)
+                                        model,
+                                        description)
 
       def planExecution = deployer.executePlan(plan, tracker)
 
       CurrentDeployment currentDeployment = new CurrentDeployment(id: id,
                                                                   username: username,
-                                                                  fabric: system.fabric,
-                                                                  systemId: system.id,
+                                                                  fabric: model.fabric,
+                                                                  systemId: model.id,
                                                                   planExecution: planExecution,
                                                                   description: description,
                                                                   progressTracker: progressTracker)

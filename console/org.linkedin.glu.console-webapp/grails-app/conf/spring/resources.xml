@@ -203,6 +203,7 @@
     <property name="deploymentStorage">
       <bean class="org.linkedin.glu.console.provisioner.services.storage.DeploymentStorageImpl"/>
     </property>
+    <property name="pluginService" ref="pluginService"/>
     <property name="autoArchiveTimeout">
       <bean class="org.linkedin.util.clock.Timespan" factory-method="parse">
         <constructor-arg value="${console.deploymentService.autoArchiveTimeout}"/>
@@ -251,4 +252,9 @@
   <bean id="encryptionService" class="org.linkedin.glu.orchestration.engine.encryption.EncryptionServiceImpl">
     <property name="encryptionKeysProvider" ref="encryptionKeysProvider"/>
   </bean>
+
+  <!-- *********************** -->
+  <!-- pluginService           -->
+  <!-- *********************** -->
+  <bean id="pluginService" class="org.linkedin.glu.orchestration.engine.plugins.PluginServiceImpl"/>
 </beans>

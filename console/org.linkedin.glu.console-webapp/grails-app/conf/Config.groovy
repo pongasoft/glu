@@ -155,6 +155,10 @@ console.dev.defaults =
           'glu-dev-1': ['drMode': 'primary'],
           'glu-dev-2': ['drMode': 'secondary']
       ],
+
+//    plugins: [
+//      engine: 'org.linkedin.glu.console.provisioner.services.MyPlugin'
+//    ]
   ]
 
 // set per-environment serverURL stem for creating absolute links

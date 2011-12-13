@@ -21,25 +21,32 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.plan.api.FilteredPlanExecutionProgressTracker
 import org.linkedin.glu.provisioner.plan.api.IPlanExecution
 import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
+import org.linkedin.glu.orchestration.engine.plugins.PluginService
 
 /**
  * @author yan@pongasoft.com */
 class ProgressTracker<T> extends FilteredPlanExecutionProgressTracker<T>
 {
   final DeploymentStorage _deploymentStorage
+  final PluginService _pluginService
   def final _deploymentId
   private IPlanExecution _planExecution
-  private final SystemModel _system
+  private final SystemModel _model
+  private final String _description
 
   def ProgressTracker(DeploymentStorage deploymentStorage,
+                      PluginService pluginService,
                       tracker,
                       deploymentId,
-                      SystemModel system)
+                      SystemModel model,
+                      String description)
   {
     super(tracker)
     _deploymentStorage = deploymentStorage
+    _pluginService = pluginService
     _deploymentId = deploymentId
-    _system = system
+    _model = model
+    _description = description
   }
 
   public void onPlanStart(IPlanExecution<T> planExecution)
@@ -52,7 +59,16 @@ class ProgressTracker<T> extends FilteredPlanExecutionProgressTracker<T>
   public void onPlanEnd(IStepCompletionStatus<T> status)
   {
     super.onPlanEnd(status)
-    String details = _planExecution.toXml([fabric: _system.fabric, systemId: _system.id])
+    String details = _planExecution.toXml([fabric: _model.fabric, systemId: _model.id])
     _deploymentStorage.endDeployment(_deploymentId, status, details)
+    _pluginService?.executeMethod(DeploymentService,
+                                 "post_executeDeploymentPlan",
+                                 [
+                                   model: _model,
+                                   plan: _planExecution.plan,
+                                   description: _description,
+
+                                   serviceResult: _planExecution
+                                 ])
   }
 }

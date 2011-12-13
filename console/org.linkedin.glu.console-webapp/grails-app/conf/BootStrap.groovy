@@ -29,12 +29,15 @@ import org.linkedin.glu.console.domain.DbUserCredentials
 import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.orchestration.engine.delta.DeltaService
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
+import org.linkedin.glu.orchestration.engine.plugins.PluginServiceImpl
+import org.codehaus.groovy.grails.commons.ApplicationHolder
 
 class BootStrap {
 
   ConsoleConfig consoleConfig
   SystemService systemService
   DeltaService deltaService
+  PluginServiceImpl pluginService
 
   def init = { servletContext ->
     log.info "Starting up... [${Environment.current} mode]"
@@ -54,6 +57,16 @@ class BootStrap {
       }
     } else {
       log.warn "console.ivySettingsURL config parameter not specified, ivy:/ URLhandler is not enabled."
+    }
+
+    // initializing the plugin if one is provided
+    if(consoleConfig.defaults.plugins?.engine)
+    {
+      pluginService.initializePlugin(consoleConfig.defaults.plugins.engine,
+                                     [
+                                       applicationContext: ApplicationHolder.application.mainContext,
+                                       defaults: consoleConfig.defaults
+                                     ])
     }
 
     // setting up data when development...

@@ -87,9 +87,9 @@ interface DeploymentService
 
   boolean isExecutingDeploymentPlan(String fabric)
 
-  CurrentDeployment executeDeploymentPlan(SystemModel system, Plan plan)
+  CurrentDeployment executeDeploymentPlan(SystemModel model, Plan plan)
 
-  CurrentDeployment executeDeploymentPlan(SystemModel system,
+  CurrentDeployment executeDeploymentPlan(SystemModel model,
                                           Plan plan,
                                           String description,
                                           IPlanExecutionProgressTracker progressTracker)
