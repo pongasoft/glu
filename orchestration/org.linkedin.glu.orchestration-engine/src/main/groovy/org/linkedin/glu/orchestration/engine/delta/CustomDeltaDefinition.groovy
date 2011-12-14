@@ -55,6 +55,18 @@ public class CustomDeltaDefinition implements Externable
     return columnsDefinition.findAll { it.isVisible() }
   }
 
+  void setColumnsDefinition(List<CustomDeltaColumnDefinition> columnsDefinition)
+  {
+    if(columnsDefinition?.name?.unique()?.size() != columnsDefinition?.size())
+    {
+      def names = [:]
+      columnsDefinition.name.each { name -> names[name] = (names[name] ?: 0) + 1 }
+      throw new IllegalArgumentException("duplicate name(s) not allowed ${names.findAll { k,v -> v > 1 }.keySet()}")
+    }
+
+    this.columnsDefinition = columnsDefinition
+  }
+
   CustomDeltaColumnDefinition getFirstColumn()
   {
     return visibleColumns[0]

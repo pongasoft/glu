@@ -173,4 +173,43 @@ public class TestCustomDeltaDefinition extends GroovyTestCase
     assertEquals(jsonDashboard, serializer.serialize(CustomDeltaDefinition.fromDashboard(newDashboardCollection),
                                                      true))
   }
+
+  /**
+   * Exception when duplicate entries with the same name (glu-113)
+   */
+  public void testDuplicateNames()
+  {
+    def cdd = [
+      name: 'd1',
+      errorsOnly: false,
+      summary: true,
+      columnsDefinition: [
+        [
+          name: 'ag',
+          source: 'agent',
+          orderBy: 'asc'
+        ],
+        [
+          name: 'mp',
+          source: 'mountPoint'
+        ],
+        [
+          name: 'tags',
+          source: 'tags',
+          groupBy: 'uniqueVals'
+        ],
+        [
+          name: 'tags',
+          source: 'entryState',
+          groupBy: 'vals'
+        ]
+      ]
+    ]
+
+    def error = shouldFail(IllegalArgumentException){
+      CustomDeltaDefinition.fromExternalRepresentation(cdd)
+    }
+
+    assertEquals("duplicate name(s) not allowed [tags]", error)
+  }
 }
