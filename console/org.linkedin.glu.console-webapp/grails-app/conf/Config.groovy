@@ -159,7 +159,17 @@ console.dev.defaults =
 //    plugins: [
 //      engine: [
 //        DeploymentService_pre_executeDeploymentPlan: { args ->
-//          args.description = "${args.description} / from plugin!" }
+//          args.description = "${args.description} / from plugin!" },
+//
+//        SystemService_pre_parseSystemModel: { args ->
+//          println "loading model from [${args.source.class.name}]"
+//          return null
+//        },
+//
+//        SystemService_post_parseSystemModel: { args ->
+//          args.serviceResult.metadata.plugin = "from plugin!"
+//          return null
+//        }
 //      ]
 //    ]
   ]

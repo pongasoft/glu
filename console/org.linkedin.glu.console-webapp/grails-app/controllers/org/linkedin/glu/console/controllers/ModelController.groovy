@@ -147,36 +147,37 @@ public class ModelController extends ControllerBase
 
   private def saveCurrentSystem()
   {
-    String model
+    def source
 
     if(params.jsonUri)
     {
-      model = new URI(params.jsonUri).toURL().text
+      source = new URI(params.jsonUri)
     }
     else
     {
-      model = request.getFile('jsonFile').inputStream.text
+      source = request.getFile('jsonFile').inputStream
     }
+
+    SystemModel model = systemService.parseSystemModel(source)
 
     return saveCurrentSystem(model)
   }
 
-  private def saveCurrentSystem(String model)
+  private def saveCurrentSystem(SystemModel model)
   {
     withLock('ModelController.saveCurrentSystem') {
       if(model)
       {
-        def system = JSONSystemModelSerializer.INSTANCE.deserialize(model)
-        if(system.fabric != request.fabric.name)
-          throw new IllegalArgumentException("mismatch fabric ${request.fabric.name} != ${system.fabric}")
+        if(model.fabric != request.fabric.name)
+          throw new IllegalArgumentException("mismatch fabric ${request.fabric.name} != ${model.fabric}")
         try
         {
-          boolean saved = systemService.saveCurrentSystem(system)
-          return [system: system, saved: saved]
+          boolean saved = systemService.saveCurrentSystem(model)
+          return [system: model, saved: saved]
         }
         catch (SystemStorageException e)
         {
-          return [system: system, errors: e.errors]
+          return [system: model, errors: e.errors]
         }
       }
       else
@@ -189,16 +190,18 @@ public class ModelController extends ControllerBase
   def rest_upload_model = {
     try
     {
-      String model
-
+      def source
+      
       if(params.modelUrl)
       {
-        model = GroovyIOUtils.cat(params.modelUrl)
+        source = params.modelUrl
       }
       else
       {
-        model = request.inputStream.text
+        source = request.inputStream
       }
+
+      SystemModel model = systemService.parseSystemModel(source)
 
       def res = saveCurrentSystem(model)
 

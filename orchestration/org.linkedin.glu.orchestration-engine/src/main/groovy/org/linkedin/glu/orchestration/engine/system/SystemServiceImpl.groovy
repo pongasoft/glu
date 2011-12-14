@@ -22,6 +22,9 @@ import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.util.annotations.Initializable
+import org.linkedin.glu.orchestration.engine.plugins.PluginService
+import org.linkedin.groovy.util.io.GroovyIOUtils
+import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 
 /**
  * @author yan@pongasoft.com */
@@ -32,6 +35,9 @@ public class SystemServiceImpl implements SystemService
 
   @Initializable(required = true)
   SystemStorage systemStorage
+
+  @Initializable(required = true)
+  PluginService pluginService
 
   /**
    * Given a fabric, returns the list of agents that are declared in the system
@@ -61,6 +67,43 @@ public class SystemServiceImpl implements SystemService
     }
 
     return missingAgents
+  }
+
+  @Override
+  SystemModel parseSystemModel(def source)
+  {
+    if(!source)
+      return null
+
+    pluginService.executePrePostMethods(SystemService,
+                                        "parseSystemModel",
+                                        [source: source]) { args ->
+      SystemModel model = args.pluginResult
+
+      if(model == null)
+      {
+        String sourceString
+
+        switch(args.source)
+        {
+          case String:
+            sourceString = args.source
+            break
+
+          case InputStream:
+            sourceString = args.source.text
+            break
+
+          default:
+            sourceString = GroovyIOUtils.cat(args.source)
+            break
+        }
+
+        model = JSONSystemModelSerializer.INSTANCE.deserialize(sourceString)
+      }
+
+      return model
+    } as SystemModel
   }
 
   /**

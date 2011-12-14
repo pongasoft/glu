@@ -173,6 +173,7 @@
     <property name="systemStorage">
       <bean class="org.linkedin.glu.console.provisioner.services.storage.SystemStorageImpl"/>
     </property>
+    <property name="pluginService" ref="pluginService"/>
   </bean>
 
   <bean id="systemService" class="org.linkedin.glu.orchestration.engine.system.AuditedSystemService">

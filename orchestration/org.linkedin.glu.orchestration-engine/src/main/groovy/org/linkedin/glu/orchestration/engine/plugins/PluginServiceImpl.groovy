@@ -74,18 +74,26 @@ public class PluginServiceImpl implements PluginService
                             Map pluginArgs,
                             Closure serviceClosure)
   {
-    executePluginClosure("${targetService.simpleName}_pre_${pluginMethod}", pluginArgs)
+    def pluginResult =
+      executePluginClosure("${targetService.simpleName}_pre_${pluginMethod}", pluginArgs)
 
     try
     {
-      def res = serviceClosure()
-
       def args = [:]
       if(pluginArgs)
         args.putAll(pluginArgs)
+      if(pluginResult != null)
+        args.pluginResult = pluginResult
+
+      def res = serviceClosure(args)
+
+      args.remove('pluginResult')
       args.serviceResult = res
-      executePluginClosure("${targetService.simpleName}_post_${pluginMethod}",
-                           args)
+      pluginResult = executePluginClosure("${targetService.simpleName}_post_${pluginMethod}",
+                                          args)
+      if(pluginResult != null)
+        res = pluginResult
+
       return res
     }
     catch(Throwable th)
