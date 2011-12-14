@@ -32,12 +32,26 @@ public class PluginServiceImpl implements PluginService
   @Override
   void initializePlugin(String pluginClassname, Map initParameters)
   {
+    plugin = createPluginFromClassname(pluginClassname, initParameters)
+    executeMethod(PluginService, 'initialize', initParameters)
+  }
+
+  private static def createPluginFromClassname(String pluginClassname, Map initParameters)
+  {
     if(pluginClassname)
     {
       log.info("Initializing plugin [${pluginClassname}]")
-      plugin = ReflectUtils.forName(pluginClassname).newInstance()
-      executeMethod(PluginService, 'initialize', initParameters)
+      return ReflectUtils.forName(pluginClassname).newInstance()
     }
+    else
+      return null
+  }
+
+  @Override
+  void initializePlugin(Collection<String> pluginClassnames, Map initParameters)
+  {
+    plugin = pluginClassnames?.collect { createPluginFromClassname(it, initParameters) }
+    executeMethod(PluginService, 'initialize', initParameters)
   }
 
   @Override
@@ -49,7 +63,7 @@ public class PluginServiceImpl implements PluginService
   }
 
   @Override
-  void executeMethod(Class targetService, String pluginMethod, Map pluginArgs)
+  def executeMethod(Class targetService, String pluginMethod, Map pluginArgs)
   {
     executePluginClosure("${targetService.simpleName}_${pluginMethod}", pluginArgs)
   }
@@ -86,9 +100,16 @@ public class PluginServiceImpl implements PluginService
     }
   }
 
-  private void executePluginClosure(String closureName, Map pluginArgs)
+  private def executePluginClosure(def plugin, String closureName, Map pluginArgs)
   {
+    def res = null
     def closure = null
+
+    if(plugin instanceof Collection)
+    {
+      plugin.each { res = executePluginClosure(it, closureName, pluginArgs) }
+      return res
+    }
 
     if(plugin instanceof Map)
     {
@@ -101,6 +122,13 @@ public class PluginServiceImpl implements PluginService
     }
 
     if(closure)
-      closure(pluginArgs)
+      res = closure(pluginArgs)
+
+    return res
+  }
+
+  private def executePluginClosure(String closureName, Map pluginArgs)
+  {
+    executePluginClosure(plugin, closureName, pluginArgs)
   }
 }

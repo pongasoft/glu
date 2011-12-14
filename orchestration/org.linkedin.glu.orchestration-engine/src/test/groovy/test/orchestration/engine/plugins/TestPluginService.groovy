@@ -24,7 +24,7 @@ public class TestPluginService extends GroovyTestCase
 {
   PluginServiceImpl pluginService = new PluginServiceImpl()
 
-  public void testPluginMap()
+  public void testPlugins()
   {
     def executions = []
 
@@ -55,94 +55,50 @@ public class TestPluginService extends GroovyTestCase
       }
     ]
 
-    executions.clear()
-    pluginService.initializePlugin(pluginMap, [i1: 'vi1'])
-    assertEquals(1, executions.size())
-    assertEquals([i1: 'vi1'], executions[0]['PluginService_initialize'])
+    // testing for a map, a class name, a list of maps, a list of class names
+    [pluginMap, PluginClass.name, [pluginMap], [PluginClass.name]].each { plugin ->
+      executions.clear()
+      pluginService.initializePlugin(pluginMap, [i1: 'vi1'])
+      assertEquals(1, executions.size())
+      assertEquals([i1: 'vi1'], executions[0]['PluginService_initialize'])
 
-    executions.clear()
-    pluginService.executeMethod(S1, "m1", [p1: 'pv1'])
-    assertEquals(1, executions.size())
-    assertEquals([p1: 'pv1'], executions[0]['S1_m1'])
+      executions.clear()
+      pluginService.executeMethod(S1, "m1", [p1: 'pv1'])
+      assertEquals(1, executions.size())
+      assertEquals([p1: 'pv1'], executions[0]['S1_m1'])
 
-    executions.clear()
-    pluginService.executePrePostMethods(S1, "m2", [p2: 'pv2']) {
-      return 2
+      executions.clear()
+      pluginService.executePrePostMethods(S1, "m2", [p2: 'pv2']) {
+        return 2
+      }
+      assertEquals(2, executions.size())
+      assertEquals([p2: 'pv2'], executions[0]['S1_pre_m2'])
+      assertEquals([p2: 'pv2', serviceResult: 2], executions[1]['S1_post_m2'])
+
+      executions.clear()
+      pluginService.executePrePostMethods(S1, "m3", [p3: 'pv3']) {
+        return 3
+      }
+      assertEquals(1, executions.size())
+      assertEquals([p3: 'pv3'], executions[0]['S1_pre_m3'])
+
+      executions.clear()
+      pluginService.executePrePostMethods(S1, "m4", [p4: 'pv4']) {
+        return 4
+      }
+      assertEquals(1, executions.size())
+      assertEquals([p4: 'pv4', serviceResult: 4], executions[0]['S1_post_m4'])
+
+      executions.clear()
+      pluginService.executeMethod(S1, "m100", [p1: 'pv1'])
+      assertEquals(0, executions.size())
+
+      executions.clear()
+      pluginService.executePrePostMethods(S1, "m100", [p1: 'pv1']) {
+        return 100
+      }
+      assertEquals(0, executions.size())
     }
-    assertEquals(2, executions.size())
-    assertEquals([p2: 'pv2'], executions[0]['S1_pre_m2'])
-    assertEquals([p2: 'pv2', serviceResult: 2], executions[1]['S1_post_m2'])
-
-    executions.clear()
-    pluginService.executePrePostMethods(S1, "m3", [p3: 'pv3']) {
-      return 3
-    }
-    assertEquals(1, executions.size())
-    assertEquals([p3: 'pv3'], executions[0]['S1_pre_m3'])
-
-    executions.clear()
-    pluginService.executePrePostMethods(S1, "m4", [p4: 'pv4']) {
-      return 4
-    }
-    assertEquals(1, executions.size())
-    assertEquals([p4: 'pv4', serviceResult: 4], executions[0]['S1_post_m4'])
-
-    executions.clear()
-    pluginService.executeMethod(S1, "m100", [p1: 'pv1'])
-    assertEquals(0, executions.size())
-
-    executions.clear()
-    pluginService.executePrePostMethods(S1, "m100", [p1: 'pv1']) {
-      return 100
-    }
-    assertEquals(0, executions.size())
-  }
-
-  public void testPluginClass()
-  {
-    def executions = []
-
-    executions.clear()
-    pluginService.initializePlugin(PluginClass.name, [executions: executions, i1: 'vi1'])
-    assertEquals(1, executions.size())
-    assertEquals([i1: 'vi1'], executions[0]['PluginService_initialize'])
-
-    executions.clear()
-    pluginService.executeMethod(S1, "m1", [p1: 'pv1'])
-    assertEquals(1, executions.size())
-    assertEquals([p1: 'pv1'], executions[0]['S1_m1'])
-
-    executions.clear()
-    pluginService.executePrePostMethods(S1, "m2", [p2: 'pv2']) {
-      return 2
-    }
-    assertEquals(2, executions.size())
-    assertEquals([p2: 'pv2'], executions[0]['S1_pre_m2'])
-    assertEquals([p2: 'pv2', serviceResult: 2], executions[1]['S1_post_m2'])
-
-    executions.clear()
-    pluginService.executePrePostMethods(S1, "m3", [p3: 'pv3']) {
-      return 3
-    }
-    assertEquals(1, executions.size())
-    assertEquals([p3: 'pv3'], executions[0]['S1_pre_m3'])
-
-    executions.clear()
-    pluginService.executePrePostMethods(S1, "m4", [p4: 'pv4']) {
-      return 4
-    }
-    assertEquals(1, executions.size())
-    assertEquals([p4: 'pv4', serviceResult: 4], executions[0]['S1_post_m4'])
-
-    executions.clear()
-    pluginService.executeMethod(S1, "m100", [p1: 'pv1'])
-    assertEquals(0, executions.size())
-
-    executions.clear()
-    pluginService.executePrePostMethods(S1, "m100", [p1: 'pv1']) {
-      return 100
-    }
-    assertEquals(0, executions.size())
   }
 }
 

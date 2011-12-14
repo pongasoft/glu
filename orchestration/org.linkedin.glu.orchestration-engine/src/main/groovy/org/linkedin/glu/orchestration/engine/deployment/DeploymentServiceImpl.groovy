@@ -276,13 +276,13 @@ class DeploymentServiceImpl implements DeploymentService, Startable, Destroyable
                                           String description,
                                           IPlanExecutionProgressTracker progressTracker)
   {
+    def pluginArgs = [model: model, plan: plan, description: description]
+
     pluginService?.executeMethod(DeploymentService,
                                  "pre_executeDeploymentPlan",
-                                 [
-                                   model: model,
-                                   plan: plan,
-                                   description: description
-                                 ])
+                                 pluginArgs)
+
+    (model, plan, description) = [pluginArgs.model, pluginArgs.plan, pluginArgs.description]
 
     synchronized(_deployments)
     {

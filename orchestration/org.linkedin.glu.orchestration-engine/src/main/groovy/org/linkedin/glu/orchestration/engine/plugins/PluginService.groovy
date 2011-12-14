@@ -22,9 +22,11 @@ public interface PluginService
 {
   void initializePlugin(String pluginClassname, Map initParameters)
 
+  void initializePlugin(Collection<String> pluginClassnames, Map initParameters)
+
   void initializePlugin(Map plugin, Map initParameters)
 
-  void executeMethod(Class targetService, String pluginMethod, Map pluginArgs)
+  def executeMethod(Class targetService, String pluginMethod, Map pluginArgs)
 
   def executePrePostMethods(Class targetService,
                             String pluginMethod,

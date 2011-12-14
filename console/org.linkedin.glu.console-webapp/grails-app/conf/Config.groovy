@@ -157,7 +157,10 @@ console.dev.defaults =
       ],
 
 //    plugins: [
-//      engine: 'org.linkedin.glu.console.provisioner.services.MyPlugin'
+//      engine: [
+//        DeploymentService_pre_executeDeploymentPlan: { args ->
+//          args.description = "${args.description} / from plugin!" }
+//      ]
 //    ]
   ]
 
