@@ -43,11 +43,6 @@ console.to.agent.connectionTimeout = "30s"
 // locations to search for config files that get merged into the main config
 // config files can either be Java properties files or ConfigSlurper scripts
 
-// grails.config.locations = [ "classpath:${appName}-config.properties",
-//                             "classpath:${appName}-config.groovy",
-//                             "file:${userHome}/.grails/${appName}-config.properties",
-//                             "file:${userHome}/.grails/${appName}-config.groovy"]
-
 grails.config.locations = []
 
 [ "${System.properties['user.dir']}/conf/glu-console-webapp.groovy",
@@ -95,6 +90,26 @@ grails.external.domain.packages = ['org.linkedin.glu.orchestration.engine.delta'
 // this parameter disables auto flushing in grails which happens when an object is dirty
 // and not saved... when setting this to manual you need to explicitely save the object
 hibernate.flush.mode="manual"
+
+// define the plugins as a Map, or a class name or an array of class names
+orchestration.engine.plugins = [
+//  PluginService_initialize: { args ->
+//    println "Initializing plugins with config ${args.config}"
+//  },
+//
+//  DeploymentService_pre_executeDeploymentPlan: { args ->
+//    args.description = "${args.description} / from plugin!" },
+//
+//  SystemService_pre_parseSystemModel: { args ->
+//    println "loading model from [${args.source.class.name}]"
+//    return null
+//  },
+//
+//  SystemService_post_parseSystemModel: { args ->
+//    args.serviceResult.metadata.plugin = "from plugin!"
+//    return null
+//  }
+]
 
 // see ConsoleConfig for explanation
 console.dev.defaults =
@@ -155,23 +170,6 @@ console.dev.defaults =
           'glu-dev-1': ['drMode': 'primary'],
           'glu-dev-2': ['drMode': 'secondary']
       ],
-
-//    plugins: [
-//      engine: [
-//        DeploymentService_pre_executeDeploymentPlan: { args ->
-//          args.description = "${args.description} / from plugin!" },
-//
-//        SystemService_pre_parseSystemModel: { args ->
-//          println "loading model from [${args.source.class.name}]"
-//          return null
-//        },
-//
-//        SystemService_post_parseSystemModel: { args ->
-//          args.serviceResult.metadata.plugin = "from plugin!"
-//          return null
-//        }
-//      ]
-//    ]
   ]
 
 // set per-environment serverURL stem for creating absolute links

@@ -60,12 +60,13 @@ class BootStrap {
     }
 
     // initializing the plugin if one is provided
-    if(consoleConfig.defaults.plugins?.engine)
+    def config = ConfigurationHolder.config
+    if(config.orchestration.engine.plugins)
     {
-      pluginService.initializePlugin(consoleConfig.defaults.plugins.engine,
+      pluginService.initializePlugin(config.orchestration.engine.plugins,
                                      [
                                        applicationContext: ApplicationHolder.application.mainContext,
-                                       defaults: consoleConfig.defaults
+                                       config: config
                                      ])
     }
 
