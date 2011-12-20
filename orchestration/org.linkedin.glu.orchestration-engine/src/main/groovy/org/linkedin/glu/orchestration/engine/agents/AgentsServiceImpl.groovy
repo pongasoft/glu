@@ -26,15 +26,14 @@ import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.orchestration.engine.tracker.TrackerService
-import org.linkedin.groovy.util.io.DataMaskingInputStream
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.groovy.util.state.StateMachineImpl
 import org.linkedin.util.lang.LangUtils
-import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
 import org.linkedin.util.annotations.Initializable
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider
+import org.linkedin.glu.orchestration.engine.plugins.PluginService
 
 /**
  * @author ypujante
@@ -56,8 +55,8 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
   @Initializable(required = true)
   TrackerService trackerService
 
-  @Initializable
-  AuthorizationService authorizationService
+  @Initializable(required = true)
+  PluginService pluginService
 
   @Override
   URI getAgentURI(String fabric, String agent) throws NoSuchAgentException
@@ -173,13 +172,18 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
 
   void streamFileContent(args, Closure closure)
   {
-    authorizationService?.checkStreamFileContent(args.location)
+    pluginService.executeMethod(AgentsService, "pre_streamFileContent", args)
 
     withRemoteAgent(args.fabric, args.id) { Agent agent ->
       def res = agent.getFileContent(args)
-      if(res instanceof InputStream) {
-        res = new DataMaskingInputStream(res)
-      }
+
+      def pluginResult =
+        pluginService.executeMethod(AgentsService, "post_streamFileContent", [*:args,
+                                                                              serviceResult: res])
+      
+      // let the plugin customize res
+      if(pluginResult != null)
+        res = pluginResult
 
       closure(res)
     }

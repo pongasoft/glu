@@ -108,9 +108,7 @@
   <!-- authorizationService    -->
   <!-- *********************** -->
   <bean id="authorizationService"
-        class="org.linkedin.glu.console.authorization.ShiroAuthorizationService">
-    <property name="unrestrictedLocation" value="${console.authorizationService.unrestrictedLocation}"/>
-  </bean>
+        class="org.linkedin.glu.console.authorization.ShiroAuthorizationService"/>
 
   <!-- *********************** -->
   <!-- fabricService         -->
@@ -156,7 +154,7 @@
         class="org.linkedin.glu.orchestration.engine.agents.AgentsServiceImpl">
     <property name="agentFactory" ref="agentFactory"/>
     <property name="trackerService" ref="trackerService"/>
-    <property name="authorizationService" ref="authorizationService"/>
+    <property name="pluginService" ref="pluginService"/>
   </bean>
 
   <bean id="agentsService" class="org.linkedin.glu.orchestration.engine.agents.AuditedAgentsService">

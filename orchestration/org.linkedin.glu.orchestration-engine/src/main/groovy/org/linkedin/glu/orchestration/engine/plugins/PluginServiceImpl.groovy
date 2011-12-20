@@ -36,6 +36,24 @@ public class PluginServiceImpl implements PluginService
     executeMethod(PluginService, 'initialize', initParameters)
   }
 
+  /**
+   * @return the plugin given its class name
+   */
+  def findPlugin(String pluginCassname)
+  {
+    if(plugin instanceof Collection)
+    {
+      plugin.find { it.class.name == pluginCassname}
+    }
+    else
+    {
+      if(plugin.class.name == pluginCassname)
+        return plugin
+      else
+        return null
+    }
+  }
+
   private static def createPluginFromClassname(String pluginClassname, Map initParameters)
   {
     if(pluginClassname)
@@ -115,7 +133,18 @@ public class PluginServiceImpl implements PluginService
 
     if(plugin instanceof Collection)
     {
-      plugin.each { res = executePluginClosure(it, closureName, pluginArgs) }
+      plugin.each {
+        if(res != null)
+          pluginArgs.pluginResult = res
+
+        def pluginResult = executePluginClosure(it, closureName, pluginArgs)
+
+        if(pluginResult != null)
+          res = pluginResult
+      }
+
+      pluginArgs.remove('pluginResult')
+
       return res
     }
 

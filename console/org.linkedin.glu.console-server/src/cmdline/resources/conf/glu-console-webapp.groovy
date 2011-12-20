@@ -28,9 +28,6 @@ console.secretkeystorePath="${keysDir}/console.secretkeystore"
 console.truststorePath="${keysDir}/agent.truststore"
 console.truststorePassword = 'nacEn92x8-1'
 
-// path to the root of the unrestricted location (empty means no restriction)
-console.authorizationService.unrestrictedLocation = ''
-
 def dataSourceUrl =
   System.properties['org.linkedin.glu.console.dataSource.url'] ?:
   "jdbc:hsqldb:file:${System.properties['user.dir']}/database/prod;shutdown=true"
@@ -40,6 +37,18 @@ dataSource.dbCreate = "update"
 dataSource.url = dataSourceUrl
 
 grails.serverURL = "http://${InetAddress.getLocalHost().canonicalHostName}:8080/console"
+
+// path to the root of the unrestricted location (empty means no restriction)
+// this property is used by StreamFileContentPlugin
+plugins.StreamFileContentPlugin.unrestrictedLocation = ''
+
+// role for unrestricted
+plugins.StreamFileContentPlugin.unrestrictedRole = 'ADMIN'
+
+// define the plugins as a Map, or a class name or an array of class names
+orchestration.engine.plugins = [
+  'org.linkedin.glu.console.plugins.StreamFileContentPlugin'
+]
 
 log4j = {
     appenders {

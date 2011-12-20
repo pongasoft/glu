@@ -17,16 +17,20 @@
 package org.linkedin.glu.orchestration.engine.authorization
 
 import java.security.AccessControlException
+import java.security.Permission
 
 /**
  * @author yan@pongasoft.com  */
 public interface AuthorizationService
 {
   /**
-   * @throws AccessControlException if the current user does not have the rights to stream the
-   * content of the file
+   * Make sure that the current executing principal has the provided role
+   *
+   * @param message the (optional) message to provide to the exception
+   * @param permission the (optional) permission to provide to the exception
+   * @throws AccessControlException if it does not have the provided
    */
-  void checkStreamFileContent(String location) throws AccessControlException
+  void checkRole(String role, String message, Permission permission) throws AccessControlException
 
   /**
    * @return the executing principal (who is executing the code)

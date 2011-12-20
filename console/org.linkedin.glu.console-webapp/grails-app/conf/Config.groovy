@@ -28,7 +28,7 @@ console.truststorePassword = ""
 console.secretkeystorePath = "/dev/null"
 
 // if you want to restrict access to some subdirectory between agent and console
-console.authorizationService.unrestrictedLocation = "/"
+plugins.StreamFileContentPlugin.unrestrictedLocation = "/"
 
 // set to '0' if you don't want deployments to be automatically archived
 console.deploymentService.autoArchiveTimeout = "30m"
@@ -90,26 +90,6 @@ grails.external.domain.packages = ['org.linkedin.glu.orchestration.engine.delta'
 // this parameter disables auto flushing in grails which happens when an object is dirty
 // and not saved... when setting this to manual you need to explicitely save the object
 hibernate.flush.mode="manual"
-
-// define the plugins as a Map, or a class name or an array of class names
-orchestration.engine.plugins = [
-//  PluginService_initialize: { args ->
-//    println "Initializing plugins with config ${args.config}"
-//  },
-//
-//  DeploymentService_pre_executeDeploymentPlan: { args ->
-//    args.description = "${args.description} / from plugin!" },
-//
-//  SystemService_pre_parseSystemModel: { args ->
-//    println "loading model from [${args.source.class.name}]"
-//    return null
-//  },
-//
-//  SystemService_post_parseSystemModel: { args ->
-//    args.serviceResult.metadata.plugin = "from plugin!"
-//    return null
-//  }
-]
 
 // see ConsoleConfig for explanation
 console.dev.defaults =
@@ -192,9 +172,14 @@ environments {
 
     console.defaults = console.dev.defaults
 
-    console.authorizationService.unrestrictedLocation = '/export/content/glu'
+    plugins.StreamFileContentPlugin.unrestrictedLocation = '/export/content/glu'
 
     grails.serverURL = "http://${InetAddress.getLocalHost().canonicalHostName}:8080/${appName}"
+
+    // define the plugins as a Map, or a class name or an array of class names
+    orchestration.engine.plugins = [
+      'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin'
+    ]
 
     // log4j configuration
     log4j = {
@@ -242,9 +227,14 @@ environments {
 
     console.defaults = console.dev.defaults
 
-    console.authorizationService.unrestrictedLocation = '/export/content/glu'
+    plugins.StreamFileContentPlugin.unrestrictedLocation = '/export/content/glu'
 
     grails.serverURL = "http://localhost:8080/${appName}"
+
+    // define the plugins as a Map, or a class name or an array of class names
+    orchestration.engine.plugins = [
+      'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin'
+    ]
 
     // log4j configuration
     log4j = {

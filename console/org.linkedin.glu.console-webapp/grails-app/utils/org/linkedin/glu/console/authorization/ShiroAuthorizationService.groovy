@@ -17,37 +17,34 @@
 package org.linkedin.glu.console.authorization
 
 import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
-import org.linkedin.util.annotations.Initializable
 import org.apache.shiro.SecurityUtils
-import org.linkedin.glu.console.domain.RoleName
-import org.apache.shiro.authz.AuthorizationException
-import java.security.AccessControlException
 import org.apache.shiro.UnavailableSecurityManagerException
+import java.security.AccessControlException
+import org.apache.shiro.authz.AuthorizationException
+import java.security.Permission
+import org.apache.shiro.subject.Subject
 
 /**
  * @author yan@pongasoft.com */
 public class ShiroAuthorizationService implements AuthorizationService
 {
-  @Initializable
-  String unrestrictedLocation
-
   @Override
-  void checkStreamFileContent(String location)
+  void checkRole(String role, String message, Permission permission)
   {
-    // do not allow non admin users to access files:
-    // -- outside of <nonAdminRootLocation> area
-    if(unrestrictedLocation && !location.startsWith(unrestrictedLocation))
+    try
     {
-      try
-      {
-        SecurityUtils.getSubject().checkRole(RoleName.ADMIN.name())
-      }
-      catch (AuthorizationException e)
-      {
-        AccessControlException re = new AccessControlException(location)
-        re.initCause(e)
-        throw re
-      }
+      Subject subject = SecurityUtils.getSubject()
+
+      if(subject == null)
+        throw new AccessControlException(message, permission)
+      
+      subject.checkRole(role)
+    }
+    catch (AuthorizationException e)
+    {
+      AccessControlException re = new AccessControlException(message, permission)
+      re.initCause(e)
+      throw re
     }
   }
 
