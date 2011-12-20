@@ -34,6 +34,7 @@ import org.linkedin.util.clock.Timespan
 import org.linkedin.util.concurrent.ThreadControl
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
 import org.linkedin.util.clock.SystemClock
+import org.linkedin.glu.orchestration.engine.plugins.PluginServiceImpl
 
 /**
  * @author yan@pongasoft.com */
@@ -207,6 +208,48 @@ public class TestDeploymentService extends GroovyTestCase
     deploymentService.autoArchiveClosure()
     // nothing should have changed
     assertEquals(0, deploymentService.getDeployments('f1').size())
+
+  }
+
+  /**
+   * Test for plugin
+   */
+  public void testExecuteDeploymentPlugin()
+  {
+    ThreadControl tc = new ThreadControl(Timespan.parse('30s'))
+
+    PluginServiceImpl pluginService = new PluginServiceImpl()
+    deploymentService.pluginService = pluginService
+
+    // post parse plugin
+    pluginService.initializePlugin(
+      [
+      DeploymentService_pre_executeDeploymentPlan: { args ->
+        args.plan.metadata.plugin = ['pre']
+        return null
+      },
+      DeploymentService_onStart_executeDeploymentPlan: { args ->
+        args.plan.metadata.plugin << "onStart:${args.deploymentId}".toString()
+        return null
+      },
+      DeploymentService_post_executeDeploymentPlan: { args ->
+        args.plan.metadata.plugin << "post:${args.serviceResult.completionStatus.status}".toString()
+        tc.block("post")
+        return null
+      },
+      ], [:])
+
+    Plan plan = createPlan('f2', 'd') { }
+    deploymentService.savePlan(plan)
+    CurrentDeployment deployment =
+      deploymentService.executeDeploymentPlan(new SystemModel(id: 'sma', fabric: 'f1'), plan)
+    deployment.planExecution.waitForCompletion()
+
+    // making sure that the plugin has executed... (the plan will complete before the plugin
+    // is executed!)
+    tc.unblock("post")
+
+    assertEquals(["pre", "onStart:1", "post:COMPLETED"], plan.metadata.plugin)
 
   }
 

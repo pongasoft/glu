@@ -53,6 +53,14 @@ class ProgressTracker<T> extends FilteredPlanExecutionProgressTracker<T>
   {
     super.onPlanStart(planExecution)
     _planExecution = planExecution
+    _pluginService?.executeMethod(DeploymentService,
+                                 "onStart_executeDeploymentPlan",
+                                 [
+                                   model: _model,
+                                   plan: _planExecution.plan,
+                                   description: _description,
+                                   deploymentId: _deploymentId
+                                 ])
   }
 
 
@@ -67,6 +75,7 @@ class ProgressTracker<T> extends FilteredPlanExecutionProgressTracker<T>
                                    model: _model,
                                    plan: _planExecution.plan,
                                    description: _description,
+                                   deploymentId: _deploymentId,
 
                                    serviceResult: _planExecution
                                  ])
