@@ -30,6 +30,8 @@ import org.linkedin.glu.console.domain.User
 import org.linkedin.glu.console.domain.RoleName
 import org.linkedin.glu.console.domain.AuditLog
 import org.linkedin.glu.console.domain.DbUserCredentials
+import org.linkedin.glu.orchestration.engine.plugins.PluginService
+import org.linkedin.glu.orchestration.engine.user.UserService
 
 /**
  * Simple realm that authenticates users against an LDAP server.
@@ -38,146 +40,159 @@ class ShiroLdapRealm
 {
   static authTokenClass = org.apache.shiro.authc.UsernamePasswordToken
 
+  PluginService pluginService
   def grailsApplication
 
   def authenticate(authToken)
   {
-    log.debug "Attempting to authenticate ${authToken.username} in LDAP realm..."
-    def username = authToken.username
-    def password = new String(authToken.password)
+    pluginService.executePrePostMethods(UserService,
+                                        "authenticate",
+                                        [authToken: authToken]) { args ->
 
-    // Get LDAP config for application. Use defaults when no config
-    // is provided.
-    def appConfig = grailsApplication.config
-    def ldapUrls = appConfig.ldap.server.url ?: ["ldap://localhost:389/"]
-    def searchBase = appConfig.ldap.search.base ?: ""
-    def searchUser = appConfig.ldap.search.user ?: ""
-    def searchPass = appConfig.ldap.search.pass ?: ""
-    def usernameAttribute = appConfig.ldap.username.attribute ?: "uid"
+      authToken = args.authToken
+      def username = args.pluginResult
+      if(username)
+      {
+        return createUser(username)
+      }
 
-    // Null username is invalid
-    if(username == null)
-    {
-      throw new AccountException("Null usernames are not allowed by this realm.")
-    }
+      username = authToken.username
+      log.debug "Attempting to authenticate ${username} in LDAP realm..."
+      def password = new String(authToken.password)
 
-    // Empty username is invalid
-    if(username == "")
-    {
-      throw new AccountException("Empty usernames are not allowed by this realm.")
-    }
+      // Get LDAP config for application. Use defaults when no config
+      // is provided.
+      def appConfig = grailsApplication.config
+      def ldapUrls = appConfig.ldap.server.url ?: ["ldap://localhost:389/"]
+      def searchBase = appConfig.ldap.search.base ?: ""
+      def searchUser = appConfig.ldap.search.user ?: ""
+      def searchPass = appConfig.ldap.search.pass ?: ""
+      def usernameAttribute = appConfig.ldap.username.attribute ?: "uid"
 
-    // Null password is invalid
-    if(password == null)
-    {
-      throw new CredentialsException("Null password are not allowed by this realm.")
-    }
+      // Null username is invalid
+      if(username == null)
+      {
+        throw new AccountException("Null usernames are not allowed by this realm.")
+      }
 
-    // empty password is invalid
-    if(password == "")
-    {
-      throw new CredentialsException("Empty passwords are not allowed by this realm.")
-    }
+      // Empty username is invalid
+      if(username == "")
+      {
+        throw new AccountException("Empty usernames are not allowed by this realm.")
+      }
 
-    // try to see if there is a glu specific password
-    def credentials = DbUserCredentials.findByUsername(username)
-    if(credentials?.validatePassword(password))
-    {
-      return username
-    }
+      // Null password is invalid
+      if(password == null)
+      {
+        throw new CredentialsException("Null password are not allowed by this realm.")
+      }
 
-    // Accept strings and GStrings for convenience, but convert to
-    // a list.
-    if(ldapUrls && !(ldapUrls instanceof Collection))
-    {
-      ldapUrls = [ldapUrls]
-    }
+      // empty password is invalid
+      if(password == "")
+      {
+        throw new CredentialsException("Empty passwords are not allowed by this realm.")
+      }
 
-    // Set up the configuration for the LDAP search we are about
-    // to do.
-    def env = new Hashtable()
-    env[Context.INITIAL_CONTEXT_FACTORY] = "com.sun.jndi.ldap.LdapCtxFactory"
-    if(searchUser)
-    {
-      // Non-anonymous access for the search.
+      // try to see if there is a glu specific password
+      def credentials = DbUserCredentials.findByUsername(username)
+      if(credentials?.validatePassword(password))
+      {
+        return username
+      }
+
+      // Accept strings and GStrings for convenience, but convert to
+      // a list.
+      if(ldapUrls && !(ldapUrls instanceof Collection))
+      {
+        ldapUrls = [ldapUrls]
+      }
+
+      // Set up the configuration for the LDAP search we are about
+      // to do.
+      def env = new Hashtable()
+      env[Context.INITIAL_CONTEXT_FACTORY] = "com.sun.jndi.ldap.LdapCtxFactory"
+      if(searchUser)
+      {
+        // Non-anonymous access for the search.
+        env[Context.SECURITY_AUTHENTICATION] = "simple"
+        env[Context.SECURITY_PRINCIPAL] = searchUser
+        env[Context.SECURITY_CREDENTIALS] = searchPass
+      }
+
+      // Find an LDAP server that we can connect to.
+      InitialDirContext ctx
+      def urlUsed = ldapUrls.find {url ->
+        log.debug "Trying LDAP server ${url} ..."
+        env[Context.PROVIDER_URL] = url
+
+        // If an exception occurs, log it.
+        try
+        {
+          ctx = new InitialDirContext(env)
+          return true
+        }
+        catch (NamingException e)
+        {
+          log.error "Could not connect to ${url}: ${e}"
+          return false
+        }
+      }
+
+      if(!urlUsed)
+      {
+        def msg = 'No LDAP server available.'
+        log.error msg
+        throw new AuthenticationException(msg)
+      }
+
+      SearchControls ctrl = new SearchControls()
+      ctrl.setSearchScope(SearchControls.SUBTREE_SCOPE)
+
+      def result = ctx.search(searchBase, "${usernameAttribute}=${username}", ctrl)
+      if(!result.hasMore())
+      {
+        AuditLog.audit(username: username, type: 'login.failed', details: 'no account')
+        throw new UnknownAccountException("No account found for user [${username}]")
+      }
+
+      // Now connect to the LDAP server again, but this time use
+      // authentication with the principal associated with the given
+      // username.
+      def searchResult = result.next()
       env[Context.SECURITY_AUTHENTICATION] = "simple"
-      env[Context.SECURITY_PRINCIPAL] = searchUser
-      env[Context.SECURITY_CREDENTIALS] = searchPass
-    }
+      env[Context.SECURITY_PRINCIPAL] = searchResult.nameInNamespace
+      env[Context.SECURITY_CREDENTIALS] = password
 
-    // Find an LDAP server that we can connect to.
-    InitialDirContext ctx
-    def urlUsed = ldapUrls.find {url ->
-      log.debug "Trying LDAP server ${url} ..."
-      env[Context.PROVIDER_URL] = url
-
-      // If an exception occurs, log it.
       try
       {
-        ctx = new InitialDirContext(env)
-        return true
+        new InitialDirContext(env)
+        return createUser(username)
       }
-      catch (NamingException e)
+      catch (AuthenticationException ex)
       {
-        log.error "Could not connect to ${url}: ${e}"
-        return false
+        AuditLog.audit(username: username, type: 'login.failed', details: 'invalid password')
+        throw new IncorrectCredentialsException("Invalid password for user '${username}'")
       }
-    }
-
-    if(!urlUsed)
-    {
-      def msg = 'No LDAP server available.'
-      log.error msg
-      throw new AuthenticationException(msg)
-    }
-
-    SearchControls ctrl = new SearchControls()
-    ctrl.setSearchScope(SearchControls.SUBTREE_SCOPE)
-
-    def result = ctx.search(searchBase, "${usernameAttribute}=${username}", ctrl)
-    if(!result.hasMore())
-    {
-      AuditLog.audit(username: username, type: 'login.failed', details: 'no account')
-      throw new UnknownAccountException("No account found for user [${username}]")
-    }
-
-    // Now connect to the LDAP server again, but this time use
-    // authentication with the principal associated with the given
-    // username.
-    def searchResult = result.next()
-    env[Context.SECURITY_AUTHENTICATION] = "simple"
-    env[Context.SECURITY_PRINCIPAL] = searchResult.nameInNamespace
-    env[Context.SECURITY_CREDENTIALS] = password
-
-    try
-    {
-      new InitialDirContext(env)
-      return createUser(username)
-    }
-    catch (AuthenticationException ex)
-    {
-      AuditLog.audit(username: username, type: 'login.failed', details: 'invalid password')
-      throw new IncorrectCredentialsException("Invalid password for user '${username}'")
     }
   }
 
   private def createUser(username)
   {
-    if(!User.findByUsername(username))
-    {
-      User user = new User(username: username)
-
-      user.setRoles([RoleName.USER])
-      
-      if(!user.save())
+    User.withTransaction { status ->
+      if(!User.findByUsername(username))
       {
-        def msg = "Could not create user ${username} => ${user.errors.toString()}".toString()
-        log.error msg
-        throw new AuthenticationException(msg)
-      }
+        User user = new User(username: username)
+        user.setRoles([RoleName.USER])
+        if(!user.save())
+        {
+          def msg = "Could not create user ${username} => ${user.errors.toString()}".toString()
+          log.error msg
+          throw new AuthenticationException(msg)
+        }
 
-      AuditLog.audit(username: '__console__', type: 'user.create', details: "username: ${username}, roles: ${user.roles}")
-      log.info "Created user ${username} with roles ${user.roles}"
+        AuditLog.audit(username: '__console__', type: 'user.create', details: "username: ${username}, roles: ${user.roles}")
+        log.info "Created user ${username} with roles ${user.roles}"
+      }
     }
 
     return username
