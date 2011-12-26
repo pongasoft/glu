@@ -81,14 +81,27 @@ If you do not want a secure connection between the console and the agent, this i
 
 .. warning:: Disabling the secure connection means that the agents will happily serve any request irrelevant of where it is coming from, which could be a serious security hole.
 
+Plugins
+^^^^^^^
 
-Restricting file access on an agent
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The console (orchestration engine) behavior can be tweaked and or enhanced with the use of plugins. Check the :ref:`goe-plugins` section for details on how to create and install a plugin. You add your plugin(s) to the console by modifying the following property::
 
-The console offers the ability to show any file on a remote agent which may not always be desirable. There is a way to limit what can be viewed for users which are not ``ADMIN`` (see :ref:`console-user-management` for an explanation of roles)::
+   orchestration.engine.plugins = [
+     'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin',
+     'org.acme.MyPlugin',
+     // etc...
+   ]
 
-  // path to the root of the unrestricted location (empty means no restriction)
-  console.authorizationService.unrestrictedLocation = "/export/content/glu"
+.. warning:: Since 4.1.0, *restricting file access on an agent* has been migrated to the ``StreamFileContentPlugin`` plugin and is now being configured by defining the 
+             properties::
+
+               // path to the root of the unrestricted location (empty means no restriction)
+               // this property is used by StreamFileContentPlugin
+               plugins.StreamFileContentPlugin.unrestrictedLocation = "/export/content/glu"
+
+               // role for unrestricted
+               plugins.StreamFileContentPlugin.unrestrictedRole = 'ADMIN'
+
 
 Database
 ^^^^^^^^

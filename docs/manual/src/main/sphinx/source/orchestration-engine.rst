@@ -1475,7 +1475,67 @@ Json/DSL Based
 --------------
 Coming soon
 
+.. _goe-plugins:
+
+Plugins
+-------
+
+The orchestration engine offers a plugin mechanism which allows you to hook into some specific phases to tweak and/or change the behavior. For example, the ``UserService_pre_authenticate`` hook allows you to bypass entirely the login/authentication mechanism that comes built-in and instead provide your own.
+
+What is a plugin?
+^^^^^^^^^^^^^^^^^
+
+A plugin is simply a class with (groovy) closures, each of them defining a specific hook. You can define as many or as little of those closures as you want and you can *spread* them accross different classes (for example, you can have a plugin class handling only the *deployment* related plugin hooks, and another handling the hooks for a different part of the system). If a closure is missing, then it will simply not be called.
+
+.. tip:: The class `DocumentationPlugin <https://github.com/linkedin/glu/tree/master/orchestration/org.linkedin.glu.orchestration-engine/src/main/groovy/org/linkedin/glu/orchestration/engine/plugins/builtin/DocumentationPlugin.groovy>`_ is meant to be an hexaustive list of all the hooks available as well as a documentation on how to use them. It also serves as an example of how to write a plugin!
+
+How do you install a plugin?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The orchestration engine is currently bundled in the console web application. In order to install your plugins(s), you need to package them as jar file(s) and make sure they are available in the classpath of your web server. Check the :ref:`section <console-configuration-database-mysql>` which explains how to use a different database driver (jar file) and where to drop it when using the web server that comes bundled with glu: this will be a similar process for your plugin(s).
+
+.. note:: If your plugin has external dependencies, they also need to be made available in the classpath of your web server!
+
+You then need to tell the console about it. For this you change the configuration file, by adding the class name(s) of your plugin(s)::
+
+   orchestration.engine.plugins = [
+     'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin',
+     'org.acme.MyPlugin',
+     // etc...
+   ]
+
+List of hooks available
+^^^^^^^^^^^^^^^^^^^^^^^
+
+.. tip:: For full documentation and typical use cases, refer to the class `DocumentationPlugin <https://github.com/linkedin/glu/tree/master/orchestration/org.linkedin.glu.orchestration-engine/src/main/groovy/org/linkedin/glu/orchestration/engine/plugins/builtin/DocumentationPlugin.groovy>`_.
+
+* Initialization
+
+  * ``PluginService_initialize``: called for initializing your plugin
+
+* User management
+
+  * ``UserService_pre_authenticate``: called before authentication
+  * ``UserService_post_authenticate``: called after authentication
+
+* Model
+
+  * ``SystemService_pre_parseSystemModel``: called before parsing the system model
+  * ``SystemService_post_parseSystemModel``: called after parsing the system model
+
+* Deployment
+
+  * ``DeploymentService_pre_executeDeploymentPlan``: called before executing a deployment plan
+  * ``DeploymentService_onStart_executeDeploymentPlan``: called when the deployment plan starts executing
+  * ``DeploymentService_post_executeDeploymentPlan``: called after executing a deployment plan  
+
+Future hooks
+^^^^^^^^^^^^
+
+Now that the plugin mechanism is in place, adding new hooks is not very complicated. If you have specific requirements for a new hook, please open a ticket on the `glu ticketing system <https://github.com/linkedin/glu/issues>`_.
+
 .. _goe-cli:
+
 
 Command Line
 ------------
