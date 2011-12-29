@@ -47,7 +47,7 @@ plugins.StreamFileContentPlugin.unrestrictedRole = 'ADMIN'
 
 // define the plugins as a Map, or a class name or an array of class names
 orchestration.engine.plugins = [
-  'org.linkedin.glu.console.plugins.StreamFileContentPlugin'
+  'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin'
 ]
 
 log4j = {
