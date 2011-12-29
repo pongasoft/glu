@@ -23,5 +23,6 @@
   <Set name="contextPath">/console</Set>
   <Set name="war"><SystemProperty name="org.linkedin.glu.console.root"/>/glu/repository/wars/@console.webapp@/</Set>
   <Set name="tempDirectory"><SystemProperty name="org.linkedin.glu.console.root"/>/tmp</Set>
+  <Set name="extraClasspath"><SystemProperty name="org.linkedin.glu.console.plugins.classpath"/></Set>
 </Configure>
 

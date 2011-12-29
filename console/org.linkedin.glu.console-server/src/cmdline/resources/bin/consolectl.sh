@@ -32,5 +32,20 @@ if [ ! -d $JETTY_DISTRIBUTION ]; then
   chmod +x $JETTY_DISTRIBUTION/bin/*.sh
 fi
 
+if [ -z "$PLUGINS_DIR"]; then
+  PLUGINS_DIR=$BASEDIR/glu/repository/plugins
+fi
 
-JAVA_OPTIONS="-Dorg.linkedin.app.name=org.linkedin.glu.console-webapp -Dorg.linkedin.glu.console.config.location=$BASEDIR/conf/glu-console-webapp.groovy -Dorg.linkedin.glu.console.keys.dir=$BASEDIR/keys -Dorg.linkedin.glu.console.root=$BASEDIR" $JETTY_DISTRIBUTION/bin/jetty.sh "$@"
+# Add all plugins from the plugins directory to the plugins classpath
+if [ -d $PLUGINS_DIR ]; then
+  for file in $PLUGINS_DIR/*.jar
+  do
+    if [ -z "$PLUGINS_CLASSPATH" ]; then
+      PLUGINS_CLASSPATH="$file"
+    else
+      PLUGINS_CLASSPATH="$PLUGINS_CLASSPATH;$file"
+    fi
+  done
+fi
+
+JAVA_OPTIONS="-Dorg.linkedin.app.name=org.linkedin.glu.console-webapp -Dorg.linkedin.glu.console.config.location=$BASEDIR/conf/glu-console-webapp.groovy -Dorg.linkedin.glu.console.keys.dir=$BASEDIR/keys -Dorg.linkedin.glu.console.plugins.classpath=$PLUGINS_CLASSPATH -Dorg.linkedin.glu.console.root=$BASEDIR" $JETTY_DISTRIBUTION/bin/jetty.sh "$@"
