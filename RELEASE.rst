@@ -1,6 +1,23 @@
 Latest changes
 ==============
 
+4.1.0 (2011/12/29)
+------------------
+
+.. warning:: The following configuration parameters have changed in the console configuration file. If you are using the feature *restricting file access on an agent* then you need to rename them prior to starting the 
+             new console when upgrading::
+
+               console.authorizationService.unrestrictedLocation  -> plugins.StreamFileContentPlugin.unrestrictedLocation
+               plugins.StreamFileContentPlugin.unrestrictedRole (new and optional value)
+
+This version of glu adds the concept of plugins to the orchestration engine/console which allows you to enhance and/or tweak the behavior of glu. Typical uses cases are the ability to entirely change the authentication mechanism used by glu, send a notification when a deployment ends, prevent a deployment by the wrong user or at the wrong time, etc... Check the orchestration engine documentation for more information about plugins. This new version sets up the infrastructure for plugins and adds a handful of hooks. Future versions will contain more hooks (depending on user needs).
+
+List of tickets
+^^^^^^^^^^^^^^^
+
+* Fixed `glu-113 <https://github.com/linkedin/glu/issues/113>`_: `Exception with customized dashboard`
+* Implemented `glu-114 <https://github.com/linkedin/glu/issues/114>`_: `Adding concept of plugin to glu`
+
 4.0.0 (2011/11/17)
 ------------------
 
