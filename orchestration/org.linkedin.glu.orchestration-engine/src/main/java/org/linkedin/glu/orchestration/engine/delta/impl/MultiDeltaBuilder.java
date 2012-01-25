@@ -165,6 +165,10 @@ public class MultiDeltaBuilder
   {
     ParentChildDeltaStateBuilder pc = new ParentChildDeltaStateBuilder(_latestDelta, parentKey);
 
+    // not a parent/child relationship... skipping
+    if(pc.getParent() == null)
+      return;
+
     pc.setState(state);
 
     if(pc.getParent() != null)

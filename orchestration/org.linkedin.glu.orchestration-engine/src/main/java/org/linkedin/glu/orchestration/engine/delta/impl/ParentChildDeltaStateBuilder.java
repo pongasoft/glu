@@ -44,20 +44,29 @@ public class ParentChildDeltaStateBuilder
                                       String parentKey)
   {
     _latestDelta = latestDelta;
+    _parent = _latestDelta.getUnfilteredExpectedModel().findEntry(parentKey);
 
-    EntryDependencies expectedDependencies =
-      _latestDelta.getSystemModelDelta().getExpectedDependencies();
-
-    _parent = _latestDelta.getUnfilteredExpectedModel().findEntry(parentKey).clone();
-    _stateMachine = _latestDelta.build().findAnyEntryDelta(_parent.getKey()).getStateMachine();
-
-    Set<String> childrenKeys = expectedDependencies.findChildren(parentKey);
-    for(String childKey : childrenKeys)
+    if(_parent == null)
     {
-      SystemEntry child = _latestDelta.getUnfilteredExpectedModel().findEntry(childKey).clone();
-      _children.add(child);
-
+      _stateMachine = null;
     }
+    else
+    {
+      _parent = _parent.clone();
+
+      EntryDependencies expectedDependencies =
+        _latestDelta.getSystemModelDelta().getExpectedDependencies();
+
+      _stateMachine = _latestDelta.build().findAnyEntryDelta(_parent.getKey()).getStateMachine();
+
+      Set<String> childrenKeys = expectedDependencies.findChildren(parentKey);
+      for(String childKey : childrenKeys)
+      {
+        SystemEntry child = _latestDelta.getUnfilteredExpectedModel().findEntry(childKey).clone();
+        _children.add(child);
+      }
+    }
+
   }
 
   public void setState(String state)

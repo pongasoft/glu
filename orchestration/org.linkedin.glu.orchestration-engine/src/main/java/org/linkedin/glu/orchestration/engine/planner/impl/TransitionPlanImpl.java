@@ -95,22 +95,25 @@ public class TransitionPlanImpl implements TransitionPlan<ActionDescriptor>
     Set<Transition> nextTransitions =
       new TreeSet<Transition>(Transition.TransitionComparator.INSTANCE);
 
+    // we need to make sure that we only add the ones at the current depth!
+    Set<Transition> thisDepthTransitions = new HashSet<Transition>();
+
     for(Transition transition : transitions)
     {
       if(!alreadyProcessed.contains(transition))
       {
-        // if transition should be skip then all following transition will be skipped as well
+        // if transition should be skipped then all following transitions will be skipped as well
         if(transition.shouldSkip())
         {
           transition.addSteps(depthBuilder);
-          alreadyProcessed.add(transition);
+          thisDepthTransitions.add(transition);
         }
         else
         {
           // make sure that all 'before' steps have been completed
           if(checkExecuteBefore(transition, alreadyProcessed))
           {
-            alreadyProcessed.add(transition);
+            thisDepthTransitions.add(transition);
             transition.addSteps(depthBuilder);
             for(Transition t : transition.getExecuteBefore())
             {
@@ -125,6 +128,8 @@ public class TransitionPlanImpl implements TransitionPlan<ActionDescriptor>
         }
       }
     }
+
+    alreadyProcessed.addAll(thisDepthTransitions);
 
     addSteps(stepBuilder, type, nextTransitions, depth + 1, alreadyProcessed);
   }

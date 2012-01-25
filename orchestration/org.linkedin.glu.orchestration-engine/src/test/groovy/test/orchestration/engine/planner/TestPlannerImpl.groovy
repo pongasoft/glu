@@ -293,11 +293,11 @@ public class TestPlannerImpl extends GroovyTestCase
     </sequential>
     <sequential depth="6">
       <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="configure" toState="stopped" />
-      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="start" toState="running" />
       <leaf agent="a1" fabric="f1" mountPoint="c2" parent="p1" script="s1" scriptLifecycle="installScript" />
       <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="install" toState="installed" />
     </sequential>
     <sequential depth="7">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="start" toState="running" />
       <leaf agent="a1" fabric="f1" mountPoint="c2" scriptAction="install" toState="installed" />
       <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="configure" toState="stopped" />
     </sequential>

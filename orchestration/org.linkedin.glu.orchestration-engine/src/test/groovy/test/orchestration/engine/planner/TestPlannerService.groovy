@@ -821,23 +821,25 @@ public class TestPlannerService extends GroovyTestCase
     <parallel depth="1">
       <leaf agent="a1" fabric="f1" mountPoint="c1" scriptLifecycle="uninstallScript" />
       <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="unconfigure" toState="installed" />
-      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="uninstall" toState="NONE" />
     </parallel>
     <parallel depth="2">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="uninstall" toState="NONE" />
     </parallel>
     <parallel depth="3">
-      <leaf agent="a1" fabric="f1" mountPoint="p1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptLifecycle="uninstallScript" />
     </parallel>
     <parallel depth="4">
+      <leaf agent="a1" fabric="f1" mountPoint="p1" script="s1" scriptLifecycle="installScript" />
+    </parallel>
+    <parallel depth="5">
       <leaf agent="a1" fabric="f1" mountPoint="c1" parent="p1" script="s1" scriptLifecycle="installScript" />
       <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="install" toState="installed" />
     </parallel>
-    <parallel depth="5">
+    <parallel depth="6">
       <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="install" toState="installed" />
       <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="configure" toState="stopped" />
     </parallel>
-    <parallel depth="6">
+    <parallel depth="7">
       <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="start" toState="running" />
     </parallel>
   </sequential>
@@ -845,6 +847,123 @@ public class TestPlannerService extends GroovyTestCase
 """, p.toXml())
     assertEquals(12, p.leafStepsCount)
   }
+
+  /**
+   * Test for NPE caused when undeploying parent/child in expected model not present in current 
+   * model
+   */
+  public void testParentChildGlu115()
+  {
+    Plan<ActionDescriptor> p
+
+    // p1 is not present in the current model and in the expected model c1 is a child of p1
+    p = undeployPlan(Type.PARALLEL,
+                     m([agent: 'a1', mountPoint: 'p1', script: 's1'],
+                       [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1']),
+
+                     m([agent: 'a1', mountPoint: 'c1', script: 's1']))
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="undeploy - PARALLEL">
+  <parallel name="undeploy - PARALLEL">
+    <sequential agent="a1" mountPoint="c1">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="stop" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptLifecycle="uninstallScript" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(4, p.leafStepsCount)
+
+    // p1 is not present in the current model and in the expected model c1 is a child of p1
+    p = redeployPlan(Type.PARALLEL,
+                     m([agent: 'a1', mountPoint: 'p1', script: 's1'],
+                       [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1']),
+
+                     m([agent: 'a1', mountPoint: 'c1', script: 's1']))
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="redeploy - PARALLEL">
+  <sequential name="redeploy - PARALLEL">
+    <parallel depth="0">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="stop" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" script="s1" scriptLifecycle="installScript" />
+    </parallel>
+    <parallel depth="1">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="install" toState="installed" />
+    </parallel>
+    <parallel depth="2">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="configure" toState="stopped" />
+    </parallel>
+    <parallel depth="3">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="start" toState="running" />
+    </parallel>
+    <parallel depth="4">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" parent="p1" script="s1" scriptLifecycle="installScript" />
+    </parallel>
+    <parallel depth="5">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="install" toState="installed" />
+    </parallel>
+    <parallel depth="6">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="configure" toState="stopped" />
+    </parallel>
+    <parallel depth="7">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="start" toState="running" />
+    </parallel>
+  </sequential>
+</plan>
+""", p.toXml())
+    assertEquals(12, p.leafStepsCount)
+
+    // p1 is not present in the current model and in the expected model c1 is a child of p1
+    p = deployPlan(Type.PARALLEL,
+                   m([agent: 'a1', mountPoint: 'p1', script: 's1'],
+                     [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1']),
+
+                   m([agent: 'a1', mountPoint: 'c1', script: 's1']))
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="deploy - PARALLEL">
+  <sequential name="deploy - PARALLEL">
+    <parallel depth="0">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="stop" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" script="s1" scriptLifecycle="installScript" />
+    </parallel>
+    <parallel depth="1">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="install" toState="installed" />
+    </parallel>
+    <parallel depth="2">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="configure" toState="stopped" />
+    </parallel>
+    <parallel depth="3">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptLifecycle="uninstallScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="start" toState="running" />
+    </parallel>
+    <parallel depth="4">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" parent="p1" script="s1" scriptLifecycle="installScript" />
+    </parallel>
+    <parallel depth="5">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="install" toState="installed" />
+    </parallel>
+    <parallel depth="6">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="configure" toState="stopped" />
+    </parallel>
+    <parallel depth="7">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="start" toState="running" />
+    </parallel>
+  </sequential>
+</plan>
+""", p.toXml())
+    assertEquals(12, p.leafStepsCount)
+  }
+
 
   private Plan<ActionDescriptor> upgradePlan(Type type,
                                              SystemModel currentSystemModel,
@@ -889,6 +1008,13 @@ public class TestPlannerService extends GroovyTestCase
                                               SystemModel currentSystemModel)
   {
     computePlan(type, expectedSystemModel, currentSystemModel, [name: 'redeploy'], "computeRedeployPlan")
+  }
+
+  private Plan<ActionDescriptor> deployPlan(Type type,
+                                            SystemModel expectedSystemModel,
+                                            SystemModel currentSystemModel)
+  {
+    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'deploy'], "computeDeployPlan")
   }
 
   private Plan<ActionDescriptor> computePlan(Type type,
