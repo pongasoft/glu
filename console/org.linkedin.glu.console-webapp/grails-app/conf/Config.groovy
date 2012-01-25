@@ -33,6 +33,9 @@ plugins.StreamFileContentPlugin.unrestrictedLocation = "/"
 // set to '0' if you don't want deployments to be automatically archived
 console.deploymentService.autoArchiveTimeout = "30m"
 
+// set to true if you want to display state delta in error even if there is a delta (yellow vs red)
+console.deltaService.stateDeltaOverridesDelta = true
+
 // connection timeout when the console tries to talk to the agent (rest)
 console.to.agent.connectionTimeout = "30s"
 

@@ -49,7 +49,7 @@ class DeltaServiceImpl implements DeltaService
   DeltaMgr deltaMgr
 
   @Initializable
-  boolean notRunningOverridesVersionMismatch = false
+  boolean stateDeltaOverridesDelta = false
 
   @Initializable(required = true)
   CustomDeltaDefinitionStorage customDeltaDefinitionStorage
@@ -193,7 +193,7 @@ class DeltaServiceImpl implements DeltaService
     Collection<Map<String, Object>> flattenedDelta =
       delta.flatten(new TreeMap<String, Map<String, Object>>()).values()
 
-    if(notRunningOverridesVersionMismatch)
+    if(stateDeltaOverridesDelta)
     {
       flattenedDelta.each { Map m ->
         if(m.status == 'delta')
@@ -203,7 +203,6 @@ class DeltaServiceImpl implements DeltaService
           if(entryStateDelta)
           {
             m.status = 'notExpectedState'
-            m.statusInfo = "${entryStateDelta.expectedValue}!=${entryStateDelta.currentValue}"
           }
         }
       }

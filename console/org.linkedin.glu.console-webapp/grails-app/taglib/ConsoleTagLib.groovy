@@ -377,7 +377,6 @@ public class ConsoleTagLib
         break;
 
       case 'expectedState':
-      case 'notExpectedState':
       case 'unexpected':
       case 'notDeployed':
       case 'parentDelta':
@@ -397,8 +396,14 @@ public class ConsoleTagLib
         out << statusInfo.encodeAsHTML()
         break;
 
+      case 'notExpectedState':
       case 'error':
-        out << "<a href=\"#\" title=\"${args.statusInfo.encodeAsHTML()}\" class=\"statusInfo\" onclick=\"toggleShowHide('#si-${args.row}');return false;\">ERROR</a><dt id=\"si-${args.row}\" class=\"hidden\">${args.statusInfo.encodeAsHTML()}</dt>"
+        def statusInfo = ConsoleHelper.toCollection(args.statusInfo)
+        out << "<a href=\"#\" title=\"${statusInfo.toString().encodeAsHTML()}\" class=\"statusInfo\" onclick=\"toggleShowHide('#si-${args.row}');return false;\">ERROR</a><dt id=\"si-${args.row}\" class=\"hidden\"><ul>"
+        statusInfo.each { sti ->
+          out << "<li>${sti.encodeAsHTML()}</li>"
+        }
+        out << "</ul></dt>"
         break;
 
       case 'unknown':

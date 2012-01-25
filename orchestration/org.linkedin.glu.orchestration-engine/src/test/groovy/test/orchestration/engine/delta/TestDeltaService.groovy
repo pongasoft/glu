@@ -205,7 +205,7 @@ class TestDeltaService extends GroovyTestCase
                            doComputeDelta(expected, current))
 
     // notRunning + versionMismatch => we force notRunning to win
-    deltaService.notRunningOverridesVersionMismatch = true
+    deltaService.stateDeltaOverridesDelta = true
     current = [
         [
             agent: 'a1', mountPoint: '/m1', script: 's1',
@@ -233,7 +233,8 @@ class TestDeltaService extends GroovyTestCase
                             script: 's1',
                             state: DeltaState.ERROR,
                             status: 'notExpectedState',
-                            statusInfo: 'running!=stopped',
+                            statusInfo: ['entryState:[running!=stopped]',
+                                         'initParameters.wars:[w2!=w1]'],
                             'metadata.version': 'R2',
                             'initParameters.wars': 'w2'
                             ]
@@ -241,7 +242,7 @@ class TestDeltaService extends GroovyTestCase
                            doComputeDelta(expected, current))
 
     // restoring defaults
-    deltaService.notRunningOverridesVersionMismatch = false
+    deltaService.stateDeltaOverridesDelta = false
 
     // versionMismatch (wars)
     current = [

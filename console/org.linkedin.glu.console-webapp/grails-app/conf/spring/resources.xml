@@ -232,6 +232,7 @@
     <property name="deltaMgr" ref="deltaMgr"/>
     <property name="customDeltaDefinitionStorage" ref="customDeltaDefinitionStorage"/>
     <property name="authorizationService" ref="authorizationService"/>
+    <property name="stateDeltaOverridesDelta" value="${console.deltaService.stateDeltaOverridesDelta}"/>
   </bean>
 
   <!-- *********************** -->
