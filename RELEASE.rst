@@ -1,6 +1,19 @@
 Latest changes
 ==============
 
+4.1.1 (2012/01/27)
+------------------
+
+.. note:: Issue 116 introduces a change in the default handling of delta vs error (requested by both LinkedIn and Orbitz): when an application is not running and there is a delta, it is better to treat it as an error instead of a simple delta because it represents the fact that something is wrong. 
+          You can revert to the previous behavior (delta is never treated as an error) by adding the configuration parameter to your (console) configuration file::
+
+            console.deltaService.stateDeltaOverridesDelta = false
+
+* Fixed `glu-115 <https://github.com/linkedin/glu/issues/115>`_: `NPE when creating undeploy/redeploy plan for a model with child/parent relationship`
+* Fixed `glu-116 <https://github.com/linkedin/glu/issues/116>`_: `DELTA takes priority over ERROR in the UI`
+* Fixed `glu-117 <https://github.com/linkedin/glu/issues/117>`_: `shell.fetch generates Authorization header when not required`
+
+
 4.1.0 (2011/12/29)
 ------------------
 
