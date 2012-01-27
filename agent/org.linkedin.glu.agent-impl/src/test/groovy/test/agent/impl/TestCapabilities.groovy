@@ -29,6 +29,8 @@ import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.net.GroovyNetUtils
 import org.linkedin.glu.agent.api.ShellExecException
 import org.linkedin.glu.agent.impl.storage.AgentProperties
+import com.sun.net.httpserver.HttpExchange
+import com.sun.net.httpserver.Headers
 
 /**
  * Test for various capabilities.
@@ -61,6 +63,48 @@ class TestCapabilities extends GroovyTestCase
       fs.rm(tempFile)
       assertFalse(tempFile.exists())
       shouldFail(FileNotFoundException) { shell.fetch(tempFile.toURI()) }
+    }
+  }
+
+  /**
+   * Using shell.fetch on a remote url (http)
+   */
+  void testFetchRemote()
+  {
+    FileSystemImpl.createTempFileSystem() { FileSystem fs ->
+      def shell = new ShellImpl(fileSystem: fs)
+
+      String response
+      Headers requestHeaders
+
+      def handler = { HttpExchange t ->
+        requestHeaders = t.requestHeaders
+        t.sendResponseHeaders(200, response.length());
+        OutputStream os = t.getResponseBody();
+        os.write(response.getBytes());
+        os.close();
+      }
+
+      GroovyNetUtils.withHttpServer(0, ['/content': handler]) { int port ->
+
+        File root = fs.root.file
+
+        File tmpFile = new File(root, 'foo.txt')
+
+        response = "abc"
+        
+        shell.fetch("http://localhost:${port}/content", tmpFile)
+        assertEquals("abc", tmpFile.text)
+        // no authorization header should be present!
+        assertFalse(requestHeaders.containsKey('Authorization'))
+
+        response = "def"
+        shell.fetch("http://u1:p1@localhost:${port}/content", tmpFile)
+        assertEquals("def", tmpFile.text)
+        // authorization header should be present and properly base64ified
+        assertEquals("Basic ${'u1:p1'.bytes.encodeBase64()}",
+                     requestHeaders['Authorization'].iterator().next())
+      }
     }
   }
 
