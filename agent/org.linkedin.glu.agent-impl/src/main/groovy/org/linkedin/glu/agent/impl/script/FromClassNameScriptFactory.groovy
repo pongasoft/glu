@@ -29,30 +29,63 @@ def class FromClassNameScriptFactory implements ScriptFactory, Serializable
   private static final long serialVersionUID = 1L;
 
   private final String _className
+  private final def _classPath
+  private def _jarFiles
+  private transient def _script
+  private transient ClassLoader _classLoader
 
   FromClassNameScriptFactory(String className)
   {
+    this(className, null)
+  }
+
+  FromClassNameScriptFactory(String className, def classPath)
+  {
     _className = className
+    _classPath = classPath
   }
 
   FromClassNameScriptFactory(Class c)
   {
-    this(c.name)
+    this(c.name, null)
   }
 
   public createScript(ScriptConfig scriptConfig)
   {
-    return ReflectUtils.forName(_className).newInstance();
+    if(!_script)
+    {
+      if(!_jarFiles?.collect { it.exists() }?.inject(true) { res, i -> res && i })
+      {
+        // fetch all the jar files
+        _jarFiles = _classPath?.collect { scriptConfig.shell.fetch(it) }
+      }
+
+      _classLoader = this.getClass().getClassLoader()
+
+      if(_jarFiles)
+        _classLoader = new URLClassLoader(_jarFiles.collect { it.toURI().toURL() } as URL[],
+                                          _classLoader)
+
+      _script = ReflectUtils.forName(_className, _classLoader).newInstance()
+    }
+
+    return _script
   }
 
   String toString()
   {
-    return "FromClassNameScriptFactory[${_className}]".toString();
+    if(_classPath)
+      return "FromClassNameScriptFactory[${_className}, ${_classPath}]".toString();
+    else
+      return "FromClassNameScriptFactory[${_className}]".toString();
   }
 
   public toExternalRepresentation()
   {
-    return ['class': FromClassNameScriptFactory.class.getName(), className: _className];
+    def res = ['class': FromClassNameScriptFactory.class.getName(), className: _className]
+    if(_classPath)
+      res.classPath = _classPath
+    return res;
   }
 
   boolean equals(o)
@@ -64,12 +97,17 @@ def class FromClassNameScriptFactory implements ScriptFactory, Serializable
     FromClassNameScriptFactory that = (FromClassNameScriptFactory) o;
 
     if(_className != that._className) return false;
+    if(_classPath != that._classPath) return false;
 
     return true;
   }
 
+
   int hashCode()
   {
-    return _className.hashCode();
+    int result;
+    result = (_className != null ? _className.hashCode() : 0);
+    result = 31 * result + (_classPath != null ? _classPath.hashCode() : 0);
+    return result;
   }
 }

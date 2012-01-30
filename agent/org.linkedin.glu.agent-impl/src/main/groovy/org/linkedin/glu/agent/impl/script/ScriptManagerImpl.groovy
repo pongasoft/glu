@@ -530,7 +530,7 @@ def class ScriptManagerImpl implements ScriptManager
 
     if(args.scriptClassName)
     {
-      return new FromClassNameScriptFactory(args.scriptClassName)
+      return new FromClassNameScriptFactory(args.scriptClassName, args.scriptClassPath)
     }
 
     if(args.scriptLocation)

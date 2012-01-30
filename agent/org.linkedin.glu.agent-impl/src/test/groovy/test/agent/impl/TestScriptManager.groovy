@@ -33,6 +33,15 @@ import org.linkedin.util.io.ram.RAMDirectory
 import org.linkedin.util.io.resource.internal.RAMResourceProvider
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.util.clock.SystemClock
+import org.linkedin.groovy.util.io.fs.FileSystemImpl
+import org.codehaus.groovy.tools.javac.JavacCompilerFactory
+import org.codehaus.groovy.control.CompilerConfiguration
+import org.codehaus.groovy.tools.javac.JavaCompiler
+import org.codehaus.groovy.control.CompilationUnit
+import org.linkedin.groovy.util.ant.AntUtils
+import org.linkedin.util.io.resource.Resource
+import org.linkedin.groovy.util.io.GroovyIOUtils
+import org.linkedin.glu.agent.api.ScriptException
 
 /**
  * Test for ScriptManager
@@ -370,7 +379,119 @@ def class TestScriptManager extends GroovyTestCase
     assertEquals(3, node.getFullState().scriptState.script.keepOnChanging)
   }
 
+  private static String scriptClass = """
+package test.agent.scripts
 
+import test.agent.scripts.dependencies.Dependency1
+
+class MyScriptTestClassPath
+{
+  Dependency1 dep1
+  def dep2
+
+  def install = {
+    log.info "is it working?"
+    dep1 = new Dependency1(name: params.dep1)
+    dep2 = new test.agent.scripts.dependencies.Dependency2(value: params.dep2)
+  }
+}
+"""
+
+  private static String dependencyClasses = """
+package test.agent.scripts.dependencies
+
+class Dependency1
+{
+  String name
+}
+
+class Dependency2
+{
+  String value
+}
+"""
+
+  void testScriptWithClasspath()
+  {
+    FileSystemImpl.createTempFileSystem { FileSystem fs ->
+
+      // creating jar file with dependency classes
+      Resource dependenciesJarFile =
+        compileAndJar(fs,
+                      [fs.saveContent("/src/classes/dependencies.groovy", dependencyClasses).file],
+                      fs.toResource('/out/jars/dependencies.jar'),
+                      null)
+
+      // creating jar file containing glu script
+      Resource scriptJarFile =
+        compileAndJar(fs,
+                      [fs.saveContent("/src/classes/script.groovy", scriptClass).file],
+                      fs.toResource('/out/jars/script.jar'),
+                      [dependenciesJarFile])
+
+      def classpath = [dependenciesJarFile, scriptJarFile].collect { it.file.canonicalPath }
+
+      shell = new ShellImpl(fileSystem: fs)
+
+      def rootMountPoint = MountPoint.fromPath('/')
+      assertEquals(rootMountPoint, sm.rootScript.rootPath)
+      assertEquals(new HashSet([rootMountPoint]), ram)
+
+      def scriptMountPoint = MountPoint.fromPath('/script')
+
+      // installing glu script without classpath => fail
+      shouldFail(ScriptException) {
+        sm.installScript(mountPoint: scriptMountPoint,
+                         initParameters: [],
+                         scriptFactory: new FromClassNameScriptFactory("test.agent.scripts.MyScriptTestClassPath",
+                                                                       null))
+      }
+
+      // installing glu script with classpath => works
+      sm.installScript(mountPoint: scriptMountPoint,
+                       initParameters: [dep1: "nameDep1", dep2: "valueDep2"],
+                       scriptFactory: new FromClassNameScriptFactory("test.agent.scripts.MyScriptTestClassPath",
+                                                                     classpath))
+      def node = sm.findScript(scriptMountPoint)
+      node.install()
+      assertEquals([currentState: 'installed'], node.state)
+      assertEquals("nameDep1", node.script.dep1.name)
+      assertEquals("valueDep2", node.script.dep2.value)
+
+      // installing glu script without classpath => fail (making sure that installing the previous
+      // script did not affect the 'current' class loader!
+      shouldFail(ScriptException) {
+        sm.installScript(mountPoint: MountPoint.fromPath("/script2"),
+                         initParameters: [],
+                         scriptFactory: new FromClassNameScriptFactory("test.agent.scripts.MyScriptTestClassPath",
+                                                                       null))
+      }
+
+    }
+  }
+
+  private Resource compileAndJar(FileSystem fs, def sources, def jar, def classpath)
+  {
+    def cc = new CompilerConfiguration()
+    cc.targetDirectory = fs.createTempDir().file
+    if(classpath)
+      cc.classpathList = classpath.collect { it.file.canonicalPath }
+    CompilationUnit cu = new CompilationUnit(cc)
+    sources.each {
+      cu.addSource(GroovyIOUtils.toFile(it))
+    }
+    cu.compile()
+
+    Resource jarFile = fs.toResource(jar)
+
+    AntUtils.withBuilder { ant ->
+      ant.jar(destfile: jarFile.file, basedir: cc.targetDirectory)
+    }
+
+    fs.rmdirs(cc.targetDirectory)
+
+    return jarFile
+  }
 }
 
 private def class MyScriptTestScriptManager
