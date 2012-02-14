@@ -35,6 +35,8 @@ import org.linkedin.groovy.util.state.StateMachine
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeoutException
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
+import org.linkedin.util.url.URLBuilder
+import org.linkedin.util.url.QueryBuilder
 
 /**
  * Manager for scripts
@@ -535,7 +537,17 @@ def class ScriptManagerImpl implements ScriptManager
 
     if(args.scriptLocation)
     {
-      return new FromLocationScriptFactory(args.scriptLocation)
+      // add support for class:/<fqcn>?cp=<cp1>&cp=<cp2>...
+      if(args.scriptLocation.toString().startsWith("class:/"))
+      {
+        URI uri = new URI(args.scriptLocation.toString())
+        QueryBuilder query = new QueryBuilder()
+        query.addQuery(uri)
+        return new FromClassNameScriptFactory(uri.path - '/',
+                                              query.getParameterValues("cp")?.collect { it })
+      }
+      else
+        return new FromLocationScriptFactory(args.scriptLocation)
     }
 
     throw new IllegalArgumentException("cannot determine script factory: ${args}")

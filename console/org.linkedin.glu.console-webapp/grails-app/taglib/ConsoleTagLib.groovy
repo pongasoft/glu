@@ -191,13 +191,6 @@ public class ConsoleTagLib
         }
         break;
 
-      case 'initParameters.config':
-      case 'initParameters.skeleton':
-      case 'script':
-        def versions = ConsoleHelper.computeUrisVersion(value)
-        out << versions[0].encodeAsHTML()
-        break;
-
       case 'agent':
         if(column.linkable)
         {

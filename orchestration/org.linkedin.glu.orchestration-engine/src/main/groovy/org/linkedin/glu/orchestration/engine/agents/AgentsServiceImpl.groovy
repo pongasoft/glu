@@ -34,6 +34,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider
 import org.linkedin.glu.orchestration.engine.plugins.PluginService
+import org.linkedin.util.url.URLBuilder
 
 /**
  * @author ypujante
@@ -245,7 +246,17 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
     se.mountPoint = mp.mountPoint.toString()
     se.parent = mp.parent
     Map data = LangUtils.deepClone(mp.data)
-    se.script = data?.scriptDefinition?.scriptFactory?.location
+    def scriptFactory = data?.scriptDefinition?.scriptFactory
+    se.script = scriptFactory?.location
+    if(!se.script && scriptFactory?.className)
+    {
+      def uri = URLBuilder.createFromPath("/${scriptFactory.className}")
+      uri.scheme = "class"
+      scriptFactory?.classPath?.each {
+        uri.addQueryParameter("cp", it)
+      }
+      se.script = uri.getURL()
+    }
 
     // all the necessary values are stored in the init parameters
     data?.scriptDefinition?.initParameters?.each { k, v ->

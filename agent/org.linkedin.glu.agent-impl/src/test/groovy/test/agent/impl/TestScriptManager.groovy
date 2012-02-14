@@ -467,6 +467,20 @@ class Dependency2
                                                                        null))
       }
 
+      // uninstalling
+      node.uninstall()
+      sm.uninstallScript(scriptMountPoint, false)
+
+      // reinstalling using location
+      sm.installScript(mountPoint: scriptMountPoint,
+                       initParameters: [dep1: "nameDep1", dep2: "valueDep2"],
+                       scriptLocation: "class:/test.agent.scripts.MyScriptTestClassPath?${classpath.collect { 'cp=' + URLEncoder.encode(it)}.join('&')}")
+      node = sm.findScript(scriptMountPoint)
+      node.install()
+      assertEquals([currentState: 'installed'], node.state)
+      assertEquals("nameDep1", node.script.dep1.name)
+      assertEquals("valueDep2", node.script.dep2.value)
+
     }
   }
 
