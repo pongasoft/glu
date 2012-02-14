@@ -42,6 +42,8 @@ class ScriptState
   final StateMachine stateMachine
   final def script
 
+  private final Map<String, Field> _potentialFields
+
   StateChangeListener stateChangeListener
 
   // part of the state which changes as things evolve: note that the map it holds is never updated
@@ -56,6 +58,7 @@ class ScriptState
   {
     this.scriptDefinition = scriptDefinition
     this.stateMachine = stateMachine;
+    this._potentialFields = computePotentialFields(script)
 
     script.metaClass.setProperty = { String name, newValue ->
       def scriptDelegate = delegate
@@ -210,30 +213,17 @@ class ScriptState
      */
   private boolean isPartOfScriptPermanentState(MetaProperty property)
   {
-    /*
-      Here the field must be tested for transient and static modifiers
-      as Groovy does not support the transient modifier for properties.
-     */
-    try
+    if(_potentialFields.containsKey(property.name))
     {
-      Field field = script.metaClass.javaClass.getDeclaredField(property.name)
-      if (!Modifier.isStatic(field.modifiers) && !Modifier.isTransient(field.modifiers))
+      /*
+        The property value must be retrieved as private fields cannot be
+        accessed in this way in the Java world.
+       */
+      def value = property.getProperty(script)
+      if(!(value instanceof Closure) && isSerializable(value))
       {
-        /*
-          The property value must be retrieved as private fields cannot be
-          accessed in this way in the Java world.
-         */
-        def value = property.getProperty(script)
-        if(!(value instanceof Closure) && isSerializable(value))
-        {
-          return true
-        }
+        return true
       }
-    }
-    catch(NoSuchFieldException e)
-    {
-      if(log.isDebugEnabled())
-        log.debug("no such field ${property.name} [ignored]")
     }
 
     return false
@@ -258,11 +248,39 @@ class ScriptState
     return false
   }
 
+  /**
+   * Potential fields include inherited fields... note that fields in subclass win!
+   */
+  private static Map<String, Field> computePotentialFields(def script)
+  {
+    Map<String, Field> fields = [:]
+
+    Class javaClass = script.metaClass.javaClass
+    while(javaClass != Object.class)
+    {
+      /*
+        Here the field must be tested for transient and static modifiers
+        as Groovy does not support the transient modifier for properties.
+       */
+      javaClass.declaredFields.each { Field field ->
+        if(!fields.containsKey(field.name))
+        {
+          if(!Modifier.isStatic(field.modifiers) && !Modifier.isTransient(field.modifiers))
+            fields[field.name] = field
+        }
+      }
+
+      javaClass = javaClass.superclass
+    }
+
+    return fields
+  }
+
   private def collectScriptPermanentState()
   {
     def state = [:]
 
-    script.metaClass.javaClass.declaredFields.each { Field field ->
+    _potentialFields.values().each { Field field ->
       MetaProperty property = script.metaClass.getMetaProperty(field.name)
       if(isPartOfScriptPermanentState(property))
         state[property.name] = property.getProperty(script)

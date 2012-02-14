@@ -34,9 +34,7 @@ import org.linkedin.util.io.resource.internal.RAMResourceProvider
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.util.clock.SystemClock
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
-import org.codehaus.groovy.tools.javac.JavacCompilerFactory
 import org.codehaus.groovy.control.CompilerConfiguration
-import org.codehaus.groovy.tools.javac.JavaCompiler
 import org.codehaus.groovy.control.CompilationUnit
 import org.linkedin.groovy.util.ant.AntUtils
 import org.linkedin.util.io.resource.Resource
@@ -481,6 +479,120 @@ class Dependency2
       assertEquals("nameDep1", node.script.dep1.name)
       assertEquals("valueDep2", node.script.dep2.value)
 
+    }
+  }
+
+  private static String baseScriptClass = """
+package test.agent.base
+
+class BaseScript
+{
+  def base1
+  def base2
+  def base3
+
+  def install = { args ->
+    log.info "base.install"
+    base1 = params.base1Value
+    return "base.install.\${args.sub}.\${subValue}"
+  }
+
+  def baseConfigure = { args ->
+    base2 = args.base2Value
+    return "base.baseConfigure.\${args.sub}.\${subValue}"
+  }
+
+  protected def getSubValue()
+  {
+    return "fromBaseScript"
+  }
+}
+"""
+
+  private static String subScriptClass = """
+package test.agent.sub
+
+import test.agent.base.BaseScript
+
+class SubScript extends BaseScript
+{
+  String sub1
+
+  def configure = { args ->
+    sub1 = baseConfigure(args)
+    base3 = params.base3Value
+  }
+
+  protected def getSubValue()
+  {
+    return "fromSubScript"
+  }
+}
+"""
+
+  /**
+   * The purpose of this test is to make sure that inheritance works as expected
+   */
+  public void testScriptInheritance()
+  {
+    FileSystemImpl.createTempFileSystem { FileSystem fs ->
+
+      // creating jar file with base class
+      Resource dependenciesJarFile =
+        compileAndJar(fs,
+                      [fs.saveContent("/src/classes/dependencies.groovy", baseScriptClass).file],
+                      fs.toResource('/out/jars/dependencies.jar'),
+                      null)
+
+      // creating jar file containing glu script (subclass)
+      Resource scriptJarFile =
+        compileAndJar(fs,
+                      [fs.saveContent("/src/classes/script.groovy", subScriptClass).file],
+                      fs.toResource('/out/jars/script.jar'),
+                      [dependenciesJarFile])
+
+      def classpath = [dependenciesJarFile, scriptJarFile].collect { it.file.canonicalPath }
+
+      shell = new ShellImpl(fileSystem: fs)
+
+      def rootMountPoint = MountPoint.fromPath('/')
+      assertEquals(rootMountPoint, sm.rootScript.rootPath)
+      assertEquals(new HashSet([rootMountPoint]), ram)
+
+      def scriptMountPoint = MountPoint.fromPath('/script')
+
+      // installing glu script with classpath => works
+      sm.installScript(mountPoint: scriptMountPoint,
+                       initParameters: [base1Value: "b1v", base3Value: "b3v"],
+                       scriptFactory: new FromClassNameScriptFactory("test.agent.sub.SubScript",
+                                                                     classpath))
+
+      def scriptState = null
+      def node = sm.findScript(scriptMountPoint)
+
+      node.scriptState.setStateChangeListener { oldState, newState ->
+        scriptState = newState?.scriptState?.script
+      }
+      assertEquals("base.install.s1.fromSubScript", node.install(sub: "s1"))
+      assertEquals([currentState: 'installed'], node.state)
+      assertEquals("b1v", node.script.base1)
+      assertEquals("b1v", scriptState.base1)
+      assertNull(node.script.base2)
+      assertNull(scriptState.base2)
+      assertNull(node.script.base3)
+      assertNull(scriptState.base3)
+      assertNull(node.script.sub1)
+      assertNull(scriptState.sub1)
+
+      node.configure(base2Value: "b2v", sub: "s2")
+      assertEquals("b1v", node.script.base1)
+      assertEquals("b1v", scriptState.base1)
+      assertEquals("b2v", node.script.base2)
+      assertEquals("b2v", scriptState.base2)
+      assertEquals("b3v", node.script.base3)
+      assertEquals("b3v", scriptState.base3)
+      assertEquals("base.baseConfigure.s2.fromSubScript", node.script.sub1)
+      assertEquals("base.baseConfigure.s2.fromSubScript", scriptState.sub1)
     }
   }
 
