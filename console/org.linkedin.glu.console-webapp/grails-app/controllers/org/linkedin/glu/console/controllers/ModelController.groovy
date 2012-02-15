@@ -194,7 +194,7 @@ public class ModelController extends ControllerBase
       
       if(params.modelUrl)
       {
-        source = params.modelUrl
+        source = new URI(params.modelUrl)
       }
       else
       {
