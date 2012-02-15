@@ -33,9 +33,15 @@ class ConsoleConfig
    */
   def defaults
 
+  /**
+   * Map (<code>ConfigObject</code>) configuration parameters
+   */
+  def config
+
   ConsoleConfig()
   {
-    defaults = ConfigurationHolder.config.console.defaults
+    config = ConfigurationHolder.config
+    defaults = config.console.defaults
   }
 
   def getDefault(String name)

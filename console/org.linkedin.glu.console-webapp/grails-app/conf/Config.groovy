@@ -39,6 +39,9 @@ console.deltaService.stateDeltaOverridesDelta = true
 // connection timeout when the console tries to talk to the agent (rest)
 console.to.agent.connectionTimeout = "30s"
 
+// role for write operations through REST (defaults to ADMIN if not present)
+console.authFilters.rest.write.roleName = "ADMIN"
+
 /////////////////////////////////////////////////////////
 // End Default values
 /////////////////////////////////////////////////////////

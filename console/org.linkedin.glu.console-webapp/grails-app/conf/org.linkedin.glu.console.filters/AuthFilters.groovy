@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletResponse
 import org.apache.shiro.SecurityUtils
 import org.apache.shiro.authc.UsernamePasswordToken
 import org.linkedin.glu.console.domain.RoleName
+import org.linkedin.glu.grails.utils.ConsoleConfig
 
 /**
  * @author ypujante@linkedin.com */
@@ -93,7 +94,11 @@ class AuthFilters
           if(request.method == 'GET' || request.method == 'HEAD')
             role(RoleName.USER)
           else
-            role(RoleName.ADMIN)
+          {
+            def defaultRoleName =
+              ConsoleConfig.instance.config.console.authFilters.rest.write.roleName ?: RoleName.ADMIN.toString()
+            role(RoleName.valueOf(defaultRoleName.toString()))
+          }
         }
       }
     }
