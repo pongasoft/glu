@@ -80,3 +80,7 @@ div.count {
 #__delta_content table li {
   list-style: none;
 }
+
+.shortcut {
+  float: right;
+}

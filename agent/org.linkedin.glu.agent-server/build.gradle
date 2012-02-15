@@ -105,8 +105,8 @@ private createSetupTask(int ac, int fc)
       setupAgent(agent, basePort + idx)
     }
 
-    def devStartupFile = new File(devsetupDir, "agentdevctl.sh")
-
+    def devStartupFile = new File(devsetupDir, "bin/agentdevctl.sh")
+    devStartupFile.parentFile.mkdirs()
     devStartupFile.text = createAgentDevCtl(setupAgents.keySet())
 
     ant.chmod(file: devStartupFile, perm: 'ugo+rx')
@@ -144,7 +144,7 @@ ${agents.collect { computeDevsetupCmd("status", it) }.join("\n")}
 
 tail()
 {
-exec tail -f ${agents.collect { "${it}/data/logs/${project.name}.out" }.join(" ")}
+exec tail -f ${agents.collect { new File(devsetupDir, "agents/${it}/data/logs/${project.name}.out") }.join(" ")}
 }
 
 case \$1 in
@@ -165,7 +165,7 @@ esac
 
 private String computeDevsetupCmd(String cmd, def agent)
 {
-  "GLU_AGENT_APPS=${new File(devsetupDir, "apps/${agent}")} ./${agent}/bin/agentctl.sh ${cmd}"
+  "GLU_AGENT_APPS=${new File(devsetupDir, "apps/${agent}")} ${new File(devsetupDir, "agents/${agent}/bin/agentctl.sh")} ${cmd}"
 }
 
 /**************************************************************
@@ -238,9 +238,11 @@ private void setupFabricInZooKeeper(def fabric)
  */
 private void setupAgent(def agent, int port)
 {
-  def agentDir = new File(devsetupDir, agent)
+  def baseAgentDir = new File(devsetupDir, "agents")
+  baseAgentDir.mkdirs()
+  def agentDir = new File(baseAgentDir, agent)
   packageInstall(agentDir)
-  new File(devsetupDir, project.convention.plugins.cmdline.packageName).renameTo(agentDir)
+  new File(baseAgentDir, project.convention.plugins.cmdline.packageName).renameTo(agentDir)
 
   def agentConfig = """
 

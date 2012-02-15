@@ -207,6 +207,9 @@ public class ConsoleTagLib
                                               groupBy: column.name) {
               out << value.encodeAsHTML()
             }
+            out << g.link(controller: 'agents', action: 'view', id: value.encodeAsHTML()) {
+              out << "<img class=\"shortcut\" src=\"${g.resource(dir: 'images', file: 'magnifier.png')}\" />"
+            }
           }
         }
         else
