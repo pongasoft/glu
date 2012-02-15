@@ -76,6 +76,7 @@ class AuthFilters
             SecurityUtils.subject.login(new UsernamePasswordToken(credentials[0],
                                                                   credentials[1]))
             request.user = [username: SecurityUtils.subject.principal]
+            request.isRestRequest = true
           }
           catch(Exception e)
           {

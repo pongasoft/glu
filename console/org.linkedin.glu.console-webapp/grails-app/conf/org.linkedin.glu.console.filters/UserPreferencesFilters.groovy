@@ -83,7 +83,7 @@ class UserPreferencesFilters
   Fabric initFabric(params, request, UserSession userSession)
   {
     // 1) request first then user session then cookie
-    def fabric = params.fabric ?: (userSession.fabric ?: ConsoleHelper.getCookieValue(request, 'fabric'))
+    def fabric = params.fabric ?: (userSession?.fabric ?: ConsoleHelper.getCookieValue(request, 'fabric'))
 
     if(fabric)
     {
@@ -102,7 +102,8 @@ class UserPreferencesFilters
 
     // save the fabric in the request and in the session
     request.fabric = fabric
-    userSession.fabric = fabric?.name
+    if(userSession)
+      userSession.fabric = fabric?.name
 
     return fabric
   }
@@ -154,6 +155,12 @@ class UserPreferencesFilters
    */
   UserSession initUserSession(params, request)
   {
+    // when rest request we do not initialize the user session!
+    if(request.isRestRequest)
+    {
+      return null
+    }
+
     String cddName =
       ConsoleHelper.getRequestValue(params, request, CUSTOM_DELTA_DEFINITION_COOKIE_NAME)
 
