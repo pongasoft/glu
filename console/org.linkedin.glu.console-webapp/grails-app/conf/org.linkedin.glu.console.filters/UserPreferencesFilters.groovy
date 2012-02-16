@@ -94,7 +94,7 @@ class UserPreferencesFilters
     if(!fabric)
     {
       def fabricNames = fabricService.listFabricNames()
-      if(fabricNames.size() == 1)
+      if(fabricNames.size() >= 1)
       {
         fabric = fabricService.findFabric(fabricNames.iterator().next())
       }

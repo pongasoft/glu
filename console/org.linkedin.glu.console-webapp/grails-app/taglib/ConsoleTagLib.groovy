@@ -808,7 +808,8 @@ public class ConsoleTagLib
     if(fabricNames.size() > 0)
     {
       out << '<li class="dropdown">'
-      out << "<a href=\"#\" class=\"dropdown-toggle\">${fabric.encodeAsHTML()}</a>"
+      if(fabric)
+        out << "<a href=\"#\" class=\"dropdown-toggle\">${fabric.encodeAsHTML()}</a>"
       out << '<ul class="dropdown-menu">'
       fabricNames.each { fabricName ->
         out << "<li>"

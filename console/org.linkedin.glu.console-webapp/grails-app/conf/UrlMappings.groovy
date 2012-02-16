@@ -282,6 +282,14 @@ class UrlMappings
       ]
     }
 
+    "/rest/v1/$fabric"(controller: 'fabric') {
+      action = [
+        GET: 'rest_view_fabric',
+        PUT: 'rest_add_or_update_fabric',
+        DELETE: 'rest_delete_fabric'
+      ]
+    }
+
     "/rest/v1/-/agents"(controller: 'fabric') {
       action = [
         GET: 'rest_list_agents_fabrics'

@@ -181,27 +181,31 @@ class FabricController extends ControllerBase
   }
 
   def delete = {
-    def fabricInstance = Fabric.get(params.id)
-    if(fabricInstance)
-    {
-      try
-      {
-        Fabric.executeUpdate("delete Fabric f where f.id=?", [fabricInstance.id])
-        fabricService.resetCache()
-        flash.success = "Fabric ${params.id} deleted"
-        audit('fabric.deleted', params.id.toString())
-        redirect(action: list)
+    withLock("fabric") {
+      Fabric.withTransaction {
+        def fabricInstance = Fabric.get(params.id)
+        if(fabricInstance)
+        {
+          try
+          {
+            Fabric.executeUpdate("delete Fabric f where f.id=?", [fabricInstance.id])
+            fabricService.resetCache()
+            flash.success = "Fabric ${params.id} deleted"
+            audit('fabric.deleted', params.id.toString())
+            redirect(action: list)
+          }
+          catch (org.springframework.dao.DataIntegrityViolationException e)
+          {
+            flash.warning = "Fabric ${params.id} could not be deleted"
+            redirect(action: show, id: params.id)
+          }
+        }
+        else
+        {
+          flash.warning = "Fabric not found with id ${params.id}"
+          redirect(action: list)
+        }
       }
-      catch (org.springframework.dao.DataIntegrityViolationException e)
-      {
-        flash.warning = "Fabric ${params.id} could not be deleted"
-        redirect(action: show, id: params.id)
-      }
-    }
-    else
-    {
-      flash.warning = "Fabric not found with id ${params.id}"
-      redirect(action: list)
     }
   }
 
@@ -220,37 +224,41 @@ class FabricController extends ControllerBase
   }
 
   def update = {
-    def fabricInstance = Fabric.get(params.id)
-    if(fabricInstance)
-    {
-      if(params.version)
-      {
-        def version = params.version.toLong()
-        if(fabricInstance.version > version)
+    withLock("fabric") {
+      Fabric.withTransaction {
+        def fabricInstance = Fabric.get(params.id)
+        if(fabricInstance)
         {
+          if(params.version)
+          {
+            def version = params.version.toLong()
+            if(fabricInstance.version > version)
+            {
 
-          fabricInstance.errors.rejectValue("version", "fabric.optimistic.locking.failure", "Another user has updated this Fabric while you were editing.")
-          render(view: 'edit', model: [fabricInstance: fabricInstance])
-          return
+              fabricInstance.errors.rejectValue("version", "fabric.optimistic.locking.failure", "Another user has updated this Fabric while you were editing.")
+              render(view: 'edit', model: [fabricInstance: fabricInstance])
+              return
+            }
+          }
+          fabricInstance.properties = params
+          if(!fabricInstance.hasErrors() && fabricInstance.save())
+          {
+            fabricService.resetCache()
+            flash.success = "Fabric ${params.id} updated"
+            audit('fabric.updated', params.id.toString(), params.toString())
+            redirect(action: show, id: fabricInstance.id)
+          }
+          else
+          {
+            render(view: 'edit', model: [fabricInstance: fabricInstance])
+          }
+        }
+        else
+        {
+          flash.warning = "Fabric not found with id ${params.id}"
+          redirect(action: list)
         }
       }
-      fabricInstance.properties = params
-      if(!fabricInstance.hasErrors() && fabricInstance.save())
-      {
-        fabricService.resetCache()
-        flash.success = "Fabric ${params.id} updated"
-        audit('fabric.updated', params.id.toString(), params.toString())
-        redirect(action: show, id: fabricInstance.id)
-      }
-      else
-      {
-        render(view: 'edit', model: [fabricInstance: fabricInstance])
-      }
-    }
-    else
-    {
-      flash.warning = "Fabric not found with id ${params.id}"
-      redirect(action: list)
     }
   }
 
@@ -261,20 +269,24 @@ class FabricController extends ControllerBase
   }
 
   def save = {
-    def fabricInstance = new Fabric(params)
-    if(!fabricInstance.hasErrors() && fabricInstance.save())
-    {
-      fabricService.resetCache()
-      flash.success = "Fabric ${fabricInstance.id} created"
-      audit('fabric.updated', fabricInstance.id.toString(), params.toString())
-      def emptySystem = new SystemModel(fabric: fabricInstance.name)
-      emptySystem.metadata.name = "Empty System Model"
-      systemService.saveCurrentSystem(emptySystem)
-      redirect(action: show, id: fabricInstance.id)
-    }
-    else
-    {
-      render(view: 'create', model: [fabricInstance: fabricInstance])
+    withLock("fabric") {
+      Fabric.withTransaction {
+        def fabricInstance = new Fabric(params)
+        if(!fabricInstance.hasErrors() && fabricInstance.save())
+        {
+          fabricService.resetCache()
+          flash.success = "Fabric ${fabricInstance.id} created"
+          audit('fabric.updated', fabricInstance.id.toString(), params.toString())
+          def emptySystem = new SystemModel(fabric: fabricInstance.name)
+          emptySystem.metadata.name = "Empty System Model"
+          systemService.saveCurrentSystem(emptySystem)
+          redirect(action: show, id: fabricInstance.id)
+        }
+        else
+        {
+          render(view: 'create', model: [fabricInstance: fabricInstance])
+        }
+      }
     }
   }
 
@@ -291,6 +303,116 @@ class FabricController extends ControllerBase
     response.setContentType('text/json')
     response.addHeader("X-glu-count", fabrics.size().toString())
     render prettyPrintJsonWhenRequested(fabrics)
+  }
+
+  /**
+   * Returns the details about a fabric (GET /<fabric>)
+   */
+  def rest_view_fabric = {
+    if(request.fabric?.name != params.fabric)
+    {
+      response.setStatus(HttpServletResponse.SC_NOT_FOUND)
+      render ''
+      return
+    }
+
+    response.setContentType('text/json')
+    def fabric = [
+      name: request.fabric.name,
+      zkConnectString: request.fabric.zkConnectString,
+      zkSessionTimeout: request.fabric.zkSessionTimeout.toString(),
+      color: request.fabric.color
+    ]
+    render prettyPrintJsonWhenRequested(fabric)
+  }
+
+  /**
+   * Update (or add if not existent) a fabric (PUT /<fabric>)
+   */
+  def rest_add_or_update_fabric = {
+    withLock("fabric") {
+      Fabric.withTransaction {
+        // adding new fabric
+        if(request.fabric?.name != params.fabric)
+        {
+          params.name = params.fabric
+          def fabricInstance = new Fabric(params)
+          if(!fabricInstance.hasErrors() && fabricInstance.save())
+          {
+            fabricService.resetCache()
+            audit('fabric.created', fabricInstance.id.toString(), params.toString())
+            def emptySystem = new SystemModel(fabric: fabricInstance.name)
+            emptySystem.metadata.name = "Empty System Model"
+            systemService.saveCurrentSystem(emptySystem)
+            response.setStatus(HttpServletResponse.SC_OK)
+            render ''
+          }
+          else
+          {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST, fabricInstance.errors.toString())
+            render fabricInstance.errors.toString()
+          }
+        }
+        else
+        {
+          // updating fabric
+          def fabricInstance = Fabric.findByName(params.fabric)
+          fabricInstance.properties = params
+          if(!fabricInstance.hasErrors() && fabricInstance.save())
+          {
+            fabricService.resetCache()
+            audit('fabric.updated', params.fabric, params.toString())
+            response.setStatus(HttpServletResponse.SC_OK)
+            render ''
+          }
+          else
+          {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST, fabricInstance.errors.toString())
+            render fabricInstance.errors.toString()
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Deletes the fabric
+   */
+  def rest_delete_fabric = {
+    withLock("fabric") {
+      Fabric.withTransaction {
+        // already does not exist...
+        if(request.fabric?.name != params.fabric)
+        {
+          response.setStatus(HttpServletResponse.SC_NOT_FOUND)
+          render ''
+          return
+        }
+
+        def fabricInstance = Fabric.findByName(params.fabric)
+        if(fabricInstance)
+        {
+          try
+          {
+            Fabric.executeUpdate("delete Fabric f where f.id=?", [fabricInstance.id])
+            fabricService.resetCache()
+            audit('fabric.deleted', params.fabric.toString())
+            response.setStatus(HttpServletResponse.SC_OK)
+            render ''
+          }
+          catch (org.springframework.dao.DataIntegrityViolationException e)
+          {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+            render e.message
+          }
+        }
+        else
+        {
+          response.setStatus(HttpServletResponse.SC_NOT_FOUND)
+          render ''
+        }
+      }
+    }
   }
 
   /**
