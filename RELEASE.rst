@@ -1,6 +1,19 @@
 Latest changes
 ==============
 
+4.2.0 (2012/02/16)
+------------------
+
+4.2.0 introduces the ability to package a glu script as a precompiled class (or set of classes) inside one (or more) jar file(s). As a result, a glu script can inherit from another class as well as have external (to glu) dependencies! Check :ref:`glu-script-packaging` for more info.
+
+* Implemented `glu-118 <https://github.com/linkedin/glu/issues/118>`_: `Add classpath / compiled glu script capability`
+* Fixed `glu-120 <https://github.com/linkedin/glu/issues/120>`_: `Release user can't load model via the cli`
+* Fixed `glu-121 <https://github.com/linkedin/glu/issues/121>`_: `Admin user can't load model via the cli`
+* Fixed `glu-124 <https://github.com/linkedin/glu/issues/124>`_: `REST api should not use current logged in user session`
+* Implemented `glu-125 <https://github.com/linkedin/glu/issues/125>`_: `add extra link shortcut in the dashboard`
+* Implemented `glu-126 <https://github.com/linkedin/glu/issues/126>`_: `Add REST api for manipulating fabrics`
+
+
 4.1.1 (2012/01/27)
 ------------------
 

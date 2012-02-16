@@ -417,6 +417,15 @@ Main URI: ``/console/rest/v1/<fabric>`` (all the URIs in the following table sta
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
 |Method     |URI                                        |Description                       |Details                                   |
 +===========+===========================================+==================================+==========================================+
+|``GET``    |None                                       |Returns details for fabric        |:ref:`view <goe-rest-api-get-fabric>`     |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``PUT``    |None                                       |Add/Update a fabric               |:ref:`view <goe-rest-api-put-fabric>`     |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``DELETE`` |None                                       |Delete a fabric                   |:ref:`view <goe-rest-api-delete-fabric>`  |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
 |``HEAD``   |``/agents``                                |Returns the number of agents      |:ref:`view <goe-rest-api-head-agents>`    |
 |           |                                           |                                  |                                          |
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
@@ -524,6 +533,88 @@ Any fabric related URI: ``/console/rest/v1/-`` (all the URIs in the following ta
 |``GET``    |``/agents``                                |Returns the map of associations   |:ref:`view                                |
 |           |                                           |agent -> fabric                   |<goe-rest-api-get-agents-fabrics>`        |
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+
+.. _goe-rest-api-get-fabric:
+
+Fabric details
+""""""""""""""
+
+* Description: Retrieve the details about the fabric
+
+* Request: ``GET``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+   * body: json map with the details of the fabric
+
+  * ``404`` (``NOT FOUND``) when there is no such fabric
+
+* Example::
+
+     curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1?prettyPrint=true"
+     < HTTP/1.1 200 OK
+     {
+       "color": "#005a87",
+       "name": "glu-dev-1",
+       "zkConnectString": "localhost:2181",
+       "zkSessionTimeout": "30s"
+     }
+
+.. _goe-rest-api-put-fabric:
+
+Add/Update a fabric
+"""""""""""""""""""
+
+* Description: Add (or update if already exists) a fabric
+
+* Request: ``PUT``
+
+  request parameters:
+
+  * ``zkConnectString=localhost:2181`` the connection string to your ZooKeeper setup
+
+  * ``zkSessionTimeout=30s`` the timeout for ZooKeeper sessions
+
+  * ``color=%23ff00ff`` the color (for the ui top navigation bar), can be anything that is useable as a color in css (ex of valid input: ``red``, ``#ff00ff`` (which must be properly query string encoded => ``#`` gets encoded into ``%23``))
+
+* Response: 
+
+  * ``200`` (``OK``) when the update was successful
+
+  * ``400`` (``BAD REQUEST``) when the parameters are not valid (body will contain details about the error)
+
+* Example::
+
+     curl -v -u "glua:password" -X PUT "http://localhost:8080/console/rest/v1/glu-dev-3?zkConnectString=localhost:2181&zkSessionTimeout=30s&color=%23ff00ff"
+     > PUT /console/rest/v1/glu-dev-3?zkConnectString=localhost:2181&zkSessionTimeout=30s&color=%23ff00ff HTTP/1.1
+     < HTTP/1.1 200 OK
+
+.. _goe-rest-api-delete-fabric:
+
+Delete a fabric
+"""""""""""""""
+
+* Description: Delete a fabric
+
+* Request: ``DELETE``
+
+* Response: 
+
+  * ``200`` (``OK``) when the delete was successful
+
+  * ``404`` (``NOT FOUND``) when the fabric was already deleted
+
+* Example::
+
+     curl -v -u "glua:password" -X DELETE "http://localhost:8080/console/rest/v1/glu-dev-3"
+     > DELETE /console/rest/v1/glu-dev-3 HTTP/1.1
+     < HTTP/1.1 200 OK
 
 
 .. _goe-rest-api-head-agents:
@@ -719,7 +810,6 @@ Clears the fabric for an agent
 
      curl -v -u "glua:password" -X DELETE "http://localhost:8080/console/rest/v1/glu-dev-1/agent/xeon/fabric"
      < HTTP/1.1 200 OK
-
 
 .. _goe-rest-api-get-agents-versions:
 

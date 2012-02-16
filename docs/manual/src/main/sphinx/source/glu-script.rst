@@ -232,3 +232,87 @@ In order to compile the script and the unit test, you need the following depende
    * `TestJettyGluScript <https://github.com/linkedin/glu/blob/master/scripts/org.linkedin.glu.script-jetty/src/test/groovy/test/script/jetty/TestJettyGluScript.groovy>`_ for a real life example of unit testing a glu script
    * `glu-scripts-contrib <https://github.com/linkedin/glu-scripts-contrib>`_ is the project that contains glu script contributed by the community as well as a sample
    * `sample <https://github.com/linkedin/glu-scripts-contrib/tree/master/scripts/org.linkedin.glu-scripts-contrib.sample>`_ is a sample glu script and unit test with comprehensive documentation demonstrating several features about writing and unit testing a glu script
+
+.. _glu-script-packaging:
+
+Packaging a glu script
+----------------------
+A glu script can be packaged in 2 different ways:
+
+* as a simple groovy file, in which case the ``script`` entry in the model is a URI pointing directly to the groovy file. 
+  Example::
+
+    "script": "http://host:port/x/c/v/MyGluScript.groovy"
+
+* already compiled and packaged in a jar file (new since 4.2.0), in which case the ``script`` entry in the model is a special 
+  URI of the form::
+
+    class:/<FQCN>?cp=<URI to jar>&cp=<URI to jar>...
+
+  Example::
+
+    "script": "class:/com.acme.MyGluScript?cp=http%3A%2F%2Facme.com%2Fjars%2Fscript.jar&cp=http%3A%2F%2Facme.com%2Fjars%2Fdependency.jar"
+
+  .. tip:: In this second form, the script can be split into multiple files and have external dependencies (as long as they are provided as classpath elements)
+
+  .. warning:: Every classpath element (``cp``) being a query string paramater must be properly URL encoded!
+
+
+Inheritance
+-----------
+New since 4.2.0, a glu script can now inherit from another one (in which case you should use the second packaging technique so that you can distribute the base script as a dependency). Here is an example:
+
+The base script::
+
+  package test.agent.base
+
+  class BaseScript
+  {
+    def base1
+    def base2
+    def base3
+
+    def install = { args ->
+      log.info "base.install"
+      base1 = params.base1Value
+      log.info "base.install.\${args.sub}.\${subValue}"
+    }
+
+    def baseConfigure = { args ->
+      base2 = args.base2Value
+      return "base.baseConfigure.\${args.sub}.\${subValue}"
+    }
+
+    protected def getSubValue()
+    {
+      return "fromBaseScript"
+    }
+  }
+
+The subclass script::
+
+  package test.agent.sub
+
+  import test.agent.base.BaseScript
+
+  class SubScript extends BaseScript
+  {
+    String sub1
+
+    def configure = { args ->
+      sub1 = baseConfigure(args)
+      base3 = params.base3Value
+    }
+
+    protected def getSubValue()
+    {
+      return "fromSubScript"
+    }
+  }
+
+
+A few words about the example:
+
+* all attributes defined in the base script will automatically be exported to ZooKeeper as if they were defined in the subclass!
+
+* since glu uses closures (and not methods), you cannot `override` a lifecycle method. Instead you should use a technique similar to the example in which the base class defines a closure (``baseConfigure``) that gets called directly by the subclass.

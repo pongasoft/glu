@@ -173,7 +173,7 @@ The :term:`mount point` represents a unique key on the agent. You can reuse the 
 ``script``
 """"""""""
 
-This section should be a URI pointing to the :doc:`glu script <glu-script>` that will be used to deploy the application.
+This section should be a URI pointing to the :ref:`glu script <glu-script-packaging>` that will be used to deploy the application.
 
 .. _static-model-entries-initParameters:
 

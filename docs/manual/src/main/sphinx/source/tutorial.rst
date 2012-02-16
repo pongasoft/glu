@@ -244,7 +244,7 @@ Loading the model
 
 Viewing entry details
 ---------------------
-1. Click on the ``'Agents'`` tab and select ``'agent-1'`` from the list
+1. Let's go back to the page that shows you the details about the agent. For this you can either click on the ``'Agents'`` tab and select ``'agent-1'`` from the list, like you did in a previous step or you can simply click on the little magnifying glass that is displayed on the dashboard right next to the name of the agent (``agent-1``).
 
    The page shows you now the 3 entries that were installed.
 
