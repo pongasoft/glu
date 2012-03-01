@@ -529,16 +529,16 @@ public class TestPlannerImpl extends GroovyTestCase
 
   private static String toStringAfter(SingleDeltaTransitionPlan transitions)
   {
-    JsonUtils.toJSON(new TreeMap(transitions.transitions).values().collect { Transition t ->
+    JsonUtils.prettyPrinted(new TreeMap(transitions.transitions).values().collect { Transition t ->
       "${t.key} -> ${t.executeAfter.sort()}"
-    }).toString(2)
+    })
   }
 
   private static String toStringBefore(SingleDeltaTransitionPlan transitions)
   {
-    JsonUtils.toJSON(new TreeMap(transitions.transitions).values().collect { Transition t ->
+    JsonUtils.prettyPrinted(new TreeMap(transitions.transitions).values().collect { Transition t ->
       "${t.key} -> ${t.executeBefore.sort()}"
-    }).toString(2)
+    })
   }
 }
 

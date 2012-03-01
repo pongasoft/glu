@@ -109,22 +109,18 @@ class DeltaServiceImpl implements DeltaService
         res
       }
     }
-    
+
     // build map for json
     map = [
       accuracy: delta.currentSystemModel.metadata.accuracy,
       delta: map
     ]
 
-    def jsonDelta =  JsonUtils.toJSON(map)
-
     boolean prettyPrint = params.prettyPrint?.toString() == "true"
     if(prettyPrint)
-      jsonDelta = jsonDelta.toString(2)
+      return JsonUtils.prettyPrinted(map)
     else
-      jsonDelta = jsonDelta.toString()
-
-    return jsonDelta
+      return JsonUtils.compactRepresentation(map)
   }
 
   protected Object toExternalValue(Object value)
@@ -240,7 +236,7 @@ class DeltaServiceImpl implements DeltaService
       removeStatusInfoColumn = true
       columnNames << "statusInfo"
     }
-    
+
     def column0Name = columnNames[0]
 
     def allTags = new HashSet()
@@ -403,7 +399,7 @@ class DeltaServiceImpl implements DeltaService
       else
         return null
     }
-    
+
     return null
   }
 }

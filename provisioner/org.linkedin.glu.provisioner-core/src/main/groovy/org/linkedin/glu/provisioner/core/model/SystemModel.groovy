@@ -61,7 +61,7 @@ class SystemModel implements MetadataProvider
   {
     def ext = toExternalRepresentation()
     ext.remove('id') // we remove id from the computation
-    def json = JsonUtils.toJSON(ext).toString(2)
+    def json = JsonUtils.prettyPrinted(ext)
     CodecUtils.encodeString(SHA1, json)
   }
 
@@ -135,7 +135,7 @@ class SystemModel implements MetadataProvider
 
   /**
    * Computes the stats of this model limited by the set of keys provided.
-   * 
+   *
    * @return a map containing as the key, the name of the stat and the value is a counter (note that
    * when the value is unique, then the unique value is returned instead of the counter)
    */
@@ -182,7 +182,7 @@ class SystemModel implements MetadataProvider
     {
       throw new IllegalStateException("currently unsupported operation: add the tags, then the entries")
     }
-    
+
     Taggeable taggeable = _agentTags[agentName]
     if(!taggeable)
     {
@@ -202,7 +202,7 @@ class SystemModel implements MetadataProvider
   {
     return _agentTags[agentName] ?: ReadOnlyTaggeable.EMPTY
   }
-  
+
   /**
    * @return all the agent tags
    */
@@ -350,7 +350,7 @@ class SystemModel implements MetadataProvider
 
 
   /**
-   * @return the system as it was unfiltered 
+   * @return the system as it was unfiltered
    */
   SystemModel unfilter()
   {
@@ -403,8 +403,20 @@ class SystemModel implements MetadataProvider
   def each(Closure closure)
   {
     _entries.values().each(closure)
-    
+
     return this
+  }
+
+  /**
+   * Remove agent tags from external representation 'ext' of this model
+   */
+  def removeAgentTags(ext) {
+    if(!_agentTags.isEmpty())
+    {
+      ext.entries.each { e ->
+        e.tags?.removeAll(getAgentTags(e.agent).tags)
+      }
+    }
   }
 
   /**
@@ -413,16 +425,7 @@ class SystemModel implements MetadataProvider
   def toCanonicalRepresentation()
   {
     def ext = toExternalRepresentation()
-
-    if(!_agentTags.isEmpty())
-    {
-      ext = LangUtils.deepClone(ext)
-
-      ext.entries.each { e ->
-        e.tags?.removeAll(getAgentTags(e.agent).tags)
-      }
-    }
-    
+    removeAgentTags(ext)
     return ext
   }
 
