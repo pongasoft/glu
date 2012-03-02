@@ -127,12 +127,10 @@ class ControllerBase
     if(o == null)
       return null
 
-    Object json = JsonUtils.toJSON(o)
-
     if(params.prettyPrint)
-      json.toString(2)
+      JsonUtils.prettyPrinted(o)
     else
-      json.toString()
+      JsonUtils.compactRepresentation(o)
   }
 
   /**

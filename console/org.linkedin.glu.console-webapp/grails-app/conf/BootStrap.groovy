@@ -73,6 +73,7 @@ class BootStrap {
     // setting up data when development...
     if(Environment.current == Environment.DEVELOPMENT)
     {
+      if (ConfigurationHolder.config.dataSource.dbCreate != 'update') {
       def hostname = InetAddress.getLocalHost().canonicalHostName
 
       // dev fabrics
@@ -111,6 +112,7 @@ class BootStrap {
             throw new RuntimeException("could not create ${username} user")
           }
         }
+      }
       }
     }
 
