@@ -369,7 +369,7 @@ public class PlanController extends ControllerBase
         break;
 
       case 'stop':
-        args.state = ['stopped']
+        args.state = 'stopped'
         plan = plannerService.computeTransitionPlan(args, metadata)
         break;
 
