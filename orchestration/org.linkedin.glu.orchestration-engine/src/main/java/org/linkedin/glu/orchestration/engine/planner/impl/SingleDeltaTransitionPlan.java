@@ -426,7 +426,12 @@ public class SingleDeltaTransitionPlan implements TransitionPlan<ActionDescripto
     if(toState == null)
       toState = StateMachine.NONE;
 
-    int distance = entryDelta.getStateMachine().getDistance(fromState, toState);
+    // when no state machine (empty agents) nothing to do...
+    StateMachine stateMachine = entryDelta.getStateMachine();
+    if(stateMachine == null)
+      return transition;
+
+    int distance = stateMachine.getDistance(fromState, toState);
 
     @SuppressWarnings("unchecked")
     Collection<Map<String,String>> path =

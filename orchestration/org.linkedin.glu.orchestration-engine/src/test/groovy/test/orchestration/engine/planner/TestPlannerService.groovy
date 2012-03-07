@@ -29,6 +29,7 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.orchestration.engine.planner.PlannerServiceImpl
+import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 
 /**
  * @author yan@pongasoft.com */
@@ -964,6 +965,40 @@ public class TestPlannerService extends GroovyTestCase
     assertEquals(12, p.leafStepsCount)
   }
 
+  /**
+   * Test for stop plan when empty (issue #129)
+   */
+  public void testStopPlanWhenEmpty()
+  {
+    SystemModel expectedModel = m("""{
+  "fabric": "glu-dev-1",
+  "id": "94fe0badb83b6d0203db4eb8a21bd455469333a7",
+  "metadata": {"name": "Empty System Model"}
+}
+""")
+
+    SystemModel currentSystemModel = m("""{
+  "entries": [{
+    "agent": "agent-1",
+    "metadata": {
+      "currentState": "NA",
+      "emptyAgent": true
+    }
+  }],
+  "fabric": "glu-dev-1",
+  "metadata": {"accuracy": "ACCURATE"}
+}
+""")
+
+    Plan<ActionDescriptor> p = transitionPlan(Type.PARALLEL, expectedModel, currentSystemModel, "stopped")
+
+    assertEquals("""<?xml version="1.0"?>
+<plan />
+""", p.toXml())
+    assertEquals(0, p.leafStepsCount)
+  }
+
+
 
   private Plan<ActionDescriptor> upgradePlan(Type type,
                                              SystemModel currentSystemModel,
@@ -1017,6 +1052,14 @@ public class TestPlannerService extends GroovyTestCase
     computePlan(type, expectedSystemModel, currentSystemModel, [name: 'deploy'], "computeDeployPlan")
   }
 
+  private Plan<ActionDescriptor> transitionPlan(Type type,
+                                                SystemModel expectedSystemModel,
+                                                SystemModel currentSystemModel,
+                                                String state)
+  {
+    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'transition', state: state], "computeTransitionPlans")
+  }
+
   private Plan<ActionDescriptor> computePlan(Type type,
                                              SystemModel expectedSystemModel,
                                              SystemModel currentSystemModel,
@@ -1038,6 +1081,10 @@ public class TestPlannerService extends GroovyTestCase
     }
   }
 
+  private SystemModel m(String model)
+  {
+    JSONSystemModelSerializer.INSTANCE.deserialize(model)
+  }
 
   private SystemModel m(Map... entries)
   {
