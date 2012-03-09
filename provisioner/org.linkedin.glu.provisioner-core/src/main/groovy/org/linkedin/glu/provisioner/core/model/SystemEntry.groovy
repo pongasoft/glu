@@ -22,12 +22,13 @@ import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
 import org.linkedin.glu.utils.tags.ReadOnlyTaggeable
 import org.linkedin.util.lang.LangUtils
+import org.linkedin.glu.provisioner.core.state.DefaultStateMachine
 
 /**
  * @author ypujante@linkedin.com */
 class SystemEntry implements ReadOnlyTaggeable, MetadataProvider
 {
-  public static final String DEFAULT_ENTRY_STATE = "running";
+  public static final String DEFAULT_ENTRY_STATE = DefaultStateMachine.DEFAULT_ENTRY_STATE;
   public static final String DEFAULT_PARENT = "/";
 
   String agent

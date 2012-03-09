@@ -42,6 +42,7 @@ import org.linkedin.glu.provisioner.core.model.SystemEntryKeyModelFilter
 import org.linkedin.glu.provisioner.core.model.FlattenSystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemFilterHelper
 import org.linkedin.glu.provisioner.core.model.SystemModel
+import org.linkedin.glu.provisioner.core.state.DefaultStateMachine
 
 /**
  * Tag library for the console.
@@ -49,6 +50,11 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
  * @author ypujante  */
 public class ConsoleTagLib
 {
+  public static final String DEFAULT_RUNNING_STATE =
+    DefaultStateMachine.DEFAULT_ENTRY_STATE.toUpperCase()
+
+  public static final String DEFAULT_NOT_RUNNING_STATE = "NOT_${DEFAULT_RUNNING_STATE}".toString()
+
   static namespace = 'cl'
 
   TagsService tagsService
@@ -453,7 +459,9 @@ public class ConsoleTagLib
   def mountPointState = { args ->
     def mountPoint = args.mountPoint
 
-    def state = mountPoint.currentState == 'running' ? 'RUNNING' : 'NOT_RUNNING'
+    def state = mountPoint.currentState == DefaultStateMachine.DEFAULT_ENTRY_STATE ?
+      DEFAULT_RUNNING_STATE :
+      DEFAULT_NOT_RUNNING_STATE
 
     if(mountPoint.transitionState)
       state = 'TRANSITION'

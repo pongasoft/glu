@@ -22,6 +22,7 @@ import org.linkedin.glu.orchestration.engine.delta.SystemEntryValue;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueNoDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueWithDelta;
 import org.linkedin.glu.orchestration.engine.planner.PlannerService;
+import org.linkedin.glu.provisioner.core.state.DefaultStateMachine;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
 import org.linkedin.glu.utils.collections.ComparableTreeSet;
 import org.linkedin.groovy.util.state.StateMachine;
@@ -33,24 +34,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * @author yan@pongasoft.com
  */
 public class SystemEntryDeltaImpl implements InternalSystemEntryDelta
 {
-  public static final StateMachine DEFAULT_STATE_MACHINE;
+  public static final StateMachine DEFAULT_STATE_MACHINE = DefaultStateMachine.INSTANCE;
   public static final StateMachine SELF_UPGRADE_STATE_MACHINE;
-
 
   static
   {
     Map<String, Object> args = new HashMap<String, Object>();
-    args.put("transitions", Agent.DEFAULT_TRANSITIONS);
-    DEFAULT_STATE_MACHINE = new StateMachineImpl(args);
-
-    args = new HashMap<String, Object>();
     args.put("transitions", Agent.SELF_UPGRADE_TRANSITIONS);
     SELF_UPGRADE_STATE_MACHINE = new StateMachineImpl(args);
   }
