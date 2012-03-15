@@ -136,7 +136,7 @@ public class SingleDeltaBuilder
    * parent/child relationship, some keys may need to be added back (parent and/or children) in
    * order to compute the proper deltas. This method will contain all the keys necessary fo compute
    * the delta.
-   * @return
+   * @return delta key set
    */
   public Set<String> getDeltaKeys()
   {

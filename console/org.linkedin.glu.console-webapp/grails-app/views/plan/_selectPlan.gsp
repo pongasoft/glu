@@ -34,7 +34,7 @@
             <td>${planType}</td>
             <g:each in="${['SEQUENTIAL', 'PARALLEL']}" var="stepType">
               <td>${stepType}</td>
-              <td><input type="radio" name="planDetails" value="${JsonUtils.toJSON([planType: planType, stepType: stepType, name: planType + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="${remoteFunction(controller: 'plan', action:'create', update:[success:'plan-preview'], params: "'json=' + this.value")}" /></td>
+              <td><input type="radio" name="planDetails" value="${JsonUtils.compactPrint([planType: planType, stepType: stepType, name: planType + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="${remoteFunction(controller: 'plan', action:'create', update:[success:'plan-preview'], params: "'json=' + this.value")}" /></td>
             </g:each>
           </tr>
         </g:if>

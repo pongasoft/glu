@@ -23,7 +23,7 @@ import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.UserCustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.LightUserCustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl
-import org.json.JSONException
+import org.codehaus.jackson.JsonParseException
 
 /**
  * @author yan@pongasoft.com */
@@ -207,7 +207,7 @@ public class CustomDeltaDefinitionStorageTests extends GroovyTestCase
       customDeltaDefinitionStorage.findByUsernameAndName('user1', 'd1')
 
     // not a json string... should fail (using updateContent method)
-    shouldFail(JSONException) {
+    shouldFail(JsonParseException) {
       ud11Read.updateContent('abc')
     }
 
