@@ -1518,7 +1518,7 @@ class TestDeltaService extends GroovyTestCase
    */
   void assertEqualsIgnoreType(o1, o2)
   {
-    assertEquals(JsonUtils.prettyPrinted(o1), JsonUtils.prettyPrinted(o2))
+    assertEquals(JsonUtils.prettyPrint(o1), JsonUtils.prettyPrint(o2))
     assertTrue("expected <${o1}> but was <${o2}>", GroovyCollectionsUtils.compareIgnoreType(o1, o2))
   }
 

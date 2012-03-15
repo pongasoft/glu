@@ -132,7 +132,7 @@ class ConsoleHelper
   {
     if(cookieValue != null)
     {
-      cookieValue = JsonUtils.compactRepresentation(cookieValue)
+      cookieValue = JsonUtils.compactPrint(cookieValue)
       cookieValue = CodecUtils.encodeString(COOKIE_CODEC, cookieValue)
     }
 

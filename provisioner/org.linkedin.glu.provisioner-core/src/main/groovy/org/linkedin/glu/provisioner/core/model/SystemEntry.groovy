@@ -244,6 +244,6 @@ class SystemEntry implements ReadOnlyTaggeable, MetadataProvider
 
   def String toString()
   {
-    return JsonUtils.prettyPrinted(toExternalRepresentation())
+    return JsonUtils.prettyPrint(toExternalRepresentation())
   }
 }

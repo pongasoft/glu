@@ -118,9 +118,9 @@ class DeltaServiceImpl implements DeltaService
 
     boolean prettyPrint = params.prettyPrint?.toString() == "true"
     if(prettyPrint)
-      return JsonUtils.prettyPrinted(map)
+      return JsonUtils.prettyPrint(map)
     else
-      return JsonUtils.compactRepresentation(map)
+      return JsonUtils.compactPrint(map)
   }
 
   protected Object toExternalValue(Object value)

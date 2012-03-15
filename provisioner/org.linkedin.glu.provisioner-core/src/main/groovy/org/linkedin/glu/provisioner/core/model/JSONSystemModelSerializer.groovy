@@ -37,9 +37,9 @@ class JSONSystemModelSerializer implements SystemModelSerializer
   String serialize(SystemModel model)
   {
     if (prettyPrint)
-      return JsonUtils.prettyPrinted(model.toCanonicalRepresentation())
+      return JsonUtils.prettyPrint(model.toCanonicalRepresentation())
     else
-      return JsonUtils.compactRepresentation(model.toCanonicalRepresentation())
+      return JsonUtils.compactPrint(model.toCanonicalRepresentation())
   }
 
   String getType()

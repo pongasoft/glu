@@ -61,7 +61,7 @@ class SystemModel implements MetadataProvider
   {
     def ext = toExternalRepresentation()
     ext.remove('id') // we remove id from the computation
-    def json = JsonUtils.prettyPrinted(ext)
+    def json = JsonUtils.prettyPrint(ext)
     CodecUtils.encodeString(SHA1, json)
   }
 
