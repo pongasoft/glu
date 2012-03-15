@@ -17,6 +17,25 @@
 # the License.
 #
 
+# set JAVA_HOME (JDK6) & JAVA_CMD
+if [ -z "$JAVA_HOME" ]; then
+  echo "Please set JAVA_HOME manually."
+  exit 1
+fi
+
+if [ -z "$JAVA_CMD" ]; then
+  JAVA_CMD=$JAVA_HOME/bin/java
+fi
+
+if [ -z "$JAVA_CMD_TYPE" ]; then
+  FULLVERSION=$( $JAVA_CMD -fullversion 2>&1 )
+  if [ -z "$(echo $FULLVERSION | grep IBM)" ]; then
+    JAVA_CMD_TYPE=oracle
+  else    
+    JAVA_CMD_TYPE=ibm
+  fi
+fi 
+
 if [ -z "$GLU_CONFIG_PREFIX" ]; then
   GLU_CONFIG_PREFIX="glu"
 fi
@@ -117,7 +136,13 @@ fi
 
 # JVM GC activity logging settings ($LOG_DIR set in the ctl script)
 if [ -z "$JVM_GC_LOG" ]; then
-  JVM_GC_LOG="-XX:+PrintGCDateStamps -Xloggc:$GC_LOG"
+  case "$JAVA_CMD_TYPE" in
+    'ibm' ) JVM_GC_LOG="-Xverbosegclog:$GC_LOG"
+    	    ;;
+    'oracle' ) JVM_GC_LOG="-XX:+PrintGCDateStamps -Xloggc:$GC_LOG"
+    	       ;;
+  esac
+  
 fi
 
 # Log4J configuration
@@ -155,14 +180,6 @@ if [ -z "$MAIN_CLASS_ARGS" ]; then
   MAIN_CLASS_ARGS="file:$CONF_DIR/agentConfig.properties"
 fi
 
-# set JAVA_HOME (JDK6) & JAVA_CMD
-if [ -z "$JAVA_HOME" ]; then
-  echo "Please set JAVA_HOME manually."
-  exit 1
-fi
 
-if [ -z "$JAVA_CMD" ]; then
-  JAVA_CMD=$JAVA_HOME/bin/java
-fi
 
 
