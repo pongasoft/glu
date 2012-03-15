@@ -89,7 +89,7 @@ class ControllerBase
 
     if(msg.size() == 1)
       msg = msg[0]
-    
+
     flashException(msg, throwable)
   }
 
@@ -128,9 +128,9 @@ class ControllerBase
       return null
 
     if(params.prettyPrint)
-      JsonUtils.prettyPrinted(o)
+      return JsonUtils.prettyPrint(o)
     else
-      JsonUtils.compactRepresentation(o)
+      return JsonUtils.compactPrint(o)
   }
 
   /**
