@@ -30,7 +30,6 @@ import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.orchestration.engine.delta.DeltaSystemModelFilter
 import org.linkedin.glu.orchestration.engine.delta.impl.BounceDeltaSystemModelFilter
-import org.linkedin.glu.orchestration.engine.delta.CurrentOnlyDeltaSystemModelFilter
 import org.linkedin.glu.orchestration.engine.delta.impl.RedeployDeltaSystemModelFilter
 
 /**

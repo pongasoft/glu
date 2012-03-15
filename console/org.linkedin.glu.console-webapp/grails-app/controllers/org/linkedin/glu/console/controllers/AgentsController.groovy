@@ -33,6 +33,7 @@ import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescrip
 import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 import org.linkedin.glu.orchestration.engine.fabric.FabricService
 import org.linkedin.glu.orchestration.engine.system.SystemService
+import org.linkedin.glu.provisioner.core.state.DefaultStateMachine
 
 /**
  * @author ypujante@linkedin.com
@@ -306,6 +307,16 @@ class AgentsController extends ControllerBase
       plannerService.computeTransitionPlans(p, metadata)
     }
   }
+
+  /**
+   * Transition */
+  def transition = {
+    println params
+    redirectToActionPlan(params.smAction) { p, metadata ->
+      plannerService.computeTransitionPlans(p, metadata)
+    }
+  }
+
 
   /**
    * Stop */
@@ -638,7 +649,7 @@ class AgentsController extends ControllerBase
     if(entry.mountPoints)
     {
       // if all mount points are running then the global state is RUNNING
-      state = entry.mountPoints.values().findAll { it.currentState == 'running' }.size() == entry.mountPoints.size() ? 'RUNNING' : 'NOT_RUNNING'
+      state = entry.mountPoints.values().findAll { it.currentState == DefaultStateMachine.DEFAULT_ENTRY_STATE }.size() == entry.mountPoints.size() ? 'RUNNING' : 'NOT_RUNNING'
 
       // if 1 mount point is in transition then the state is TRANSITION
       state = entry.mountPoints.values().find { it.transitionState } ? 'TRANSITION' : state
@@ -675,32 +686,46 @@ class AgentsController extends ControllerBase
         }
         else
         {
-          // when running
-          if(mp.currentState == 'running')
-          {
-            // stop
+          DefaultStateMachine.INSTANCE.transitions[mp.currentState]?.each { transition ->
+            def name = transition.action.capitalize()
             link = g.createLink(controller: 'agents',
-                                action: 'stop',
+                                action: 'transition',
                                 id: agent.agentName,
-                                params: [mountPoint: mp.mountPoint, name: 'Stop'])
-            mpActions[link] = "Stop"
+                                params: [
+                                 mountPoint: mp.mountPoint,
+                                 name: name,
+                                 smAction: transition.action,
+                                 state: transition.to
+                                ])
+            mpActions[link] = name
+          }
 
-            // bounce
-            link = g.createLink(controller: 'agents',
-                                action: 'bounce',
-                                id: agent.agentName,
-                                params: [mountPoint: mp.mountPoint, name: 'Bounce'])
-            mpActions[link] = "Bounce"
-          }
-          else
-          {
-            // start
-            link = g.createLink(controller: 'agents',
-                                action: 'start',
-                                id: agent.agentName,
-                                params: [mountPoint: mp.mountPoint, name: 'Start'])
-            mpActions[link] = "Start"
-          }
+//          // when running
+//          if(mp.currentState == 'running')
+//          {
+//            // stop
+//            link = g.createLink(controller: 'agents',
+//                                action: 'stop',
+//                                id: agent.agentName,
+//                                params: [mountPoint: mp.mountPoint, name: 'Stop'])
+//            mpActions[link] = "Stop"
+//
+//            // bounce
+//            link = g.createLink(controller: 'agents',
+//                                action: 'bounce',
+//                                id: agent.agentName,
+//                                params: [mountPoint: mp.mountPoint, name: 'Bounce'])
+//            mpActions[link] = "Bounce"
+//          }
+//          else
+//          {
+//            // start
+//            link = g.createLink(controller: 'agents',
+//                                action: 'start',
+//                                id: agent.agentName,
+//                                params: [mountPoint: mp.mountPoint, name: 'Start'])
+//            mpActions[link] = "Start"
+//          }
 
           // When not in transition always allow to undeploy
           link = g.createLink(controller: 'agents',

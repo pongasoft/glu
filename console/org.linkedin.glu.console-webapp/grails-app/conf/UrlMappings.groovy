@@ -86,6 +86,7 @@ class UrlMappings
     "/release/agents/sync/$id"(controller: 'agents', action: 'sync') { __nvbe = 'Dashboard' }
     "/release/agents/clearError/$id"(controller: 'agents', action: 'clearError') { __nvbe = 'Dashboard' }
     "/release/agents/uninstallScript/$id"(controller: 'agents', action: 'uninstallScript') { __nvbe = 'Dashboard' }
+    "/release/agents/transition/$id"(controller: 'agents', action: 'transition') { __nvbe = 'Dashboard' }
     "/release/agents/start/$id"(controller: 'agents', action: 'start') { __nvbe = 'Dashboard' }
     "/release/agents/stop/$id"(controller: 'agents', action: 'stop') { __nvbe = 'Dashboard' }
     "/release/agents/bounce/$id"(controller: 'agents', action: 'bounce') { __nvbe = 'Dashboard' }
