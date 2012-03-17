@@ -356,7 +356,7 @@ public class PlanController extends ControllerBase
 
     try
     {
-      args.type = IStep.Type.valueOf((params.order ?: 'sequential').toUpperCase())
+      args.stepType = IStep.Type.valueOf((params.order ?: 'sequential').toUpperCase())
     }
     catch (IllegalArgumentException e)
     {
@@ -365,39 +365,58 @@ public class PlanController extends ControllerBase
       return
     }
 
-    Plan plan
-
-    def metadata = [origin: 'rest', action: params.planAction, filter: params.systemFilter ?: 'all']
-
-    switch(params.planAction)
+    if(params.planAction)
     {
-      case 'start':
-      case 'deploy':
-        plan = plannerService.computeDeployPlan(args, metadata)
-        break;
+      switch(params.planAction)
+      {
+        case 'start':
+        case 'deploy':
+          args.planType = 'deploy'
+          break;
 
-      case 'stop':
-        args.state = 'stopped'
-        plan = plannerService.computeTransitionPlan(args, metadata)
-        break;
+        case 'stop':
+          args.state = 'stopped'
+          args.planType = 'transition'
+          break;
 
-      case 'undeploy':
-        plan = plannerService.computeUndeployPlan(args, metadata)
-        break;
+        case 'undeploy':
+          args.planType = 'undeploy'
+          break;
 
-      case 'bounce':
-        plan = plannerService.computeBouncePlan(args, metadata)
-        break;
+        case 'bounce':
+          args.planType = 'bounce'
+          break;
 
-      case 'redeploy':
-        plan = plannerService.computeRedeployPlan(args, metadata)
-        break;
+        case 'redeploy':
+          args.planType = 'redeploy'
+          break;
 
-      default:
-        render "invalid action: ${params.planAction}"
-        response.sendError(HttpServletResponse.SC_BAD_REQUEST)
-        return
+        default:
+          response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                             "invalid action: ${params.planAction}")
+          render ''
+          return
+      }
     }
+    else
+    {
+      if(params.planType)
+      {
+        args.putAll(params)
+      }
+      else
+      {
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                           "missing planType or planAction!")
+        render ''
+        return
+      }
+    }
+
+    def metadata = [origin: 'rest', *:args, filter: params.systemFilter ?: 'all']
+    ['action', 'controller', 'system', 'stepType'].each { metadata.remove(it) }
+
+    Plan plan = plannerService.computePlan(args, metadata)
 
     if(plan?.hasLeafSteps())
     {
