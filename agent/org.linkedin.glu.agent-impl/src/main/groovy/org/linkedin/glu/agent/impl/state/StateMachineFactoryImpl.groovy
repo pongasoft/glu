@@ -18,8 +18,8 @@
 
 package org.linkedin.glu.agent.impl.state
 
-import org.linkedin.glu.agent.api.Agent
 import org.linkedin.groovy.util.state.StateMachineImpl
+import org.linkedin.glu.groovy.util.state.DefaultStateMachine
 
 /**
  * Simple factory which looks at a static field in the script 
@@ -42,7 +42,7 @@ def class StateMachineFactoryImpl
 
     // no transitions => use default
     if(!args.transitions)
-      args.transitions = Agent.DEFAULT_TRANSITIONS
+      args.transitions = DefaultStateMachine.INSTANCE.transitions
 
     return new StateMachineImpl(args)
   }

@@ -326,7 +326,7 @@ class AgentsController extends ControllerBase
     try
     {
       def system = request.system
-      system = system.filterBy {
+      system = system.unfilter().filterBy {
         it.agent == params.id && it.mountPoint == params.mountPoint
       }
       request.system = system

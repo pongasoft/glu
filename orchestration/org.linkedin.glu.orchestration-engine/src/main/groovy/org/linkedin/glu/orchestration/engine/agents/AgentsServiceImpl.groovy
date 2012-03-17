@@ -27,7 +27,6 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.orchestration.engine.tracker.TrackerService
 import org.linkedin.groovy.util.state.StateMachine
-import org.linkedin.groovy.util.state.StateMachineImpl
 import org.linkedin.util.lang.LangUtils
 import org.linkedin.util.annotations.Initializable
 import org.slf4j.Logger
@@ -35,6 +34,7 @@ import org.slf4j.LoggerFactory
 import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider
 import org.linkedin.glu.orchestration.engine.plugins.PluginService
 import org.linkedin.util.url.URLBuilder
+import org.linkedin.glu.groovy.util.state.DefaultStateMachine
 
 /**
  * @author ypujante
@@ -44,8 +44,7 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
   public static final String MODULE = AgentsServiceImpl.class.getName ();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
-  private final StateMachine stateMachine =
-    new StateMachineImpl(transitions: Agent.DEFAULT_TRANSITIONS)
+  private final StateMachine stateMachine = DefaultStateMachine.INSTANCE
 
   private final def availableStates = stateMachine.availableStates as Set
 

@@ -23,12 +23,12 @@ import org.linkedin.glu.agent.rest.client.AgentFactory
 import org.linkedin.glu.agent.rest.client.AgentFactoryImpl
 import org.linkedin.groovy.util.config.Config
 import org.linkedin.groovy.util.state.StateMachine
-import org.linkedin.groovy.util.state.StateMachineImpl
 import org.linkedin.util.lifecycle.Startable
 import org.linkedin.glu.agent.api.AgentException
 import org.linkedin.groovy.util.config.MissingConfigParameterException
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.utils.tags.TagsSerializer
+import org.linkedin.glu.groovy.util.state.DefaultStateMachine
 
 /**
  * Command line to talk to the agent
@@ -45,8 +45,7 @@ class ClientMain implements Startable
   protected def config
   protected CliBuilder cli
   private AgentFactory factory
-  private final StateMachine stateMachine =
-    new StateMachineImpl(transitions: Agent.DEFAULT_TRANSITIONS)
+  private final StateMachine stateMachine = DefaultStateMachine.INSTANCE
 
   ClientMain()
   {
