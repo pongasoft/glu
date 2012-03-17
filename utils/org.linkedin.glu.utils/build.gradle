@@ -23,4 +23,7 @@ dependencies {
   groovy spec.external.groovy
 
   testCompile spec.external.junit
+
+  runtime spec.external.slf4jLog4j
+  runtime spec.external.log4j
 }

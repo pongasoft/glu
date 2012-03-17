@@ -22,7 +22,7 @@ import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
 import org.linkedin.glu.utils.tags.ReadOnlyTaggeable
 import org.linkedin.util.lang.LangUtils
-import org.linkedin.glu.provisioner.core.state.DefaultStateMachine
+import org.linkedin.glu.groovy.util.state.DefaultStateMachine
 
 /**
  * @author ypujante@linkedin.com */

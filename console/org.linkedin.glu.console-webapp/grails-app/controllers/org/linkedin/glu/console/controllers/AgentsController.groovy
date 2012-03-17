@@ -33,7 +33,7 @@ import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescrip
 import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 import org.linkedin.glu.orchestration.engine.fabric.FabricService
 import org.linkedin.glu.orchestration.engine.system.SystemService
-import org.linkedin.glu.provisioner.core.state.DefaultStateMachine
+import org.linkedin.glu.groovy.util.state.DefaultStateMachine
 import org.linkedin.glu.grails.utils.ConsoleConfig
 
 /**

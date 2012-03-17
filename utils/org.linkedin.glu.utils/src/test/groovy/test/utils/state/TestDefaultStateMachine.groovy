@@ -14,7 +14,7 @@
  * the License.
  */
 
-package test.provisioner.core.state
+package test.utils.state
 
 // this will force the loading of the class thus already executing the static block right away
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
@@ -40,7 +40,7 @@ public class TestDefaultStateMachine extends GroovyTestCase
     running: [[to: 'stopped', action: 'stop']]
   ]
 
-  def static FQCN = "org.linkedin.glu.provisioner.core.state.DefaultStateMachine"
+  def static FQCN = "org.linkedin.glu.groovy.util.state.DefaultStateMachine"
 
   @Override
   protected void setUp()
@@ -163,7 +163,7 @@ defaultTransitions =
   void newStateMachine(ClassLoader parentClassLoader, Closure cl)
   {
     def file =
-      new File('./src/main/groovy/org/linkedin/glu/provisioner/core/state/DefaultStateMachine.groovy')
+      new File('./src/main/groovy/org/linkedin/glu/groovy/util/state/DefaultStateMachine.groovy')
 
     def loader = new GroovyClassLoader(parentClassLoader)
 

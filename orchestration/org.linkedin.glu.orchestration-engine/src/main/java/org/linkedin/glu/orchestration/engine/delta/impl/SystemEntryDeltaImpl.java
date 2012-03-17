@@ -22,7 +22,7 @@ import org.linkedin.glu.orchestration.engine.delta.SystemEntryValue;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueNoDelta;
 import org.linkedin.glu.orchestration.engine.delta.SystemEntryValueWithDelta;
 import org.linkedin.glu.orchestration.engine.planner.PlannerService;
-import org.linkedin.glu.provisioner.core.state.DefaultStateMachine;
+import org.linkedin.glu.groovy.util.state.DefaultStateMachine;
 import org.linkedin.glu.provisioner.core.model.SystemEntry;
 import org.linkedin.glu.utils.collections.ComparableTreeSet;
 import org.linkedin.groovy.util.state.StateMachine;

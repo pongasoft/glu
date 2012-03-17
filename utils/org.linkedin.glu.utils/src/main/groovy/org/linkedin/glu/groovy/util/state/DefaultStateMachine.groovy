@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.linkedin.glu.provisioner.core.state
+package org.linkedin.glu.groovy.util.state
 
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.groovy.util.state.StateMachineImpl
@@ -28,7 +28,7 @@ import org.linkedin.util.reflect.ReflectUtils
  * @author yan@pongasoft.com */
 public class DefaultStateMachine
 {
-  public static final String MODULE = "org.linkedin.glu.provisioner.core.state.DefaultStateMachine";
+  public static final String MODULE = "org.linkedin.glu.groovy.util.state.DefaultStateMachine";
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
   /**

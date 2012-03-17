@@ -42,7 +42,7 @@ import org.linkedin.glu.provisioner.core.model.SystemEntryKeyModelFilter
 import org.linkedin.glu.provisioner.core.model.FlattenSystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemFilterHelper
 import org.linkedin.glu.provisioner.core.model.SystemModel
-import org.linkedin.glu.provisioner.core.state.DefaultStateMachine
+import org.linkedin.glu.groovy.util.state.DefaultStateMachine
 
 /**
  * Tag library for the console.
