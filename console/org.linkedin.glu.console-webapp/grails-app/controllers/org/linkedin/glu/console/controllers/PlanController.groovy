@@ -32,7 +32,6 @@ import org.linkedin.util.clock.SystemClock
 import org.linkedin.glu.orchestration.engine.deployment.CurrentDeployment
 import org.linkedin.glu.orchestration.engine.planner.PlannerService
 import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor
-import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.orchestration.engine.deployment.ArchivedDeployment
@@ -43,6 +42,17 @@ import java.security.AccessControlException
  * @author ypujante@linkedin.com */
 public class PlanController extends ControllerBase
 {
+  /**
+   * Default plans
+   */
+  def static DEFAULT_PLANS = [
+    [planType: "deploy"],
+    [planType: "bounce"],
+    [planType: "redeploy"],
+    [planType: "undeploy"],
+    [planType: "transition", displayName: "Stop", state: "stopped"],
+  ]
+
   Clock clock = SystemClock.instance()
   DeploymentService deploymentService
   PlannerService plannerService
@@ -145,12 +155,10 @@ public class PlanController extends ControllerBase
     else
       system = request.system
     args.system = system
-    args.type = args.stepType ?: Type.SEQUENTIAL
 
     if(args.planType)
     {
-      Plan<ActionDescriptor> plan =
-        plannerService."compute${args.planType.capitalize()}Plan"(args, null)
+      Plan<ActionDescriptor> plan = plannerService.computePlan(args, null)
       if(plan?.hasLeafSteps())
       {
         if(system.filters)

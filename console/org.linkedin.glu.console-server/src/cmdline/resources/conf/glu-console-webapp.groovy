@@ -150,6 +150,51 @@ console.defaults =
       header:
       [
           metadata: ['drMode']
-      ]
+      ],
 
+    // map which defines the actions available for a given mountPoint (agents page)
+    //
+    // - key is "state of the mountPoint" (meaning, if the state of the mountPoint is "<key>" then
+    //   display the actions defined by the value)
+    //   * The key "-" is special and is reserved for the actions to display when the state does
+    //     not have an entry (in this example, everything besides running).
+    //   * The key "*" is special and is reserved for the actions to display all the time.
+    //
+    // - value is a map defining what to do (ex: bounce, undeploy) as well as extra informations
+    //
+    // This example represents the default values used if not defined
+/*
+    mountPointActions: [
+      running: [
+        [planType: "transition", displayName: "Stop", state: "stopped"],
+        [planType: "bounce", displayName: "Bounce"],
+      ],
+
+      // all other states
+      "-": [
+        [planType: "transition", displayName: "Start", state: "running"],
+      ],
+
+      // actions to include for all states
+      "*": [
+        [planType: "undeploy", displayName: "Undeploy"],
+        [planType: "redeploy", displayName: "Redeploy"],
+      ]
+    ],
+*/
+
+    // array which defines the actions available (as well as the order) on the 'Plans' subtab
+    //
+    // each item in the array is of the same type as the value in the mountPointActions definition
+    //
+    // This example represents the default values used if not defined
+/*
+    plans: [
+      [planType: "deploy"],
+      [planType: "bounce"],
+      [planType: "redeploy"],
+      [planType: "undeploy"],
+      [planType: "transition", displayName: "Stop", state: "stopped"],
+    ],
+*/
   ]

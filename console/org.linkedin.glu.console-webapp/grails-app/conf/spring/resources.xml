@@ -188,6 +188,7 @@
     <property name="deltaMgr" ref="deltaMgr"/>
     <property name="planner" ref="planner"/>
     <property name="fabricService" ref="fabricService"/>
+    <property name="pluginService" ref="pluginService"/>
   </bean>
 
   <!-- *********************** -->

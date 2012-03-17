@@ -31,6 +31,7 @@ import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.orchestration.engine.delta.DeltaSystemModelFilter
 import org.linkedin.glu.orchestration.engine.delta.impl.BounceDeltaSystemModelFilter
 import org.linkedin.glu.orchestration.engine.delta.impl.RedeployDeltaSystemModelFilter
+import org.linkedin.glu.orchestration.engine.plugins.PluginService
 
 /**
  * System service.
@@ -58,6 +59,9 @@ class PlannerServiceImpl implements PlannerService
   @Initializable
   String autoUpgradeScriptClassname = 'org.linkedin.glu.agent.impl.script.AutoUpgradeScript'
 
+  @Initializable
+  PluginService pluginService
+
   /**
    * Compute deployment plans between the system provided (params.system) and the current
    * system.
@@ -67,18 +71,11 @@ class PlannerServiceImpl implements PlannerService
     computeDeploymentPlans(params, metadata, null)
   }
 
-  @Override
-  Plan<ActionDescriptor> computeDeployPlan(params, def metadata)
-  {
-    params.type = params.type ?: Type.SEQUENTIAL
-    return toSinglePlan(computeDeployPlans(params, metadata))
-  }
-
   /**
    * Compute deployment plans by doing the following:
    * <ol>
    *   <li>compute delta between expected model (params.system) and current model (computed)
-   *   <li>compute the deployment plan(s) (closure callback) (use params.type if a given type only
+   *   <li>compute the deployment plan(s) (closure callback) (use params.stepType if a given type only
    *       is required
    *   <li>set various metadata on the plan(s) as well as the name
    * </ol>
@@ -95,18 +92,19 @@ class PlannerServiceImpl implements PlannerService
    * Compute deployment plans by doing the following:
    * <ol>
    *   <li>compute delta between expected model (params.system) and current model (computed)
-   *   <li>compute the deployment plan(s) (closure callback) (use params.type if a given type only
+   *   <li>compute the deployment plan(s) (closure callback) (use params.stepType if a given type only
    *       is required
    *   <li>set various metadata on the plan(s) as well as the name
    * </ol>
    * @return a collection of plans (<code>null</code> if no expected model) which may be empty
    */
-  private Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params,
-                                                                    def metadata,
-                                                                    def expectedModelFilter,
-                                                                    def currentModelFiter,
-                                                                    DeltaSystemModelFilter filter,
-                                                                    Collection<String> toStates)
+  @Override
+  public Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params,
+                                                                   def metadata,
+                                                                   def expectedModelFilter,
+                                                                   def currentModelFiter,
+                                                                   DeltaSystemModelFilter filter,
+                                                                   Collection<String> toStates)
   {
     SystemModel expectedModel = params.system
 
@@ -126,25 +124,25 @@ class PlannerServiceImpl implements PlannerService
     if(currentModelFiter)
       currentModel = currentModel.filterBy(currentModelFiter)
 
-    computeDeploymentPlans(params, expectedModel, currentModel, filter, metadata, toStates)
+    doComputeDeploymentPlans(params, expectedModel, currentModel, filter, metadata, toStates)
   }
 
   /**
    * Compute deployment plans by doing the following:
    * <ol>
    *   <li>compute delta between expected model and current model (computed)
-   *   <li>compute the deployment plan(s) (closure callback) (use params.type if a given type only
+   *   <li>compute the deployment plan(s) (closure callback) (use params.stepType if a given type only
    *       is required
    *   <li>set various metadata on the plan(s) as well as the name
    * </ol>
    * @return a collection of plans (<code>null</code> if no expected model) which may be empty
    */
-  private Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params,
-                                                                    SystemModel expectedModel,
-                                                                    SystemModel currentModel,
-                                                                    DeltaSystemModelFilter filter,
-                                                                    def metadata,
-                                                                    Collection<String> toStates)
+  private Collection<Plan<ActionDescriptor>> doComputeDeploymentPlans(params,
+                                                                      SystemModel expectedModel,
+                                                                      SystemModel currentModel,
+                                                                      DeltaSystemModelFilter filter,
+                                                                      def metadata,
+                                                                      Collection<String> toStates)
   {
     // 1. compute delta
     def delta
@@ -157,8 +155,8 @@ class PlannerServiceImpl implements PlannerService
     TransitionPlan<ActionDescriptor> transitionPlan = planner.computeTransitionPlan(delta)
 
     Collection<Type> types = []
-    if(params.type)
-      types << Type.valueOf(params.type.toString())
+    if(params.stepType)
+      types << Type.valueOf(params.stepType.toString())
     else
       types = [Type.SEQUENTIAL, Type.PARALLEL]
 
@@ -205,13 +203,6 @@ class PlannerServiceImpl implements PlannerService
     computeDeploymentPlans(params, metadata, [params.state])
   }
 
-  @Override
-  Plan<ActionDescriptor> computeTransitionPlan(params, def metadata)
-  {
-    params.type = params.type ?: Type.SEQUENTIAL
-    return toSinglePlan(computeTransitionPlans(params, metadata))
-  }
-
   /**
    * Compute a bounce plan to bounce (= stop/start) containers.
    * @param metadata any metadata to add to the plan(s)
@@ -230,13 +221,6 @@ class PlannerServiceImpl implements PlannerService
                            ['stopped', 'running'])
   }
 
-  @Override
-  Plan<ActionDescriptor> computeBouncePlan(params, def metadata)
-  {
-    params.type = params.type ?: Type.SEQUENTIAL
-    return toSinglePlan(computeBouncePlans(params, metadata))
-  }
-
   /**
    * Compute an undeploy plan.
    * @param metadata any metadata to add to the plan(s)
@@ -249,13 +233,6 @@ class PlannerServiceImpl implements PlannerService
                            null,
                            null,
                            [null])
-  }
-
-  @Override
-  Plan<ActionDescriptor> computeUndeployPlan(params, def metadata)
-  {
-    params.type = params.type ?: Type.SEQUENTIAL
-    return toSinglePlan(computeUndeployPlans(params, metadata))
   }
 
   /**
@@ -277,11 +254,43 @@ class PlannerServiceImpl implements PlannerService
                            [null, '<expected>'])
   }
 
+  /**
+   * Generic call which defines which plan to create with the <code>params.planType</code> parameter
+   * and allow for a plugin to take over entirely.
+   *
+   * @params params.planType the type of plan to create (deploy, undeploy, ...)
+   */
   @Override
-  Plan<ActionDescriptor> computeRedeployPlan(params, def metadata)
+  Collection<Plan<ActionDescriptor>> computePlans(params, def metadata)
   {
-    params.type = params.type ?: Type.SEQUENTIAL
-    return toSinglePlan(computeRedeployPlans(params, metadata))
+    pluginService.executePrePostMethods(PlannerService,
+                                        "computePlans",
+                                        [
+                                          params: params,
+                                          metadata: metadata
+                                        ]) { args ->
+      Collection<Plan<ActionDescriptor>> plans = args.pluginResult
+
+      if(plans == null)
+        plans = this."compute${args.params.planType.capitalize()}Plans"(args.params,
+                                                                        args.metadata)
+
+      return plans
+    } as Collection<Plan<ActionDescriptor>>
+  }
+
+  /**
+   * Generic call which defines which plan to create with the <code>params.planType</code> parameter
+   * and allow for a plugin to take over entirely.
+   *
+   * @params params.planType the type of plan to create (deploy, undeploy, ...)
+   * @params params.stepType the type of steps to create (sequential/parallel)
+   */
+  @Override
+  Plan<ActionDescriptor> computePlan(params, def metadata)
+  {
+    params.stepType = params.stepType ?: Type.SEQUENTIAL
+    return toSinglePlan(computePlans(params, metadata))
   }
 
   /**
@@ -291,7 +300,7 @@ class PlannerServiceImpl implements PlannerService
   @Override
   Plan<ActionDescriptor> computeAgentsUpgradePlan(params, def metadata)
   {
-    params.type = params.type ?: Type.SEQUENTIAL
+    params.stepType = params.stepType ?: Type.SEQUENTIAL
     SystemModel currentModel = agentsService.getCurrentSystemModel(params.fabric)
     def agents = (params.agents ?: []) as Set
     def filteredCurrentModel = currentModel.filterBy { SystemEntry entry ->
@@ -321,12 +330,12 @@ class PlannerServiceImpl implements PlannerService
       entry.mountPoint == PlannerService.AGENT_SELF_UPGRADE_MOUNT_POINT
     }
 
-    toSinglePlan(computeDeploymentPlans(params,
-                                        expectedModel,
-                                        currentModel,
-                                        null,
-                                        metadata,
-                                        ['<expected>', null]))
+    toSinglePlan(doComputeDeploymentPlans(params,
+                                          expectedModel,
+                                          currentModel,
+                                          null,
+                                          metadata,
+                                          ['<expected>', null]))
   }
 
   private def agentsCleanupUpgradeExpectedModelFilter = { SystemEntry entry ->
@@ -340,7 +349,7 @@ class PlannerServiceImpl implements PlannerService
   @Override
   Plan<ActionDescriptor> computeAgentsCleanupUpgradePlan(params, def metadata)
   {
-    params.type = params.type ?: Type.SEQUENTIAL
+    params.stepType = params.stepType ?: Type.SEQUENTIAL
     toSinglePlan(computeDeploymentPlans(params,
                                         metadata,
                                         agentsCleanupUpgradeExpectedModelFilter,

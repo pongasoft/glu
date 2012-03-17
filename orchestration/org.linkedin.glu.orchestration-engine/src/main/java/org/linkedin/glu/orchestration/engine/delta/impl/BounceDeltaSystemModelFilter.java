@@ -29,13 +29,27 @@ import org.linkedin.glu.provisioner.core.model.SystemFilter;
 public class BounceDeltaSystemModelFilter implements DeltaSystemModelFilter
 {
   private final SystemFilter _expectedSystemFilter;
+  private final String _expectedState;
+  private final String _bounceState;
 
   /**
    * Constructor
    */
   public BounceDeltaSystemModelFilter(SystemFilter expectedSystemFilter)
   {
+    this(expectedSystemFilter, "running", "stopped");
+  }
+
+  /**
+   * Constructor
+   */
+  public BounceDeltaSystemModelFilter(SystemFilter expectedSystemFilter,
+                                      String expectedState,
+                                      String bounceState)
+  {
     _expectedSystemFilter = expectedSystemFilter;
+    _expectedState = expectedState;
+    _bounceState = bounceState;
   }
 
   @Override
@@ -46,8 +60,8 @@ public class BounceDeltaSystemModelFilter implements DeltaSystemModelFilter
 
     String currentState = currentEntry.getEntryState();
 
-    return (currentState.equals("running") || currentState.equals("stopped")) &&
-           expectedEntry.getEntryState().equals("running") &&
+    return (currentState.equals(_expectedState) || currentState.equals(_bounceState)) &&
+           expectedEntry.getEntryState().equals(_expectedState) &&
            (_expectedSystemFilter == null || _expectedSystemFilter.filter(expectedEntry));
   }
 }

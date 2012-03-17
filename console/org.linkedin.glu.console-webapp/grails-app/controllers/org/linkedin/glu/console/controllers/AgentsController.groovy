@@ -34,18 +34,41 @@ import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 import org.linkedin.glu.orchestration.engine.fabric.FabricService
 import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.provisioner.core.state.DefaultStateMachine
+import org.linkedin.glu.grails.utils.ConsoleConfig
 
 /**
  * @author ypujante@linkedin.com
  */
 class AgentsController extends ControllerBase
 {
+  /**
+   * Default agent actions when none provide
+   */
+  def static DEFAULT_MOUNTPOINT_ACTIONS = [
+    running: [
+      [planType: "transition", displayName: "Stop", state: "stopped"],
+      [planType: "bounce", displayName: "Bounce"],
+    ],
+
+    // all other states
+    "-": [
+      [planType: "transition", displayName: "Start", state: "running"],
+    ],
+
+    // actions to include for all states
+    "*": [
+      [planType: "undeploy", displayName: "Undeploy"],
+      [planType: "redeploy", displayName: "Redeploy"],
+    ]
+  ]
+
   AgentsService agentsService
   DeploymentService deploymentService
   PlannerService plannerService
   DeltaService deltaService
   FabricService fabricService
   SystemService systemService
+  ConsoleConfig consoleConfig
 
   def beforeInterceptor = {
     // we make sure that the fabric is always set before executing any action
@@ -297,69 +320,9 @@ class AgentsController extends ControllerBase
     }
   }
 
-
   /**
-   * Start */
-  def start = {
-    params.state = 'running'
-    params.name = params.name ?: 'Start'
-    redirectToActionPlan('start') { p, metadata ->
-      plannerService.computeTransitionPlans(p, metadata)
-    }
-  }
-
-  /**
-   * Transition */
-  def transition = {
-    println params
-    redirectToActionPlan(params.smAction) { p, metadata ->
-      plannerService.computeTransitionPlans(p, metadata)
-    }
-  }
-
-
-  /**
-   * Stop */
-  def stop = {
-    params.state = 'stopped'
-    params.name = params.name ?: 'Stop'
-    redirectToActionPlan('stop') { p, metadata ->
-      plannerService.computeTransitionPlans(p, metadata)
-    }
-  }
-
-  /**
-   * Bounce */
-  def bounce = {
-    params.name = params.name ?: 'Bounce'
-    redirectToActionPlan('bounce') { p, metadata ->
-      plannerService.computeBouncePlans(p, metadata)
-    }
-  }
-
-  /**
-   * Undeploy */
-  def undeploy = {
-    params.name = params.name ?: 'Undeploy'
-    redirectToActionPlan('undeploy') { p, metadata ->
-      plannerService.computeUndeployPlans(p, metadata)
-    }
-  }
-
-  /**
-   * Redeploy */
-  def redeploy = {
-    params.name = params.name ?: 'Redeploy'
-    redirectToActionPlan('redeploy') { p, metadata ->
-      plannerService.computeRedeployPlans(p, metadata)
-    }
-  }
-
-  /**
-   * create action plan
-   */
-  private def redirectToActionPlan(String action, Closure closure)
-  {
+   * Create the plan */
+  def create_plan = {
     try
     {
       def system = request.system
@@ -368,17 +331,14 @@ class AgentsController extends ControllerBase
       }
       request.system = system
 
+      def metadata = [agent: params.id, mountPoint: params.mountPoint, *:params]
+      ['controller', 'action', 'id', '__nvbe'].each { metadata.remove(it) }
+
       params.system = system
-      params.type = IStep.Type.SEQUENTIAL
-      params.name = "${params.name} ${params.id}:${params.mountPoint}".toString()
+      params.stepType = params.stepType ?: IStep.Type.SEQUENTIAL
+      params.name = params.planName ?: "${params.displayName ?: params.planType.capitalize()} ${params.id}:${params.mountPoint}".toString()
 
-      def metadata = [
-        action: action,
-        agent: params.id,
-        mountPoint: params.mountPoint
-      ]
-
-      def plans = closure(params, metadata)
+      def plans = plannerService.computePlans(params, metadata)
       if(plans)
       {
         session.plan = plans
@@ -386,8 +346,8 @@ class AgentsController extends ControllerBase
       }
       else
       {
-        flash.error = "No plan to execute ${action}"
-        redirect(controller: 'agent', action: 'view', id: params.id)
+        flash.error = "No plan to execute ${params.planAction}"
+        redirect(controller: 'agents', action: 'view', id: params.id)
       }
     }
     catch (Exception e)
@@ -639,6 +599,8 @@ class AgentsController extends ControllerBase
   {
     def entry = [:]
 
+    def mountPointActions = consoleConfig.defaults.mountPointActions ?: DEFAULT_MOUNTPOINT_ACTIONS
+
     entry.agent = agent
     entry.mountPoints = agentsService.getMountPointInfos(fabric, agent.agentName) ?: [:]
     if(mountPoints)
@@ -686,60 +648,20 @@ class AgentsController extends ControllerBase
         }
         else
         {
-          DefaultStateMachine.INSTANCE.transitions[mp.currentState]?.each { transition ->
-            def name = transition.action.capitalize()
+          def stateActions = mountPointActions[mp.currentState] ?: (mountPointActions["-"] ?: [])
+
+          stateActions = [*stateActions, *(mountPointActions["*"] ?: [])]
+
+          stateActions?.each { stateAction ->
             link = g.createLink(controller: 'agents',
-                                action: 'transition',
+                                action: 'create_plan',
                                 id: agent.agentName,
                                 params: [
                                  mountPoint: mp.mountPoint,
-                                 name: name,
-                                 smAction: transition.action,
-                                 state: transition.to
+                                 *:stateAction,
                                 ])
-            mpActions[link] = name
+            mpActions[link] = stateAction.displayName ?: stateAction.planType.capitalize()
           }
-
-//          // when running
-//          if(mp.currentState == 'running')
-//          {
-//            // stop
-//            link = g.createLink(controller: 'agents',
-//                                action: 'stop',
-//                                id: agent.agentName,
-//                                params: [mountPoint: mp.mountPoint, name: 'Stop'])
-//            mpActions[link] = "Stop"
-//
-//            // bounce
-//            link = g.createLink(controller: 'agents',
-//                                action: 'bounce',
-//                                id: agent.agentName,
-//                                params: [mountPoint: mp.mountPoint, name: 'Bounce'])
-//            mpActions[link] = "Bounce"
-//          }
-//          else
-//          {
-//            // start
-//            link = g.createLink(controller: 'agents',
-//                                action: 'start',
-//                                id: agent.agentName,
-//                                params: [mountPoint: mp.mountPoint, name: 'Start'])
-//            mpActions[link] = "Start"
-//          }
-
-          // When not in transition always allow to undeploy
-          link = g.createLink(controller: 'agents',
-                              action: 'undeploy',
-                              id: agent.agentName,
-                              params: [mountPoint: mp.mountPoint, name: 'Undeploy'])
-          mpActions[link] = "Undeploy"
-
-          // When not in transition always allow to undeploy
-          link = g.createLink(controller: 'agents',
-                              action: 'redeploy',
-                              id: agent.agentName,
-                              params: [mountPoint: mp.mountPoint, name: 'Redeploy'])
-          mpActions[link] = "Redeploy"
         }
 
         actions[mp.mountPoint] = mpActions

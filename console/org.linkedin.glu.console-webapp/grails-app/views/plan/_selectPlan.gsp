@@ -13,7 +13,7 @@
   - License for the specific language governing permissions and limitations under
   - the License.
   --}%
-<%@ page import="org.linkedin.groovy.util.json.JsonUtils" %>
+<%@ page import="org.linkedin.glu.console.controllers.PlanController; org.linkedin.glu.grails.utils.ConsoleConfig; org.linkedin.groovy.util.json.JsonUtils" %>
 <table class="bordered-table xtight-table">
   <tr>
     <th>Model</th>
@@ -28,13 +28,13 @@
       <tr>
         <th colspan="6">${title?.encodeAsHTML()}</th>
       </tr>
-      <g:each in="['Deploy', 'Bounce', 'Redeploy', 'Undeploy']" var="planType">
-        <g:if test="${planType != 'Deploy' || hasDelta}">
-          <tr class="${planType.toUpperCase()}">
-            <td>${planType}</td>
+      <g:each in="${ConsoleConfig.getInstance().defaults.plans ?: PlanController.DEFAULT_PLANS}" var="plan">
+        <g:if test="${plan.planType != 'deploy' || hasDelta}">
+          <tr class="plan-type-${plan.planType.toUpperCase()}">
+            <td>${plan.displayName ?: plan.planType.capitalize()}</td>
             <g:each in="${['SEQUENTIAL', 'PARALLEL']}" var="stepType">
               <td>${stepType}</td>
-              <td><input type="radio" name="planDetails" value="${JsonUtils.toJSON([planType: planType, stepType: stepType, name: planType + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="${remoteFunction(controller: 'plan', action:'create', update:[success:'plan-preview'], params: "'json=' + this.value")}" /></td>
+              <td><input type="radio" name="planDetails" value="${JsonUtils.toJSON([*:plan, stepType: stepType, name: (plan.displayName ?: plan.planType.capitalize()) + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="${remoteFunction(controller: 'plan', action:'create', update:[success:'plan-preview'], params: "'json=' + this.value")}" /></td>
             </g:each>
           </tr>
         </g:if>

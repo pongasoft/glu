@@ -221,7 +221,7 @@ ul.tags.with-links a:hover {
   float: left;
 }
 
-#select-plan #select-plan-radio .DEPLOY {
+#select-plan #select-plan-radio .plan-type-DEPLOY {
   background: #ffdddd;
 }
 

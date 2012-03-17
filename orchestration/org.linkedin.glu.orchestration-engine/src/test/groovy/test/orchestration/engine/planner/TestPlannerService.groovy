@@ -30,6 +30,7 @@ import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.orchestration.engine.planner.PlannerServiceImpl
 import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
+import org.linkedin.glu.orchestration.engine.plugins.PluginServiceImpl
 
 /**
  * @author yan@pongasoft.com */
@@ -51,11 +52,13 @@ public class TestPlannerService extends GroovyTestCase
     getCurrentSystemModel: { Fabric fabric -> currentModels[fabric.name] }
   ] as AgentsService
 
+  PluginServiceImpl pluginService = new PluginServiceImpl()
   PlannerServiceImpl plannerService = new PlannerServiceImpl(planner: planner,
                                                              deltaMgr: deltaMgr,
                                                              fabricService: fabricService,
                                                              agentsService: agentService,
-                                                             planIdFactory: { null })
+                                                             planIdFactory: { null },
+                                                             pluginService: pluginService)
   /**
    * Test for bounce plan
    */
@@ -991,14 +994,101 @@ public class TestPlannerService extends GroovyTestCase
 """)
 
     Plan<ActionDescriptor> p = transitionPlan(Type.PARALLEL, expectedModel, currentSystemModel, "stopped")
-
-    assertEquals("""<?xml version="1.0"?>
-<plan />
-""", p.toXml())
-    assertEquals(0, p.leafStepsCount)
+    assertNull(p)
   }
 
+  public void testComputePlanPlugin()
+  {
+    pluginService.initializePlugin(
+      [
+        PlannerService_pre_computePlans: { args ->
+          switch(args.params.planType)
+          {
+            case "customPlan":
+              args.params.state = "installed"
+              return plannerService.computeTransitionPlans(args.params, args.metadata)
+              break
 
+            default:
+              return null
+          }
+        },
+        PlannerService_post_computePlans: { args ->
+          args.serviceResult[0].metadata.fromCustomPlan = 'post'
+          return null
+        },
+      ], [:])
+
+
+    SystemModel expectedModel =
+      m(
+        [agent: 'a2', mountPoint: '/m1', script: 's1'],
+        [agent: 'a2', mountPoint: '/m2', script: 's1'],
+        [agent: 'a2', mountPoint: '/m3', script: 's1', entryState: 'installed']
+      )
+
+    SystemModel currentSystemModel =
+      m(
+        [agent: 'a2', mountPoint: '/m1', script: 's1'],
+        [agent: 'a2', mountPoint: '/m2', script: 's1', entryState: 'stopped'],
+        [agent: 'a2', mountPoint: '/m3', script: 's1'],
+        [agent: 'a2', mountPoint: '/m4', script: 's1'],
+      )
+
+    // will trigger the custom plan switch statement
+    Plan<ActionDescriptor> p = computePlan(Type.PARALLEL,
+                                           expectedModel,
+                                           currentSystemModel,
+                                           [name: 'customPlan'])
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="customPlan - PARALLEL" fromCustomPlan="post">
+  <parallel name="customPlan - PARALLEL">
+    <sequential agent="a2" mountPoint="/m1">
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="stop" toState="stopped" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="unconfigure" toState="installed" />
+    </sequential>
+    <sequential agent="a2" mountPoint="/m2">
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="unconfigure" toState="installed" />
+    </sequential>
+    <sequential agent="a2" mountPoint="/m3">
+      <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptAction="stop" toState="stopped" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptAction="unconfigure" toState="installed" />
+    </sequential>
+    <sequential agent="a2" mountPoint="/m4">
+      <leaf agent="a2" fabric="f1" mountPoint="/m4" scriptAction="stop" toState="stopped" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m4" scriptAction="unconfigure" toState="installed" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(7, p.leafStepsCount)
+
+    // will trigger the "default" path in the switch statement and verify that the post
+    // sequence gets invoked properly
+    p = deployPlan(Type.PARALLEL, expectedModel, currentSystemModel)
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="deploy - PARALLEL" fromCustomPlan="post">
+  <parallel name="deploy - PARALLEL">
+    <sequential agent="a2" mountPoint="/m2">
+      <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="start" toState="running" />
+    </sequential>
+    <sequential agent="a2" mountPoint="/m3">
+      <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptAction="stop" toState="stopped" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptAction="unconfigure" toState="installed" />
+    </sequential>
+    <sequential agent="a2" mountPoint="/m4">
+      <leaf agent="a2" fabric="f1" mountPoint="/m4" scriptAction="stop" toState="stopped" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m4" scriptAction="unconfigure" toState="installed" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m4" scriptAction="uninstall" toState="NONE" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m4" scriptLifecycle="uninstallScript" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(7, p.leafStepsCount)
+  }
 
   private Plan<ActionDescriptor> upgradePlan(Type type,
                                              SystemModel currentSystemModel,
@@ -1013,28 +1103,32 @@ public class TestPlannerService extends GroovyTestCase
       fabric: fabricService.findFabric(currentSystemModel.fabric)
     ]
 
-    computePlan(type, null, currentSystemModel, params, "computeAgentsUpgradePlan")
+    computePlan(type, null, currentSystemModel, params) { args ->
+      return plannerService.computeAgentsUpgradePlan(args, null)
+    }
   }
 
   private Plan<ActionDescriptor> cleanupPlan(Type type,
                                              SystemModel expectedSystemModel,
                                              SystemModel currentSystemModel)
   {
-    computePlan(type, m(), currentSystemModel, null, "computeAgentsCleanupUpgradePlan")
+    computePlan(type, m(), currentSystemModel, null) { params ->
+      return plannerService.computeAgentsCleanupUpgradePlan(params, null)
+    }
   }
 
   private Plan<ActionDescriptor> bouncePlan(Type type,
                                             SystemModel expectedSystemModel,
                                             SystemModel currentSystemModel)
   {
-    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'bounce'], "computeBouncePlan")
+    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'bounce'])
   }
 
   private Plan<ActionDescriptor> undeployPlan(Type type,
                                               SystemModel expectedSystemModel,
                                               SystemModel currentSystemModel)
   {
-    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'undeploy'], "computeUndeployPlan")
+    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'undeploy'])
   }
 
 
@@ -1042,14 +1136,14 @@ public class TestPlannerService extends GroovyTestCase
                                               SystemModel expectedSystemModel,
                                               SystemModel currentSystemModel)
   {
-    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'redeploy'], "computeRedeployPlan")
+    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'redeploy'])
   }
 
   private Plan<ActionDescriptor> deployPlan(Type type,
                                             SystemModel expectedSystemModel,
                                             SystemModel currentSystemModel)
   {
-    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'deploy'], "computeDeployPlan")
+    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'deploy'])
   }
 
   private Plan<ActionDescriptor> transitionPlan(Type type,
@@ -1057,29 +1151,51 @@ public class TestPlannerService extends GroovyTestCase
                                                 SystemModel currentSystemModel,
                                                 String state)
   {
-    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'transition', state: state], "computeTransitionPlans")
+    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'transition', state: state])
   }
 
   private Plan<ActionDescriptor> computePlan(Type type,
                                              SystemModel expectedSystemModel,
                                              SystemModel currentSystemModel,
-                                             def params,
-                                             String computePlanName)
+                                             def params)
   {
     if(params == null)
       params = [:]
-    params.type = type
+    params.stepType = type
     params.system = expectedSystemModel
+    params.planType = params.name
     currentModels[currentSystemModel.fabric] = currentSystemModel
     try
     {
-      return plannerService."${computePlanName}"(params, null)
+      return plannerService.computePlan(params, null)
     }
     finally
     {
       currentModels.remove(currentSystemModel.fabric)
     }
   }
+
+  private Plan<ActionDescriptor> computePlan(Type type,
+                                             SystemModel expectedSystemModel,
+                                             SystemModel currentSystemModel,
+                                             def params,
+                                             Closure closure)
+  {
+    if(params == null)
+      params = [:]
+    params.stepType = type
+    params.system = expectedSystemModel
+    currentModels[currentSystemModel.fabric] = currentSystemModel
+    try
+    {
+      return closure(params)
+    }
+    finally
+    {
+      currentModels.remove(currentSystemModel.fabric)
+    }
+  }
+
 
   private SystemModel m(String model)
   {

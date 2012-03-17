@@ -31,6 +31,9 @@ public class DefaultStateMachine
   public static final String MODULE = "org.linkedin.glu.provisioner.core.state.DefaultStateMachine";
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
+  /**
+   * Default transitions when none provide
+   */
   def static DEFAULT_TRANSITIONS =
   [
     NONE: [[to: 'installed', action: 'install']],
