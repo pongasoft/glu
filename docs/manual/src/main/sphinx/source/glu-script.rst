@@ -53,30 +53,58 @@ This is how the default state machine is defined.
    :scale: 70
    :alt: State Machine Definition
 
-You can define your own state machine by defining a static attribute called ``stateMachine``
-
-This is how the ``AutoUpgradeScript`` (`AutoUpgradeScript source <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-impl/src/main/groovy/org/linkedin/glu/agent/impl/script/AutoUpgradeScript.groovy>`_) glu script defines different states and actions::
-
-    class AutoUpgradeScript {
-      def static stateMachine =
-      [
-          NONE: [ [to: 'installed', action: 'install'] ],
-          installed: [ [to: 'NONE', action: 'uninstall'], [to: 'prepared', action: 'prepare'] ],
-          prepared: [ [to: 'upgraded', action: 'commit'], [to: 'installed', action: 'rollback'] ],
-          upgraded: [ [to: 'NONE', action: 'uninstall'] ]
-      ]
-      ...
-   }
-
 The minimum (usefull) state machine that you can define could look like::
 
-    def static stateMachine =
     [
         NONE: [ [to: 'running', action: 'start'] ],
         running: [ [to: 'NONE', action: 'stop'] ]
     ]
 
 .. note:: If an action is empty you don't even have to define its equivalent action but you still need to call all prior actions to satisfy the state machine.
+
+
+Defining your own state machine
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. sidebar:: Advanced Feature
+
+             This section is for advanced users only. You can safely skip it and come back later if you feel like you need to change the default state machine.
+
+In the event when the default state machine does not match your needs, you can define your own (system wide) state machine and configure glu to use it.
+
+For this you need to create a jar file which contains a file called ``glu/DefaultStateMachine.groovy``. This file needs to look like this::
+
+    defaultTransitions =
+    [
+      NONE: [[to: 's1', action: 'noneTOs1']],
+      s1: [[to: 'NONE', action: 's1TOnone'], [to: 's2', action: 's1TOs2']],
+      s2: [[to: 's1', action: 's2TOs1']]
+    ]
+
+    defaultEntryState = 's2'
+
+* ``defaultTransitions`` defines the transitions for the state machine
+* ``defaultEntryState`` defines which state in the state machine is the one that is considered to not be in error (``running`` in the case of the default state machine)
+
+Making it available to glu
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order for glu to use your state machine you simply need to drop the jar file you created in the previous step in the following locations:
+
+* for the console, in the ``console-server/glu/repository/plugins`` folder
+* for the agent, in the ``agent-server/<version>/lib`` folder
+* for the agent cli, in the ``agent-cli/lib`` folder
+
+.. note:: 
+   Those folder are relative to the *standard* distribution of glu. If you package it yourself, then make sure that the jar file is in the classpath of your server.
+
+Configuring the console
+^^^^^^^^^^^^^^^^^^^^^^^
+
+You will need to configure the console (UI) to display your own actions if you want to. Check the :ref:`console-configuration-plans` and :ref:`console-configuration-mountPointActions` sections for more details.
+
+.. tip::
+   In addition to your own state machine you can also use the :ref:`plugin hook <goe-plugins>` ``PlannerService_pre_computePlans`` to define your own custom actions!
 
 Capabilities
 ------------

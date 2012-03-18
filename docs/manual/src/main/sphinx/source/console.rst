@@ -421,6 +421,61 @@ By default (new since 4.0.0), a link to an agent name in the dashboard has the s
 
       dashboardAgentLinksToAgent: true
 
+.. _console-configuration-plans:
+
+Plans
+"""""
+
+This (optional) entry allow you to configure what gets displayed in the table when you select the ``Plans`` subtab. Example (using the custom state machine as defined in the `Defining your own state machine <glu-script-state-machine>`_ section)::
+
+    plans: [
+      [planType: "deploy"],
+      [planType: "redeploy"],
+      [planType: "undeploy"],
+      [planType: "transition", displayName: "* -> s1", state: "s1"],
+      [planType: "transition", displayName: "* -> NONE", state: "NONE"],
+    ],
+
+The *standard* plan types are: ``deploy``, ``redeploy``, ``undeploy``, ``bounce`` and ``transition`` (which requires a ``state`` attribute).
+
+.. tip:: By using the :ref:`plugin hook <goe-plugins>` ``PlannerService_pre_computePlans`` you can add your own plan types!
+
+.. _console-configuration-mountPointActions:
+
+MountPoint actions
+""""""""""""""""""
+
+This (optional) entry defines the actions available for a given mountPoint on the agents page. Example (using the custom state machine as defined in the `Defining your own state machine <glu-script-state-machine>`_ section)::
+
+    // - key is "state of the mountPoint" (meaning, if the state of the mountPoint is "<key>" then
+    //   display the actions defined by the value)
+    //   * The key "-" is special and is reserved for the actions to display when the state does
+    //     not have an entry (in this example, everything besides running).
+    //   * The key "*" is special and is reserved for the actions to display all the time.
+    //
+    // - value is a map defining what to do (ex: bounce, undeploy) as well as extra informations
+    mountPointActions: [
+      s2: [
+        [planType: "transition", displayName: "s2 -> s1", state: "s1"],
+        [planType: "transition", displayName: "s2 -> NONE", state: "NONE"],
+      ],
+
+      // all other states
+      "-": [
+        [planType: "transition", displayName: "Start", state: "s2"],
+      ],
+
+      // actions to include for all states
+      "*": [
+        [planType: "undeploy", displayName: "Undeploy"],
+        [planType: "redeploy", displayName: "Redeploy"],
+      ]
+    ],
+
+The *standard* plan types are: ``deploy``, ``redeploy``, ``undeploy``, ``bounce`` and ``transition`` (which requires a ``state`` attribute).
+
+.. tip:: By using the :ref:`plugin hook <goe-plugins>` ``PlannerService_pre_computePlans`` you can add your own plan types!
+
 .. _console-dashboard:
 
 Dashboard

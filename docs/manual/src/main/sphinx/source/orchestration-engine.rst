@@ -954,6 +954,17 @@ Create deployment plan
   * ``201`` (``CREATED``) with ``Location`` header to access the plan (``/plan/<planId>``)
   * ``204`` (``NO CONTENT``) when no plan created because there is nothing to do
 
+* Example::
+
+    curl -v -u "glua:password" --data "state=stopped&planType=transition" http://localhost:8080/console/rest/v1/glu-dev-1/plans
+    > POST /console/rest/v1/glu-dev-1/plans HTTP/1.1
+    > Authorization: Basic Z2x1YTpwYXNzd29yZA==
+    > Content-Length: 33
+    > Content-Type: application/x-www-form-urlencoded
+    > 
+    < HTTP/1.1 201 Created
+    < Location: http://localhost:8080/console/rest/v1/glu-dev-1/plan/8283e25e-f68d-4bbd-8a71-5149f23466ec
+
 .. _goe-rest-api-get-plan:
 
 View a deployment plan
@@ -1543,11 +1554,19 @@ The body then contains a query string with the following parameters:
 +--------------------+----------------------+--------------------+-----------------------------------------------------+
 |name                |value                 |required            |example                                              |
 +--------------------+----------------------+--------------------+-----------------------------------------------------+
-|``planAction``      |``start``, ``stop``,  |Yes                 |``planAction=start``                                 |
-|                    |``bounce``,           |                    |                                                     |
-|                    |``deploy``,           |                    |                                                     |
+|``planAction``      |``start``, ``stop``,  |One of              |``planAction=start``                                 |
+|                    |``bounce``,           |``planAction`` or   |                                                     |
+|                    |``deploy``,           |``planType``        |                                                     |
 |                    |``undeploy``,         |                    |                                                     |
 |                    |``redeploy``          |                    |                                                     |
++--------------------+----------------------+--------------------+-----------------------------------------------------+
+|``planType``        |``deploy``,           |One of              |``planType=transition&state=stopped``                |
+|                    |``undeploy``,         |``planAction`` or   |                                                     |
+|                    |``redeploy``,         |``planType``        |                                                     |
+|                    |``bounce``,           |                    |                                                     |
+|                    |``transition`` or     |                    |                                                     |
+|                    |anything custom       |                    |                                                     |
+|                    |                      |                    |                                                     |
 +--------------------+----------------------+--------------------+-----------------------------------------------------+
 |``systemFilter``    |a system filter as    |No. It simply means |``systemFilter=and%7bagent%3d'ei2-app3-zone5.qa'%7d``|
 |                    |described in the      |don't filter at all.|                                                     |
@@ -1560,6 +1579,8 @@ The body then contains a query string with the following parameters:
 |``order``           |``parallel`` or       |No. Default to      |``order=parallel``                                   |
 |                    |``sequential``        |``sequential``      |                                                     |
 +--------------------+----------------------+--------------------+-----------------------------------------------------+
+
+.. note:: ``planAction=stop`` is equivalent to ``planType=transition&state=stopped``. The ``planType`` notation is more generic and should be used when using your own state machine or creating your own custom plan types (in which case you can also pass as many parameters as you want).
 
 Json/DSL Based
 --------------
@@ -1615,11 +1636,17 @@ List of hooks available
   * ``SystemService_pre_parseSystemModel``: called before parsing the system model
   * ``SystemService_post_parseSystemModel``: called after parsing the system model
 
+* Plans
+
+  * ``PlannerService_pre_computePlans``: called before computing a deployment plan
+  * ``PlannerService_post_computePlans``: called after computing a deployment plan
+
 * Deployment
 
   * ``DeploymentService_pre_executeDeploymentPlan``: called before executing a deployment plan
   * ``DeploymentService_onStart_executeDeploymentPlan``: called when the deployment plan starts executing
   * ``DeploymentService_post_executeDeploymentPlan``: called after executing a deployment plan  
+
 
 Future hooks
 ^^^^^^^^^^^^

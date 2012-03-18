@@ -186,6 +186,69 @@ public class DocumentationPlugin
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////
+  // Plans
+  /////////////////////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Called before computing any plans which allows you to tweak the creation of the plan including
+   * the ability to create your own actions.
+   *
+   * @param args.params.planType the type of plan to create (ex: bounce, deploy, transition, etc...)
+   * @param args.params.stepType the type of steps to create (ex: sequential or parallel)
+   * @param args.params.name (optional) the name of the plan if provided
+   * @param args.params.* any other params needed by the plan creation (provided in the "plans"
+   *                      and "mountPointActions" configuration parameters)
+   * @param args.metadata metadata to use for the plan
+   * @return a collection of plans (depending on <code>args.params.stepType</code>)
+   */
+  def PlannerService_pre_computePlans = { args ->
+
+    // typical use case is to create your own planType and handle it the way you want
+
+    /*
+    switch(args.params.planType)
+    {
+      case "customPlan":
+        args.params.state = "installed"
+        return plannerService.computeTransitionPlans(args.params, args.metadata)
+        break
+
+      default:
+        return null
+    }
+    */
+
+    log.info("PlannerService_pre_computePlans")
+    return null
+  }
+
+  /**
+   * Called after computing the plans which allows you to tweak the plan or add some metadata
+   *
+   * @param args.params.planType the type of plan to create (ex: bounce, deploy, transition, etc...)
+   * @param args.params.stepType the type of steps to create (ex: sequential or parallel)
+   * @param args.params.name (optional) the name of the plan if provided
+   * @param args.params.* any other params needed by the plan creation (provided in the "plans"
+   *                      and "mountPointActions" configuration parameters)
+   * @param args.metadata metadata to use for the plan
+   * @param args.serviceResult the collection of plans
+   * @return a collection of plans (depending on <code>args.params.stepType</code>)
+   */
+  def PlannerService_post_computePlans = { args ->
+
+    // typical use case is to either tweak the plan or add some metadata
+
+    /*
+    args.serviceResult?.each { Plan plan ->
+      plan.metadata.custom = "myMetadata"
+    }
+    */
+
+    log.info("PlannerService_post_computePlans")
+    return null
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////
   // Deployment
   /////////////////////////////////////////////////////////////////////////////////////////////
 
