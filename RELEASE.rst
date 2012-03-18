@@ -1,6 +1,59 @@
 Latest changes
 ==============
 
+4.3.0 (2012/03/18)
+------------------
+
+4.3.0 introduces:
+
+* the ability to define your own system wide state machine (check the glu script chapter in the documentation for 
+  details)::
+
+	defaultTransitions =
+	[
+	  NONE: [[to: 's1', action: 'noneTOs1']],
+	  s1: [[to: 'NONE', action: 's1TOnone'], [to: 's2', action: 's1TOs2']],
+	  s2: [[to: 's1', action: 's2TOs1']]
+	]
+        defaultEntryState = 's2'
+
+
+* customize the actions for a given mountPoint on the agents page
+
+  .. image:: /images/release/v4.3.0/mountPointActions.png
+     :align: center
+     :alt: mountPoint actions
+
+* customize the plans available on the ``Plans`` subtab
+
+  .. image:: /images/release/v4.3.0/plans.png
+     :align: center
+     :alt: Plans
+
+* define your own set of custom plan type (or redefine one, like the meaning of "Bounce") (check the plugin hook 
+  documentation)::
+
+	def PlannerService_pre_computePlans = { args ->
+	  switch(args.params.planType)
+	  {
+	    case "customPlan":
+	      args.params.state = "installed"
+	      return plannerService.computeTransitionPlans(args.params, args.metadata)
+	      break
+
+	    default:
+	      return null
+	  }
+	}
+
+
+List of tickets:
+
+* Fixed `glu-127 <https://github.com/linkedin/glu/issues/127>`_: `cannot issue stop from cli`
+* Implemented `glu-128 <https://github.com/linkedin/glu/issues/128>`_: `Allow customization of the default state machine`
+* Fixed `glu-129 <https://github.com/linkedin/glu/issues/129>`_: `Exception when calling stop with nothing to do`
+
+
 4.2.0 (2012/02/16)
 ------------------
 
