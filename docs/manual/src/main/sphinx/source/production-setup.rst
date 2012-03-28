@@ -369,6 +369,8 @@ The console is packaged as a regular webapp (war file) and can simply be dropped
 
 .. note:: there is an example of configuration file under ``console-server/conf/glu-console-webapp.groovy``
 
+.. warning:: If you use this solution, make sure you read the section regarding how to :ref:`configure the console <console-configuration>` especially the section regarding the :ref:`database <console-configuration-database>` which defines how to point to the database.
+
 Option 2: Use the server
 ^^^^^^^^^^^^^^^^^^^^^^^^
 

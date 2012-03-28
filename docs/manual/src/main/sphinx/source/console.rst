@@ -37,7 +37,7 @@ When the console boots it reads a configuration file. There are 3 ways to provid
 
 1. store it under ``$HOME/.org.linkedin.glu/glu-console-webapp.groovy``
 2. store it under ``conf/glu-console-webapp.groovy`` (relative to wherever the VM ``user.dir`` is set to)
-3. pass a system property ``-Dorg.linkedin.glu.console.config.location=/fullpath/to/file``
+3. pass a system property ``-Dorg.linkedin.glu.console.config.location=/fullpath/to/file`` (or use the ``JAVA_OPTIONS`` environment variable)
 
 Through this file, the console allows you to configure several areas including some aspects of the UI.
 
@@ -102,11 +102,12 @@ The console (orchestration engine) behavior can be tweaked and or enhanced with 
                // role for unrestricted
                plugins.StreamFileContentPlugin.unrestrictedRole = 'ADMIN'
 
+.. _console-configuration-database:
 
 Database
 ^^^^^^^^
 
-The console uses a database to store some of its data (like the audit log, user information, etc...). At this moment in time, the console uses `HSQLDB <http://hsqldb.org/>`_ for its database. You may want to change the location of the database folder by providing a ``org.linkedin.glu.console.dataSource.url`` system property (``-Dorg.linkedin.glu.console.dataSource.url=/path/to/database/root`` when starting the webapp container) or directly modifying the following section in the configuration file::
+The console uses a database to store some of its data (like the audit log, user information, etc...). At this moment in time, the console uses `HSQLDB <http://hsqldb.org/>`_ for its database. You may want to change the location of the database folder by providing a ``org.linkedin.glu.console.dataSource.url`` system property (``-Dorg.linkedin.glu.console.dataSource.url=/path/to/database/root`` when starting the webapp container (or using the ``JAVA_OPTIONS`` environment variable)) or directly modifying the following section in the configuration file::
 
    def dataSourceUrl =
      System.properties['org.linkedin.glu.console.dataSource.url'] ?:
