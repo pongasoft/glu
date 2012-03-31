@@ -19,6 +19,7 @@ package test.orchestration.engine.delta
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinitionSerializer
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinitionSerializerImpl
+import org.linkedin.groovy.util.json.JsonUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -163,6 +164,8 @@ public class TestCustomDeltaDefinition extends GroovyTestCase
       [ name: "statusInfo", source: "statusInfo", groupBy: "vals", visible: false],
       [ name: "state",      source: "state",                       visible: false]
     ]
+
+    jsonDashboard = JsonUtils.prettyPrint(JsonUtils.fromJSON(jsonDashboard))
 
     assertEquals(jsonDashboard, serializer.serialize(CustomDeltaDefinition.fromDashboard(oldDashboard),
                                                      true))

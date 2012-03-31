@@ -22,15 +22,11 @@ import org.linkedin.glu.orchestration.engine.delta.DeltaService
 
 import org.linkedin.glu.orchestration.engine.delta.CustomGroupByDelta
 
-import org.linkedin.glu.orchestration.engine.session.UserSession
-import org.linkedin.glu.provisioner.core.model.SystemModel
-import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.orchestration.engine.delta.UserCustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.session.SessionService
 import org.linkedin.glu.console.filters.UserPreferencesFilters
-import org.json.JSONException
-import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
+import com.fasterxml.jackson.core.JsonParseException
 
 /**
  * @author ypujante@linkedin.com
@@ -105,7 +101,7 @@ class DashboardController extends ControllerBase
       {
         flash.error = "Error while saving your custom dashboard: ${e.message}"
       }
-      catch(JSONException e)
+      catch(JsonParseException e)
       {
         flash.error = "Error while saving your custom dashboard: ${e.message}"
       }

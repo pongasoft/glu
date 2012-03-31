@@ -23,7 +23,7 @@ import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.UserCustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.LightUserCustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl
-import org.json.JSONException
+import com.fasterxml.jackson.core.JsonParseException
 
 /**
  * @author yan@pongasoft.com */
@@ -207,7 +207,7 @@ public class CustomDeltaDefinitionStorageTests extends GroovyTestCase
       customDeltaDefinitionStorage.findByUsernameAndName('user1', 'd1')
 
     // not a json string... should fail (using updateContent method)
-    shouldFail(JSONException) {
+    shouldFail(JsonParseException) {
       ud11Read.updateContent('abc')
     }
 
@@ -250,7 +250,7 @@ public class CustomDeltaDefinitionStorageTests extends GroovyTestCase
 
   CustomDeltaDefinition toCustomDeltaDefinition(LinkedHashMap<String, Serializable> cdd)
   {
-    return customDeltaDefinitionSerializer.deserialize(JsonUtils.toJSON(cdd).toString(),
+    return customDeltaDefinitionSerializer.deserialize(JsonUtils.compactPrint(cdd),
                                                        customDeltaDefinitionSerializer.contentVersion)
   }
 }

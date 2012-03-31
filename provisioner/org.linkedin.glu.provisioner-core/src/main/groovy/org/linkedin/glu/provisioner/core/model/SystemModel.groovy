@@ -67,6 +67,9 @@ class SystemModel implements MetadataProvider
    * @return the sha1 of the content (does not include the id) */
   String computeContentSha1()
   {
+    // YP note: since glu 132 (use of jackson) the following code is left on purpose to use
+    // org.json rather than the new jackson because of the fact that the output of prettyPrint
+    // is different which would generate a different sha-1 for the same model!
     def ext = toExternalRepresentation()
     ext.remove('id') // we remove id from the computation
     def json = JsonUtils.toJSON(ext).toString(2)

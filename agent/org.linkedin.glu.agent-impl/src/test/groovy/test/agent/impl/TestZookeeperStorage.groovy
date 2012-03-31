@@ -105,7 +105,7 @@ class TestZookeeperStorage extends GroovyTestCase
 
     storage.storeState(ab, state)
 
-    assertEquals(JsonUtils.toJSON(state).toString(), c.getStringData('_a_b'))
+    assertEquals(JsonUtils.compactPrint(state), c.getStringData('_a_b'))
 
     def e = new Exception('abcdef')
     state.scriptState.stateMachine.error = e
@@ -115,7 +115,7 @@ class TestZookeeperStorage extends GroovyTestCase
 
     state.scriptState.stateMachine.error = [[name: e.class.name, message: e.message]]
 
-    assertEquals(JsonUtils.toJSON(state).toString(), c.getStringData('_a_b'))
+    assertEquals(JsonUtils.compactPrint(state), c.getStringData('_a_b'))
 
     storage.clearState(ab)
 

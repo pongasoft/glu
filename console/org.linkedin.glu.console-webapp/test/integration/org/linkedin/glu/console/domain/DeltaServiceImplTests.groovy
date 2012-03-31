@@ -162,7 +162,7 @@ public class DeltaServiceImplTests extends GroovyTestCase
 
   CustomDeltaDefinition toCustomDeltaDefinition(LinkedHashMap<String, Serializable> cdd)
   {
-    return customDeltaDefinitionSerializer.deserialize(JsonUtils.toJSON(cdd).toString(),
+    return customDeltaDefinitionSerializer.deserialize(JsonUtils.compactPrint(cdd),
                                                        customDeltaDefinitionSerializer.contentVersion)
   }
 }

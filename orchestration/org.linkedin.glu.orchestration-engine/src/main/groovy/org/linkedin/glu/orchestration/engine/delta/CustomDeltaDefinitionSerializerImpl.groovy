@@ -43,14 +43,12 @@ public class CustomDeltaDefinitionSerializerImpl implements CustomDeltaDefinitio
   @Override
   String serialize(CustomDeltaDefinition cdd, boolean prettyPrint)
   {
-    if(cdd == null)
-      return null
-    
-    def json = JsonUtils.toJSON(cdd.toExternalRepresentation())
+    def representation = cdd?.toExternalRepresentation()
+
     if(prettyPrint)
-      return json?.toString(prettyPrintIndent)
+      return JsonUtils.prettyPrint(representation, prettyPrintIndent)
     else
-      return json?.toString()
+      return JsonUtils.compactPrint(representation)
   }
 
   @Override

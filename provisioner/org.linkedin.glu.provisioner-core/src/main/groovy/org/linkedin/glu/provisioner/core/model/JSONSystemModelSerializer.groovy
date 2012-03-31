@@ -27,7 +27,7 @@ class JSONSystemModelSerializer implements SystemModelSerializer
 {
   public static final JSONSystemModelSerializer INSTANCE = new JSONSystemModelSerializer()
 
-  def prettyPrint
+  int prettyPrint
 
   SystemModel deserialize(String model)
   {
@@ -36,11 +36,7 @@ class JSONSystemModelSerializer implements SystemModelSerializer
 
   String serialize(SystemModel model)
   {
-    def json = JsonUtils.toJSON(model.toCanonicalRepresentation())
-    if(prettyPrint)
-      return json.toString(prettyPrint)
-    else
-      return json.toString()
+    return JsonUtils.prettyPrint(model.toCanonicalRepresentation(), prettyPrint)
   }
 
   String getType()

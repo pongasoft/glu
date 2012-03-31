@@ -42,7 +42,7 @@ public class AgentsServiceIntegrationTests extends GroovyTestCase
   {
     def agent = [getFileContent: { args -> return args.fileContent} ]
     def trackerService = [getAgentInfo: {Fabric fabric, String agentName ->
-      return new AgentInfo(agentName: agentName, trackedNode: new TrackedNode(data: [:]))}]
+      return new AgentInfo(agentName: agentName, trackedNode: new TrackedNode(data: "{}"))}]
     def agentFactory = [withRemoteAgent: {URI agentURI, Closure closure -> closure(agent as Agent)}]
 
     _agentsServiceImpl.trackerService = trackerService as TrackerService

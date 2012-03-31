@@ -129,13 +129,14 @@ class DeltaServiceImpl implements DeltaService
       delta: map
     ]
 
-    def jsonDelta =  JsonUtils.toJSON(map)
+    def jsonDelta
 
     boolean prettyPrint = params.prettyPrint?.toString() == "true"
+
     if(prettyPrint)
-      jsonDelta = jsonDelta.toString(2)
+      jsonDelta = JsonUtils.prettyPrint(map)
     else
-      jsonDelta = jsonDelta.toString()
+      jsonDelta = JsonUtils.compactPrint(map)
 
     return jsonDelta
   }
