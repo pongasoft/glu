@@ -1,6 +1,28 @@
 Latest changes
 ==============
 
+4.3.1 (2012/03/31)
+------------------
+
+Mostly a performance improvement release: use of the jackson library to enhance memory consumption and speed particularly visible on large system models.
+
+.. note:: Some (json) pretty printed output may look slightly different due to the change in serialization library.
+
+.. note:: For backward compatibility reasons, the computation of the checksum for the system model has not been modified and still uses the ``org.json`` library.
+
+.. tip:: As an added benefit for using a more powerful json parsing library, you can 
+   now:
+
+   * use comments (java style ``//`` or ``/* */``) in your json model (note that the comments are **not** preserved, but it won't generate an error when parsing!)
+   * use single quotes
+   * don't quote keys
+
+List of tickets:
+
+* Implemented `glu-132 <https://github.com/linkedin/glu/issues/132>`_: `Enhance glu's performance by integrating jackson`
+* Fixed `glu-133 <https://github.com/linkedin/glu/issues/133>`_: `Be able to run GLU on IBM's JDK` (thanks to Lucas)
+
+
 4.3.0 (2012/03/18)
 ------------------
 
