@@ -109,10 +109,7 @@ class ConsoleHelper
   static def getCookieJSONValue(HttpServletRequest request, String cookieName)
   {
     def value = getCookieValue(request, cookieName)
-    if(value)
-      return JsonUtils.fromJSON(value)
-    else
-      return null
+    return JsonUtils.fromJSON(value?.toString())
   }
 
   /**

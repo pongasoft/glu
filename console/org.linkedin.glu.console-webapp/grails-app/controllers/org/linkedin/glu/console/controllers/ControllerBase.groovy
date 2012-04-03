@@ -124,13 +124,10 @@ class ControllerBase
    */
   protected String prettyPrintJsonWhenRequested(Object o)
   {
-    if(o == null)
-      return null
-
     if(params.prettyPrint)
-      JsonUtils.prettyPrinted(o)
+      return JsonUtils.prettyPrint(o)
     else
-      JsonUtils.compactRepresentation(o)
+      return JsonUtils.compactPrint(o)
   }
 
   /**

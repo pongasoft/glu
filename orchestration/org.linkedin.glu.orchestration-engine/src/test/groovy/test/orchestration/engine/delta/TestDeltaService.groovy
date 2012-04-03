@@ -1108,69 +1108,80 @@ class TestDeltaService extends GroovyTestCase
     delta = jsonDelta(expectedModel, currentModel, [:])
 
     assertEquals("""{
-  "delta" : {
-    "a1:/m0" : {
-      "agent" : "a1",
-      "entryState" : "running",
-      "key" : "a1:/m0",
-      "mountPoint" : "/m0",
-      "script" : "s1",
-      "state" : "OK",
-      "status" : "expectedState",
-      "statusInfo" : "running"
+  "delta": {
+    "a1:/m0": {
+      "agent": "a1",
+      "entryState": "running",
+      "key": "a1:/m0",
+      "mountPoint": "/m0",
+      "script": "s1",
+      "state": "OK",
+      "status": "expectedState",
+      "statusInfo": "running"
     },
-    "a1:/m1" : {
-      "agent" : {
-        "ev" : "a1"
+    "a1:/m1": {
+      "agent": {
+        "ev": "a1"
       },
-      "entryState" : {
-        "ev" : "running"
+      "entryState": {
+        "ev": "running"
       },
-      "errorValueKeys" : [ "entryState", "script" ],
-      "key" : {
-        "ev" : "a1:/m1"
+      "errorValueKeys": [
+        "entryState",
+        "script"
+      ],
+      "key": {
+        "ev": "a1:/m1"
       },
-      "mountPoint" : {
-        "ev" : "/m1"
+      "mountPoint": {
+        "ev": "/m1"
       },
-      "script" : {
-        "ev" : "s1"
+      "script": {
+        "ev": "s1"
       },
-      "state" : "ERROR",
-      "status" : "notDeployed",
-      "statusInfo" : "NOT deployed"
+      "state": "ERROR",
+      "status": "notDeployed",
+      "statusInfo": "NOT deployed"
     },
-    "a1:/m2" : {
-      "agent" : "a1",
-      "entryState" : "running",
-      "errorValueKeys" : [ "script" ],
-      "key" : "a1:/m2",
-      "mountPoint" : "/m2",
-      "script" : {
-        "cv" : "s1",
-        "ev" : "s2"
+    "a1:/m2": {
+      "agent": "a1",
+      "entryState": "running",
+      "errorValueKeys": [
+        "script"
+      ],
+      "key": "a1:/m2",
+      "mountPoint": "/m2",
+      "script": {
+        "cv": "s1",
+        "ev": "s2"
       },
-      "state" : "ERROR",
-      "status" : "delta",
-      "statusInfo" : "script:[s2!=s1]"
+      "state": "ERROR",
+      "status": "delta",
+      "statusInfo": "script:[s2!=s1]"
     },
-    "a1:/m3" : {
-      "agent" : "a1",
-      "entryState" : "running",
-      "errorValueKeys" : [ "initParameters.ip1", "script" ],
-      "initParameters.ip1" : {
-        "cv" : "iv2",
-        "ev" : "iv1"
+    "a1:/m3": {
+      "agent": "a1",
+      "entryState": "running",
+      "errorValueKeys": [
+        "initParameters.ip1",
+        "script"
+      ],
+      "initParameters.ip1": {
+        "cv": "iv2",
+        "ev": "iv1"
       },
-      "key" : "a1:/m3",
-      "mountPoint" : "/m3",
-      "script" : {
-        "cv" : "s1",
-        "ev" : "s2"
+      "key": "a1:/m3",
+      "mountPoint": "/m3",
+      "script": {
+        "cv": "s1",
+        "ev": "s2"
       },
-      "state" : "ERROR",
-      "status" : "delta",
-      "statusInfo" : [ "initParameters.ip1:[iv1!=iv2]", "script:[s2!=s1]" ]
+      "state": "ERROR",
+      "status": "delta",
+      "statusInfo": [
+        "initParameters.ip1:[iv1!=iv2]",
+        "script:[s2!=s1]"
+      ]
     }
   }
 }""", delta)
@@ -1178,59 +1189,70 @@ class TestDeltaService extends GroovyTestCase
     delta = jsonDelta(expectedModel, currentModel, [errorsOnly: true])
 
     assertEquals("""{
-  "delta" : {
-    "a1:/m1" : {
-      "agent" : {
-        "ev" : "a1"
+  "delta": {
+    "a1:/m1": {
+      "agent": {
+        "ev": "a1"
       },
-      "entryState" : {
-        "ev" : "running"
+      "entryState": {
+        "ev": "running"
       },
-      "errorValueKeys" : [ "entryState", "script" ],
-      "key" : {
-        "ev" : "a1:/m1"
+      "errorValueKeys": [
+        "entryState",
+        "script"
+      ],
+      "key": {
+        "ev": "a1:/m1"
       },
-      "mountPoint" : {
-        "ev" : "/m1"
+      "mountPoint": {
+        "ev": "/m1"
       },
-      "script" : {
-        "ev" : "s1"
+      "script": {
+        "ev": "s1"
       },
-      "state" : "ERROR",
-      "status" : "notDeployed",
-      "statusInfo" : "NOT deployed"
+      "state": "ERROR",
+      "status": "notDeployed",
+      "statusInfo": "NOT deployed"
     },
-    "a1:/m2" : {
-      "agent" : "a1",
-      "entryState" : "running",
-      "errorValueKeys" : [ "script" ],
-      "key" : "a1:/m2",
-      "mountPoint" : "/m2",
-      "script" : {
-        "cv" : "s1",
-        "ev" : "s2"
+    "a1:/m2": {
+      "agent": "a1",
+      "entryState": "running",
+      "errorValueKeys": [
+        "script"
+      ],
+      "key": "a1:/m2",
+      "mountPoint": "/m2",
+      "script": {
+        "cv": "s1",
+        "ev": "s2"
       },
-      "state" : "ERROR",
-      "status" : "delta",
-      "statusInfo" : "script:[s2!=s1]"
+      "state": "ERROR",
+      "status": "delta",
+      "statusInfo": "script:[s2!=s1]"
     },
-    "a1:/m3" : {
-      "agent" : "a1",
-      "entryState" : "running",
-      "errorValueKeys" : [ "initParameters.ip1", "script" ],
-      "initParameters.ip1" : {
-        "cv" : "iv2",
-        "ev" : "iv1"
+    "a1:/m3": {
+      "agent": "a1",
+      "entryState": "running",
+      "errorValueKeys": [
+        "initParameters.ip1",
+        "script"
+      ],
+      "initParameters.ip1": {
+        "cv": "iv2",
+        "ev": "iv1"
       },
-      "key" : "a1:/m3",
-      "mountPoint" : "/m3",
-      "script" : {
-        "cv" : "s1",
-        "ev" : "s2"
+      "key": "a1:/m3",
+      "mountPoint": "/m3",
+      "script": {
+        "cv": "s1",
+        "ev": "s2"
       },
-      "state" : "ERROR",
-      "status" : "delta",
-      "statusInfo" : [ "initParameters.ip1:[iv1!=iv2]", "script:[s2!=s1]" ]
+      "state": "ERROR",
+      "status": "delta",
+      "statusInfo": [
+        "initParameters.ip1:[iv1!=iv2]",
+        "script:[s2!=s1]"
+      ]
     }
   }
 }""", delta)
@@ -1238,47 +1260,50 @@ class TestDeltaService extends GroovyTestCase
     delta = jsonDelta(expectedModel, currentModel, [flatten: true])
 
     assertEquals("""{
-  "delta" : {
-    "a1:/m0" : {
-      "agent" : "a1",
-      "entryState" : "running",
-      "key" : "a1:/m0",
-      "mountPoint" : "/m0",
-      "script" : "s1",
-      "state" : "OK",
-      "status" : "expectedState",
-      "statusInfo" : "running"
+  "delta": {
+    "a1:/m0": {
+      "agent": "a1",
+      "entryState": "running",
+      "key": "a1:/m0",
+      "mountPoint": "/m0",
+      "script": "s1",
+      "state": "OK",
+      "status": "expectedState",
+      "statusInfo": "running"
     },
-    "a1:/m1" : {
-      "agent" : "a1",
-      "entryState" : "running",
-      "key" : "a1:/m1",
-      "mountPoint" : "/m1",
-      "script" : "s1",
-      "state" : "ERROR",
-      "status" : "notDeployed",
-      "statusInfo" : "NOT deployed"
+    "a1:/m1": {
+      "agent": "a1",
+      "entryState": "running",
+      "key": "a1:/m1",
+      "mountPoint": "/m1",
+      "script": "s1",
+      "state": "ERROR",
+      "status": "notDeployed",
+      "statusInfo": "NOT deployed"
     },
-    "a1:/m2" : {
-      "agent" : "a1",
-      "entryState" : "running",
-      "key" : "a1:/m2",
-      "mountPoint" : "/m2",
-      "script" : "s2",
-      "state" : "ERROR",
-      "status" : "delta",
-      "statusInfo" : "script:[s2!=s1]"
+    "a1:/m2": {
+      "agent": "a1",
+      "entryState": "running",
+      "key": "a1:/m2",
+      "mountPoint": "/m2",
+      "script": "s2",
+      "state": "ERROR",
+      "status": "delta",
+      "statusInfo": "script:[s2!=s1]"
     },
-    "a1:/m3" : {
-      "agent" : "a1",
-      "entryState" : "running",
-      "initParameters.ip1" : "iv1",
-      "key" : "a1:/m3",
-      "mountPoint" : "/m3",
-      "script" : "s2",
-      "state" : "ERROR",
-      "status" : "delta",
-      "statusInfo" : [ "initParameters.ip1:[iv1!=iv2]", "script:[s2!=s1]" ]
+    "a1:/m3": {
+      "agent": "a1",
+      "entryState": "running",
+      "initParameters.ip1": "iv1",
+      "key": "a1:/m3",
+      "mountPoint": "/m3",
+      "script": "s2",
+      "state": "ERROR",
+      "status": "delta",
+      "statusInfo": [
+        "initParameters.ip1:[iv1!=iv2]",
+        "script:[s2!=s1]"
+      ]
     }
   }
 }""", delta)

@@ -26,7 +26,7 @@
             <tr class="${planType.toUpperCase()}">
               <td>${planType}</td>
               <td>${stepType}</td>
-              <td><input type="radio" name="planDetails" value="${JsonUtils.compactRepresentation([planType: planType, stepType: stepType, name: planType + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="${remoteFunction(controller: 'plan', action:'create', update:[success:'plan-preview'], params: "'json=' + this.value")}" /></td>
+              <td><input type="radio" name="planDetails" value="${JsonUtils.compactPrint([planType: planType, stepType: stepType, name: planType + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="${remoteFunction(controller: 'plan', action:'create', update:[success:'plan-preview'], params: "'json=' + this.value")}" /></td>
             </tr>
           </g:if>
         </g:each>

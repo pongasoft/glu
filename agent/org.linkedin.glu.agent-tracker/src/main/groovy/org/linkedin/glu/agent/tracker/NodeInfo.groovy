@@ -18,7 +18,6 @@
 package org.linkedin.glu.agent.tracker
 
 import org.apache.zookeeper.data.Stat
-import org.json.JSONObject
 import org.linkedin.zookeeper.tracker.TrackedNode
 import org.linkedin.groovy.util.json.JsonUtils
 
@@ -62,7 +61,7 @@ class NodeInfo
   {
     if(_data == null)
     {
-      _data = JsonUtils.toMap(new JSONObject(trackedNode.data))
+      _data = JsonUtils.fromJSON(trackedNode.data)
     }
 
     return _data
