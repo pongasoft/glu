@@ -28,7 +28,6 @@ import org.apache.zookeeper.Watcher
 import org.apache.zookeeper.Watcher.Event.KeeperState
 import org.apache.zookeeper.ZooDefs.Ids
 import org.apache.zookeeper.ZooKeeper
-import org.json.JSONObject
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.util.exceptions.InternalException
 import org.linkedin.zookeeper.server.StandaloneZooKeeperServer
@@ -394,7 +393,7 @@ class TestAgentsTracker extends GroovyTestCase
   private def addAgentInstance(String name, data)
   {
     client.createOrSetWithParents(PathUtils.addPaths(AGENTS_INSTANCES, name),
-                                  new JSONObject(data).toString(), 
+                                  JsonUtils.compactPrint(data),
                                   Ids.OPEN_ACL_UNSAFE,
                                   CreateMode.PERSISTENT)
 
@@ -427,7 +426,7 @@ class TestAgentsTracker extends GroovyTestCase
     def path = PathUtils.addPaths(AGENTS_STATE, name)
     path = PathUtils.addPaths(path, toPath(MountPoint.create(mountPoint.toString())))
     client.createOrSetWithParents(path,
-                                  JsonUtils.toJSON(state).toString(),
+                                  JsonUtils.compactPrint(state),
                                   Ids.OPEN_ACL_UNSAFE,
                                   CreateMode.PERSISTENT)
   }

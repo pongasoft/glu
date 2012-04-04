@@ -35,7 +35,6 @@ import org.restlet.ext.json.JsonRepresentation
 import org.restlet.representation.Representation
 import org.restlet.resource.ClientResource
 import org.restlet.resource.ResourceException
-import org.restlet.representation.EmptyRepresentation
 import org.json.JSONArray
 
 /**

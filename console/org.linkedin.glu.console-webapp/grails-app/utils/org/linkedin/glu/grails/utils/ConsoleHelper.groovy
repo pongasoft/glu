@@ -19,7 +19,6 @@ package org.linkedin.glu.grails.utils
 
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
-import org.json.JSONObject
 import javax.servlet.http.HttpServletResponse
 import org.linkedin.util.codec.Codec
 import org.linkedin.util.codec.Base64Codec
@@ -110,10 +109,7 @@ class ConsoleHelper
   static def getCookieJSONValue(HttpServletRequest request, String cookieName)
   {
     def value = getCookieValue(request, cookieName)
-    if(value)
-      return JsonUtils.toValue(new JSONObject(value))
-    else
-      return null
+    return JsonUtils.fromJSON(value?.toString())
   }
 
   /**
@@ -133,7 +129,7 @@ class ConsoleHelper
   {
     if(cookieValue != null)
     {
-      cookieValue = JsonUtils.toJSON(cookieValue).toString()
+      cookieValue = JsonUtils.compactPrint(cookieValue)
       cookieValue = CodecUtils.encodeString(COOKIE_CODEC, cookieValue)
     }
 
@@ -202,7 +198,7 @@ class ConsoleHelper
         }
         if (s.size() == 3)
           configRef = s[2]
-        
+
         def uri = new URI(u as String)
         def version = computeVersionFromURI(uri)
 

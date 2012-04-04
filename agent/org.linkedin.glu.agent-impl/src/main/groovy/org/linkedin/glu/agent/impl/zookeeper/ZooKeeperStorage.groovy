@@ -147,10 +147,10 @@ class ZooKeeperStorage implements WriteOnlyStorage
       }
       state.scriptDefinition = state.scriptDefinition?.toExternalRepresentation()
 
-      state = JsonUtils.toJSON(state)
+      state = JsonUtils.compactPrint(state)
 
       zk.createOrSetWithParents(toPath(mountPoint),
-                                state.toString(),
+                                state,
                                 ACLs,
                                 CreateMode.PERSISTENT)
     }
@@ -171,7 +171,7 @@ class ZooKeeperStorage implements WriteOnlyStorage
 
     zkSafe(_zkAgentProperties) { IZKClient zk ->
       zk.createOrSetWithParents('/',
-                                JsonUtils.toJSON(props).toString(),
+                                JsonUtils.compactPrint(props),
                                 Ids.OPEN_ACL_UNSAFE,
                                 CreateMode.EPHEMERAL)
     }
