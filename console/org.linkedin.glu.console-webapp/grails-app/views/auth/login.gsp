@@ -46,13 +46,13 @@
   <g:javascript library="jquery" plugin="jquery"/>
   <g:javascript src="twitter-bootstrap/bootstrap-alerts.js" />
 </head>
-<body>
+<body OnLoad="document.login.username.focus();">
 <g:render template="/layouts/flash"/>
 <div class="content">
   <div class="form">
     <div class="logo"><img src="${resource(dir: 'images', file: 'glu_480_white.png')}" alt="glu deployment automation platform"/></div>
     <h1>Console Login</h1>
-  <g:form action="signIn">
+  <g:form action="signIn" name="login">
     <input type="hidden" name="targetUri" value="${targetUri}" />
     <table class="noFullWidth">
       <tbody>
