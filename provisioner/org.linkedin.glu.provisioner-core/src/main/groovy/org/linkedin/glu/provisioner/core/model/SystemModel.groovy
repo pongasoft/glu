@@ -36,9 +36,6 @@ class SystemModel implements MetadataProvider
   public static final OneWayCodec SHA1 =
     OneWayMessageDigestCodec.createSHA1Instance('', HexaCodec.INSTANCE)
 
-  public static final SystemModelSerializer TO_STRING_SERIALIZER =
-    new JSONSystemModelSerializer(prettyPrint: 2)
-
   private final Map<String, SystemEntry> _entries = new TreeMap()
   private final Map<String, Collection<String>> _children = new HashMap<String,Collection<String>>()
   private Map<String, Taggeable> _agentTags = new TreeMap<String, Taggeable>()
@@ -65,7 +62,8 @@ class SystemModel implements MetadataProvider
 
   /**
    * @return the sha1 of the content (does not include the id) */
-  String computeContentSha1()
+  @Deprecated // use SystemModelRenderer.computeSystemId instead!
+   String computeContentSha1()
   {
     // YP note: since glu 132 (use of jackson) the following code is left on purpose to use
     // org.json rather than the new jackson because of the fact that the output of prettyPrint
@@ -526,6 +524,6 @@ class SystemModel implements MetadataProvider
 
   def String toString()
   {
-    return TO_STRING_SERIALIZER.serialize(this)
+    return JsonUtils.prettyPrint(toExternalRepresentation(), 2)
   }
 }

@@ -50,7 +50,7 @@
         <input class="save btn primary" type="submit" value="Save changes"/>
       </div>
     </g:if>
-    <textarea rows="40" style="width: 100%" id="content" name="content" ${editable ? '' : 'readonly="true"'}>${params.content ?: systemDetails.systemModel}</textarea>
+    <textarea rows="40" style="width: 100%" id="content" name="content" ${editable ? '' : 'readonly="true"'}>${params.content ?: renderer.prettyPrint(systemDetails.systemModel)}</textarea>
     <g:hiddenField name="id" value="${params.id}"/>
     <g:if test="${editable}">
       <div class="actions">

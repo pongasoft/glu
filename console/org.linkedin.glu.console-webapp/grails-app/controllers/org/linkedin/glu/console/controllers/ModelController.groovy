@@ -20,7 +20,6 @@ package org.linkedin.glu.console.controllers
 import javax.servlet.http.HttpServletResponse
 
 import org.linkedin.glu.grails.utils.ConsoleConfig
-import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 
 import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.console.provisioner.services.storage.SystemStorageException
@@ -29,6 +28,7 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.glu.console.domain.DbSystemModel
 import com.fasterxml.jackson.core.JsonParseException
+import org.linkedin.glu.provisioner.core.model.SystemModelRenderer
 
 /**
  * @author: ypujante@linkedin.com
@@ -38,6 +38,7 @@ public class ModelController extends ControllerBase
   AgentsService agentsService
   SystemService systemService
   ConsoleConfig consoleConfig
+  SystemModelRenderer systemModelRenderer
 
   def beforeInterceptor = {
     // we make sure that the fabric is always set before executing any action
@@ -62,7 +63,7 @@ public class ModelController extends ControllerBase
    */
   def view = {
     def system = systemService.findDetailsBySystemId(params.id)
-    [systemDetails: system]
+    [systemDetails: system, renderer: systemModelRenderer]
   }
 
   /**
@@ -250,12 +251,29 @@ public class ModelController extends ControllerBase
 
   /**
    * Handle the rendering of the model taking into account etag
+   *
+   * YP note: since the use of jackson, the output from any of the <code>xxPrint</code> method
+   * is always consistent (meaning if you call it twice for the same model, you always get the
+   * same output), so there is no need of separately computing the systemId to include in the ETag
+   * which removes an expensive call!
    */
   private void renderModelWithETag(SystemModel model)
   {
+    String modelString
+
+    if(params.prettyPrint)
+      modelString = systemModelRenderer.prettyPrint(model)
+    else
+    {
+      if(params.canonicalPrint)
+        modelString = systemModelRenderer.canonicalPrint(model)
+      else
+        modelString = systemModelRenderer.compactPrint(model)
+    }
+
     // the etag is a combination of the model content + request uri (path + query string)
     String etag = """
-${model.computeContentSha1()}
+${modelString}
 ${request['javax.servlet.forward.servlet_path']}
 ${request['javax.servlet.forward.query_string']}
 """
@@ -268,13 +286,6 @@ ${request['javax.servlet.forward.query_string']}
       render ''
       return
     }
-
-    String modelString
-
-    if(params.prettyPrint)
-      modelString = model.toString()
-    else
-      modelString = JSONSystemModelSerializer.INSTANCE.serialize(model)
 
     response.setHeader('Etag', etag)
     response.setContentType('text/json')

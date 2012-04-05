@@ -17,8 +17,6 @@
 package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.orchestration.engine.delta.DeltaService
-import org.linkedin.groovy.util.json.JsonUtils
-import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta.DeltaState
 
 /**
  * @author yan@pongasoft.com

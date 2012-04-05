@@ -42,6 +42,11 @@ console.to.agent.connectionTimeout = "30s"
 // role for write operations through REST (defaults to ADMIN if not present)
 console.authFilters.rest.write.roleName = "ADMIN"
 
+// set to true if you have been using glu for a while and you really want to preserve
+// backward compatibility in computation of the sha-1/system id (note that turning this
+// to true has serious performance implications)
+console.systemModelRenderer.maintainBackwardCompatibilityInSystemId = false
+
 /////////////////////////////////////////////////////////
 // End Default values
 /////////////////////////////////////////////////////////

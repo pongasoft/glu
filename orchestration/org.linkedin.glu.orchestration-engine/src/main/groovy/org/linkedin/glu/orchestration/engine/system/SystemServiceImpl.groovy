@@ -25,6 +25,7 @@ import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.orchestration.engine.plugins.PluginService
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
+import org.linkedin.glu.provisioner.core.model.SystemModelRenderer
 
 /**
  * @author yan@pongasoft.com */
@@ -38,6 +39,9 @@ public class SystemServiceImpl implements SystemService
 
   @Initializable(required = true)
   PluginService pluginService
+
+  @Initializable(required = true)
+  SystemModelRenderer systemModelRenderer
 
   /**
    * Given a fabric, returns the list of agents that are declared in the system
@@ -118,7 +122,7 @@ public class SystemServiceImpl implements SystemService
     if(newSystemModel.filters)
       throw new IllegalStateException("cannot save a filtered model!")
 
-    String newSystemModelSha1 = newSystemModel.computeContentSha1()
+    String newSystemModelSha1 = systemModelRenderer.computeSystemId(newSystemModel)
 
     if(!newSystemModel.id)
       newSystemModel.id = newSystemModelSha1
@@ -127,7 +131,7 @@ public class SystemServiceImpl implements SystemService
 
     // when the new system and the current system match, there is no reason to
     // change it
-    if(newSystemModelSha1 == currentSystemModel?.computeContentSha1())
+    if(newSystemModelSha1 == systemModelRenderer.computeSystemId(currentSystemModel))
     {
       return false
     }
@@ -136,7 +140,7 @@ public class SystemServiceImpl implements SystemService
 
     if(previousSystemModel)
     {
-      if(newSystemModelSha1 != previousSystemModel?.computeContentSha1())
+      if(newSystemModelSha1 != systemModelRenderer.computeSystemId(previousSystemModel))
       {
         throw new IllegalArgumentException("same id ${newSystemModel.id} but different content!")
       }

@@ -21,12 +21,21 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 import javax.servlet.http.HttpServletResponse
 import groovy.mock.interceptor.MockFor
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
-
+import org.linkedin.glu.provisioner.core.model.JsonSystemModelRenderer
 
 /**
  * @author yan@pongasoft.com */
 class ModelControllerTests extends ControllerUnitTestCase
 {
+  def renderer = new JsonSystemModelRenderer()
+
+  @Override
+  protected void setUp()
+  {
+    super.setUp()
+    controller.systemModelRenderer = renderer
+  }
+
   void testGetStaticModelWithETag1()
   {
     SystemModel systemModel = new SystemModel()
@@ -38,8 +47,8 @@ class ModelControllerTests extends ControllerUnitTestCase
     controller.params.prettyPrint = true
     controller.rest_get_static_model()
 
-    assertEquals(systemModel.toString(), controller.response.contentAsString)
-    assertEquals("f8a5658c3e695fa2ea4d14bb08ed48959b35ea08", controller.response.getHeader('ETag'))
+    assertEquals(renderer.prettyPrint(systemModel), controller.response.contentAsString)
+    assertEquals("b2b6bb2f0592a918be17d1c2d55ac1411fcf3af3", controller.response.getHeader('ETag'))
   }
 
   void testGetStaticModelWithETag2()
@@ -51,7 +60,7 @@ class ModelControllerTests extends ControllerUnitTestCase
     controller.request.system = systemModel
     controller.request['javax.servlet.forward.query_string'] = "prettyPrint=true"
     controller.params.prettyPrint = true
-    controller.request.addHeader('If-None-Match', "f8a5658c3e695fa2ea4d14bb08ed48959b35ea08")
+    controller.request.addHeader('If-None-Match', "b2b6bb2f0592a918be17d1c2d55ac1411fcf3af3")
     controller.rest_get_static_model()
 
     assertEquals(HttpServletResponse.SC_NOT_MODIFIED, controller.response.status)
@@ -67,11 +76,11 @@ class ModelControllerTests extends ControllerUnitTestCase
     controller.request.system = systemModel
     controller.request['javax.servlet.forward.query_string'] = "prettyPrint=true"
     controller.params.prettyPrint = true
-    controller.request.addHeader('If-None-Match', "f8a5658c3e695fa2ea4d14bb08ed48959b35ea08")
+    controller.request.addHeader('If-None-Match', "b2b6bb2f0592a918be17d1c2d55ac1411fcf3af3")
     controller.rest_get_static_model()
 
-    assertEquals(systemModel.toString(), controller.response.contentAsString)
-    assertEquals("45b35ce1364c5a66d4b3a696fc002f923b288974", controller.response.getHeader('ETag'))
+    assertEquals(renderer.prettyPrint(systemModel), controller.response.contentAsString)
+    assertEquals("0280aa36c429a83554c69c5fcf5192011a0ea066", controller.response.getHeader('ETag'))
   }
 
   void testGetStaticModelWithETag4()
@@ -84,11 +93,11 @@ class ModelControllerTests extends ControllerUnitTestCase
     controller.request['javax.servlet.forward.query_string'] = "prettyPrint=true&legacy=true"
     controller.params.prettyPrint = true
     controller.params.legacy = true
-    controller.request.addHeader('If-None-Match', "f8a5658c3e695fa2ea4d14bb08ed48959b35ea08")
+    controller.request.addHeader('If-None-Match', "b2b6bb2f0592a918be17d1c2d55ac1411fcf3af3")
     controller.rest_get_static_model()
 
-    assertEquals(systemModel.toString(), controller.response.contentAsString)
-    assertEquals("f603f374b32d2a460aed128be819340a86e21d2e", controller.response.getHeader('ETag'))
+    assertEquals(renderer.prettyPrint(systemModel), controller.response.contentAsString)
+    assertEquals("5fccb2ee7406abeecea9026f14f8980b941053a5", controller.response.getHeader('ETag'))
   }
 
   void testGetLiveModelWithETag1()
@@ -103,8 +112,8 @@ class ModelControllerTests extends ControllerUnitTestCase
       controller.params.prettyPrint = true
       controller.rest_get_live_model()
 
-      assertEquals(systemModel.toString(), controller.response.contentAsString)
-      assertEquals("f8a5658c3e695fa2ea4d14bb08ed48959b35ea08", controller.response.getHeader('ETag'))
+      assertEquals(renderer.prettyPrint(systemModel), controller.response.contentAsString)
+      assertEquals("b2b6bb2f0592a918be17d1c2d55ac1411fcf3af3", controller.response.getHeader('ETag'))
     }
   }
 
@@ -118,7 +127,7 @@ class ModelControllerTests extends ControllerUnitTestCase
       controller.request.system = systemModel
       controller.request['javax.servlet.forward.query_string'] = "prettyPrint=true"
       controller.params.prettyPrint = true
-      controller.request.addHeader('If-None-Match', "f8a5658c3e695fa2ea4d14bb08ed48959b35ea08")
+      controller.request.addHeader('If-None-Match', "b2b6bb2f0592a918be17d1c2d55ac1411fcf3af3")
       controller.rest_get_live_model()
 
       assertEquals(HttpServletResponse.SC_NOT_MODIFIED, controller.response.status)
@@ -136,11 +145,11 @@ class ModelControllerTests extends ControllerUnitTestCase
       controller.request.system = systemModel
       controller.request['javax.servlet.forward.query_string'] = "prettyPrint=true"
       controller.params.prettyPrint = true
-      controller.request.addHeader('If-None-Match', "f8a5658c3e695fa2ea4d14bb08ed48959b35ea08")
+      controller.request.addHeader('If-None-Match', "b2b6bb2f0592a918be17d1c2d55ac1411fcf3af3")
       controller.rest_get_live_model()
 
-      assertEquals(systemModel.toString(), controller.response.contentAsString)
-      assertEquals("45b35ce1364c5a66d4b3a696fc002f923b288974", controller.response.getHeader('ETag'))
+      assertEquals(renderer.prettyPrint(systemModel), controller.response.contentAsString)
+      assertEquals("0280aa36c429a83554c69c5fcf5192011a0ea066", controller.response.getHeader('ETag'))
     }
   }
 
@@ -155,11 +164,11 @@ class ModelControllerTests extends ControllerUnitTestCase
       controller.request['javax.servlet.forward.query_string'] = "prettyPrint=true&legacy=true"
       controller.params.prettyPrint = true
       controller.params.legacy = true
-      controller.request.addHeader('If-None-Match', "f8a5658c3e695fa2ea4d14bb08ed48959b35ea08")
+      controller.request.addHeader('If-None-Match', "b2b6bb2f0592a918be17d1c2d55ac1411fcf3af3")
       controller.rest_get_live_model()
 
-      assertEquals(systemModel.toString(), controller.response.contentAsString)
-      assertEquals("f603f374b32d2a460aed128be819340a86e21d2e", controller.response.getHeader('ETag'))
+      assertEquals(renderer.prettyPrint(systemModel), controller.response.contentAsString)
+      assertEquals("5fccb2ee7406abeecea9026f14f8980b941053a5", controller.response.getHeader('ETag'))
     }
   }
 

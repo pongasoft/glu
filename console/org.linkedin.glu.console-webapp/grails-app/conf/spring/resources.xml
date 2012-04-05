@@ -98,6 +98,12 @@
 
   <bean id="consoleConfig" class="org.linkedin.glu.grails.utils.ConsoleConfig"/>
 
+  <bean id="systemModelRenderer"
+        class="org.linkedin.glu.provisioner.core.model.JsonSystemModelRenderer">
+    <property name="maintainBackwardCompatibilityInSystemId"
+              value="${console.systemModelRenderer.maintainBackwardCompatibilityInSystemId}"/>
+  </bean>
+
   <!-- *********************** -->
   <!-- auditLogService         -->
   <!-- *********************** -->
@@ -172,6 +178,7 @@
       <bean class="org.linkedin.glu.console.provisioner.services.storage.SystemStorageImpl"/>
     </property>
     <property name="pluginService" ref="pluginService"/>
+    <property name="systemModelRenderer" ref="systemModelRenderer"/>
   </bean>
 
   <bean id="systemService" class="org.linkedin.glu.orchestration.engine.system.AuditedSystemService">
