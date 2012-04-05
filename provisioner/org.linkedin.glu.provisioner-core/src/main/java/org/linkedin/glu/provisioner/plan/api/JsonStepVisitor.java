@@ -16,7 +16,6 @@
 
 package org.linkedin.glu.provisioner.plan.api;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 

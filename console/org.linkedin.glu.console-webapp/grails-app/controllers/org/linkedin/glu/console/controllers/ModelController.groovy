@@ -22,12 +22,12 @@ import javax.servlet.http.HttpServletResponse
 import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 
-import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.console.provisioner.services.storage.SystemStorageException
 import org.linkedin.glu.grails.utils.ConsoleHelper
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
+import com.fasterxml.jackson.core.JsonParseException
 
 /**
  * @author: ypujante@linkedin.com
@@ -61,6 +61,11 @@ public class ModelController extends ControllerBase
         flash.message = "Model loaded succesfully"
         redirect(controller: 'dashboard')
       }
+    }
+    catch(JsonParseException e)
+    {
+      flash.error = "Error with the model syntax: ${e.message}"
+      render(view: 'view', id: params.id, model: [systemDetails: system])
     }
     catch(Throwable th)
     {
