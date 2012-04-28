@@ -331,7 +331,7 @@ Step 6: Install the agent
 You can now install the agent on each host you will want to do deployment. The agent is contained in the folder called ``agent-server``. Check the :ref:`agent-configuration` for details on how to configure the agent. What is important is to provide the following configuration to the agent:
 
 * the fabric (as set in :ref:`production-setup-prepare-zookeeper`)
-* the ZooKeeper connection string (which, if you have followed the recommendations in :ref:`production-setup-zookeeper`, will contain a semi-colon separated list of servers (example: ``zk01.acme.com:2181;zk02.acme.com:2181;zk03.acme.com:2181``))
+* the ZooKeeper connection string (which, if you have followed the recommendations in :ref:`production-setup-zookeeper`, will contain a comma separated list of servers (example: ``zk01.acme.com:2181,zk02.acme.com:2181,zk03.acme.com:2181``))
 * the agent name (unless the default is fine)
 
 .. tip:: Once the agent is installed, you can use the :ref:`auto upgrade <agent-auto-upgrade>` capability built into the agent
