@@ -1,6 +1,23 @@
 Latest changes
 ==============
 
+4.4.0 (2012/04/28)
+------------------
+
+This release further improves the performance of the previous one.
+
+.. warning:: Unlike the previous release, for performance reasons, the default is now to compute the checksum system model using jackson output. 
+             As a result, the **same** model loaded prior to 4.4.0 will have a different checksum. 
+             If this turns out to be an issue in your case (which should be extremely unlikely if you usually "move forward"), then you can disable this behavior and revert back to the previous computation using the following configuration property in your (console) configuration file::
+
+                console.systemModelRenderer.maintainBackwardCompatibilityInSystemId=true
+
+List of tickets:
+
+* Fixed `glu-139 <https://github.com/linkedin/glu/issues/139>`_: `Fix documentation for ZooKeeper URL`
+* Implemented `glu-138 <https://github.com/linkedin/glu/issues/138>`_: `Make pretty printing configurable`
+* Merged `glu-137 <https://github.com/linkedin/glu/issues/137>`_: `Place focus in username input text field on page load` (thanks to Tom)
+
 4.3.1 (2012/03/31)
 ------------------
 
