@@ -99,6 +99,15 @@ while getopts "n:f:" opt ; do
   esac
 done
 
+# Check to make sure we have the correct version of Java.
+JAVA_VER=$("$JAVA_HOME/bin/java" -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
+if [ "$JAVA_VER" -ge 16 ]; then
+	echo "### Suitable JVM found under $JAVA_HOME"
+else
+	echo "### Java @ $JAVA_HOME too old." 
+	exit 1;
+fi
+
 # correct the index so the command argument is always $1
 shift $(($OPTIND - 1))
 
