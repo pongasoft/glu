@@ -18,14 +18,14 @@
 spec = [
     name: 'glu',
     group: 'org.linkedin',
-    version: '3.5.1',
+    version: '3.5.3',
 
     versions: [
       grails: '1.3.5',
       groovy: '1.7.5',
       jetty: '7.2.2.v20101205',
-      linkedinUtils: '1.8.0',
-      linkedinZookeeper: '1.4.1',
+      linkedinUtils: '1.8.1',
+      linkedinZookeeper: '1.4.2',
       restlet: '2.0.1',
       sigar: '1.6.4',
       slf4j: '1.5.8' // to be compatible with grails 1.3.5
@@ -89,5 +89,5 @@ spec.external = [
   slf4j: "org.slf4j:slf4j-api:${spec.versions.slf4j}",
   slf4jLog4j: "org.slf4j:slf4j-log4j12:${spec.versions.slf4j}",
   slf4jJul: "org.slf4j:jul-to-slf4j:${spec.versions.slf4j}",
-  zookeeper: 'org.apache.zookeeper:zookeeper:3.3.3'
+  zookeeper: 'org.apache.zookeeper:zookeeper:3.3.4'
 ]

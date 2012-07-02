@@ -1,6 +1,12 @@
 Latest changes
 ==============
 
+3.5.3 (2012/06/26)
+------------------
+Upgraded to ``linkedin-utils-1.8.1``, ``linkedin-zookeeper-1.4.2``
+* Upgrading org.apache.zookeeper to 3.3.4
+* Better masking of non alpha-numeric passwords
+
 3.4.0 (2011/10/10)
 ------------------
 
@@ -84,9 +90,9 @@ What is new in 3.0.0 ?
 
 3.0.0 adds the following features:
 
-* :ref:`parent/child relationship <static-model-entries-parent>` which adds the capability of decoupling the lifecycle of a parent and a child 
+* :ref:`parent/child relationship <static-model-entries-parent>` which adds the capability of decoupling the lifecycle of a parent and a child
   (typical examples being deploying a webapp inside a webapp container or deploying a bundle in an OSGi container)
-* define the desired state of an entry in the model (:ref:`entryState <static-model-entries-entryState>`) which, for example, allows you to deploy an 
+* define the desired state of an entry in the model (:ref:`entryState <static-model-entries-entryState>`) which, for example, allows you to deploy an
   application without starting it
 * The console is no longer precomputing the various plans (deploy, bounce, undeploy and redeploy) and they are now computed on demand only
 * The delta is now a first class citizen and a new rest API allows to :ref:`access it <goe-rest-api-get-model-delta>`
@@ -187,7 +193,7 @@ This version is highly recommended for glu-27 specifically which may prevent the
      :align: center
      :alt: Agent View
 
-  Configurable:  
+  Configurable:
 
   .. image:: /images/release/v2.0.0/configurable_tags.png
      :align: center
