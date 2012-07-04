@@ -94,39 +94,41 @@ class UserController extends ControllerBase
   }
 
   def update = {
-    def role = params.role
-    if(role instanceof String)
-      role = [role]
-    
-    def userInstance = User.get(params.id)
-    if(userInstance)
-    {
-      if(params.version)
+    User.withTransaction {
+      def role = params.role
+      if(role instanceof String)
+        role = [role]
+
+      def userInstance = User.get(params.id)
+      if(userInstance)
       {
-        def version = params.version.toLong()
-        if(userInstance.version > version)
+        if(params.version)
         {
-          userInstance.errors.rejectValue("version", "user.optimistic.locking.failure", "Another user has updated this User while you were editing.")
-          render(view: 'edit', model: [userInstance: userInstance])
-          return
+          def version = params.version.toLong()
+          if(userInstance.version > version)
+          {
+            userInstance.errors.rejectValue("version", "user.optimistic.locking.failure", "Another user has updated this User while you were editing.")
+            render(view: 'edit', model: [userInstance: userInstance])
+            return
+          }
         }
-      }
-      userInstance.setRoles(role)
-      if(!userInstance.hasErrors() && userInstance.save([flush: true]))
-      {
-        flash.success = "User ${userInstance.username} updated"
-        audit('user.updated', userInstance.username, "roles: ${role}")
-        redirect(action: show, id: userInstance.id)
+        userInstance.setRoles(role)
+        if(!userInstance.hasErrors() && userInstance.save([flush: true]))
+        {
+          flash.success = "User ${userInstance.username} updated"
+          audit('user.updated', userInstance.username, "roles: ${role}")
+          redirect(action: show, id: userInstance.id)
+        }
+        else
+        {
+          render(view: 'edit', model: [userInstance: userInstance])
+        }
       }
       else
       {
-        render(view: 'edit', model: [userInstance: userInstance])
+        flash.warning = "User not found with id ${params.id}"
+        redirect(action: list)
       }
-    }
-    else
-    {
-      flash.warning = "User not found with id ${params.id}"
-      redirect(action: list)
     }
   }
 
@@ -187,57 +189,59 @@ class UserController extends ControllerBase
   }
 
   def updatePassword = {
-    def username = request.user?.username
+    User.withTransaction {
+      def username = request.user?.username
 
-    def authToken = new UsernamePasswordToken(username, params.currentPassword)
+      def authToken = new UsernamePasswordToken(username, params.currentPassword)
 
-    try
-    {
-      // Perform the actual login. An AuthenticationException
-      // will be thrown if the username is unrecognised or the
-      // password is incorrect.
-      SecurityUtils.subject.login(authToken)
-    }
-    catch (AuthenticationException ex)
-    {
-      flash.error = "Invalid password"
-      redirect(action: 'credentials')
-      return
-    }
+      try
+      {
+        // Perform the actual login. An AuthenticationException
+        // will be thrown if the username is unrecognised or the
+        // password is incorrect.
+        SecurityUtils.subject.login(authToken)
+      }
+      catch (AuthenticationException ex)
+      {
+        flash.error = "Invalid password"
+        redirect(action: 'credentials')
+        return
+      }
 
-    if(!params.newPassword)
-    {
-      flash.error = "Please input your new password"
-      redirect(action: 'credentials')
-      return
-    }
+      if(!params.newPassword)
+      {
+        flash.error = "Please input your new password"
+        redirect(action: 'credentials')
+        return
+      }
 
-    if(params.newPassword != params.newPasswordAgain)
-    {
-      flash.error = "New password is different from New password again"
-      redirect(action: 'credentials')
-      return
-    }
+      if(params.newPassword != params.newPasswordAgain)
+      {
+        flash.error = "New password is different from New password again"
+        redirect(action: 'credentials')
+        return
+      }
 
-    def ucr = DbUserCredentials.findByUsername(username)
+      def ucr = DbUserCredentials.findByUsername(username)
 
-    if(!ucr)
-    {
-      ucr = new DbUserCredentials(username: username)
-    }
+      if(!ucr)
+      {
+        ucr = new DbUserCredentials(username: username)
+      }
 
-    ucr.password = params.newPassword
-    if(!ucr.hasErrors() && ucr.save())
-    {
-      flash.success = "Your password has been changed."
-      redirect(action: 'credentials')
-      return
-    }
-    else
-    {
-      flash.error = "Error while saving new password: ${credentials.errors}"
-      redirect(action: 'credentials')
-      return
+      ucr.password = params.newPassword
+      if(!ucr.hasErrors() && ucr.save())
+      {
+        flash.success = "Your password has been changed."
+        redirect(action: 'credentials')
+        return
+      }
+      else
+      {
+        flash.error = "Error while saving new password: ${credentials.errors}"
+        redirect(action: 'credentials')
+        return
+      }
     }
   }
 }

@@ -1,6 +1,13 @@
 Latest changes
 ==============
 
+4.4.1 (2012/07/04)
+------------------
+
+This release contains a critical bug fix
+
+* Fixed `glu-150 <https://github.com/linkedin/glu/issues/150>`_: `Cannot change password`
+
 4.4.0 (2012/04/28)
 ------------------
 
