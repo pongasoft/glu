@@ -160,4 +160,28 @@ class TestFileSystemStorage extends GroovyTestCase
     assertEquals([stateFileSystem.toResource('_foo'), stateFileSystem.toResource('_foo1')], invalidStates)
 
   }
+
+  /**
+   * Test for bug #151
+   */
+  public void testMountPointWithUnderscore()
+  {
+    // first it is empty...
+    assertEquals(0, storage.mountPoints.size())
+
+    MountPoint mp = MountPoint.create('/a/_b_%1_0_/c')
+
+    // we store some state
+    def file = new File(rootFile, '_a_%5Fb%5F%251%5F0%5F_c')
+
+    assertFalse file.exists()
+    storage.storeState(mp, [p1: 'v1', scriptDefinition: [mountPoint: mp]])
+    assertTrue file.exists()
+
+    // 1 mount point in the storage...
+    assertEquals([mp], storage.mountPoints)
+
+    // we read it back
+    assertEquals([p1: 'v1', scriptDefinition: [mountPoint: mp]], storage.loadState(mp))
+  }
 }

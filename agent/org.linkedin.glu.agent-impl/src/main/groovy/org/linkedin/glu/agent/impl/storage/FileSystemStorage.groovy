@@ -20,7 +20,6 @@ package org.linkedin.glu.agent.impl.storage
 
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.api.NoSuchMountPointException
-import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.io.fs.FileSystem
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -167,11 +166,18 @@ class FileSystemStorage implements Storage
 
   private String toPath(MountPoint mp)
   {
-    return mp.path.replace('/', '_')
+    // YP Note: _ => %5F is to fix glu-151
+    def path = mp.path
+    path = path.replace('%', '%25')
+    path = path.replace('_', '%5F')
+    path = path.replace('/', '_')
+    return path
   }
 
   private MountPoint fromPath(String path)
   {
-    return MountPoint.create(path.replace('_', '/'))
+    path = path.replace('_', '/')
+    path = URLDecoder.decode(path, "UTF-8")
+    return MountPoint.create(path)
   }
 }
