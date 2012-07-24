@@ -16,6 +16,8 @@
 
 package org.linkedin.glu.console.domain
 
+import org.codehaus.groovy.grails.commons.ConfigurationHolder
+
 class User
 {
   String username
@@ -25,6 +27,10 @@ class User
 //  static mapping = {
 //    roles fetch:'join'
 //  }
+
+  static mapping = {
+    table ConfigurationHolder.config.console.datasource.table.user.mapping ?: 'user'
+  }
 
   static hasMany = [ roles: Role, permissions: String ]
 
