@@ -36,7 +36,7 @@ public abstract class AbstractStepExecutor<T> implements IStepExecutor<T>
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   private final IStep<T> _step;
-  private final StepExecutionContext<T> _context;
+  protected final StepExecutionContext<T> _context;
 
   private Future<Void> _future;
   private volatile IStepCompletionStatus<T> _completionStatus;
@@ -123,6 +123,14 @@ public abstract class AbstractStepExecutor<T> implements IStepExecutor<T>
   }
 
   /**
+   * Submits the job to the appropriate service executor.
+   */
+  public <V> Future<V> submit(Callable<V> callable)
+  {
+    return _context.getExecutorService().submit(callable);
+  }
+
+  /**
    * Executes the step
    */
   @Override
@@ -133,7 +141,7 @@ public abstract class AbstractStepExecutor<T> implements IStepExecutor<T>
       if(log.isDebugEnabled())
         debug("execute (submitting)");
 
-      _future = _context.submit(new Callable<Void>()
+      _future = submit(new Callable<Void>()
       {
         @Override
         public Void call() throws Exception

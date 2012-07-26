@@ -35,7 +35,20 @@ public class PlanExecutor<T> implements IPlanExecutor<T>
 {
   private Clock _clock = SystemClock.instance();
   private ExecutorService _executorService;
+  private ExecutorService _leafExecutorService;
   private ILeafStepExecutor<T> _leafStepExecutor;
+
+  /**
+   * Constructor
+   */
+  public PlanExecutor(ExecutorService executorService,
+                      ExecutorService leafExecutorService,
+                      ILeafStepExecutor<T> leafStepExecutor)
+  {
+    _executorService = executorService;
+    _leafExecutorService = leafExecutorService;
+    _leafStepExecutor = leafStepExecutor;
+  }
 
   /**
    * Constructor
@@ -43,8 +56,7 @@ public class PlanExecutor<T> implements IPlanExecutor<T>
   public PlanExecutor(ExecutorService executorService,
                       ILeafStepExecutor<T> leafStepExecutor)
   {
-    _executorService = executorService;
-    _leafStepExecutor = leafStepExecutor;
+    this(executorService, executorService, leafStepExecutor);
   }
 
   /**
@@ -63,6 +75,17 @@ public class PlanExecutor<T> implements IPlanExecutor<T>
   public void setExecutorService(ExecutorService executorService)
   {
     _executorService = executorService;
+  }
+
+  public ExecutorService getLeafExecutorService()
+  {
+    return _leafExecutorService;
+  }
+
+  @Initializer
+  public void setLeafExecutorService(ExecutorService leafExecutorService)
+  {
+    _leafExecutorService = leafExecutorService;
   }
 
   public Clock getClock()
@@ -113,6 +136,7 @@ public class PlanExecutor<T> implements IPlanExecutor<T>
                                        IPlanExecutionProgressTracker<T> progressTracker)
   {
     StepExecutionContext<T> ctx = new StepExecutionContext<T>(_executorService,
+                                                              _leafExecutorService,
                                                               _leafStepExecutor,
                                                               progressTracker,
                                                               _clock);

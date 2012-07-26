@@ -22,6 +22,9 @@ import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus;
 import org.linkedin.glu.provisioner.plan.api.LeafStep;
 import org.linkedin.glu.provisioner.plan.api.LeafStepCompletionStatus;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+
 /**
  * @author ypujante@linkedin.com
  */
@@ -36,6 +39,15 @@ public class LeafStepExecutor<T> extends AbstractStepExecutor<T> implements ISte
   public LeafStepExecutor(LeafStep<T> step, StepExecutionContext<T> context)
   {
     super(step, context);
+  }
+
+  /**
+   * Submits the job to the appropriate service executor.
+   */
+  @Override
+  public <V> Future<V> submit(Callable<V> callable)
+  {
+    return _context.getLeafStepExecutorService().submit(callable);
   }
 
   @Override

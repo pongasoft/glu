@@ -69,7 +69,10 @@
     <property name="encryptionKeysProvider" ref="encryptionKeysProvider"/>
   </bean>
 
-  <bean id="executor" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool"/>
+  <bean id="executor"
+        class="java.util.concurrent.Executors"
+        factory-method="newCachedThreadPool"
+        destroy-method="shutdown"/>
 
   <bean id="leafExecutor"
         class="org.linkedin.glu.orchestration.engine.action.execution.ActionDescriptorStepExecutor">
@@ -79,6 +82,7 @@
   <bean id="planExecutor" class="org.linkedin.glu.provisioner.plan.impl.PlanExecutor">
     <property name="clock"><bean class="org.linkedin.util.clock.SystemClock" factory-method="instance"/></property>
     <property name="executorService" ref="executor"/>
+    <property name="leafExecutorService" ref="leafExecutorService"/>
     <property name="leafStepExecutor" ref="leafExecutor"/>
   </bean>
 

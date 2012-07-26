@@ -39,6 +39,7 @@ public class TestStepExecutor extends GroovyTestCase
       leafStep.action()
   }
   private StepExecutionContext ctx = new StepExecutionContext( Executors.newCachedThreadPool(),
+                                                               Executors.newCachedThreadPool(),
                                                                leafStepExecutor as ILeafStepExecutor,
                                                                NoOpPlanExecutionProgressTracker.instance(),
                                                                staticClock);

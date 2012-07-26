@@ -17,11 +17,32 @@
 
 import org.springframework.cache.ehcache.EhCacheFactoryBean
 import org.linkedin.util.clock.Timespan
+import java.util.concurrent.Executors
+import org.codehaus.groovy.grails.commons.ConfigurationHolder
 
 // Place your Spring DSL code here
 beans = {
   userSessionCache(EhCacheFactoryBean) {
     timeToIdle = Timespan.parse('30m').durationInSeconds
     timeToLive = 0 // use only the timeToIdle parameter...
+  }
+
+  def fixedThreadPoolSize =
+    ConfigurationHolder.config.console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize ?: 0
+
+  if(fixedThreadPoolSize ?: 0 > 0)
+  {
+    log.info "Setting leafExecutorService thread pool size to [${fixedThreadPoolSize}]"
+    leafExecutorService(Executors, fixedThreadPoolSize) { bean ->
+      bean.factoryMethod = "newFixedThreadPool"
+      bean.destroyMethod = "shutdown"
+    }
+  }
+  else
+  {
+    leafExecutorService(Executors) { bean ->
+      bean.factoryMethod = "newCachedThreadPool"
+      bean.destroyMethod = "shutdown"
+    }
   }
 }

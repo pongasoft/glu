@@ -50,6 +50,10 @@ orchestration.engine.plugins = [
   'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin'
 ]
 
+// The following property limits how many (leaf) steps get executed in parallel during a deployment
+// By default (undefined), it is unlimited
+// console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 100
+
 log4j = {
     appenders {
     	file name:'file',

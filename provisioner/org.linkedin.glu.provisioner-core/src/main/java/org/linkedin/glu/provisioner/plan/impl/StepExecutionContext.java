@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.Callable;
 
 import org.linkedin.glu.provisioner.plan.api.ILeafStepExecutor;
@@ -46,6 +45,7 @@ public class StepExecutionContext<T> implements IPlanExecutionProgressTracker<T>
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   private final ExecutorService _executorService;
+  private final ExecutorService _leafStepExecutorService;
   private final ILeafStepExecutor<T> _leafStepExecutor;
   private final IPlanExecutionProgressTracker<T> _originalTracker;
   private final Clock _clock;
@@ -57,11 +57,13 @@ public class StepExecutionContext<T> implements IPlanExecutionProgressTracker<T>
    * Constructor
    */
   public StepExecutionContext(ExecutorService executorService,
+                              ExecutorService leafStepExecutorService,
                               ILeafStepExecutor<T> leafStepExecutor,
                               IPlanExecutionProgressTracker<T> tracker,
                               Clock clock)
   {
     _executorService = executorService;
+    _leafStepExecutorService = leafStepExecutorService;
     _leafStepExecutor = leafStepExecutor;
     _originalTracker = tracker;
     _clock = clock;
@@ -77,9 +79,9 @@ public class StepExecutionContext<T> implements IPlanExecutionProgressTracker<T>
     return _executorService;
   }
 
-  public <V> Future<V> submit(Callable<V> callable)
+  public ExecutorService getLeafStepExecutorService()
   {
-    return _executorService.submit(callable);
+    return _leafStepExecutorService;
   }
 
   public ILeafStepExecutor<T> getLeafStepExecutor()
