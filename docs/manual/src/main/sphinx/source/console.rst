@@ -175,6 +175,30 @@ Here are the steps to follow in order to use MySql instead of HSQLDB (the steps 
     | user_role           |
     +---------------------+
 
+.. note:: If you are experiencing the following issue with 
+          MySql::
+
+            2012/04/25 10:08:30.344 ERROR [JDBCExceptionReporter] The last packet successfully received 
+            from the server was 73,329,213 milliseconds ago. The last packet sent successfully to the 
+            server was 73,329,214 milliseconds ago. is longer than the server configured value of 
+            'wait_timeout'. You should consider either expiring and/or testing connection validity 
+            before use in your application, increasing the server configured values for client 
+            timeouts, or using the Connector/J connection property 'autoReconnect=true' to avoid 
+            this problem
+
+          it has been `reported <https://github.com/linkedin/glu/issues/141>`_ that in order to fix the issue, you can add the following configuration properties in the glu configuration 
+          file::
+
+            dataSource.properties.validationQuery = "SELECT 1"
+            dataSource.properties.testWhileIdle = false
+            dataSource.properties.timeBetweenEvictionRunsMillis = 1800000
+            dataSource.properties.minEvictableIdleTimeMillis = 1800000
+            dataSource.properties.numTestsPerEvictionRun = 3
+            dataSource.properties.testOnBorrow = true
+            dataSource.properties.testOnReturn = false
+
+
+
 Logging
 ^^^^^^^
 
