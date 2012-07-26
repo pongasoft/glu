@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2012 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,7 +18,7 @@
 spec = [
     name: 'glu',
     group: 'org.linkedin',
-    version: '4.4.1-patch',
+    version: '4.4.2',
 
     versions: [
       grails: '1.3.5',

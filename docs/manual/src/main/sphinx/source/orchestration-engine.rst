@@ -1469,7 +1469,7 @@ View delta
 
 * Response:
 
-  * ``200`` (``OK``) with a json representation of the delta
+  * ``200`` (``OK``) with a :ref:`json representation <goe-rest-api-delta-formal-definition>` of the delta
 
 .. _goe-rest-api-get-fabrics:
 
@@ -1539,6 +1539,15 @@ API Examples
 ^^^^^^^^^^^^
 * Sending the model to glu in `java <https://gist.github.com/756465>`_
 * `Python example <https://github.com/linkedin/glu/blob/REL_1.5.0/console/org.linkedin.glu.console-cli/src/cmdline/resources/lib/python/gluconsole/rest.py>`_ (part of the cli)
+
+.. _goe-rest-api-delta-formal-definition:
+
+Delta Formal Definition
+-----------------------
+
+TBD: add formal delta definition
+
+.. note:: In the meantime, you may want to check this `forum thread <http://glu.977617.n3.nabble.com/formal-definition-of-a-delta-td4024766.html>`_
 
 .. _goe-rest-api-representing-a-plan:
 

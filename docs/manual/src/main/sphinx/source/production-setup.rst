@@ -1,4 +1,4 @@
-.. Copyright (c) 2011 Yan Pujante
+.. Copyright (c) 2011-2012 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -358,7 +358,7 @@ If the keys, passwords and everything is fine, you will get ``[/]`` which is a l
 Step 8: Install the console
 ---------------------------
 
-.. warning:: The default configuration uses HSQLDB for the database. In a production setup, it is **not** recommended to use HSQLDB. Check the section :ref:`console-configuration-database-mysql` for details on how to configure a different database.
+.. warning:: The default configuration uses HSQLDB for the database. In a production setup, it is **not** recommended to use HSQLDB. Check the section :ref:`console-configuration-database-mysql` for details on how to configure a different database. If you want to use Oracle or PostgresSQL, please check the section :ref:`console-configuration-database-other` for more configuration information.
 
 Option 1: Install the war file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

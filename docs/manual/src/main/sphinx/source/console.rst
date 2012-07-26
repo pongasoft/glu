@@ -1,4 +1,4 @@
-.. Copyright (c) 2011 Yan Pujante
+.. Copyright (c) 2011-2012 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -197,7 +197,14 @@ Here are the steps to follow in order to use MySql instead of HSQLDB (the steps 
             dataSource.properties.testOnBorrow = true
             dataSource.properties.testOnReturn = false
 
+.. _console-configuration-database-other:
 
+Other databases: Oracle, PostgresSQL
+""""""""""""""""""""""""""""""""""""
+
+Some databases (like Oracle and PostgresSQL) do not allow to have a table named ``USER``. In order to use one of this database, you need to add the following property to the glu configuration file (``console-server/conf/glu-console-webapp.groovy``)::
+
+    console.datasource.table.user.mapping = "db_user" 
 
 Logging
 ^^^^^^^
@@ -271,6 +278,14 @@ The plans page displays the list of deployments that have happened recently. Sin
   // set it to "0" if you want to disable auto archiving entirely
   console.deploymentService.autoArchiveTimeout = "30m"
 
+Limiting the number of paralell steps
+"""""""""""""""""""""""""""""""""""""
+
+When running deployments in parallel, there is, by default, no limitation on how many steps can be executed at the same time. Depending on the size of your system, this may put a lot of stress on your infrastructure (like the network, binary repositories, etc...). In order to limit how many steps can run in parallel, you can define this property in the glu configuration file (``console-server/conf/glu-console-webapp.groovy``)::
+
+  // The following property limits how many (leaf) steps get executed in parallel during a deployment
+  // By default (undefined), it is unlimited
+  console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 500
 
 UI configuration
 ^^^^^^^^^^^^^^^^

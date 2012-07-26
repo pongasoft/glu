@@ -1,6 +1,17 @@
 Latest changes
 ==============
 
+4.4.2 (2012/07/26)
+------------------
+
+This release contains mostly bug fixes and minor improvements
+
+* Fixed `glu-111 <https://github.com/linkedin/glu/issues/111>`_: `Console server initialization fails with Oracle 11g` (Thanks to Chris for the tip)
+* Implemented `glu-141 <https://github.com/linkedin/glu/issues/141>`_: `Add documentation about mysql configuration`
+* Fixed `glu-144 <https://github.com/linkedin/glu/issues/144>`_: `Addition of pre-setup Java version check` (Thanks to Stuart)
+* Implemented `glu-147 <https://github.com/linkedin/glu/issues/147>`_: `Allow to limit (optionally) massive parallel deployment`
+* Fixed `glu-151 <https://github.com/linkedin/glu/issues/151>`_: `Allow '_' in mountPoint`
+
 4.4.1 (2012/07/04)
 ------------------
 
