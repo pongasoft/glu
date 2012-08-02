@@ -260,13 +260,6 @@ You can configure LDAP for handling user management in the console. See :ref:`co
   ldap.search.pass="helloworld"
   ldap.username.attribute="sAMAccountName"
 
-REST
-^^^^
-
-By default, REST calls that modify the database (``POST``, ``PUT``, ``DELETE``) require ``ADMIN`` level. You can `downgrade` the required level with the property::
-
-  console.authFilters.rest.write.roleName = "RELEASE"
-
 Tuning
 ^^^^^^
 

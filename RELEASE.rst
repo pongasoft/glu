@@ -1,6 +1,12 @@
 Latest changes
 ==============
 
+4.5.0 (TBD)
+-----------
+
+Removed property `console.authFilters.rest.write.roleName`
+
+
 4.4.2 (2012/07/26)
 ------------------
 

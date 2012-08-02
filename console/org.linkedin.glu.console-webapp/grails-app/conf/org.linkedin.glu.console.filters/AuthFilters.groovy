@@ -22,11 +22,16 @@ import org.apache.shiro.SecurityUtils
 import org.apache.shiro.authc.UsernamePasswordToken
 import org.linkedin.glu.console.domain.RoleName
 import org.linkedin.glu.grails.utils.ConsoleConfig
+import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 
 /**
  * @author ypujante@linkedin.com */
 class AuthFilters
 {
+  public static final String MODULE = "org.linkedin.glu.console.conf.UrlMappings"
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
+
   def onUnauthorized(subject, filter)
   {
     if(filter.name == 'rest')
@@ -39,7 +44,6 @@ class AuthFilters
 
     userInRequest(controller: '*', action: '*') {
       before = {
-//        println "executing 'userInRequest' filter"
         def subject = SecurityUtils.getSubject()
         if(subject?.principal)
           request.user = [username: subject.principal]
@@ -49,7 +53,7 @@ class AuthFilters
 
     rest(uri: '/rest/**') {
       before = {
-//        println "executing 'rest' filter"
+        request.isRestRequest = true
         def authString = request.getHeader('Authorization')
 
         if(authString)
@@ -63,7 +67,6 @@ class AuthFilters
             SecurityUtils.subject.login(new UsernamePasswordToken(credentials[0],
                                                                   credentials[1]))
             request.user = [username: SecurityUtils.subject.principal]
-            request.isRestRequest = true
           }
           catch(Exception e)
           {
@@ -75,44 +78,49 @@ class AuthFilters
           }
         }
 
-        // YP Note: for now all gets are available to USERS, and everything else to ADMIN only
         accessControl {
-          if(request.method == 'GET' || request.method == 'HEAD')
-            role(RoleName.USER)
-          else
+          def minRoleToProceed = params.__roles[request.method]
+
+          if(!minRoleToProceed)
           {
-            def defaultRoleName =
-              ConsoleConfig.instance.config.console.authFilters.rest.write.roleName ?: RoleName.ADMIN.toString()
-            role(RoleName.valueOf(defaultRoleName.toString()))
+            minRoleToProceed = RoleName.ADMIN
           }
+
+          role(minRoleToProceed)
         }
       }
     }
 
     ui(uri: "/**", uriExclude: "/rest/**") {
       before = {
-        def tmp = "from AuthFilters.ui => ${params}"
+        if(request.isRestRequest)
+        {
+          // YP note: <uriExclude: "/rest/**"> which is described in the grails doc, is not
+          // working, hence this workaround :(
+          return true
+        }
+
         switch(params.controller)
         {
           case "auth":
             println "${tmp} [auth]"
             // no restriction => always allowed
+            return true
             break
 
           default:
             tmp = "${tmp} [all]"
             accessControl {
-              def userRole = params.__role
+              def minRoleToProceed = params.__role
 
-              if(!userRole)
+              if(!minRoleToProceed)
               {
-                userRole = RoleName.ADMIN
+                minRoleToProceed = RoleName.ADMIN
               }
 
-              println "${tmp} [${userRole}]"
-              
-              role(userRole)
+              role(minRoleToProceed)
             }
+            break
         }
       }
     }
