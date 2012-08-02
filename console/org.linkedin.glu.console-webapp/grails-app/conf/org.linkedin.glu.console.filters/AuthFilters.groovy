@@ -39,6 +39,7 @@ class AuthFilters
 
     userInRequest(controller: '*', action: '*') {
       before = {
+//        println "executing 'userInRequest' filter"
         def subject = SecurityUtils.getSubject()
         if(subject?.principal)
           request.user = [username: subject.principal]
@@ -46,24 +47,9 @@ class AuthFilters
       }
     }
 
-    release(uri: '/release/**') {
-      before = {
-        accessControl {
-          role(RoleName.RELEASE)
-        }
-      }
-    }
-
-    admin(uri: '/admin/**') {
-      before = {
-        accessControl {
-          role(RoleName.ADMIN)
-        }
-      }
-    }
-
     rest(uri: '/rest/**') {
       before = {
+//        println "executing 'rest' filter"
         def authString = request.getHeader('Authorization')
 
         if(authString)
@@ -103,10 +89,30 @@ class AuthFilters
       }
     }
 
-    all(controller: '*', action: '*') {
+    ui(uri: "/**", uriExclude: "/rest/**") {
       before = {
-        accessControl {
-          role(RoleName.USER)
+        def tmp = "from AuthFilters.ui => ${params}"
+        switch(params.controller)
+        {
+          case "auth":
+            println "${tmp} [auth]"
+            // no restriction => always allowed
+            break
+
+          default:
+            tmp = "${tmp} [all]"
+            accessControl {
+              def userRole = params.__role
+
+              if(!userRole)
+              {
+                userRole = RoleName.ADMIN
+              }
+
+              println "${tmp} [${userRole}]"
+              
+              role(userRole)
+            }
         }
       }
     }

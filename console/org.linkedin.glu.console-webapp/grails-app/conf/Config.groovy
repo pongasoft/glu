@@ -163,6 +163,146 @@ console.dev.defaults =
       ],
   ]
 
+/**
+ * Security
+ * --------
+ *
+ * Map of URI (as found in UrlMappings) to role (USER, RELEASE, ADMIN)
+ *
+ * Note that the $ and ? signs are not present in the URI (unlike in UrlMappings)
+ */
+// security
+console.security.roles = [
+  /**************************************
+   * USER access
+   */
+  // dashboard
+  "/dashboard": "USER",
+  "/dashboard/redelta": "USER",
+  "/dashboard/renderDelta": "USER",
+  "/dashboard/index": "USER",
+  "/dashboard/customize": "USER",
+  "/dashboard/saveAsNewCustomDashboard": "USER",
+  "/dashboard/plans": "USER",
+
+  // agents
+  "/agents": "USER",
+  "/agents/view/id": "USER",
+  "/agents/ps/id": "USER",
+  "/agents/fullStackTrace/id": "USER",
+  "/agents/tailLog/id": "USER",
+  "/agents/fileContent/id": "USER",
+  "/agents/plans/id": "USER",
+
+  // plan
+  "/plan/view/id": "USER",
+  "/plan/redirectView": "USER",
+  "/plan/deployments/id": "USER",
+  "/plan/renderDeploymentDetails/id": "USER",
+  "/plan/renderDeployments": "USER",
+  "/plan/archived/id": "USER",
+  "/plan/create": "USER",
+
+  // fabric
+  "/fabric/select/id": "USER",
+
+  // model
+  "/model/list": "USER",
+  "/model/view/id": "USER",
+
+  // user credentials
+  "/user/credentials": "USER",
+  "/user/updatePassword": "USER",
+
+  // help
+  "/help": "USER",
+  "/help/forum": "USER",
+
+  // /
+  "/": "USER",
+
+  // home
+  "/home": "USER",
+
+  /**************************************
+   * RELEASE access
+   */
+  // agents
+  "/agents/kill/id/pid": "RELEASE",
+  "/agents/sync/id": "RELEASE",
+  "/agents/clearError/id": "RELEASE",
+  "/agents/uninstallScript/id": "RELEASE",
+  "/agents/createPlan/id": "RELEASE",
+  "/agents/interruptAction/id": "RELEASE",
+
+  // plan
+  "/plan/execute/id": "RELEASE",
+  "/plan/filter/id": "RELEASE",
+  "/plan/archiveAllDeployments": "RELEASE",
+  "/plan/archiveDeployment/id": "RELEASE",
+  "/plan/resumeDeployment/id": "RELEASE",
+  "/plan/pauseDeployment/id": "RELEASE",
+  "/plan/abortDeployment/id": "RELEASE",
+  "/plan/cancelStep/id": "RELEASE",
+
+  // model
+  "/model/choose": "RELEASE",
+  "/model/load": "RELEASE",
+  "/model/upload": "RELEASE",
+  "/model/save": "RELEASE",
+  "/model/setAsCurrent": "RELEASE",
+
+  // fabric
+  "/fabric/refresh": "RELEASE",
+
+  /**************************************
+   * ADMIN access
+   */
+  // admin
+  "/admin": "ADMIN",
+
+  // agents
+  "/agents/listVersions": "ADMIN",
+  "/agents/upgrade": "ADMIN",
+  "/agents/cleanup": "ADMIN",
+  "/agents/forceUninstallScript/id": "ADMIN",
+  "/agent/id/clear": "ADMIN",
+
+  // fabric
+  "/fabric/listAgentFabrics": "ADMIN",
+  "/fabric/setAgentsFabrics": "ADMIN",
+  "/fabric/clearAgentFabric": "ADMIN",
+  "/fabric/list": "ADMIN",
+  "/fabric/show/id": "ADMIN",
+  "/fabric/delete/id": "ADMIN",
+  "/fabric/edit/id": "ADMIN",
+  "/fabric/update/id": "ADMIN",
+  "/fabric/create": "ADMIN",
+  "/fabric/save": "ADMIN",
+
+  // user
+  "/user/index": "ADMIN",
+  "/user/list": "ADMIN",
+  "/user/show/id": "ADMIN",
+  "/user/delete/id": "ADMIN",
+  "/user/edit/id": "ADMIN",
+  "/user/update/id": "ADMIN",
+  "/user/create": "ADMIN",
+  "/user/save": "ADMIN",
+
+  // audit log
+  "/auditLog/list": "ADMIN",
+
+  // encryption keys
+  "/encryption/list": "ADMIN",
+  "/encryption/create": "ADMIN",
+  "/encryption/encrypt": "ADMIN",
+  "/encryption/ajaxSave": "ADMIN",
+  "/encryption/ajaxEncrypt": "ADMIN",
+  "/encryption/ajaxDecrypt": "ADMIN"
+
+]
+
 // set per-environment serverURL stem for creating absolute links
 environments {
   production {
