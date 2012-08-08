@@ -100,4 +100,15 @@ class AuthController extends ControllerBase
   def unauthorized = {
     render "You do not have permission to access this page."
   }
+
+  /**
+   * This is for backward compatibility transition: simply redirect to the page with a
+   * warning message without the auth level in the URL
+   */
+  def noAuthInURL = {
+    def uri = "${request.forwardURI}${request.queryString ? '?' + request.queryString : ''}"
+    uri = uri - '/admin'
+    uri = uri - '/release'
+    render "This page has moved: <a href=\"${uri}\">Click here and bookmark the new page</a>"
+  }
 }

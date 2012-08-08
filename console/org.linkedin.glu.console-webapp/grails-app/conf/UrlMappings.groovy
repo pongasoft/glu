@@ -205,89 +205,89 @@ class UrlMappings
      * RELEASE access
      */
     // agents
-    "/release/agents/kill/$id/$pid"(controller: 'agents', action: 'kill') { 
+    "/agents/kill/$id/$pid"(controller: 'agents', action: 'kill') { 
       __nvbe = 'Dashboard'
       __role = UrlMappings.role('/agents/kill/$id/$pid')
     }
-    "/release/agents/sync/$id"(controller: 'agents', action: 'sync') { 
+    "/agents/sync/$id"(controller: 'agents', action: 'sync') { 
       __nvbe = 'Dashboard'
       __role = UrlMappings.role('/agents/sync/$id')
     }
-    "/release/agents/clearError/$id"(controller: 'agents', action: 'clearError') { 
+    "/agents/clearError/$id"(controller: 'agents', action: 'clearError') { 
       __nvbe = 'Dashboard'
       __role = UrlMappings.role('/agents/clearError/$id')
     }
-    "/release/agents/uninstallScript/$id"(controller: 'agents', action: 'uninstallScript') { 
+    "/agents/uninstallScript/$id"(controller: 'agents', action: 'uninstallScript') { 
       __nvbe = 'Dashboard'
       __role = UrlMappings.role('/agents/uninstallScript/$id')
     }
-    "/release/agents/createPlan/$id"(controller: 'agents', action: 'create_plan') { 
+    "/agents/createPlan/$id"(controller: 'agents', action: 'create_plan') { 
       __nvbe = 'Dashboard'
       __role = UrlMappings.role('/agents/createPlan/$id')
     }
-    "/release/agents/interruptAction/$id"(controller: 'agents', action: 'interruptAction') { 
+    "/agents/interruptAction/$id"(controller: 'agents', action: 'interruptAction') { 
       __nvbe = 'Dashboard'
       __role = UrlMappings.role('/agents/interruptAction/$id')
     }
 
     // plan
-    "/release/plan/execute/$id"(controller: 'plan', action: 'execute') { 
+    "/plan/execute/$id"(controller: 'plan', action: 'execute') { 
       __nvbe = 'Plans'
       __role = UrlMappings.role('/plan/execute/$id')
     }
-    "/release/plan/filter/$id"(controller: 'plan', action: 'filter') { 
+    "/plan/filter/$id"(controller: 'plan', action: 'filter') { 
       __nvbe = 'Plans'
       __role = UrlMappings.role('/plan/filter/$id')
     }
-    "/release/plan/archiveAllDeployments"(controller: 'plan', action: 'archiveAllDeployments') { 
+    "/plan/archiveAllDeployments"(controller: 'plan', action: 'archiveAllDeployments') { 
       __nvbe = 'Plans'
       __role = UrlMappings.role('/plan/archiveAllDeployments')
     }
-    "/release/plan/archiveDeployment/$id"(controller: 'plan', action: 'archiveDeployment') { 
+    "/plan/archiveDeployment/$id"(controller: 'plan', action: 'archiveDeployment') { 
       __nvbe = 'Plans'
       __role = UrlMappings.role('/plan/archiveDeployment/$id')
     }
-    "/release/plan/resumeDeployment/$id"(controller: 'plan', action: 'resumeDeployment') { 
+    "/plan/resumeDeployment/$id"(controller: 'plan', action: 'resumeDeployment') { 
       __nvbe = 'Plans'
       __role = UrlMappings.role('/plan/resumeDeployment/$id')
     }
-    "/release/plan/pauseDeployment/$id"(controller: 'plan', action: 'pauseDeployment') { 
+    "/plan/pauseDeployment/$id"(controller: 'plan', action: 'pauseDeployment') { 
       __nvbe = 'Plans'
       __role = UrlMappings.role('/plan/pauseDeployment/$id')
     }
-    "/release/plan/abortDeployment/$id"(controller: 'plan', action: 'abortDeployment') { 
+    "/plan/abortDeployment/$id"(controller: 'plan', action: 'abortDeployment') { 
       __nvbe = 'Plans'
       __role = UrlMappings.role('/plan/abortDeployment/$id')
     }
-    "/release/plan/cancelStep/$id"(controller: 'plan', action: 'cancelStep') { 
+    "/plan/cancelStep/$id"(controller: 'plan', action: 'cancelStep') { 
       __nvbe = 'Plans'
       __role = UrlMappings.role('/plan/cancelStep/$id')
     }
 
     // model
-    "/release/model/choose"(controller: 'model', action: 'choose') {
+    "/model/choose"(controller: 'model', action: 'choose') {
       __nvbe = 'Model'
       __role = UrlMappings.role('/model/choose')
     }
-    "/release/model/load"(controller: 'model', action: 'load') {
+    "/model/load"(controller: 'model', action: 'load') {
       __nvbe = 'Model'
       __role = UrlMappings.role('/model/load')
     }
-    "/release/model/upload"(controller: 'model', action: 'upload') {
+    "/model/upload"(controller: 'model', action: 'upload') {
       __nvbe = 'Model'
       __role = UrlMappings.role('/model/upload')
     }
-    "/release/model/save"(controller: 'model', action: 'save') {
+    "/model/save"(controller: 'model', action: 'save') {
       __nvbe = 'model'
       __role = UrlMappings.role('/model/save')
     }
-    "/release/model/setAsCurrent"(controller: 'model', action: 'setAsCurrent') {
+    "/model/setAsCurrent"(controller: 'model', action: 'setAsCurrent') {
       __nvbe = 'model'
       __role = UrlMappings.role('/model/setAsCurrent')
     }
 
     // fabric
-    "/release/fabric/refresh"(controller: 'fabric', action: 'refresh') { 
+    "/fabric/refresh"(controller: 'fabric', action: 'refresh') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/fabric/refresh')
     }
@@ -295,6 +295,7 @@ class UrlMappings
     /**************************************
      * ADMIN access
      */
+
     // admin
     "/admin"(controller: 'admin', action: 'index') { 
       __nvbe = 'Admin'
@@ -302,131 +303,131 @@ class UrlMappings
     }
 
     // agents
-    "/admin/agents/listVersions"(controller: 'agents', action: 'listVersions') { 
+    "/agents/listVersions"(controller: 'agents', action: 'listVersions') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/agents/listVersions')
     }
-    "/admin/agents/upgrade"(controller: 'agents', action: 'upgrade') { 
+    "/agents/upgrade"(controller: 'agents', action: 'upgrade') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/agents/upgrade')
     }
-    "/admin/agents/cleanup"(controller: 'agents', action: 'cleanup') { 
+    "/agents/cleanup"(controller: 'agents', action: 'cleanup') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/agents/cleanup')
     }
-    "/admin/agents/forceUninstallScript/$id"(controller: 'agents', action: 'forceUninstallScript') { 
+    "/agents/forceUninstallScript/$id"(controller: 'agents', action: 'forceUninstallScript') { 
       __nvbe = 'Dashboard'
       __role = UrlMappings.role('/agents/forceUninstallScript/$id')
     }
-    "/admin/agent/$id/clear"(controller: 'agents', action: 'clear') { 
+    "/agent/$id/clear"(controller: 'agents', action: 'clear') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/agent/$id/clear')
     }
 
     // fabric
-    "/admin/fabric/listAgentFabrics"(controller: 'fabric', action: 'listAgentFabrics') { 
+    "/fabric/listAgentFabrics"(controller: 'fabric', action: 'listAgentFabrics') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/fabric/listAgentFabrics')
     }
-    "/admin/fabric/setAgentsFabrics"(controller: 'fabric', action: 'setAgentsFabrics') { 
+    "/fabric/setAgentsFabrics"(controller: 'fabric', action: 'setAgentsFabrics') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/fabric/setAgentsFabrics')
     }
-    "/admin/fabric/clearAgentFabric"(controller: 'fabric', action: 'clearAgentFabric') { 
+    "/fabric/clearAgentFabric"(controller: 'fabric', action: 'clearAgentFabric') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/fabric/clearAgentFabric')
     }
-    "/admin/fabric/list"(controller: 'fabric', action: 'list') { 
+    "/fabric/list"(controller: 'fabric', action: 'list') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/fabric/list')
     }
-    "/admin/fabric/show/$id"(controller: 'fabric', action: 'show') { 
+    "/fabric/show/$id"(controller: 'fabric', action: 'show') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/fabric/show/$id')
     }
-    "/admin/fabric/delete/$id?"(controller: 'fabric', action: 'delete') { 
+    "/fabric/delete/$id?"(controller: 'fabric', action: 'delete') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/fabric/delete/$id?')
     }
-    "/admin/fabric/edit/$id"(controller: 'fabric', action: 'edit') { 
+    "/fabric/edit/$id"(controller: 'fabric', action: 'edit') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/fabric/edit/$id')
     }
-    "/admin/fabric/update/$id?"(controller: 'fabric', action: 'update') { 
+    "/fabric/update/$id?"(controller: 'fabric', action: 'update') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/fabric/update/$id?')
     }
-    "/admin/fabric/create"(controller: 'fabric', action: 'create') { 
+    "/fabric/create"(controller: 'fabric', action: 'create') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/fabric/create')
     }
-    "/admin/fabric/save"(controller: 'fabric', action: 'save') { 
+    "/fabric/save"(controller: 'fabric', action: 'save') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/fabric/save')
     }
 
     // user
-    "/admin/user/index"(controller: 'user', action: 'index') { 
+    "/user/index"(controller: 'user', action: 'index') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/user/index')
     }
-    "/admin/user/list"(controller: 'user', action: 'list') { 
+    "/user/list"(controller: 'user', action: 'list') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/user/list')
     }
-    "/admin/user/show/$id"(controller: 'user', action: 'show') { 
+    "/user/show/$id"(controller: 'user', action: 'show') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/user/show/$id')
     }
-    "/admin/user/delete/$id"(controller: 'user', action: 'delete') { 
+    "/user/delete/$id"(controller: 'user', action: 'delete') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/user/delete/$id')
     }
-    "/admin/user/edit/$id"(controller: 'user', action: 'edit') { 
+    "/user/edit/$id"(controller: 'user', action: 'edit') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/user/edit/$id')
     }
-    "/admin/user/update/$id"(controller: 'user', action: 'update') { 
+    "/user/update/$id"(controller: 'user', action: 'update') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/user/update/$id')
     }
-    "/admin/user/create"(controller: 'user', action: 'create') { 
+    "/user/create"(controller: 'user', action: 'create') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/user/create')
     }
-    "/admin/user/save"(controller: 'user', action: 'save') { 
+    "/user/save"(controller: 'user', action: 'save') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/user/save')
     }
 
     // audit log
-    "/admin/auditLog/list"(controller: 'auditLog', action: 'list') { 
+    "/auditLog/list"(controller: 'auditLog', action: 'list') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/auditLog/list')
     }
 
     // encryption keys
-    "/admin/encryption/list"(controller: 'encryption', action: 'list') { 
+    "/encryption/list"(controller: 'encryption', action: 'list') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/encryption/list')
     }
-    "/admin/encryption/create"(controller: 'encryption', action: 'create') { 
+    "/encryption/create"(controller: 'encryption', action: 'create') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/encryption/create')
     }
-    "/admin/encryption/encrypt"(controller: 'encryption', action: 'encrypt') { 
+    "/encryption/encrypt"(controller: 'encryption', action: 'encrypt') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/encryption/encrypt')
     }
-    "/admin/encryption/ajaxSave"(controller: 'encryption', action: 'ajaxSave') { 
+    "/encryption/ajaxSave"(controller: 'encryption', action: 'ajaxSave') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/encryption/ajaxSave')
     }
-    "/admin/encryption/ajaxEncrypt"(controller: 'encryption', action: 'ajaxEncrypt') { 
+    "/encryption/ajaxEncrypt"(controller: 'encryption', action: 'ajaxEncrypt') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/encryption/ajaxEncrypt')
     }
-    "/admin/encryption/ajaxDecrypt"(controller: 'encryption', action: 'ajaxDecrypt') { 
+    "/encryption/ajaxDecrypt"(controller: 'encryption', action: 'ajaxDecrypt') { 
       __nvbe = 'Admin'
       __role = UrlMappings.role('/encryption/ajaxDecrypt')
     }
@@ -612,5 +613,12 @@ class UrlMappings
     }
 
     "500"(view: '/error')
+
+    /**
+     * Deprecated => for backward compatibility only
+     */
+    "/admin/**"(controller: 'auth', action: 'noAuthInURL')
+
+    "/release/**"(controller: 'auth', action: 'noAuthInURL')
   }
 }

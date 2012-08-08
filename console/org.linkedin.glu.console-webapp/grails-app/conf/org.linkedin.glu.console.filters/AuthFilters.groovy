@@ -103,13 +103,11 @@ class AuthFilters
         switch(params.controller)
         {
           case "auth":
-            println "${tmp} [auth]"
             // no restriction => always allowed
             return true
             break
 
           default:
-            tmp = "${tmp} [all]"
             accessControl {
               def minRoleToProceed = params.__role
 
