@@ -48,11 +48,17 @@ class Client:
     self.uriBase = url
     self.uriPath = "/console/rest/" + version + "/" + fabric
     self.auth = restkit.BasicAuth(username, password)
+    self._action_successful = None
 
     # Toggle logging for restkit
     if logging.getLogger('gluconsole.rest.Client').level == logging.DEBUG:
       logging.getLogger('restkit').setLevel(logging.DEBUG)
       use_progressbar = False
+
+  @property
+  def action_successful(self):
+    """ Return True if the latest executed action succeeded. """
+    return self._action_successful
 
   # Private method:
   # Actually perform the HTTP request and return the results
@@ -141,7 +147,9 @@ class Client:
   # Private method:
   # executing a created plan requires several REST calls, so this wraps all of them into one.
   def _executePlan(self, createdPlan, dryrun):
+    self._action_successful = None
     if createdPlan.status_int == 204:
+      self._action_successful = True
       return "GLU Console message: %s" % createdPlan.status.split(' ', 1)[-1]
 
     url2UriPat = "https?://[-\.\w:]*" + self.uriPath + "/"
@@ -156,6 +164,7 @@ class Client:
     log.debug("body = " + execPlan.body)
 
     if dryrun:
+      self._action_successful = True
       return execPlan.body
 
     # execute the plan
@@ -200,6 +209,7 @@ class Client:
 
       time.sleep(2)
 
+    self._action_successful = completeStatus.startswith('100:COMPLETED')
     return completeStatus
 
   def executePlan(self, action, systemFilter, parallel=False, dryrun=False):
@@ -212,6 +222,7 @@ class Client:
       :param dryrun: Create the plan, but don't execute it.
     """
 
+    self._action_successful = None
     if action not in ("start", "stop", "bounce", "deploy", "undeploy", "redeploy"):
       raise StandardError("Action %s is invalid." % action)
 
@@ -235,6 +246,7 @@ class Client:
       raise StandardError("modelUrl or modelFile must be provided")
 
     status = None
+    self._action_successful = None
 
     if modelUrl is not None:
       body = {
@@ -252,10 +264,14 @@ class Client:
 
     # XXX - Should exceptions be thrown here?
     if status == 201:
+      self._action_successful = True
       return "Model loaded successfully: " + response.body
-    elif status == 204:
+    if status == 204:
+      self._action_successful = True
       return "Model applied, but was not updated."
-    elif status == 400:
+
+    self._action_successful = False
+    if status == 400:
       #"Error: Invalid model."
       return ""
     elif status == 404:

@@ -243,6 +243,10 @@ def main():
 
   if result is not None:
     print(result)
+  if client.action_successful is not None:
+    return 0 if client.action_successful else 1
+  return 0
+
 
 if __name__ == "__main__":
-  main()
+  sys.exit(main())
