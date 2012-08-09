@@ -77,6 +77,16 @@ class AuthFilters
             return false
           }
         }
+        else
+        {
+          if(log.isDebugEnabled())
+            log.debug('No Authorization header')
+          response.sendError HttpServletResponse.SC_UNAUTHORIZED
+          return false
+        }
+
+        // YP Implementation note: the accessControl closure is not even called if there is no
+        // subject hence the "else" section above otherwise a 302 is issued (fixes glu-140) 
 
         accessControl {
           def minRoleToProceed = params.__roles[request.method]
