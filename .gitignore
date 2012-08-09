@@ -3,6 +3,8 @@
 *.iml
 *.ipr
 *.iws
+*.pyc
+
 .DS_Store
 build
 out
