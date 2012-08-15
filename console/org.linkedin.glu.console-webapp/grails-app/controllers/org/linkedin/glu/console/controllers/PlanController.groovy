@@ -113,6 +113,15 @@ public class PlanController extends ControllerBase
 
     if(plan)
     {
+      session.plan = [plan]
+
+      if(!plan.step)
+      {
+        flash.warning = "Nothing to execute...."
+        redirect(action: 'view', id: plan.id)
+        return
+      }
+      
       try
       {
         CurrentDeployment currentDeployment =
