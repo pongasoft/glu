@@ -21,9 +21,10 @@ import javax.servlet.http.HttpServletResponse
 import org.apache.shiro.SecurityUtils
 import org.apache.shiro.authc.UsernamePasswordToken
 import org.linkedin.glu.console.domain.RoleName
-import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.slf4j.LoggerFactory
 import org.slf4j.Logger
+import org.linkedin.glu.orchestration.engine.plugins.PluginService
+import org.linkedin.glu.orchestration.engine.user.UserService
 
 /**
  * @author ypujante@linkedin.com */
@@ -31,6 +32,8 @@ class AuthFilters
 {
   public static final String MODULE = "org.linkedin.glu.console.conf.UrlMappings"
   public static final Logger log = LoggerFactory.getLogger(MODULE);
+
+  PluginService pluginService
 
   def onUnauthorized(subject, filter)
   {
@@ -52,56 +55,74 @@ class AuthFilters
     }
 
     rest(uri: '/rest/**') {
+      def theFilter = delegate
       before = {
         request.isRestRequest = true
-        def authString = request.getHeader('Authorization')
 
-        if(authString)
-        {
-          try
+        pluginService.executePrePostMethods(UserService,
+                                            "restAuthenticateAndAuthorize",
+                                            [filter: theFilter]) { args ->
+
+          if(args.pluginResult != null)
+            return args.pluginResult
+          
+          def authString = request.getHeader('Authorization')
+
+          if(authString)
           {
-            def encodedPair = authString - 'Basic '
-            // for some reason I do not understand encodedPair.decodeAsBase64() is not working...
-            def decodedPair =  new String(encodedPair.decodeBase64(), 'UTF-8')
-            def credentials = decodedPair.split(':', 2)
-            SecurityUtils.subject.login(new UsernamePasswordToken(credentials[0],
-                                                                  credentials[1]))
-            request.user = [username: SecurityUtils.subject.principal]
+            try
+            {
+              def encodedPair = authString - 'Basic '
+              // for some reason I do not understand encodedPair.decodeAsBase64() is not working...
+              def decodedPair =  new String(encodedPair.decodeBase64(), 'UTF-8')
+              def credentials = decodedPair.split(':', 2)
+              SecurityUtils.subject.login(new UsernamePasswordToken(credentials[0],
+                                                                    credentials[1]))
+              request.user = [username: SecurityUtils.subject.principal]
+            }
+            catch(Exception e)
+            {
+              log.warn "Authorization failure: ${e.message}"
+              if(log.isDebugEnabled())
+                log.debug('Authorization failure', e)
+              response.sendError HttpServletResponse.SC_UNAUTHORIZED
+              return false
+            }
           }
-          catch(Exception e)
+          else
           {
-            log.warn "Authorization failure: ${e.message}"
             if(log.isDebugEnabled())
-              log.debug('Authorization failure', e)
+              log.debug('No Authorization header')
             response.sendError HttpServletResponse.SC_UNAUTHORIZED
             return false
           }
-        }
-        else
-        {
-          if(log.isDebugEnabled())
-            log.debug('No Authorization header')
-          response.sendError HttpServletResponse.SC_UNAUTHORIZED
-          return false
-        }
 
-        // YP Implementation note: the accessControl closure is not even called if there is no
-        // subject hence the "else" section above otherwise a 302 is issued (fixes glu-140) 
+          // YP Implementation note: the accessControl closure is not even called if there is no
+          // subject hence the "else" section above otherwise a 302 is issued (fixes glu-140)
 
-        accessControl {
-          def minRoleToProceed = params.__roles[request.method]
+          pluginService.executePrePostMethods(UserService,
+                                              "authorize",
+                                              [filter: theFilter]) { args2 ->
+            if(args2.pluginResult != null)
+              return args2.pluginResult
 
-          if(!minRoleToProceed)
-          {
-            minRoleToProceed = RoleName.ADMIN
+            accessControl {
+              def minRoleToProceed = params.__roles[request.method]
+
+              if(!minRoleToProceed)
+              {
+                minRoleToProceed = RoleName.ADMIN
+              }
+
+              role(minRoleToProceed)
+            }
           }
-
-          role(minRoleToProceed)
         }
       }
     }
 
     ui(uri: "/**", uriExclude: "/rest/**") {
+      def theFilter = delegate
       before = {
         if(request.isRestRequest)
         {
@@ -118,16 +139,25 @@ class AuthFilters
             break
 
           default:
-            accessControl {
-              def minRoleToProceed = params.__role
+            pluginService.executePrePostMethods(UserService,
+                                                "authorize",
+                                                [filter: theFilter]) { args ->
+              
+              if(args.pluginResult != null)
+                return args.pluginResult
 
-              if(!minRoleToProceed)
-              {
-                minRoleToProceed = RoleName.ADMIN
+              accessControl {
+                def minRoleToProceed = params.__role
+
+                if(!minRoleToProceed)
+                {
+                  minRoleToProceed = RoleName.ADMIN
+                }
+
+                role(minRoleToProceed)
               }
-
-              role(minRoleToProceed)
             }
+
             break
         }
       }
