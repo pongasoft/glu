@@ -260,6 +260,41 @@ You can configure LDAP for handling user management in the console. See :ref:`co
   ldap.search.pass="helloworld"
   ldap.username.attribute="sAMAccountName"
 
+.. _console-configuration-security-levels:
+
+Security Levels
+^^^^^^^^^^^^^^^
+
+You can define your own security level (`USER`, `RELEASE` or `ADMIN`) per URL by defining a property like this in your configuration file::
+
+  console.security.roles.'<path>' = '<role>'
+
+You can define your own security level (`USER`, `RELEASE` or `ADMIN`) per REST call by defining a property like this in your configuration file::
+
+  console.security.roles.'<method>:<path>' = '<role>'
+
+Here are some examples::
+
+  // a URL for the web interface
+  console.security.roles.'/model/load' = 'USER'
+
+  // a REST call
+  console.security.roles.'POST:/rest/v1/$fabric/model/static' = 'RELEASE'
+
+.. note:: You can check the `Config <https://github.com/linkedin/glu/blob/master/console/org.linkedin.glu.console-webapp/grails-app/conf/Config.groovy>`_ file for an exhaustive list of all the URLs and REST calls.
+
+.. tip:: If you have more than one entry to change, you can use a simpler 
+         notation::
+
+            console.security.roles.putAll([
+              '/agents/kill/$id/$pid': 'ADMIN',
+              '/plan/execute/$id': 'ADMIN',
+              '/plan/filter/$id': 'ADMIN'
+            ])
+
+
+.. tip:: You can customize or bypass entirely the way glu handles security by implemeting your own :ref:`plugin <goe-plugins>`
+
 Tuning
 ^^^^^^
 

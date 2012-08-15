@@ -30,7 +30,7 @@ import org.linkedin.glu.orchestration.engine.user.UserService
  * @author ypujante@linkedin.com */
 class AuthFilters
 {
-  public static final String MODULE = "org.linkedin.glu.console.conf.UrlMappings"
+  public static final String MODULE = AuthFilters.class.getName()
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   PluginService pluginService
