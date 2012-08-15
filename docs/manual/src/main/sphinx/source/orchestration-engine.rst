@@ -371,6 +371,9 @@ The security model is simply implementing http basic authorization: every reques
 
 .. note:: The username and password are only slightly obfuscated (base 64) but it is not an issue because the cli talks to the console over https and as a result the headers are never traveling over an insecure channel.
 
+
+.. tip:: You can change the way authentication and authorization are handled entirely by writing your own plugin!
+
 A few concepts
 ^^^^^^^^^^^^^^
 
@@ -1639,6 +1642,10 @@ List of hooks available
 
   * ``UserService_pre_authenticate``: called before authentication
   * ``UserService_post_authenticate``: called after authentication
+  * ``UserService_pre_authorize``: called before authorization
+  * ``UserService_post_authorize``: called after authorization
+  * ``UserService_pre_restAuthenticateAndAuthorize``: called before REST authentication and authorization flow
+  * ``UserService_post_restAuthenticateAndAuthorize``: called after REST authentication and authorization flow
 
 * Model
 
