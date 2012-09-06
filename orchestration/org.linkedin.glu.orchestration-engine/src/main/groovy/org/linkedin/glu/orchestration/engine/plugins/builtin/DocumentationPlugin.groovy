@@ -135,6 +135,95 @@ public class DocumentationPlugin
     return null
   }
 
+  /**
+   * Called to authorize a user. This closure allows you for example to implement your entire
+   * authorization mechanism if you wish to! You may want to check the class
+   * <code>org.linkedin.glu.console.filters.AuthFilters</code> for an example of what you can do
+   *
+   * @param args.filter is a grails filter plugin object which gives you access to all methods
+   *                    and closures available from the filter (ex: filter.request, filter.response,
+   *                    filter.name, filter.accessControl {...}, etc...)
+   * @return <code>true</code> to authorize the call, <code>false</code> to deny it, or
+   *         <code>null</code> to let glu proceed with authorization
+   */
+  def UserService_pre_authorize = { args ->
+
+    // example: use acme proprietary authorization system to determine if the user is authorized
+    // For example:
+    // fetch role associated to controller
+    // def roleToCheck = fetchRole(args.filter.params.controller)
+    // args.filter.accessControl {
+    //   role(roleToCheck)
+    // }
+
+    log.info("UserService_pre_authorize")
+    return null
+  }
+
+  /**
+   * Called after user authorization.
+   *
+   * @param args.filter is a grails filter plugin object which gives you access to all methods
+   *                    and closures available from the filter (ex: filter.request, filter.response,
+   *                    filter.name, filter.accessControl {...}, etc...)
+   * @param args.serviceResult <code>true</code> or <code>false</code> depending on the filter
+   *                           result
+   * @param args.serviceException whenever there was an exception with authorization
+   * @return <code>true</code> to authorize the call, <code>false</code> to deny it, or
+   *         <code>null</code> to let glu proceed with authorization
+   */
+  def UserService_post_authorize = { args ->
+
+    // typical use case would be to log/audit authorization
+
+    log.info("UserService_post_authorize")
+    return null
+  }
+
+  /**
+   * This call is wrapping the entire rest authentication and authorization flow, thus allowing
+   * you to write your entire REST auth code. Note that if you return a non <code>null</code>
+   * value, then the plugins <code>UserService_pre_authenticate</code>,
+   * <code>UserService_post_authenticate</code>, <code>UserService_pre_authorize</code> and
+   * <code>UserService_post_authorize</code> won't be called
+   *
+   * @param args.filter is a grails filter plugin object which gives you access to all methods
+   *                    and closures available from the filter (ex: filter.request, filter.response,
+   *                    filter.name, filter.accessControl {...}, etc...)
+   * @return <code>true</code> to authorize the call, <code>false</code> to deny it, or
+   *         <code>null</code> to let glu proceed with authorization
+   */
+  def UserService_pre_restAuthenticateAndAuthorize = { args ->
+
+    // example: extract a header from the request (args.filter.request.getHeader('Authorization'))
+    // and apply some decryption to it before proceeding
+    // You may want to check <code>org.linkedin.glu.console.filters.AuthFilters</code> for the
+    // default implementation
+
+    log.info("UserService_pre_restAuthenticateAndAuthorize")
+    return null
+  }
+
+  /**
+   * Called after rest user authentication and authorization.
+   *
+   * @param args.filter is a grails filter plugin object which gives you access to all methods
+   *                    and closures available from the filter (ex: filter.request, filter.response,
+   *                    filter.name, filter.accessControl {...}, etc...)
+   * @param args.serviceResult <code>true</code> or <code>false</code> depending on the filter
+   *                           result
+   * @param args.serviceException whenever there was an exception with authorization
+   * @return <code>true</code> to authorize the call, <code>false</code> to deny it, or
+   *         <code>null</code> to let glu proceed with authorization
+   */
+  def UserService_post_restAuthenticateAndAuthorize = { args ->
+
+    // typical use case would be to log/audit authorization
+
+    log.info("UserService_post_restAuthenticateAndAuthorize")
+    return null
+  }
+
   /////////////////////////////////////////////////////////////////////////////////////////////
   // Model
   /////////////////////////////////////////////////////////////////////////////////////////////

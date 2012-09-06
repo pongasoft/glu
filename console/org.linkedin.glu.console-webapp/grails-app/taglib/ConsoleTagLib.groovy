@@ -561,6 +561,10 @@ public class ConsoleTagLib
 
   def renderStep = { args ->
     def step = args.step
+    if(step == null)
+    {
+      return
+    }
     def stepIdx = args.stepIdx == null ? [:] : args.stepIdx
 
     out << "<dl class=\"${step.type} step\">"

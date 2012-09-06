@@ -26,11 +26,10 @@
   }
   </style>
 </head>
-<shiro:hasRole name="RELEASE"><g:set var="isReleaseUser" value="true"/></shiro:hasRole>
 <body>
 <ul class="tabs">
   <li class="active"><a href="#">List</a></li>
-  <g:if test="${isReleaseUser}"><li><g:link action="choose">Load</g:link></li></g:if>
+  <li><g:link action="choose">Load</g:link></li>
 </ul>
 <div class="paginateButtons">
   <g:paginate total="${total}"/>

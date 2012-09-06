@@ -35,11 +35,10 @@
   </style>
 </head>
 <body>
-<shiro:hasRole name="RELEASE"><g:set var="isReleaseUser" value="true"/></shiro:hasRole>
 <g:if test="${systemDetails != null}">
   <ul class="tabs">
     <li><g:link action="list">List</g:link></li>
-    <g:if test="${isReleaseUser}"><li><g:link action="choose">Load</g:link></li></g:if>
+    <li><g:link action="choose">Load</g:link></li>
     <li class="active"><a href="#">View [<cl:renderSystemId id="${systemDetails.systemId}" name="${systemDetails.name}" renderLinkToSystem="${false}"/>]</a></li>
   </ul>
   <g:set var="editable" value="${!ConsoleConfig.getInstance().defaults.disableModelUpdate}"/>

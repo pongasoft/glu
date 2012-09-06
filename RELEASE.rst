@@ -1,6 +1,20 @@
 Latest changes
 ==============
 
+4.5.0 (2012/08/15)
+------------------
+
+This release contains a refactoring of the authorization framework in order to be able to change the authorization levels via :ref:`configuration <console-configuration-security-levels>` as well as being entirely customizable via :ref:`plugins <goe-plugins>`.
+
+.. warning:: The property ``console.authFilters.rest.write.roleName`` has been removed from the configuration file. Instead you can define your own level per REST call.
+
+.. note:: The prefixes ``/release`` and ``/admin`` which used to determine the level of authorization in the various URLs, have been removed since they do not serve this purpose anymore and as a result could be very confusing.
+
+* Implemented `glu-140 <https://github.com/linkedin/glu/issues/140>`_: `Revisit permission/authorization system`
+* Fixed `glu-152 <https://github.com/linkedin/glu/issues/152>`_: `NPE when no Step in execution plan`
+* Fixed `glu-154 <https://github.com/linkedin/glu/issues/154>`_: `make console-cli return 1 on failure` (Thanks to Stéphane)
+
+
 4.4.2 (2012/07/26)
 ------------------
 
