@@ -859,36 +859,43 @@ def class ShellImpl implements Shell
 
     Process process = pb.start()
 
-    def out = new ByteArrayOutputStream()
-
-    def outThread = Thread.start(commandLine) {
-      out << new BufferedInputStream(process.inputStream)
-    }
-
-    def err = new ByteArrayOutputStream()
-
-    def errThread = Thread.start(commandLine) {
-      err << new BufferedInputStream(process.errorStream)
-    }
-
-    // we wait for the process to be done
-    def res = process.waitFor()
-
-    // we wait for the threads to have finished reading the output and error
-    outThread.join()
-    errThread.join()
-
-    def output = out.toByteArray()
-    def error = err.toByteArray()
-
-    if(log.isDebugEnabled())
+    try
     {
-      log.debug("forkAndExec2('${commandLine}'): res=${res}")
-      log.debug("output=${toStringOutput(output)}")
-      log.debug("error=${toStringOutput(error)}") 
-    }
+      def out = new ByteArrayOutputStream()
 
-    return [res: res, output: output, error: error]
+      def outThread = Thread.start(commandLine) {
+        out << new BufferedInputStream(process.inputStream)
+      }
+
+      def err = new ByteArrayOutputStream()
+
+      def errThread = Thread.start(commandLine) {
+        err << new BufferedInputStream(process.errorStream)
+      }
+
+      // we wait for the process to be done
+      def res = process.waitFor()
+
+      // we wait for the threads to have finished reading the output and error
+      outThread.join()
+      errThread.join()
+
+      def output = out.toByteArray()
+      def error = err.toByteArray()
+
+      if(log.isDebugEnabled())
+      {
+        log.debug("forkAndExec2('${commandLine}'): res=${res}")
+        log.debug("output=${toStringOutput(output)}")
+        log.debug("error=${toStringOutput(error)}")
+      }
+
+      return [res: res, output: output, error: error]
+    }
+    finally
+    {
+      process.destroy()
+    }
   }
 
   /**
