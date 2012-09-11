@@ -66,6 +66,11 @@ import org.linkedin.glu.agent.impl.storage.TagsStorage
 import org.linkedin.glu.agent.impl.storage.WriteOnlyStorage
 import org.linkedin.util.lifecycle.Configurable
 import org.linkedin.glu.agent.rest.resources.AgentConfigResource
+import java.net.*;
+import java.util.*;
+import java.util.Enumeration;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This is the main class to start the agent.
@@ -82,6 +87,12 @@ class AgentMain implements LifecycleListener, Configurable
   private static final OneWayCodec ONE_WAY_CODEC_2
 
   public static final Timespan PROCESS_TRACKER_HEARTBEAT = Timespan.parse('10s')
+
+  private static final String IPADDRESS_PATTERN =
+                '^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.' +
+                '([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.' +
+                '([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.' +
+                '([01]?\\d\\d?|2[0-4]\\d|25[0-5])$';
 
   static {
     String p0 = "gluos2way"
@@ -154,11 +165,11 @@ class AgentMain implements LifecycleListener, Configurable
     switch(hf)
     {
       case ':ip':
-        hostnameFactory = { InetAddress.getLocalHost().hostAddress }
+        hostnameFactory = { getCurrentEnvironmentNetworkIp().hostAddress }
         break
 
       case ':canonical':
-        hostnameFactory = { InetAddress.getLocalHost().canonicalHostName }
+        hostnameFactory = { getCurrentEnvironmentNetworkIp().canonicalHostName }
         break
 
       default:
@@ -236,6 +247,52 @@ class AgentMain implements LifecycleListener, Configurable
     log.info("Starting the agent with config: ${new TreeMap(_agentProperties.exposedProperties)}")
   }
 
+  private static InetAddress getCurrentEnvironmentNetworkIp() {
+    Enumeration<NetworkInterface> netInterfaces = null;
+    try 
+    {
+    	netInterfaces = NetworkInterface.getNetworkInterfaces();
+    } catch (SocketException e) 
+    {
+    }
+
+    List<InetAddress> addresses = new ArrayList<InetAddress>();
+
+    while (netInterfaces.hasMoreElements()) 
+    {
+        NetworkInterface ni = netInterfaces.nextElement();
+        Enumeration<InetAddress> address = ni.getInetAddresses();
+        while (address.hasMoreElements()) 
+        {
+            InetAddress addr = address.nextElement();
+            if(Pattern.compile(IPADDRESS_PATTERN).matcher(addr.getHostAddress()).matches() && !addr.isLoopbackAddress()) 
+            {
+                    addresses.add(addr);
+            }
+        }
+    }
+
+    try 
+    {
+        InetAddress localHost = InetAddress.getLocalHost();
+        if (addresses.contains(localHost))
+        {
+            return localHost;
+        }
+    } catch(Exception e) 
+    {
+            return null;
+    }
+
+
+    if(addresses.size() == 0) 
+    {
+            return null;
+    }
+
+    return addresses.get(0);
+  }
+
   /**
    * Use the <code>glu.agent.hostname</code> config value to determine how to compute
    * hostname.
@@ -251,11 +308,11 @@ class AgentMain implements LifecycleListener, Configurable
     switch(hostname)
     {
       case ':ip':
-        res = { InetAddress.getLocalHost().hostAddress }
+        res = { getCurrentEnvironmentNetworkIp().hostAddress }
         break
 
       case ':canonical':
-        res = { InetAddress.getLocalHost().canonicalHostName }
+        res = { getCurrentEnvironmentNetworkIp().canonicalHostName }
         break
 
       default:
