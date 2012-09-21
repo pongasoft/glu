@@ -42,7 +42,7 @@
     <g:each in="${dir.keySet().sort()}" var="${filename}">
       <g:set var="entry" value="${dir[filename]}"/>
       <tr>
-        <td><g:link action="fileContent" id="${params.id}" params="[location: entry.canonicalPath, maxLine: 500]">${filename.encodeAsHTML()}<g:if test="${entry.isDirectory}">/</g:if></g:link></td>
+        <td><g:link action="fileContent" id="${params.id}" params="[location: entry.canonicalPath, maxLine: 500]">${filename.encodeAsHTML()}<g:if test="${entry.isDirectory}">/</g:if><g:if test="${new File(params.location, filename).path != entry.canonicalPath}">@ -&gt; ${entry.canonicalPath.encodeAsHTML()}</g:if></g:link></td>
         <td><cl:formatDate date="${new Date(entry.lastModified)}"/></td>
         <td><g:if test="${entry.isDirectory}">-</g:if><g:else>${entry.length} (${new MemorySize(entry.length as long).canonicalString})</g:else></td>
       </tr>
