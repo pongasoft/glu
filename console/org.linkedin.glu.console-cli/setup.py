@@ -14,22 +14,20 @@
 # the License.
 #
 
-"""Setup script for Glu console-cli."""
-
+import os
 from setuptools import setup
 
-
 setup(
-    name             = 'gluconsole',
-    version          = '0.1',
-    author           = 'Manish Dubey',
-    author_email     = 'mdubey@linkedin.com',
-    description      = 'GLU REST API',
-    install_requires = ['restkit', 'progressbar'],
-    packages         = ['gluconsole'],
-    scripts          = ['src/cmdline/resources/bin/console-cli.py'],
+  name             = "gluconsole",
+  version          = "0.1",
+  author           = "Manish Dubey",
+  author_email     = "mdubey@linkedin.com",
+  description      = "GLU REST API",
+  install_requires = ['restkit', 'progressbar'],
+  packages         = ['gluconsole'],
+  scripts          =  ['src/cmdline/resources/bin/console-cli.py'],
 
-    package_dir      = {
-        'gluconsole': 'src/cmdline/resources/lib/python/gluconsole'
-    }
+  package_dir      = {
+    'gluconsole': 'src/cmdline/resources/lib/python/gluconsole'
+  },
 )
