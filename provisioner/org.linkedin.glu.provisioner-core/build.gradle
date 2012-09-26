@@ -23,5 +23,5 @@ dependencies {
   compile spec.external.linkedinUtilsGroovy
   groovy spec.external.groovy
   testCompile spec.external.junit
-  testRuntime spec.external.slf4jLog4j
+  compile spec.external.slf4jLog4j
 }

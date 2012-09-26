@@ -56,14 +56,12 @@ def facets = """
 """
 
 ideaModule {
-  whenConfigured { module ->
     ['grails-app/utils', 'grails-app/controllers', 'grails-app/domain', 'grails-app/services', 'grails-app/realms', 'grails-app/taglib', 'grails-app/conf'].each {
-      module.sourceFolders << new org.gradle.plugins.idea.model.Path("file://\$MODULE_DIR\$/${it}")
+      sourceDirs +=file(it)
     }
     ['test/unit', 'test/integration'].each {
-      module.testSourceFolders << new org.gradle.plugins.idea.model.Path("file://\$MODULE_DIR\$/${it}")
+      testSourceDirs += file(it)
     }
-  }
 
   withXml { root ->
     // add facets
