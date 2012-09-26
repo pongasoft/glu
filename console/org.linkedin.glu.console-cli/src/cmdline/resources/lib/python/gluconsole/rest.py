@@ -46,7 +46,7 @@ class Client:
   def __init__(self, fabric="dev", url="http://localhost:8080", username="glua", password="password"
                , version="v1"):
     self.uriBase = url
-    self.uriPath = "console/rest/" + version + "/" + fabric
+    self.uriPath = "/console/rest/" + version + "/" + fabric
     self.auth = restkit.BasicAuth(username, password)
     self._action_successful = None
 
