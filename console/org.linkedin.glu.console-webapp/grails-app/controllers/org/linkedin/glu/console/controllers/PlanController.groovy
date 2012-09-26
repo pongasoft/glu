@@ -50,6 +50,7 @@ public class PlanController extends ControllerBase
     [planType: "bounce"],
     [planType: "redeploy"],
     [planType: "undeploy"],
+    [planType: "transition", displayName: "Start", state: "running"],
     [planType: "transition", displayName: "Stop", state: "stopped"],
   ]
 
@@ -379,6 +380,10 @@ public class PlanController extends ControllerBase
       switch(params.planAction)
       {
         case 'start':
+          args.state = 'running'
+          args.planType = 'transition'
+          break;
+
         case 'deploy':
           args.planType = 'deploy'
           break;
