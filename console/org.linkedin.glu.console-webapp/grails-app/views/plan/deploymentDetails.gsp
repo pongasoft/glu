@@ -39,6 +39,12 @@
       border: solid black 1px;
       display: inline-block;
     }
+    a.step-link {
+      color: black;
+    }
+    a.step-link:hover {
+      color: #0069D6;
+    }
   </style>
   <g:javascript>
 function shouldRefresh()

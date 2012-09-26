@@ -213,7 +213,7 @@ public class ConsoleTagLib
                                               groupBy: column.name) {
               out << value.encodeAsHTML()
             }
-            out << g.link(controller: 'agents', action: 'view', id: value.encodeAsHTML()) {
+            out << g.link(controller: 'agents', action: 'view', id: value) {
               out << "<img class=\"shortcut\" src=\"${g.resource(dir: 'images', file: 'magnifier.png')}\" />"
             }
           }
@@ -604,7 +604,7 @@ public class ConsoleTagLib
         switch(k)
         {
           case 'agent':
-            return g.link(action: 'view', controller: 'agents', id: v) { v }
+            return g.link(action: 'view', controller: 'agents', id: v) { v.encodeAsHTML() }
 
           case 'mountPoint':
             return g.link(action: 'view', controller: 'agents', id: step.metadata.agent, fragment: v) { v.encodeAsHTML() }
@@ -738,7 +738,13 @@ public class ConsoleTagLib
 
       if(step.metadata.name)
       {
-        out << step.metadata.name.encodeAsHTML()
+        if(step.metadata.agent && step.metadata.mountPoint) {
+          out << g.link(controller: 'agents', action: 'view', 'class': 'step-link', id: step.metadata.agent, fragment: step.metadata.mountPoint) {
+            step.metadata.name.encodeAsHTML()
+          }
+        }
+        else
+          out << step.metadata.name.encodeAsHTML()
       }
       else
       {
@@ -746,7 +752,7 @@ public class ConsoleTagLib
           switch(k)
           {
             case 'agent':
-              return g.link(action: 'view', controller: 'agents', id: v) { v }
+              return g.link(action: 'view', controller: 'agents', id: v) { v.encodeAsHTML() }
 
             case 'mountPoint':
               return g.link(action: 'view', controller: 'agents', id: step.metadata.agent, fragment: v) { v.encodeAsHTML() }

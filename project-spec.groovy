@@ -18,13 +18,13 @@
 spec = [
     name: 'glu',
     group: 'org.linkedin',
-    version: '4.5.0',
+    version: '4.5.1',
 
     versions: [
       grails: '1.3.5',
       groovy: '1.7.5',
       jetty: '7.2.2.v20101205',
-      linkedinUtils: '1.8.0',
+      linkedinUtils: '1.8.1',
       linkedinZookeeper: '1.4.1',
       restlet: '2.0.1',
       sigar: '1.6.4',

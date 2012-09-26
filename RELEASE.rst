@@ -1,6 +1,16 @@
 Latest changes
 ==============
 
+4.5.1 (2012/09/23)
+------------------
+
+This release essentially contains some minor fixes. The deployment view has a subtle change: all (leaf) steps are now links: when you hover your mouse over one of them you can click on it and it is a shortcut to the agent view page (fix for glu-163).
+
+* Fixed `glu-155 <https://github.com/linkedin/glu/issues/155>`_: `shell.exec leaks file descriptors`
+* Fixed `glu-163 <https://github.com/linkedin/glu/issues/163>`_: `Deployment view does not have agent links when model has parents`
+* Fixed `glu-165 <https://github.com/linkedin/glu/issues/165>`_: `symlinks are not being shown in the console`
+
+
 4.5.0 (2012/08/15)
 ------------------
 
