@@ -29,7 +29,7 @@ import org.linkedin.util.clock.Timespan
 /**
  * @author ypujante@linkedin.com */
 
-abstract class FutureExecutionImpl implements RunnableFuture, FutureExecution, Comparable<FutureExecutionImpl>
+class FutureExecutionImpl implements RunnableFuture, FutureExecution, Comparable<FutureExecutionImpl>
 {
   /**
    * Unique id of the execution */
@@ -66,12 +66,30 @@ abstract class FutureExecutionImpl implements RunnableFuture, FutureExecution, C
     _futureTask = new FutureTask({ execute() } as Callable)
   }
 
-  abstract def execute()
+  FutureExecutionImpl(Closure closure)
+  {
+    this(closure as Callable)
+  }
+
+  FutureExecutionImpl(Callable callable)
+  {
+    _futureTask = new FutureTask(callable)
+  }
+
+  /**
+   * You can either extend this class to provide the code to be executed in this method
+   * or provide the code directly in one of the constructor(s).
+   */
+  def execute()
+  {
+    // nothing to do in the base class
+  }
 
   boolean cancel(boolean mayInterruptIfRunning)
   {
     def res = _futureTask.cancel(mayInterruptIfRunning)
-    cancelCallback(this)
+    if(cancelCallback)
+      cancelCallback(this)
     return res
   }
 

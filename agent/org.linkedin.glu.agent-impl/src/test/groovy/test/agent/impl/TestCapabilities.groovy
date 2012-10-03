@@ -206,6 +206,100 @@ class TestCapabilities extends GroovyTestCase
     }
   }
 
+  void testGenericExec()
+  {
+    FileSystemImpl.createTempFileSystem() { FileSystem fs ->
+      def shell = new ShellImpl(fileSystem: fs)
+      def shellScript = shell.fetch("./src/test/resources/shellScriptTestShellExec.sh")
+      // let's make sure it is executable
+      fs.chmod(shellScript, '+x')
+
+      // stdout only
+      checkShellExec(shell, [command: [shellScript, "-1"]], 0, "this goes to stdout\n", "")
+
+      // both stdout and stderr in their proper channel
+      checkShellExec(shell, [command: [shellScript, "-1", "-2"]], 0, "this goes to stdout\n", "this goes to stderr\n")
+
+      // redirecting stderr to stdout
+      checkShellExec(shell, [command: [shellScript, "-1", "-2"], redirectStderr: true], 0, "this goes to stdout\nthis goes to stderr\n", "")
+
+      // changing stdout
+      def myStdout = new ByteArrayOutputStream()
+      checkShellExec(shell, [command: [shellScript, "-1", "-2"], stdout: myStdout], 0, "", "this goes to stderr\n") {
+        // implementation note: output here is not "processed" (see javadoc) so need to add the
+        // final \n character
+        assertEquals("this goes to stdout\n", new String(myStdout.toByteArray(), "UTF-8"))
+        myStdout.reset()
+      }
+
+      // changing stderr
+      def myStderr = new ByteArrayOutputStream()
+      checkShellExec(shell, [command: [shellScript, "-1", "-2"], stderr: myStderr], 0, "this goes to stdout\n", "") {
+        // implementation note: output here is not "processed" (see javadoc) so need to add the
+        // final \n character
+        assertEquals("this goes to stderr\n", new String(myStderr.toByteArray(), "UTF-8"))
+        myStderr.reset()
+      }
+
+      // testing for failure/exit value
+      checkShellExec(shell, [command: [shellScript, "-1", "-e"], failOnError: false], 1, "this goes to stdout\n", "")
+
+      // test that when there is a failure, then an exception is properly generated if failOnError
+      // is not defined
+      def errorMsg = shouldFail(ShellExecException) {
+        shell.exec(command: [shellScript, "-1", "-e"])
+      }
+      assertTrue(errorMsg.endsWith("res=1 - output=this goes to stdout - error="))
+
+      // test that when there is a failure, then an exception is properly generated if failOnError
+      // is set to true
+      errorMsg = shouldFail(ShellExecException) {
+        shell.exec(command: [shellScript, "-1", "-e"], failOnError: true)
+      }
+      assertTrue(errorMsg.endsWith("res=1 - output=this goes to stdout - error="))
+
+      // reading from stdin
+      checkShellExec(shell, [command: [shellScript, "-1", "-c"], stdin: "abc\ndef\n"], 0, "this goes to stdout\nabc\ndef\n", "")
+
+      // testing for stdoutStream
+      InputStream stdout = shell.exec(command: [shellScript, "-1", "-2"], res: "stdoutStream")
+      assertEquals("this goes to stdout\n", stdout.text)
+
+      // testing for stdoutStream
+      InputStream stderr = shell.exec(command: [shellScript, "-1", "-2"], res: "stderrStream")
+      assertEquals("this goes to stderr\n", stderr.text)
+    }
+  }
+
+  private void checkShellExec(shell, commands, exitValue, stdout, stderr)
+  {
+    checkShellExec(shell, commands, exitValue, stdout, stderr, null)
+  }
+
+  private void checkShellExec(shell, commands, exitValue, stdout, stderr, Closure cl)
+  {
+    assertEquals(stdout.trim(), shell.exec(*:commands))
+    if(cl) cl()
+    assertEquals(exitValue, shell.exec(*:commands, res: "exitValue"))
+    if(cl) cl()
+    assertEquals(stdout.trim(), shell.exec(*:commands, res: "stdout"))
+    if(cl) cl()
+    assertEquals(stdout.getBytes("UTF-8"), shell.exec(*:commands, res: "stdoutBytes"))
+    if(cl) cl()
+    assertEquals(stderr.trim(), shell.exec(*:commands, res: "stderr"))
+    if(cl) cl()
+    assertEquals(stderr.getBytes("UTF-8"), shell.exec(*:commands, res: "stderrBytes"))
+    if(cl) cl()
+    assertEquals([exitValue: exitValue, stdout: stdout.trim(), stderr: stderr.trim()],
+                 shell.exec(*:commands, res: "all"))
+    if(cl) cl()
+    def res = shell.exec(*:commands, res: "allBytes")
+    assertEquals(exitValue, res.exitValue)
+    assertEquals(stdout.getBytes("UTF8"), res.stdout)
+    assertEquals(stderr.getBytes("UTF8"), res.stderr)
+    if(cl) cl()
+  }
+
   void testTail()
   {
     FileSystemImpl.createTempFileSystem() { FileSystem fs ->

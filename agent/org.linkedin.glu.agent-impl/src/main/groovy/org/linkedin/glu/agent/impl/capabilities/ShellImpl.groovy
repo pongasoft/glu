@@ -25,7 +25,6 @@ import javax.management.MBeanServerConnection
 import javax.management.ObjectName
 import javax.management.remote.JMXConnectorFactory
 import javax.management.remote.JMXServiceURL
-import org.apache.tools.ant.taskdefs.Execute
 import org.linkedin.glu.agent.api.ScriptFailedException
 import org.linkedin.glu.agent.api.Shell
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
@@ -36,13 +35,14 @@ import org.linkedin.groovy.util.net.GroovyNetUtils
 import org.linkedin.groovy.util.encryption.EncryptionUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.util.lang.MemorySize
-import org.linkedin.glu.agent.api.ShellExecException
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.apache.tools.ant.filters.ReplaceTokens.Token
 import org.linkedin.util.io.resource.Resource
 import javax.management.Attribute
 import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.util.url.QueryBuilder
+import org.linkedin.glu.agent.impl.script.FutureExecutionImpl
+import org.linkedin.glu.agent.api.FutureExecution
 
 /**
  * contains the utility methods for the shell
@@ -577,6 +577,93 @@ def class ShellImpl implements Shell
   }
 
   /**
+   * More generic form of the exec call which allows you to configure what you provide and what you
+   * expect.
+   *
+   * - Note that if you provide a closure for <code>args.stdout</code> or
+   * <code>args.stderr</code> it will be executed in a separate thread (in order to avoid
+   * blocking indefinitely).
+   *
+   * - Note that if you request <code>stdout</code>, <code>stderr</code> or
+   * <code>all</code> for the result of this call, <code>stdout</code> and <code>stderr</code> are
+   * converted to a <code>String</code> using (by default) the "UTF-8" charset and all lines
+   * are terminated with "\n" and the last "\n" is removed. Use <code>stdoutBytes</code> or
+   * <code>stderrBytes</code> if you wish to get the bytes directly
+   *
+   * - Note that if you request <code>stdoutStream</code> or <code>stderrStream</code> then the call
+   * will NOT block and return right away. You should read the entire stream and make sure to close
+   * it properly! Example:
+   *
+   * InputStream stdout = shell.exec(command: 'xxx', res: 'stdoutStream', redirectStderr: true)
+   * try
+   * {
+   *   // read stdout
+   * }
+   * finally
+   * {
+   *   stdout.close()
+   * }
+   *
+   *
+   *
+   * @param args.command the command to execute. It will be delegated to the shell so it should
+   *                     be native to the OS on which the agent runs (either a <code>String</code>
+   *                     or a <code>Collection</code>) (required)
+   * @param args.stdin any input that can "reasonably" be converted into an
+   *                   <code>InputStream</code>) to provide to the command line execution
+   *                   (optional, default to no stdin)
+   * @param args.stdout <code>Closure</code> (if you want to handle it yourself),
+   *                    <code>OutputStream</code> (where stdout will be written to),
+   *                    (optional: depends on args.res)
+   * @param args.stderr <code>Closure</code> (if you want to handle it yourself),
+   *                    <code>OutputStream</code> (where stdout will be written to),
+   *                    (optional: depends on args.res)
+   * @param args.redirectStderr <code>boolean</code> to redirect stderr into stdout
+   *                            (optional, default to <code>false</code>). Note that this can also
+   *                            be accomplished with the command itself with something like "2>&1"
+   * @param args.failOnError do you want the command to fail (with an exception) when there is
+   *                         an error (default to <code>true</code>)
+   * @param args.res what do you want the call to return
+   *                 <code>stdout</code>, <code>stdoutBytes</code>, <code>stdoutStream</code>,
+   *                 <code>stderr</code>, <code>stderrBytes</code>, <code>stderrStream</code>,
+   *                 <code>all</code>, <code>allBytes</code> (a map with 3 parameters, exitValue, stdout, stderr)
+   *                 <code>exitValue</code>
+   *                 (default to <code>stdout</code>)
+   * @return whatever is specified in args.res
+   */
+  def exec(Map args)
+  {
+    new ShellExec(shell: this, args: args).exec()
+  }
+
+  /**
+   * Runs the closure asynchronously. This call returns right away and does not wait for the closure
+   * to complete execution. Use the returned value to wait on the completion if necessary.
+   *
+   * @param closure
+   * @return the future
+   */
+  FutureExecution async(Closure closure)
+  {
+    FutureExecutionImpl future = new FutureExecutionImpl(closure)
+
+    future.startTime = clock.currentTimeMillis()
+
+    Thread.startDaemon { ->
+      try
+      {
+        future.run()
+      }
+      finally
+      {
+        future.completionTime = clock.currentTimeMillis()
+      }
+    }
+
+    return future
+  }
+
+  /**
    * Shortcut/More efficient implementation of the more generic {@link #chmod(Object, Object) call
    */
   Resource chmodPlusX(file)
@@ -592,14 +679,14 @@ def class ShellImpl implements Shell
   Resource chmod(file, perm)
   {
     file = toResource(file)
-    forkAndExec2(['chmod', perm, file.file])
+    exec(command: ['chmod', perm, file.file], res: 'exitValue')
     return file
   }
 
   Resource chmodRecursive(dir, perm)
   {
     eachChildRecurse(dir) { file ->
-      forkAndExec2(['chmod', perm, file.file])
+      exec(command: ['chmod', perm, file.file], res: 'exitValue')
     }
     
     return dir
@@ -752,32 +839,15 @@ def class ShellImpl implements Shell
    */
   private InputStream forkAndExec(commandLine)
   {
-    if(commandLine instanceof Collection)
-      commandLine = commandLine.collect { it.toString() }.join(' ')
-
-    if(log.isDebugEnabled())
-      log.debug("forkAndExec('${commandLine}')")
-
-    def pb = new ProcessBuilder(['bash', '-c', commandLine])
-    pb.redirectErrorStream(true)
-
-    Process process = pb.start()
-
-    Thread.startDaemon(commandLine) {
-      def res = process.waitFor()
-      if(log.isDebugEnabled())
-      {
-        log.debug("forkAndExec('${commandLine}'): ${res}")
-      }
-    }
-
-    return process.inputStream
+    exec(command: commandLine,
+         redirectStderr: true,
+         res: 'stdoutStream') as InputStream
   }
 
   /**
    * Make sure that the command line is a string.
    */
-  private String toStringCommandLine(commandLine)
+  protected String toStringCommandLine(commandLine)
   {
     if(commandLine instanceof GString)
       commandLine = commandLine.toString()
@@ -788,43 +858,29 @@ def class ShellImpl implements Shell
     return commandLine
   }
 
+  protected InputStream toInputStream(stream)
+  {
+    if(stream == null)
+      return stream
+
+    if(stream instanceof InputStream)
+      return stream
+
+    return new ByteArrayInputStream(stream.toString().getBytes(charset))
+  }
+
   private def doExec(commandLine)
   {
-    commandLine = toStringCommandLine(commandLine)
-
-    if(commandLine.startsWith('file:'))
-    {
-      commandLine -= 'file:'
-    }
-
-    if(log.isDebugEnabled())
-      log.debug("executing ${commandLine}")
-
-    def map = forkAndExec2(commandLine)
-
-    if(Execute.isFailure(map.res))
-    {
-      if(log.isDebugEnabled())
-      {
-        log.debug("Error while executing command ${commandLine}: ${map.res}")
-        log.debug("output=${toStringOutput(map.output)}")
-        log.debug("error=${toStringOutput(map.error)}") 
-      }
-
-      ShellExecException exception =
-        new ShellExecException("Error while executing command ${commandLine}: res=${map.res} - output=${toLimitedStringOutput(map.output, 512)} - error=${toLimitedStringOutput(map.error, 512)}".toString())
-      map.each { k,v -> exception."${k}" = v}
-      throw exception
-    }
-
-    return toStringOutput(map.output)
+    return exec(command: commandLine,
+                failOnError: true,
+                res: 'all').stdout
   }
 
   /**
    * Converts the output into a string. Assumes that the encoding is UTF-8. Replaces all line feeds
    * by '\n' and remove the last line feed.
    */
-  private def toStringOutput(byte[] output)
+  protected def toStringOutput(byte[] output)
   {
     return output ? new String(output, charset).readLines().join('\n') : ""
   }
@@ -836,66 +892,11 @@ def class ShellImpl implements Shell
   private def toLimitedStringOutput(byte[] output, int maxChars)
   {
     def string = toStringOutput(output)
-    if(string.size() > maxChars)
+    if(string?.size() > maxChars)
     {
       string = string.substring(0, maxChars) + "..."
     }
     return string
-  }
-
-  /**
-   * Forks a process to execute the command line provided (as a single string) and returns a map
-   * with 'res' being the return value from the process, 'output' being the output of the process
-   * as a byte[] and 'error' being the error stream as byte array
-   */
-  private def forkAndExec2(commandLine)
-  {
-    commandLine = toStringCommandLine(commandLine)
-
-    if(log.isDebugEnabled())
-      log.debug("forkAndExec2('${commandLine}')")
-
-    def pb = new ProcessBuilder(['bash', '-c', commandLine])
-
-    Process process = pb.start()
-
-    try
-    {
-      def out = new ByteArrayOutputStream()
-
-      def outThread = Thread.start(commandLine) {
-        out << new BufferedInputStream(process.inputStream)
-      }
-
-      def err = new ByteArrayOutputStream()
-
-      def errThread = Thread.start(commandLine) {
-        err << new BufferedInputStream(process.errorStream)
-      }
-
-      // we wait for the process to be done
-      def res = process.waitFor()
-
-      // we wait for the threads to have finished reading the output and error
-      outThread.join()
-      errThread.join()
-
-      def output = out.toByteArray()
-      def error = err.toByteArray()
-
-      if(log.isDebugEnabled())
-      {
-        log.debug("forkAndExec2('${commandLine}'): res=${res}")
-        log.debug("output=${toStringOutput(output)}")
-        log.debug("error=${toStringOutput(error)}")
-      }
-
-      return [res: res, output: output, error: error]
-    }
-    finally
-    {
-      process.destroy()
-    }
   }
 
   /**
