@@ -35,6 +35,24 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
 /**
+ * A multiplexed input stream merges any number of streams (with a given name) into one stream.
+ * 
+ * The stream looks like this:
+ * MISV1.0=[name1]=[name2]=[name3]\n // first line contains the name of the streams
+ * \n
+ * [nameX]=[sizeInBytes]
+ * [bytes (exactly sizeInBytes)]\n
+ * \n
+ * [nameY]=[sizeInBytes]
+ * [bytes (exactly sizeInBytes)]\n
+ * \n
+ * ...
+ *
+ * The order in which the "blocks" appear is non deterministic and can vary from call to call.
+ * The header contains the name of the streams (separated by an = sign). Since there may never be
+ * anything in a stream, it is not guaranteed that it will appear as a "block". But a "block" is
+ * guaranteed to have had its name defined in the header...
+ *
  * @author yan@pongasoft.com
  */
 public class MultiplexedInputStream extends InputStream
@@ -43,6 +61,8 @@ public class MultiplexedInputStream extends InputStream
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   public static final MemorySize DEFAULT_BUFFER_SIZE = MemorySize.parse("4k");
+
+  public static final String CURRENT_VERSION = "MISV1.0";
 
   public static final byte[] SEPARATOR;
 
@@ -122,6 +142,8 @@ public class MultiplexedInputStream extends InputStream
     _futureTasks = new ArrayList<FutureTask<Long>>();
     _channelReaders = new ArrayList<ChannelReaderCallable>();
 
+    StringBuilder header = new StringBuilder(CURRENT_VERSION);
+
     for(Map.Entry<String, InputStream> entry : _inputStreams.entrySet())
     {
       String name = entry.getKey();
@@ -143,7 +165,31 @@ public class MultiplexedInputStream extends InputStream
 
         _channelReaders.add(channelReader);
         _futureTasks.add(new FutureTask<Long>(channelReader));
+
+        header.append('=');
+        header.append(name);
       }
+    }
+
+    header.append("\n\n");
+
+    try
+    {
+      // first we write the header
+      byte[] headerAsBytes = header.toString().getBytes("UTF-8");
+
+      if(_multiplexedBuffer.capacity() < headerAsBytes.length)
+        throw new IllegalArgumentException("buffer size ["
+                                           + bufferSizeInBytes
+                                           + "] is too small and should be at least ["
+                                           + headerAsBytes.length
+                                           + "]");
+
+      _multiplexedBuffer.put(headerAsBytes);
+    }
+    catch(UnsupportedEncodingException e)
+    {
+      throw new RuntimeException(e);
     }
 
     // now that everything has been set up and initialized, we can start all the threads

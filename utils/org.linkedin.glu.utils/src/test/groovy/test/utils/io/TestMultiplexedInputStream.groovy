@@ -30,7 +30,7 @@ public class TestMultiplexedInputStream extends GroovyTestCase
     String s1 = "abcdefghijklmnopqrstuvwxyz"
     String s2 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-    (8..100).each { idx ->
+    (15..100).each { idx ->
       def mis = new MultiplexedInputStream([new ByteArrayInputStream(s1.bytes),
                                             new ByteArrayInputStream(s2.bytes)],
                                            MemorySize.parse(idx as String))
@@ -40,6 +40,7 @@ public class TestMultiplexedInputStream extends GroovyTestCase
       def numberOfBytesWritten = 0
       // this also make sure that every single thread properly completes
       mis.futureTasks.each { FutureTask ft -> numberOfBytesWritten += ft.get(3, TimeUnit.SECONDS) }
+      numberOfBytesWritten += "MISV1.0=I0=I1\n\n".getBytes("UTF-8").length
       assertEquals(text.size(), numberOfBytesWritten)
 
       assertEquals(["0": s1, "1": s2], demultiplex(text))
@@ -56,40 +57,51 @@ public class TestMultiplexedInputStream extends GroovyTestCase
     
     def map = [:]
 
+    def expectHeader = true
     def expectNextLineSize = null
-    def expectMatchRegex = true
+    def expectMatchRegex = false
     def expectEmptyLine = false
     def key
 
     text.eachLine { line ->
 
-      // should be IX=YYY
-      if(expectMatchRegex)
+      if(expectHeader)
       {
-        def m = regex.matcher(line)
-        assertTrue(m.matches())
-        expectMatchRegex = false
-        expectNextLineSize = m[0][2] as int
-        key = m[0][1]
+        expectHeader = false
+        expectEmptyLine = true
+        assertEquals("MISV1.0=I0=I1", line)
       }
       else
       {
-        // expecting an empty line
-        if(expectEmptyLine)
+        // should be IX=YYY
+        if(expectMatchRegex)
         {
-          assertEquals("", line)
-          expectEmptyLine = false
-          expectMatchRegex = true
+          def m = regex.matcher(line)
+          assertTrue(m.matches())
+          expectMatchRegex = false
+          expectNextLineSize = m[0][2] as int
+          key = m[0][1]
         }
         else
         {
-          // expecting a line with YYY bytes
-          assertEquals(expectNextLineSize, line.size())
-          map[key] = (map[key] ?: "") + line
-          expectNextLineSize = null
-          expectEmptyLine = true
+          // expecting an empty line
+          if(expectEmptyLine)
+          {
+            assertEquals("", line)
+            expectEmptyLine = false
+            expectMatchRegex = true
+          }
+          else
+          {
+            // expecting a line with YYY bytes
+            assertEquals(expectNextLineSize, line.size())
+            map[key] = (map[key] ?: "") + line
+            expectNextLineSize = null
+            expectEmptyLine = true
+          }
         }
       }
+
     }
     return map
   }
