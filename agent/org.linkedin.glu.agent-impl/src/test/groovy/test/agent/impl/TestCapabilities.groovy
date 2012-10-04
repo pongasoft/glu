@@ -261,13 +261,11 @@ class TestCapabilities extends GroovyTestCase
       // reading from stdin
       checkShellExec(shell, [command: [shellScript, "-1", "-c"], stdin: "abc\ndef\n"], 0, "this goes to stdout\nabc\ndef\n", "")
 
-      // testing for stdoutStream
-      InputStream stdout = shell.exec(command: [shellScript, "-1", "-2"], res: "stdoutStream")
-      assertEquals("this goes to stdout\n", stdout.text)
+      // testing for stream
+      InputStream stream = shell.exec(command: [shellScript, "-1", "-2", "-e"], failOnError: false, res: "stream")
+      println stream.text
 
-      // testing for stdoutStream
-      InputStream stderr = shell.exec(command: [shellScript, "-1", "-2"], res: "stderrStream")
-      assertEquals("this goes to stderr\n", stderr.text)
+      throw new RuntimeException("needs demultiplexer...")
     }
   }
 

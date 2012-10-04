@@ -528,18 +528,20 @@ def interface Shell
    * are terminated with "\n" and the last "\n" is removed. Use <code>stdoutBytes</code> or
    * <code>stderrBytes</code> if you wish to get the bytes directly
    *
-   * - Note that if you request <code>stdoutStream</code> or <code>stderrStream</code> then the call
-   * will NOT block and return right away. You should read the entire stream and make sure to close
-   * it properly! Example:
+   * - Note that if you request <code>stream</code>, then the call return immediately
+   * (it is non blocking) and you get a single <code>InputStream</code>
+   * which multiplexes stdout/stderr and exit value (see <code>MultiplexedInputStream</code> for
+   * details). In this case you should make sure to read the entire stream and properly close it
+   * as shown in the following code example:
    *
-   * InputStream stdout = shell.exec(command: 'xxx', res: 'stdoutStream', redirectStderr: true)
+   * InputStream stream = shell.exec(command: 'xxx', res: 'stream')
    * try
    * {
-   *   // read stdout
+   *   // read stream
    * }
    * finally
    * {
-   *   stdout.close()
+   *   stream.close()
    * }
    *
    *
@@ -562,10 +564,11 @@ def interface Shell
    * @param args.failOnError do you want the command to fail (with an exception) when there is
    *                         an error (default to <code>true</code>)
    * @param args.res what do you want the call to return
-   *                 <code>stdout</code>, <code>stdoutBytes</code>, <code>stdoutStream</code>,
-   *                 <code>stderr</code>, <code>stderrBytes</code>, <code>stderrStream</code>,
+   *                 <code>stdout</code>, <code>stdoutBytes</code>
+   *                 <code>stderr</code>, <code>stderrBytes</code>
    *                 <code>all</code>, <code>allBytes</code> (a map with 3 parameters, exitValue, stdout, stderr)
-   *                 <code>exitValue</code>
+   *                 <code>exitValue</code>,
+   *                 <code>stream</code>
    *                 (default to <code>stdout</code>)
    * @return whatever is specified in args.res
    */

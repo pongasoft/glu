@@ -23,6 +23,13 @@ import org.linkedin.glu.utils.io.NullOutputStream
 import org.linkedin.util.io.IOUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.linkedin.glu.groovy.util.concurrent.CountdownExecutable
+import org.linkedin.glu.groovy.util.concurrent.CountdownInputStream
+import org.linkedin.glu.utils.io.MultiplexedInputStream
+import java.util.concurrent.FutureTask
+import java.util.concurrent.Callable
+import org.linkedin.groovy.util.rest.RestException
+import org.linkedin.groovy.util.json.JsonUtils
 
 /**
  * Because the logic of exec is quite complicated, it requires its own class
@@ -46,11 +53,11 @@ private class ShellExec
   private def requiredRes
 
   // stdout
-  private OutputStream stdout = NullOutputStream.INSTANCE
+  private def stdout = NullOutputStream.INSTANCE
   private ByteArrayOutputStream stdoutAsStreamOfBytes = null
 
   // stderr
-  private OutputStream stderr = NullOutputStream.INSTANCE
+  private def stderr = NullOutputStream.INSTANCE
   private ByteArrayOutputStream stderrAsStreamOfBytes = null
 
   // process
@@ -75,7 +82,8 @@ private class ShellExec
     initOutput("stdout")
 
     // stderr
-    initOutput("stderr")
+    if(!redirectStderr)
+      initOutput("stderr")
 
     // builds the process
     def pb = new ProcessBuilder(['bash', '-c', commandLine])
@@ -105,27 +113,61 @@ private class ShellExec
       startOutputThread("stderr") { process.errorStream }
     }
 
-    if(requiredRes == "stdoutStream" || requiredRes == "stderrStream")
+    if(requiredRes == "stream")
     {
-      // we can no longer destroy the process in the finally, it will be destroyed when the
-      // input stream is closed
-      destroyProcessInFinally = false
-
-      // execute the block call asynchronously
-      Thread processThread = Thread.start(commandLine, executeBlockingCall)
-
-      InputStream inputStream
-
-      //return the appropriate stream
-      if(requiredRes == "stdoutStream")
-        inputStream = process.inputStream
-      else
-        inputStream = process.errorStream
-
-      return new DestroyProcessInputStream(processThread, process, inputStream)
+      createMultiplexedInputStream()
     }
     else
       executeBlockingCall()
+  }
+
+  private InputStream createMultiplexedInputStream()
+  {
+    // we can no longer destroy the process in the finally, it will be destroyed when the
+    // input stream is closed
+    destroyProcessInFinally = false
+
+    // when all streams are read, the process must be destroyed
+    def countdown = new CountdownExecutable({
+      process.destroy()
+    })
+
+    // execute the block call asynchronously
+    FutureTask future = new FutureTask(executeBlockingCall as Callable)
+
+    new Thread(future, commandLine).start()
+
+    def streams = [:]
+
+    // stdout
+    if(stdout == null)
+    {
+      countdown.inc()
+      streams['O'] = new CountdownInputStream(process.inputStream, countdown)
+    }
+
+    // stderr
+    if(stderr == null)
+    {
+      countdown.inc()
+      streams['E'] = new CountdownInputStream(process.errorStream, countdown)
+    }
+
+    // exit value (as a stream)
+    InputStream exitValueInputStream = new InputGeneratorStream({
+      try
+      {
+        future.get().toString().getBytes("UTF-8")
+      }
+      catch(Throwable th)
+      {
+        JsonUtils.prettyPrint(RestException.toJSON(th)).getBytes("UTF-8")
+      }
+    })
+    countdown.inc()
+    streams['V'] = new CountdownInputStream(exitValueInputStream, countdown)
+
+    return new MultiplexedInputStream(streams)
   }
 
   private def executeBlockingCall = {
@@ -183,6 +225,7 @@ private class ShellExec
         return stderrAsBytes
 
       case 'exitValue':
+      case 'stream':
         return exitValue
 
       case 'all':
@@ -198,11 +241,6 @@ private class ShellExec
           stdout: stdoutAsBytes,
           stderr: stderrAsBytes
         ]
-
-      case 'stdoutStream':
-      case 'stderrStream':
-        // already handled
-        return null
 
       default:
         throw new IllegalArgumentException("unknown [${args.res}] res value")
@@ -223,11 +261,11 @@ private class ShellExec
   {
     def output = args."${outputName}"
 
-    if(output instanceof OutputStream)
+    if(output instanceof OutputStream || output instanceof Closure)
       this."${outputName}" = output
     else
     {
-      if(output instanceof Closure || requiredRes == "${outputName}Stream")
+      if(requiredRes == "stream")
         this."${outputName}" = null
       else
       {
@@ -245,15 +283,15 @@ private class ShellExec
 
   private void startOutputThread(String outputName, Closure inputStreamProvider)
   {
-    if(requiredRes != "${outputName}Stream")
+    if(this."${outputName}" != null)
     {
       // need to read output (in a separate thread!)
       this."${outputName}ThreadReader" = Thread.start("${commandLine} > ${outputName}") {
 
         InputStream inputStream = inputStreamProvider()
 
-        // this happens when a closure is provided.. invoke the closure
-        if(this."${outputName}" == null)
+        // if it is a closure, invoke the closure
+        if(this."${outputName}" instanceof Closure)
         {
           args."${outputName}"(inputStream)
         }
