@@ -44,8 +44,19 @@ public class TestMultiplexedInputStream extends GroovyTestCase
       assertEquals(text.size(), numberOfBytesWritten)
 
       assertEquals(["0": s1, "1": s2], demultiplex(text))
-    }
 
+      ByteArrayOutputStream baos1 = new ByteArrayOutputStream()
+      ByteArrayOutputStream baos2 = new ByteArrayOutputStream()
+
+      def numberOfBytesRead = MultiplexedInputStream.demultiplex(new ByteArrayInputStream(text.bytes),
+                                                                 [I0: baos1, I1: baos2],
+                                                                 MemorySize.parse(idx as String))
+
+      assertEquals(s1, new String(baos1.toByteArray()))
+      assertEquals(s2, new String(baos2.toByteArray()))
+
+      assertEquals(text.size(), numberOfBytesRead)
+    }
   }
 
   /**

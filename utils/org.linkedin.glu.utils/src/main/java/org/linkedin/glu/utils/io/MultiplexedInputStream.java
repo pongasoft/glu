@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
@@ -103,6 +104,29 @@ public class MultiplexedInputStream extends InputStream
   public MultiplexedInputStream(Collection<InputStream> inputStreams, MemorySize bufferSize)
   {
     this(computeNames(inputStreams), bufferSize);
+  }
+
+  /**
+   * Convenient method to demultiplex a previous multiplexed input stream into output streams.
+   *
+   * @return the total number of bytes read
+   */
+  public static long demultiplex(InputStream inputStream,
+                                 Map<String, OutputStream> outputStreams) throws IOException
+  {
+    return new OutputStreamsDemultiplexer(inputStream, outputStreams).readAll();
+  }
+
+  /**
+   * Convenient method to demultiplex a previous multiplexed input stream into output streams.
+   *
+   * @return the total number of bytes read
+   */
+  public static long demultiplex(InputStream inputStream,
+                                 Map<String, OutputStream> outputStreams,
+                                 MemorySize bufferSize) throws IOException
+  {
+    return new OutputStreamsDemultiplexer(inputStream, outputStreams, bufferSize).readAll();
   }
 
   private static Map<String, InputStream> computeNames(Collection<InputStream> inputStreams)

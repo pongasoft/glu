@@ -31,6 +31,7 @@ import org.linkedin.glu.agent.api.ShellExecException
 import org.linkedin.glu.agent.impl.storage.AgentProperties
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.Headers
+import org.linkedin.glu.utils.io.MultiplexedInputStream
 
 /**
  * Test for various capabilities.
@@ -263,9 +264,17 @@ class TestCapabilities extends GroovyTestCase
 
       // testing for stream
       InputStream stream = shell.exec(command: [shellScript, "-1", "-2", "-e"], failOnError: false, res: "stream")
-      println stream.text
 
-      throw new RuntimeException("needs demultiplexer...")
+      myStdout = new ByteArrayOutputStream()
+      myStderr = new ByteArrayOutputStream()
+      def myExitValue = new ByteArrayOutputStream()
+
+      MultiplexedInputStream.demultiplex(new ByteArrayInputStream(stream.text.bytes),
+                                         ["O": myStdout, "E": myStderr, "V": myExitValue])
+
+      assertEquals("this goes to stdout\n", new String(myStdout.toByteArray(), "UTF-8"))
+      assertEquals("this goes to stderr\n", new String(myStderr.toByteArray(), "UTF-8"))
+      assertEquals("1", new String(myExitValue.toByteArray(), "UTF-8"))
     }
   }
 
