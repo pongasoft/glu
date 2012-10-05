@@ -23,13 +23,12 @@ import org.linkedin.glu.utils.io.NullOutputStream
 import org.linkedin.util.io.IOUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.linkedin.glu.groovy.util.concurrent.CountdownExecutable
-import org.linkedin.glu.groovy.util.concurrent.CountdownInputStream
 import org.linkedin.glu.utils.io.MultiplexedInputStream
 import java.util.concurrent.FutureTask
 import java.util.concurrent.Callable
 import org.linkedin.groovy.util.rest.RestException
 import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.groovy.util.lang.GroovyLangUtils
 
 /**
  * Because the logic of exec is quite complicated, it requires its own class
@@ -98,7 +97,7 @@ private class ShellExec
     finally
     {
       if(destroyProcessInFinally)
-        process?.destroy()
+        process.destroy()
     }
   }
 
@@ -113,44 +112,88 @@ private class ShellExec
       startOutputThread("stderr") { process.errorStream }
     }
 
-    if(requiredRes == "stream")
+    switch(requiredRes)
     {
-      createMultiplexedInputStream()
+      case "stdoutStream":
+      case "stderrStream":
+        return createRequiredInputStream()
+
+      case "stream":
+        return createMultiplexedInputStream()
+
+      default:
+        return executeBlockingCall()
     }
-    else
-      executeBlockingCall()
   }
 
-  private InputStream createMultiplexedInputStream()
+  /**
+   * If asked for stdoutStream or stderrStream, we need to return only that stream
+   * but make sure we still destroy the process when the stream closes
+   */
+  private InputStream createRequiredInputStream()
   {
-    // we can no longer destroy the process in the finally, it will be destroyed when the
-    // input stream is closed
-    destroyProcessInFinally = false
+    InputStream inputStream
 
-    // when all streams are read, the process must be destroyed
-    def countdown = new CountdownExecutable({
-      process.destroy()
-    })
+    if(requiredRes == "stdoutStream")
+      inputStream = process.inputStream
+    else
+      inputStream = process.errorStream
 
     // execute the block call asynchronously
     FutureTask future = new FutureTask(executeBlockingCall as Callable)
 
+    // we can no longer destroy the process in the finally, it will be destroyed when the
+    // input stream is closed
+    destroyProcessInFinally = false
+
     new Thread(future, commandLine).start()
+
+    return new FilterInputStream(inputStream) {
+      @Override
+      void close()
+      {
+        try
+        {
+          super.close()
+        }
+        finally
+        {
+          GroovyLangUtils.noException {
+            try
+            {
+              future.get()
+            }
+            finally
+            {
+              process.destroy()
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Create one input stream which multiples stdout, stderr and exitValue and properly destroys
+   * the process when the stream gets closed
+   */
+  private InputStream createMultiplexedInputStream()
+  {
+    // execute the block call asynchronously
+    FutureTask future = new FutureTask(executeBlockingCall as Callable)
 
     def streams = [:]
 
     // stdout
     if(stdout == null)
     {
-      countdown.inc()
-      streams['O'] = new CountdownInputStream(process.inputStream, countdown)
+      streams['O'] = process.inputStream
     }
 
     // stderr
     if(stderr == null)
     {
-      countdown.inc()
-      streams['E'] = new CountdownInputStream(process.errorStream, countdown)
+      streams['E'] = process.errorStream
     }
 
     // exit value (as a stream)
@@ -164,10 +207,30 @@ private class ShellExec
         JsonUtils.prettyPrint(RestException.toJSON(th)).getBytes("UTF-8")
       }
     })
-    countdown.inc()
-    streams['V'] = new CountdownInputStream(exitValueInputStream, countdown)
+    streams['V'] = exitValueInputStream
 
-    return new MultiplexedInputStream(streams)
+    // we can no longer destroy the process in the finally, it will be destroyed when the
+    // input stream is closed
+    destroyProcessInFinally = false
+
+    new Thread(future, commandLine).start()
+
+    return new FilterInputStream(new MultiplexedInputStream(streams)) {
+      @Override
+      void close()
+      {
+        try
+        {
+          super.close()
+        }
+        finally
+        {
+          GroovyLangUtils.noException {
+            process.destroy()
+          }
+        }
+      }
+    }
   }
 
   private def executeBlockingCall = {
@@ -262,15 +325,20 @@ private class ShellExec
     def output = args."${outputName}"
 
     if(output instanceof OutputStream || output instanceof Closure)
+    {
+      if(requiredRes == "stream" || requiredRes == "${outputName}Stream")
+        throw new IllegalArgumentException("args.${outputName}=[${output}] incompatible with arg.res=[${requiredRes}]")
+
       this."${outputName}" = output
+    }
     else
     {
-      if(requiredRes == "stream")
+      if(requiredRes == "stream" || requiredRes == "${outputName}Stream")
         this."${outputName}" = null
       else
       {
         if(requiredRes == outputName ||
-           requiredRes == "${outputName}Bytes".toString() ||
+           requiredRes == "${outputName}Bytes" ||
            requiredRes == 'all' ||
            requiredRes == 'allBytes')
         {

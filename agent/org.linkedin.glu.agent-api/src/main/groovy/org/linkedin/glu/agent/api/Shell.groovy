@@ -516,7 +516,7 @@ def interface Shell
 
   /**
    * More generic form of the exec call which allows you to configure what you provide and what you
-   * expect.
+   * expect. This call is blocking (unless you request a stream for the result).
    *
    * - Note that if you provide a closure for <code>args.stdout</code> or
    * <code>args.stderr</code> it will be executed in a separate thread (in order to avoid
@@ -529,7 +529,7 @@ def interface Shell
    * <code>stderrBytes</code> if you wish to get the bytes directly
    *
    * - Note that if you request <code>stream</code>, then the call return immediately
-   * (it is non blocking) and you get a single <code>InputStream</code>
+   * (it is non blocking in this case) and you get a single <code>InputStream</code>
    * which multiplexes stdout/stderr and exit value (see <code>MultiplexedInputStream</code> for
    * details). In this case you should make sure to read the entire stream and properly close it
    * as shown in the following code example:
@@ -544,6 +544,20 @@ def interface Shell
    *   stream.close()
    * }
    *
+   * - Note that if you request <code>stdoutStream</code> or <code>stderrStream</code>, then the
+   * call return immediately (it is non blocking in this case) and you get the stream you requested.
+   * In this case you should make sure to read the entire stream and properly close it as
+   * shown in the following code example:
+   *
+   * InputStream stream = shell.exec(command: 'xxx', res: 'stdoutStream')
+   * try
+   * {
+   *   // read stream
+   * }
+   * finally
+   * {
+   *   stream.close()
+   * }
    *
    *
    * @param args.command the command to execute. It will be delegated to the shell so it should
@@ -564,8 +578,8 @@ def interface Shell
    * @param args.failOnError do you want the command to fail (with an exception) when there is
    *                         an error (default to <code>true</code>)
    * @param args.res what do you want the call to return
-   *                 <code>stdout</code>, <code>stdoutBytes</code>
-   *                 <code>stderr</code>, <code>stderrBytes</code>
+   *                 <code>stdout</code>, <code>stdoutBytes</code>, <code>stdoutStream</code>
+   *                 <code>stderr</code>, <code>stderrBytes</code>, <code>stderrStream</code>
    *                 <code>all</code>, <code>allBytes</code> (a map with 3 parameters, exitValue, stdout, stderr)
    *                 <code>exitValue</code>,
    *                 <code>stream</code>

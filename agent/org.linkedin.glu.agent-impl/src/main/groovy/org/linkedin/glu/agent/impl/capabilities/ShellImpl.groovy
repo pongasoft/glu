@@ -577,62 +577,7 @@ def class ShellImpl implements Shell
   }
 
   /**
-   * More generic form of the exec call which allows you to configure what you provide and what you
-   * expect.
-   *
-   * - Note that if you provide a closure for <code>args.stdout</code> or
-   * <code>args.stderr</code> it will be executed in a separate thread (in order to avoid
-   * blocking indefinitely).
-   *
-   * - Note that if you request <code>stdout</code>, <code>stderr</code> or
-   * <code>all</code> for the result of this call, <code>stdout</code> and <code>stderr</code> are
-   * converted to a <code>String</code> using (by default) the "UTF-8" charset and all lines
-   * are terminated with "\n" and the last "\n" is removed. Use <code>stdoutBytes</code> or
-   * <code>stderrBytes</code> if you wish to get the bytes directly
-   *
-   * - Note that if you request <code>stream</code>, then the call return immediately
-   * (it is non blocking) and you get a single <code>InputStream</code>
-   * which multiplexes stdout/stderr and exit value (see <code>MultiplexedInputStream</code> for
-   * details). In this case you should make sure to read the entire stream and properly close it
-   * as shown in the following code example:
-   *
-   * InputStream stream = shell.exec(command: 'xxx', res: 'stream')
-   * try
-   * {
-   *   // read stream
-   * }
-   * finally
-   * {
-   *   stream.close()
-   * }
-   *
-   *
-   *
-   * @param args.command the command to execute. It will be delegated to the shell so it should
-   *                     be native to the OS on which the agent runs (either a <code>String</code>
-   *                     or a <code>Collection</code>) (required)
-   * @param args.stdin any input that can "reasonably" be converted into an
-   *                   <code>InputStream</code>) to provide to the command line execution
-   *                   (optional, default to no stdin)
-   * @param args.stdout <code>Closure</code> (if you want to handle it yourself),
-   *                    <code>OutputStream</code> (where stdout will be written to),
-   *                    (optional: depends on args.res)
-   * @param args.stderr <code>Closure</code> (if you want to handle it yourself),
-   *                    <code>OutputStream</code> (where stdout will be written to),
-   *                    (optional: depends on args.res)
-   * @param args.redirectStderr <code>boolean</code> to redirect stderr into stdout
-   *                            (optional, default to <code>false</code>). Note that this can also
-   *                            be accomplished with the command itself with something like "2>&1"
-   * @param args.failOnError do you want the command to fail (with an exception) when there is
-   *                         an error (default to <code>true</code>)
-   * @param args.res what do you want the call to return
-   *                 <code>stdout</code>, <code>stdoutBytes</code>
-   *                 <code>stderr</code>, <code>stderrBytes</code>
-   *                 <code>all</code>, <code>allBytes</code> (a map with 3 parameters, exitValue, stdout, stderr)
-   *                 <code>exitValue</code>,
-   *                 <code>stream</code>
-   *                 (default to <code>stdout</code>)
-   * @return whatever is specified in args.res
+   * @{inheritDoc}
    */
   def exec(Map args)
   {
