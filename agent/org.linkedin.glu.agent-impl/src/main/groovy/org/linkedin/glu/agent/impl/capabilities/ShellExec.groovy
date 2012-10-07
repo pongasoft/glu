@@ -29,6 +29,7 @@ import java.util.concurrent.Callable
 import org.linkedin.groovy.util.rest.RestException
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.groovy.util.lang.GroovyLangUtils
+import java.util.concurrent.ExecutionException
 
 /**
  * Because the logic of exec is quite complicated, it requires its own class
@@ -180,7 +181,18 @@ private class ShellExec
   private InputStream createMultiplexedInputStream()
   {
     // execute the block call asynchronously
-    FutureTask future = new FutureTask(executeBlockingCall as Callable)
+    FutureTask future = new FutureTask(new Callable() {
+      /**
+       * YP Implementation note: using new FutureTask(executeBlockingCall() as Callable) does not
+       * work because it generates a callable which does not throw any exception... so when the
+       * ShellExecException is thrown you actually get a InvocationTargetException
+       */
+      @Override
+      Object call() throws Exception
+      {
+        return executeBlockingCall()
+      }
+    })
 
     def streams = [:]
 
@@ -201,6 +213,10 @@ private class ShellExec
       try
       {
         future.get().toString().getBytes("UTF-8")
+      }
+      catch(ExecutionException e)
+      {
+        JsonUtils.prettyPrint(RestException.toJSON(e.cause)).getBytes("UTF-8")
       }
       catch(Throwable th)
       {

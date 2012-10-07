@@ -275,14 +275,22 @@ class TestCapabilities extends GroovyTestCase
 
       myStdout = new ByteArrayOutputStream()
       myStderr = new ByteArrayOutputStream()
-      def myExitValue = new ByteArrayOutputStream()
 
-      MultiplexedInputStream.demultiplex(new ByteArrayInputStream(stream.text.bytes),
-                                         ["O": myStdout, "E": myStderr, "V": myExitValue])
-
+      assertEquals(1, shell.demultiplexExecStream(stream, myStdout, myStderr))
       assertEquals("this goes to stdout\n", new String(myStdout.toByteArray(), "UTF-8"))
       assertEquals("this goes to stderr\n", new String(myStderr.toByteArray(), "UTF-8"))
-      assertEquals("1", new String(myExitValue.toByteArray(), "UTF-8"))
+
+      stream = shell.exec(command: [shellScript, "-1", "-2", "-e"], failOnError: true, res: "stream")
+
+      myStdout = new ByteArrayOutputStream()
+      myStderr = new ByteArrayOutputStream()
+
+      errorMsg = shouldFail(ShellExecException) {
+        shell.demultiplexExecStream(stream, myStdout, myStderr)
+      }
+      assertTrue(errorMsg.endsWith("res=1 - output= - error="))
+      assertEquals("this goes to stdout\n", new String(myStdout.toByteArray(), "UTF-8"))
+      assertEquals("this goes to stderr\n", new String(myStderr.toByteArray(), "UTF-8"))
     }
   }
 

@@ -43,6 +43,11 @@ import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.util.url.QueryBuilder
 import org.linkedin.glu.agent.impl.script.FutureExecutionImpl
 import org.linkedin.glu.agent.api.FutureExecution
+import org.linkedin.glu.utils.io.NullOutputStream
+import org.linkedin.glu.utils.io.MultiplexedInputStream
+import org.linkedin.groovy.util.rest.RestException
+import org.linkedin.util.reflect.ReflectUtils
+import org.linkedin.groovy.util.json.JsonUtils
 
 /**
  * contains the utility methods for the shell
@@ -582,6 +587,73 @@ def class ShellImpl implements Shell
   def exec(Map args)
   {
     new ShellExec(shell: this, args: args).exec()
+  }
+
+  /**
+   * @{inheritDoc}
+   */
+  def demultiplexExecStream(InputStream execStream,
+                            OutputStream stdout,
+                            OutputStream stderr)
+  {
+    def exitValueStream = new ByteArrayOutputStream()
+
+    def streams = [
+      "O": stdout ?: NullOutputStream.INSTANCE,
+      "E": stderr ?: NullOutputStream.INSTANCE,
+      "V": exitValueStream
+    ]
+
+    // we demultiplex the stream
+    MultiplexedInputStream.demultiplex(execStream, streams)
+
+    String exitValueAsString = new String(exitValueStream.toByteArray(), "UTF-8")
+    // it means we got an exception, we throw it back
+    if(exitValueAsString.startsWith("{"))
+    {
+      throw doRebuildAgentException(RestException.fromJSON(JsonUtils.fromJSON(exitValueAsString)))
+    }
+    else
+    {
+      try
+      {
+        return Integer.valueOf(exitValueAsString)
+      }
+      catch(NumberFormatException e)
+      {
+        // this should not really happen but just in case...
+        return exitValueAsString
+      }
+    }
+  }
+
+  /**
+   * This method will try to rebuild the full stack trace based on the rest exception recursively.
+   * Handles the case when the client does not know about an exception
+   * (or it simply cannot be created).
+   */
+  private Throwable doRebuildAgentException(RestException restException)
+  {
+    Throwable originalException = restException
+    try
+    {
+      def exceptionClass = ReflectUtils.forName(restException.originalClassName)
+      originalException = exceptionClass.newInstance([restException.originalMessage] as Object[])
+
+      originalException.setStackTrace(restException.stackTrace)
+
+      if(restException.cause)
+        originalException.initCause(doRebuildAgentException(restException.cause))
+    }
+    catch(Exception e)
+    {
+      if(log.isDebugEnabled())
+      {
+        log.debug("Cannot instantiate: ${restException.originalClassName}... ignored", e)
+      }
+    }
+
+    return originalException
   }
 
   /**
