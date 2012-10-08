@@ -674,7 +674,7 @@ gc: 1000
     if(commands.stdin)
       commands.stdin = new ByteArrayInputStream(commands.stdin.getBytes("UTF-8"))
 
-    def stream = agent.executeShellCommand(*:commands)
+    def stream = agent.executeShellCommand(*: commands).stream
 
     OutputStream stdoutStream = new ByteArrayOutputStream()
 

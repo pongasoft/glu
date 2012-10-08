@@ -26,7 +26,6 @@ import org.linkedin.glu.agent.api.NoSuchMountPointException
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.groovy.util.rest.RestException
 import org.linkedin.util.io.PathUtils
-import org.linkedin.util.reflect.ReflectUtils
 import org.restlet.Uniform
 import org.restlet.data.MediaType
 import org.restlet.data.Reference
@@ -37,7 +36,6 @@ import org.restlet.resource.ClientResource
 import org.restlet.resource.ResourceException
 import org.json.JSONArray
 import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
-import org.restlet.representation.EmptyRepresentation
 import org.linkedin.glu.agent.rest.common.AgentRestUtils
 
 /**
@@ -263,7 +261,7 @@ class AgentRestClient implements Agent
   }
 
   @Override
-  InputStream executeShellCommand(args)
+  def executeShellCommand(args)
   {
     def ref = _references.commands.targetRef
 
@@ -272,12 +270,22 @@ class AgentRestClient implements Agent
         ref.addQueryParameter(k.toString(), v.toString())
     }
 
-    handleResponse(ref) { ClientResource client ->
+    String id = null
+
+    InputStream stream = handleResponse(ref) { ClientResource client ->
+      Representation res
+
       if(args.stdin)
-        client.post(new InputStreamOutputRepresentation(args.stdin))
+        res = client.post(new InputStreamOutputRepresentation(args.stdin))
       else
-        client.post(new EmptyRepresentation())
-    } as InputStream
+        res = client.post(Representation.createEmpty())
+
+      id = client.responseAttributes.'org.restlet.http.headers'?.getFirstValue('X-glu-command-id')
+
+      return res
+    }
+
+    return [id: id, stream: stream]
   }
 
   @Override
@@ -417,7 +425,7 @@ class AgentRestClient implements Agent
     return response?.res
   }
 
-  private def handleResponse(Reference reference, Closure closure)
+  private <T> T handleResponse(Reference reference, Closure closure)
   {
     def clientResource = new ClientResource(reference)
     clientResource.next = _client
@@ -444,18 +452,18 @@ class AgentRestClient implements Agent
     return null
   }
 
-  private def extractRepresentation(ClientResource clientResource, Representation representation)
+  private <T> T extractRepresentation(ClientResource clientResource, Representation representation)
   {
     switch(representation?.mediaType)
     {
       case MediaType.APPLICATION_JSON:
-        return JsonUtils.fromJSON(representation.text)
+        return (T) JsonUtils.fromJSON(representation.text)
 
       case MediaType.APPLICATION_OCTET_STREAM:
-        return representation.stream
+        return (T) representation.stream
     }
 
-    return clientResource.status
+    return (T) clientResource.status
   }
 
   private void handleError(ClientResource clientResource)

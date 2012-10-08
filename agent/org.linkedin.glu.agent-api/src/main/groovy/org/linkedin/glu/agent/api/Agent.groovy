@@ -277,9 +277,10 @@ public interface Agent
    *                            be accomplished with the command itself with something like "2>&1"
    * @param args.failOnError do you want the command to fail (with an exception) when there is
    *                         an error (default to <code>true</code>)
-   * @return the (multiplexed) input stream (@see {Shell#exec(Map)} for details on the result
+   * @return a map with id being the id of the command being executed, and stream the (multiplexed)
+   *         input stream (@see {Shell#exec(Map)} for details on the result
    */
-  InputStream executeShellCommand(args) throws AgentException
+  def executeShellCommand(args) throws AgentException
 
   /********************************************************************
    * Tags

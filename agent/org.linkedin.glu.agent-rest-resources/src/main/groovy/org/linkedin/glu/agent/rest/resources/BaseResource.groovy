@@ -138,4 +138,16 @@ class BaseResource extends Resource
     Reference ref = request.originalRef
     return ref.path - resourceMountPoint
   }
+
+  protected void addResponseHeader(String name, def value)
+  {
+    Form form = (Form) response.attributes.'org.restlet.http.headers'
+    if(form == null)
+    {
+      form = new Form()
+      response.attributes.'org.restlet.http.headers' = form
+    }
+    if(value != null)
+      form.add(name, value.toString())
+  }
 }

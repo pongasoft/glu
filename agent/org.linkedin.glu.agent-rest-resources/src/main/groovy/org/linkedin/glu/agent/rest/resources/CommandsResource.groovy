@@ -22,6 +22,7 @@ import org.restlet.Response
 import org.restlet.representation.Representation
 import org.restlet.representation.InputRepresentation
 import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
+import org.restlet.data.Form
 
 /**
  * @author yan@pongasoft.com */
@@ -48,7 +49,11 @@ public class CommandsResource extends BaseResource
       def args = toArgs(request.originalRef.queryAsForm)
       if(representation instanceof InputRepresentation)
         args.stdin = representation.stream
-      response.setEntity(new InputStreamOutputRepresentation(agent.executeShellCommand(args)))
+
+      def res = agent.executeShellCommand(args)
+
+      addResponseHeader('X-glu-command-id', res.id)
+      response.setEntity(new InputStreamOutputRepresentation(res.stream))
     }
   }
 }

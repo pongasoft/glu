@@ -477,13 +477,18 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   }
 
   @Override
-  InputStream executeShellCommand(args)
+  def executeShellCommand(args)
   {
     handleException {
       args = args.subMap(['command', 'redirectStderr', 'stdin', 'failOnError'])
       def stdin = args.remove('stdin')
       log.info "executeShellCommand: ${args}${stdin ? ' - <stdin>' : ''}"
-      return shellForCommands.exec(*: args, stdin: stdin, res: "stream")
+
+      def stream = shellForCommands.exec(*: args, stdin: stdin, res: "stream")
+
+      // for now, we compute a unique id and pass it along. In the future, it could be used
+      // to come back and get details about the command
+      return [id: UUID.randomUUID().toString(), stream: stream]
     }
   }
 
