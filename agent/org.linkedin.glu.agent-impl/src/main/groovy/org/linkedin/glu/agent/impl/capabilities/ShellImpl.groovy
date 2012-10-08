@@ -43,11 +43,9 @@ import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.util.url.QueryBuilder
 import org.linkedin.glu.agent.impl.script.FutureExecutionImpl
 import org.linkedin.glu.agent.api.FutureExecution
-import org.linkedin.glu.utils.io.NullOutputStream
-import org.linkedin.glu.utils.io.MultiplexedInputStream
 import org.linkedin.groovy.util.rest.RestException
 import org.linkedin.util.reflect.ReflectUtils
-import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.glu.agent.rest.common.AgentRestUtils
 
 /**
  * contains the utility methods for the shell
@@ -596,35 +594,7 @@ def class ShellImpl implements Shell
                             OutputStream stdout,
                             OutputStream stderr)
   {
-    def exitValueStream = new ByteArrayOutputStream()
-
-    def streams = [
-      "O": stdout ?: NullOutputStream.INSTANCE,
-      "E": stderr ?: NullOutputStream.INSTANCE,
-      "V": exitValueStream
-    ]
-
-    // we demultiplex the stream
-    MultiplexedInputStream.demultiplex(execStream, streams)
-
-    String exitValueAsString = new String(exitValueStream.toByteArray(), "UTF-8")
-    // it means we got an exception, we throw it back
-    if(exitValueAsString.startsWith("{"))
-    {
-      throw doRebuildAgentException(RestException.fromJSON(JsonUtils.fromJSON(exitValueAsString)))
-    }
-    else
-    {
-      try
-      {
-        return Integer.valueOf(exitValueAsString)
-      }
-      catch(NumberFormatException e)
-      {
-        // this should not really happen but just in case...
-        return exitValueAsString
-      }
-    }
+    AgentRestUtils.demultiplexExecStream(execStream, stdout, stderr)
   }
 
   /**

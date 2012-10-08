@@ -36,6 +36,9 @@ import org.restlet.representation.Representation
 import org.restlet.resource.ClientResource
 import org.restlet.resource.ResourceException
 import org.json.JSONArray
+import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
+import org.restlet.representation.EmptyRepresentation
+import org.linkedin.glu.agent.rest.common.AgentRestUtils
 
 /**
  * This is the implementation of the {@link Agent} interface using a REST api under the cover
@@ -172,7 +175,7 @@ class AgentRestClient implements Agent
     def error = state.scriptState.stateMachine.error
     if(error instanceof Map)
     {
-      state.scriptState.stateMachine.error = doRebuildAgentException(RestException.fromJSON(error))
+      state.scriptState.stateMachine.error = AgentRestUtils.rebuildAgentException(RestException.fromJSON(error))
     }
 
     return state
@@ -257,6 +260,24 @@ class AgentRestClient implements Agent
       return new ByteArrayInputStream([] as byte[]) 
 
     return getRes(response)
+  }
+
+  @Override
+  InputStream executeShellCommand(args)
+  {
+    def ref = _references.commands.targetRef
+
+    args.subMap(['command', 'redirectStderr', 'failOnError']).each { k, v ->
+      if(v != null)
+        ref.addQueryParameter(k.toString(), v.toString())
+    }
+
+    handleResponse(ref) { ClientResource client ->
+      if(args.stdin)
+        client.post(new InputStreamOutputRepresentation(args.stdin))
+      else
+        client.post(new EmptyRepresentation())
+    } as InputStream
   }
 
   @Override
@@ -446,7 +467,7 @@ class AgentRestClient implements Agent
     }
     else
     {
-      throwAgentException(clientResource.status, RestException.fromJSON(representation))
+      AgentRestUtils.throwAgentException(clientResource.status, RestException.fromJSON(representation))
     }
   }
 
@@ -456,53 +477,5 @@ class AgentRestClient implements Agent
       throw new RecoverableAgentException(status)
     else
       throw new AgentException(status.toString())
-  }
-
-  /**
-   * This method will try to rebuild the full stack trace based on the rest exception recursively.
-   * Handles the case when the client does not know about an exception
-   * (or it simply cannot be created).
-   */
-  private AgentException throwAgentException(Status status, RestException restException)
-  {
-    Throwable exception = doRebuildAgentException(restException)
-
-    if(exception instanceof AgentException)
-    {
-      throw exception
-    }
-    else
-    {
-      throw new AgentException(status.toString(), restException)
-    }
-  }
-
-  /**
-   * This method will try to rebuild the full stack trace based on the rest exception recursively.
-   * Handles the case when the client does not know about an exception
-   * (or it simply cannot be created).
-   */
-  private Throwable doRebuildAgentException(RestException restException)
-  {
-    Throwable originalException = restException
-    try
-    {
-      def exceptionClass = ReflectUtils.forName(restException.originalClassName)
-      originalException = exceptionClass.newInstance([restException.originalMessage] as Object[])
-
-      originalException.setStackTrace(restException.stackTrace)
-
-      if(restException.cause)
-        originalException.initCause(doRebuildAgentException(restException.cause))
-    }
-    catch(Exception e)
-    {
-      if(log.isDebugEnabled())
-      {
-        log.debug("Cannot instantiate: ${restException.originalClassName}... ignored", e)
-      }
-    }
-
-    return originalException
   }
 }

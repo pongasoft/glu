@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.rest.resources
+package org.linkedin.glu.agent.rest.common
 
 import org.restlet.data.MediaType
 import org.restlet.representation.OutputRepresentation

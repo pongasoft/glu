@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2012 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -20,48 +20,35 @@ import org.restlet.Context
 import org.restlet.Request
 import org.restlet.Response
 import org.restlet.representation.Representation
-import org.restlet.representation.Variant
-import org.linkedin.util.io.PathUtils
+import org.restlet.representation.InputRepresentation
 import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
 
 /**
- * Handles resources to the agent logs
- *
- * @author ypujante@linkedin.com */
-class LogResource extends BaseResource
+ * @author yan@pongasoft.com */
+public class CommandsResource extends BaseResource
 {
-  LogResource(Context context, Request request, Response response)
+  CommandsResource(Context context, Request request, Response response)
   {
     super(context, request, response);
   }
 
-  public boolean allowGet()
+  @Override
+  boolean allowPost()
   {
     return true
   }
 
   /**
-   * GET: return the log
+   * Handle POST
    */
-  public Representation represent(Variant variant)
+  @Override
+  public void acceptRepresentation(Representation representation)
   {
-    return noException {
+    noException {
       def args = toArgs(request.originalRef.queryAsForm)
-      def log = PathUtils.removeLeadingSlash(path)
-      if(log)
-      {
-        args.log = log
-      }
-
-      def res = agent.tailAgentLog(args)
-      if(res instanceof InputStream)
-      {
-        return new InputStreamOutputRepresentation(res)
-      }
-      else
-      {
-        return toRepresentation([res: res])
-      }
+      if(representation instanceof InputRepresentation)
+        args.stdin = representation.stream
+      response.setEntity(new InputStreamOutputRepresentation(agent.executeShellCommand(args)))
     }
   }
 }

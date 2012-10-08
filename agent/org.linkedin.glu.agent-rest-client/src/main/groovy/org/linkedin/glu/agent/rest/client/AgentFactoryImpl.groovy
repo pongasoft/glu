@@ -32,7 +32,7 @@ import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 class AgentFactoryImpl implements AgentFactory
 {
   public static final def DEFAULT_MAPPINGS =
-    ['agent', 'mountPoint', 'host', 'process', 'log', 'file', 'tags']
+    ['agent', 'commands', 'mountPoint', 'host', 'process', 'log', 'file', 'tags']
 
   public static final def DEFAULT_PATHS = GroovyCollectionsUtils.toMapKey(DEFAULT_MAPPINGS) {
     "/${it}".toString()

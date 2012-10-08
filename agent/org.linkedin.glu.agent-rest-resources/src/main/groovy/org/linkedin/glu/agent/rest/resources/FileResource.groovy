@@ -22,6 +22,7 @@ import org.restlet.Response
 import org.restlet.representation.Representation
 import org.restlet.representation.Variant
 import org.linkedin.util.io.PathUtils
+import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
 
 /**
  * Handles resources of type files (tail / ls)

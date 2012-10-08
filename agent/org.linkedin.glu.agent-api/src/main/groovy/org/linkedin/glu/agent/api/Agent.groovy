@@ -42,7 +42,7 @@ public interface Agent
   ]
 
   /********************************************************************
-   * Software management
+   * Script management
    ********************************************************************/
   /**
    * Installs a script.
@@ -187,6 +187,10 @@ public interface Agent
    */
   def getMountPoints() throws AgentException
 
+  /********************************************************************
+   * Agent calls
+   ********************************************************************/
+
   /**
    * @return information about the host 
    */
@@ -242,9 +246,43 @@ public interface Agent
    * @params args.maxSize the maximum size to read
    */
   def getFileContent(args) throws AgentException
-  
+
   /********************************************************************
-   * Software management
+   * Commands
+   ********************************************************************/
+
+  /**
+   * Executes the shell command. Note that this methods returns right away and does not wait
+   * for the command to complete. Note that you must read the input stream provided
+   * otherwise the command has the potential to never complete and block indefinitely (if it
+   * outputs anything for example). You should also properly close it. Example:
+   *
+   * InputStream stream = agent.executeShellCommand(command: 'xxxx')
+   * try
+   * {
+   *   // read stream
+   * }
+   * finally
+   * {
+   *   stream.close()
+   * }
+   *
+   * @param args.command the command to execute. It will be delegated to the shell so it should
+   *                     be native to the OS on which the agent runs (required)
+   * @param args.stdin any input that can "reasonably" be converted into an
+   *                   <code>InputStream</code>) to provide to the command line execution
+   *                   (optional, default to no stdin)
+   * @param args.redirectStderr <code>boolean</code> to redirect stderr into stdout
+   *                            (optional, default to <code>false</code>). Note that this can also
+   *                            be accomplished with the command itself with something like "2>&1"
+   * @param args.failOnError do you want the command to fail (with an exception) when there is
+   *                         an error (default to <code>true</code>)
+   * @return the (multiplexed) input stream (@see {Shell#exec(Map)} for details on the result
+   */
+  InputStream executeShellCommand(args) throws AgentException
+
+  /********************************************************************
+   * Tags
    ********************************************************************/
   /**
    * @return the number of tags

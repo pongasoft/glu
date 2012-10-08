@@ -25,6 +25,7 @@ import org.restlet.Request
 import org.restlet.Response
 import org.restlet.representation.Representation
 import org.restlet.representation.Variant
+import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
 
 /**
  * Represents a script resource

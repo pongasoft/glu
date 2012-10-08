@@ -25,5 +25,6 @@ public interface AgentContext
 {
   def getClock()
   Shell getShellForScripts()
+  Shell getShellForCommands()
   MOP getMop()
 }

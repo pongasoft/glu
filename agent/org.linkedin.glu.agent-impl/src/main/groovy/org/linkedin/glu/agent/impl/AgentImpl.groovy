@@ -53,6 +53,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
 
   private Sigar _sigar
   private Shell _shellForScripts
+  private Shell _shellForCommands
   private Shell _rootShell
   private Resource _agentLogDir
   private ScriptManager _scriptManager
@@ -77,6 +78,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   {
     _shellForScripts = args.shellForScripts
     _rootShell = args.rootShell
+    _shellForCommands = args.shellForCommands ?: _rootShell
     _agentLogDir = args.agentLogDir
     _sigar = args.sigar
     _mop = args.mop ?: new MOPImpl()
@@ -474,9 +476,26 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
     }
   }
 
+  @Override
+  InputStream executeShellCommand(args)
+  {
+    handleException {
+      args = args.subMap(['command', 'redirectStderr', 'stdin', 'failOnError'])
+      def stdin = args.remove('stdin')
+      log.info "executeShellCommand: ${args}${stdin ? ' - <stdin>' : ''}"
+      return shellForCommands.exec(*: args, stdin: stdin, res: "stream")
+    }
+  }
+
   public Shell getShellForScripts()
   {
     return _shellForScripts;
+  }
+
+  @Override
+  Shell getShellForCommands()
+  {
+    return _shellForCommands
   }
 
   public MOP getMop()
@@ -577,7 +596,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
     }
   }
 
-  private def handleException(Closure closure)
+  private <T> T handleException(Closure closure)
   {
     try
     {

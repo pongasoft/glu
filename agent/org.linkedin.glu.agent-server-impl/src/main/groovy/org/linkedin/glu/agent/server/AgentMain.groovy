@@ -63,6 +63,7 @@ import org.linkedin.glu.agent.impl.storage.TagsStorage
 import org.linkedin.glu.agent.impl.storage.WriteOnlyStorage
 import org.linkedin.util.lifecycle.Configurable
 import org.linkedin.glu.agent.rest.resources.AgentConfigResource
+import org.linkedin.glu.agent.rest.resources.CommandsResource
 
 /**
  * This is the main class to start the agent.
@@ -534,6 +535,7 @@ class AgentMain implements LifecycleListener, Configurable
       log: [clazz: LogResource, matchingMode: Template.MODE_STARTS_WITH],
       file: [clazz: FileResource, matchingMode: Template.MODE_STARTS_WITH],
       tags: [clazz: TagsResource, matchingMode: Template.MODE_STARTS_WITH],
+      commands: [clazz: CommandsResource],
     ].each { name, map ->
       def path = "/${name}".toString()
       Class clazz = map.clazz

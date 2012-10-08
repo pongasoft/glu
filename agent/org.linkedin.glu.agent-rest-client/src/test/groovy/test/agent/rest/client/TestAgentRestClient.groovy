@@ -50,6 +50,9 @@ import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.glu.agent.impl.storage.TagsStorage
 import org.linkedin.glu.agent.impl.storage.Storage
 import org.linkedin.glu.agent.api.ScriptExecutionCauseException
+import org.linkedin.glu.agent.rest.resources.CommandsResource
+import org.linkedin.glu.agent.api.Shell
+import org.linkedin.glu.agent.api.ShellExecException
 
 /**
  * The code which is in {@link AgentRestClient} is essentially the code to use for calling the rest
@@ -613,6 +616,78 @@ gc: 1000
       assertFalse(arc.hasAllTags(['fruit', 'vegetable', 'rock']))
       assertTrue(arc.hasAnyTag(['rock', 'vegetable']))
       assertTrue(agentProperties[APTN] == 'rock;paper' || agentProperties[APTN] == 'paper;rock')
+    }
+  }
+
+  /**
+   * The content of this test is very similar to TestCapabilities.testGenericExec (minus the test
+   * for arguments that don't make sense)
+   */
+  public void testCommands()
+  {
+    router.attach("/commands", CommandsResource)
+    router.context.getAttributes().put(CommandsResource.class.name, "/commands")
+
+    AgentFactoryImpl.create(commandsPath: "/commands",
+                            sslEnabled: false).withRemoteAgent(serverURI) { arc ->
+      FileSystemImpl.createTempFileSystem() { FileSystem fs ->
+        def shell = new ShellImpl(fileSystem: fs)
+        def shellScript = shell.fetch("./src/test/resources/shellScriptTestAgentExecShellCommand.sh")
+        // let's make sure it is executable
+        fs.chmod(shellScript, '+x')
+
+        // stdout only
+        checkShellExec(arc, shell, [command: [shellScript, "-1"]], 0, "this goes to stdout\n", "")
+
+        // both stdout and stderr in their proper channel
+        checkShellExec(arc, shell, [command: [shellScript, "-1", "-2"]], 0, "this goes to stdout\n", "this goes to stderr\n")
+
+        // redirecting stderr to stdout
+        checkShellExec(arc, shell, [command: [shellScript, "-1", "-2"], redirectStderr: true], 0, "this goes to stdout\nthis goes to stderr\n", "")
+
+        // testing for failure/exit value
+        checkShellExec(arc, shell, [command: [shellScript, "-1", "-e"], failOnError: false], 1, "this goes to stdout\n", "")
+
+        // test that when there is a failure, then an exception is properly generated if failOnError
+        // is not defined
+        def errorMsg = shouldFail(ShellExecException) {
+          checkShellExec(arc, shell, [command: [shellScript, "-1", "-e"]], null, "this goes to stdout\n", "")
+        }
+        assertTrue(errorMsg.endsWith("res=1 - output= - error="))
+
+        // test that when there is a failure, then an exception is properly generated if failOnError
+        // is set to true
+        errorMsg = shouldFail(ShellExecException) {
+          checkShellExec(arc, shell, [command: [shellScript, "-1", "-e"], failOnError: true], null, "this goes to stdout\n", "")
+        }
+        assertTrue(errorMsg.endsWith("res=1 - output= - error="))
+
+        // reading from stdin
+        checkShellExec(arc, shell, [command: [shellScript, "-1", "-c"], stdin: "abc\ndef\n"], 0, "this goes to stdout\nabc\ndef\n", "")
+      }
+    }
+  }
+
+  private void checkShellExec(Agent agent, Shell shell, commands, exitValue, stdout, stderr)
+  {
+    commands.command = commands.command.collect { it.toString() }.join(" ")
+    if(commands.stdin)
+      commands.stdin = new ByteArrayInputStream(commands.stdin.getBytes("UTF-8"))
+
+    def stream = agent.executeShellCommand(*:commands)
+
+    OutputStream stdoutStream = new ByteArrayOutputStream()
+
+    OutputStream stderrStream = new ByteArrayOutputStream()
+
+    try
+    {
+      assertEquals(exitValue, shell.demultiplexExecStream(stream, stdoutStream, stderrStream))
+    }
+    finally
+    {
+      assertEquals(stdout, new String(stdoutStream.toByteArray(), "UTF-8"))
+      assertEquals(stderr, new String(stderrStream.toByteArray(), "UTF-8"))
     }
   }
 }
