@@ -29,6 +29,7 @@ import org.linkedin.groovy.util.config.MissingConfigParameterException
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.utils.tags.TagsSerializer
 import org.linkedin.glu.groovy.util.state.DefaultStateMachine
+import org.linkedin.glu.agent.rest.common.AgentRestUtils
 
 /**
  * Command line to talk to the agent
@@ -46,6 +47,8 @@ class ClientMain implements Startable
   protected CliBuilder cli
   private AgentFactory factory
   private final StateMachine stateMachine = DefaultStateMachine.INSTANCE
+
+  private int exitValue = 0
 
   ClientMain()
   {
@@ -80,6 +83,12 @@ class ClientMain implements Startable
         return
       }
 
+      if(Config.getOptionalString(config, 'executeShellCommand', null))
+      {
+        executeShellCommand(agent, config)
+        return
+      }
+
       if(!mountPoint)
       {
         println agent.getMountPoints()
@@ -100,6 +109,26 @@ class ClientMain implements Startable
       else
         getState(agent, mountPoint)
     }
+  }
+
+  /**
+   * Executing shell command
+   */
+  def executeShellCommand = { Agent agent, config ->
+
+    boolean redirectStderr = Config.getOptionalBoolean(config, "redirectStderr", false)
+    def args = [
+      command: Config.getRequiredString(config, 'executeShellCommand')
+    ]
+    if(redirectStderr)
+      args.redirectStderr = redirectStderr
+
+    if(Config.getOptionalBoolean(config, "stdin", false))
+      args.stdin = System.in
+
+    InputStream mis = agent.executeShellCommand(args).stream
+
+    exitValue = AgentRestUtils.demultiplexExecStream(mis, System.out, System.err) as int
   }
 
   /******************************
@@ -336,10 +365,13 @@ class ClientMain implements Startable
     cli._(longOpt: 'tag-add', 'add the given tags', argName: 'tag1;tag2...', args: 1, required: false)
     cli._(longOpt: 'tag-remove', 'remove the given tags', argName: 'tag1;tag2...', args: 1, required: false)
     cli._(longOpt: 'tag-set', 'sets the given tags', argName: 'tag1;tag2...', args: 1, required: false)
+    cli._(longOpt: 'redirectStderr', 'redirect stderr into stdout (use with -E)', args: 0, required: false)
+    cli._(longOpt: 'stdin', 'provides stdin to the command (use with -E)', args: 0, required: false)
     cli.a(longOpt: 'args', 'arguments of the script or action (ex: [a:\'12\'])', args:1, required: false)
     cli.c(longOpt: 'installScriptClassname', 'install the script given a class name)', args:1, required: false)
     cli.C(longOpt: 'fileContent', 'retrieves the file content', args:1, required: false)
     cli.e(longOpt: 'executeAction', 'executes the provided action (ex: install)', args:1, required: false)
+    cli.E(longOpt: 'executeShellCommand', 'executes the provided shell command', args:1, required: false)
     cli.f(longOpt: 'clientConfigFile', 'the client config file', args: 1, required: false)
     cli.F(longOpt: 'forceUninstallScript', 'force uninstall script', args: 0, required: false)
     cli.h(longOpt: 'help', 'display help')
@@ -406,6 +438,8 @@ class ClientMain implements Startable
       }
       System.exit(1)
     }
+
+    System.exit(clientMain.exitValue)
   }
 
   protected def extractArgs(def config)

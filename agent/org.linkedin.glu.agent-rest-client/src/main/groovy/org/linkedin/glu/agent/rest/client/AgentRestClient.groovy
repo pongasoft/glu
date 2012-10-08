@@ -37,6 +37,7 @@ import org.restlet.resource.ResourceException
 import org.json.JSONArray
 import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
 import org.linkedin.glu.agent.rest.common.AgentRestUtils
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 
 /**
  * This is the implementation of the {@link Agent} interface using a REST api under the cover
@@ -76,7 +77,7 @@ class AgentRestClient implements Agent
   public executeCall(args)
   {
     def response = handleResponse(toMountPointReference(args)) { ClientResource client ->
-      client.post(toArgs([executeCall: args?.subMap(['call', 'callArgs'])]))
+      client.post(toArgs([executeCall: GluGroovyCollectionUtils.subMap(args, ['call', 'callArgs'])]))
     }
     return response
   }
@@ -218,10 +219,10 @@ class AgentRestClient implements Agent
     def ref = _references.log
     ref = addPath(ref, args.log ?: '/')
 
-    args.subMap(['maxLine', 'maxSize']).each { k,v ->
+    GluGroovyCollectionUtils.subMap(args, ['maxLine', 'maxSize']).each { k,v ->
       if(v)
       {
-        ref.addQueryParameter(k, v.toString())
+        ref.addQueryParameter(k.toString(), v.toString())
       }
     }
 
@@ -243,10 +244,10 @@ class AgentRestClient implements Agent
     def ref = _references.file
     ref = addPath(ref, args.location)
 
-    args.subMap(['maxLine', 'maxSize']).each { k,v ->
+    GluGroovyCollectionUtils.subMap(args, ['maxLine', 'maxSize']).each { k,v ->
       if(v)
       {
-        ref.addQueryParameter(k, v.toString())
+        ref.addQueryParameter(k.toString(), v.toString())
       }
     }
 
@@ -265,7 +266,7 @@ class AgentRestClient implements Agent
   {
     def ref = _references.commands.targetRef
 
-    args.subMap(['command', 'redirectStderr', 'failOnError']).each { k, v ->
+    GluGroovyCollectionUtils.subMap(args, ['command', 'redirectStderr']).each { k, v ->
       if(v != null)
         ref.addQueryParameter(k.toString(), v.toString())
     }
@@ -278,7 +279,11 @@ class AgentRestClient implements Agent
       if(args.stdin)
         res = client.post(new InputStreamOutputRepresentation(args.stdin))
       else
-        res = client.post(Representation.createEmpty())
+      {
+        def empty = Representation.createEmpty()
+        empty.mediaType = MediaType.APPLICATION_OCTET_STREAM
+        res = client.post(empty)
+      }
 
       id = client.responseAttributes.'org.restlet.http.headers'?.getFirstValue('X-glu-command-id')
 

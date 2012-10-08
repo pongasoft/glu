@@ -40,6 +40,7 @@ import org.linkedin.glu.utils.tags.Taggeable
 import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
 import org.linkedin.glu.agent.impl.script.ScriptNode
 import java.util.concurrent.ExecutionException
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 
 /**
  * The main implementation of the agent
@@ -480,11 +481,11 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   def executeShellCommand(args)
   {
     handleException {
-      args = args.subMap(['command', 'redirectStderr', 'stdin', 'failOnError'])
+      args = GluGroovyCollectionUtils.subMap(args, ['command', 'redirectStderr', 'stdin'])
       def stdin = args.remove('stdin')
       log.info "executeShellCommand: ${args}${stdin ? ' - <stdin>' : ''}"
 
-      def stream = shellForCommands.exec(*: args, stdin: stdin, res: "stream")
+      def stream = shellForCommands.exec(*: args, stdin: stdin, failOnError: false, res: "stream")
 
       // for now, we compute a unique id and pass it along. In the future, it could be used
       // to come back and get details about the command

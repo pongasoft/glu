@@ -646,21 +646,7 @@ gc: 1000
         checkShellExec(arc, shell, [command: [shellScript, "-1", "-2"], redirectStderr: true], 0, "this goes to stdout\nthis goes to stderr\n", "")
 
         // testing for failure/exit value
-        checkShellExec(arc, shell, [command: [shellScript, "-1", "-e"], failOnError: false], 1, "this goes to stdout\n", "")
-
-        // test that when there is a failure, then an exception is properly generated if failOnError
-        // is not defined
-        def errorMsg = shouldFail(ShellExecException) {
-          checkShellExec(arc, shell, [command: [shellScript, "-1", "-e"]], null, "this goes to stdout\n", "")
-        }
-        assertTrue(errorMsg.endsWith("res=1 - output= - error="))
-
-        // test that when there is a failure, then an exception is properly generated if failOnError
-        // is set to true
-        errorMsg = shouldFail(ShellExecException) {
-          checkShellExec(arc, shell, [command: [shellScript, "-1", "-e"], failOnError: true], null, "this goes to stdout\n", "")
-        }
-        assertTrue(errorMsg.endsWith("res=1 - output= - error="))
+        checkShellExec(arc, shell, [command: [shellScript, "-1", "-e"]], 1, "this goes to stdout\n", "")
 
         // reading from stdin
         checkShellExec(arc, shell, [command: [shellScript, "-1", "-c"], stdin: "abc\ndef\n"], 0, "this goes to stdout\nabc\ndef\n", "")
