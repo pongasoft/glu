@@ -68,4 +68,18 @@ interface AgentsService
    * Builds the current system model based on the live data from ZooKeeper
    */
   SystemModel getCurrentSystemModel(Fabric fabric)
+
+  /**
+   * Executes the shell command and uses the closure to stream the result
+   *
+   * @param commandResultProcessor a closure which will take a map <code>id</code> and
+   *                               <code>stream</code>
+   * @return whatever the closure returns
+   * @see org.linkedin.glu.agent.api.Agent#executeShellCommand for details on args
+   */
+  def executeShellCommand(Fabric fabric,
+                          String agentName,
+                          args,
+                          Closure commandResultProcessor)
+
 }

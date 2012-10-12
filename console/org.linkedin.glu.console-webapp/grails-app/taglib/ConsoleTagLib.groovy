@@ -70,9 +70,20 @@ public class ConsoleTagLib
   }
 
   def formatDate = { args ->
-    synchronized(_dateFormat) {
-      if(args.date)
-        out << _dateFormat.format(args.date)
+    if(args.date)
+    {
+      synchronized(_dateFormat) {
+          out << _dateFormat.format(args.date)
+      }
+    }
+    else
+    {
+      if(args.time)
+      {
+        synchronized(_dateFormat) {
+            out << _dateFormat.format(new Date(args.time))
+        }
+      }
     }
   }
 

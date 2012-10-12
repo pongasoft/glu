@@ -257,7 +257,7 @@ public interface Agent
    * otherwise the command has the potential to never complete and block indefinitely (if it
    * outputs anything for example). You should also properly close it. Example:
    *
-   * InputStream stream = agent.executeShellCommand(command: 'xxxx')
+   * InputStream stream = agent.executeShellCommand(command: 'xxxx').stream
    * try
    * {
    *   // read stream

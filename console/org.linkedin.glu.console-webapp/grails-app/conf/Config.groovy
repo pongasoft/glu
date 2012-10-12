@@ -93,7 +93,10 @@ grails.views.javascript.library="jquery"
 grails.enable.native2ascii = true
 
 // extra packages with domain classes
-grails.external.domain.packages = ['org.linkedin.glu.orchestration.engine.delta']
+grails.external.domain.packages = [
+  'org.linkedin.glu.orchestration.engine.delta',
+  'org.linkedin.glu.orchestration.engine.commands'
+]
 
 // this parameter disables auto flushing in grails which happens when an object is dirty
 // and not saved... when setting this to manual you need to explicitely save the object
@@ -366,6 +369,8 @@ console.security.roles = [
   'GET:/rest/v1/$fabric': 'USER',
   'PUT:/rest/v1/$fabric': 'ADMIN',
   'DELETE:/rest/v1/$fabric': 'ADMIN',
+
+  'POST:/rest/v1/$fabric/agent/$id/commands': 'RELEASE',
 
   'GET:/rest/v1/-/agents': 'USER',
 

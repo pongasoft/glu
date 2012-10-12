@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) 2012 Yan Pujante
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package org.linkedin.glu.orchestration.engine.commands
+
+import org.linkedin.glu.orchestration.engine.commands.CommandExecution.CommandType
+
+/**
+ * @author yan@pongasoft.com */
+public interface CommandExecutionStorage
+{
+  CommandExecution startExecution(String fabric,
+                                  String agent,
+                                  String username,
+                                  String command,
+                                  String commandId,
+                                  CommandType commandType,
+                                  long startTime)
+
+  CommandExecution endExecution(String commandId,
+                                long endTime,
+                                String stdinFirstBtes,
+                                String stdoutFirstBytes,
+                                String stderrFirstBytes,
+                                String exitValue)
+
+  OutputStream getStdinOutputStream(String commandId)
+
+  InputStream getStdinInputStream(String commandId)
+
+  OutputStream getResultOutputStream(String commandId)
+
+  InputStream getResultInputStream(String commandId)
+}

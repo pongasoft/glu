@@ -234,6 +234,17 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
     return systemModel
   }
 
+  @Override
+  def executeShellCommand(Fabric fabric,
+                          String agentName,
+                          args,
+                          Closure commandResultProcessor)
+  {
+    withRemoteAgent(fabric, agentName) { Agent agent ->
+      commandResultProcessor(agent.executeShellCommand(args))
+    }
+  }
+
   /**
    * Create the system entry for the given agent and mountpoint.
    */

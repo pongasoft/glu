@@ -43,6 +43,7 @@
     <li><g:link controller="agents" action="list">List</g:link></li>
     <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
     <li class="active"><a href="#">Plans</a></li>
+    <li><g:link action="commands" id="${params.id}">Commands</g:link></li>
     <li><g:link action="ps" id="${params.id}">All Processes</g:link></li>
   </ul>
   <g:render template="/plan/selectPlan" model="[title: title, hasDelta: hasDelta]"/>

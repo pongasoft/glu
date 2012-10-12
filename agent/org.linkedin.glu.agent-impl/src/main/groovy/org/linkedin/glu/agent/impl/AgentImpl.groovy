@@ -482,14 +482,18 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   {
     handleException {
       args = GluGroovyCollectionUtils.subMap(args, ['command', 'redirectStderr', 'stdin'])
+      
       def stdin = args.remove('stdin')
-      log.info "executeShellCommand: ${args}${stdin ? ' - <stdin>' : ''}"
-
-      def stream = shellForCommands.exec(*: args, stdin: stdin, failOnError: false, res: "stream")
 
       // for now, we compute a unique id and pass it along. In the future, it could be used
       // to come back and get details about the command
-      return [id: UUID.randomUUID().toString(), stream: stream]
+      String id = UUID.randomUUID().toString()
+
+      log.info "executeShellCommand: ${args}${stdin ? ' - <stdin>' : ''} - ${id}"
+
+      def stream = shellForCommands.exec(*: args, stdin: stdin, failOnError: false, res: "stream")
+
+      return [id: id, stream: stream]
     }
   }
 

@@ -59,17 +59,19 @@ class AuditLog
     if(!username)
       username = "__console__"
 
-    def auditLog = new AuditLog(username: username,
-                                type: type,
-                                details: details,
-                                info: info).save()
+    AuditLog.withTransaction {
+      def auditLog = new AuditLog(username: username,
+                                  type: type,
+                                  details: details,
+                                  info: info).save()
 
-    if(!auditLog)
-    {
-      staticLog.warn "Error while logging: ${auditLog} / ${auditLog.errors}... ignored"
+      if(!auditLog)
+      {
+        staticLog.warn "Error while logging: ${auditLog} / ${auditLog.errors}... ignored"
+      }
+
+      return auditLog
     }
-
-    return auditLog
   }
 
   /**
@@ -77,7 +79,15 @@ class AuditLog
    */
   static def audit(String type, String details, String info)
   {
-    def principal
+    audit(getCurrentPrincipal(), type, details, info)
+  }
+
+  /**
+   * @return the current principal
+   */
+  private static String getCurrentPrincipal()
+  {
+    def principal = null
     try
     {
       principal = SecurityUtils.getSubject()?.principal
@@ -85,11 +95,11 @@ class AuditLog
     catch (Exception e)
     {
       staticLog.warn("Could not determine principal (ignored) [${e.message}]")
-      
+
       if(staticLog.isDebugEnabled())
         staticLog.debug("Could not determine principal (ignored)", e)
     }
-    audit(principal, type, details, info)
+    return principal
   }
 
   /**

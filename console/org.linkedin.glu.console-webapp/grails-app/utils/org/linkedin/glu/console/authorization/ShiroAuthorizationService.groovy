@@ -30,6 +30,7 @@ public class ShiroAuthorizationService implements AuthorizationService
 {
   @Override
   void checkRole(String role, String message, Permission permission)
+    throws AccessControlException
   {
     try
     {

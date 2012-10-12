@@ -103,6 +103,14 @@ class UrlMappings
       __nvbe = 'Agents'
       __role = UrlMappings.role('/agents/ps/$id')
     }
+    "/agents/commands/$id"(controller: 'agents', action: 'commands') {
+      __nvbe = 'Agents'
+      __role = UrlMappings.role('/agents/commands/$id')
+    }
+    "/agents/executeCommand/$id"(controller: 'agents', action: 'executeCommand') {
+      __nvbe = 'Agents'
+      __role = UrlMappings.role('/agents/executeCommand/$id')
+    }
     "/agents/fullStackTrace/$id"(controller: 'agents', action: 'fullStackTrace') {
       __nvbe = 'Agents'
       __role = UrlMappings.role('/agents/fullStackTrace/$id')
@@ -551,6 +559,13 @@ class UrlMappings
         DELETE: 'rest_delete_agent'
       ]
       __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/agent/$id')
+    }
+
+    "/rest/v1/$fabric/agent/$id/commands"(controller: 'agents') {
+      action = [
+        POST: 'rest_execute_shell_command'
+      ]
+      __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/agent/$id/commands')
     }
 
     "/rest/v1/$fabric/agents/versions"(controller: 'agents') {

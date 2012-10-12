@@ -35,6 +35,9 @@ import org.linkedin.glu.orchestration.engine.fabric.FabricService
 import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.groovy.util.state.DefaultStateMachine
 import org.linkedin.glu.grails.utils.ConsoleConfig
+import org.linkedin.glu.orchestration.engine.commands.CommandsService
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.linkedin.glu.orchestration.engine.commands.CommandExecution
 
 /**
  * @author ypujante@linkedin.com
@@ -63,6 +66,7 @@ class AgentsController extends ControllerBase
   ]
 
   AgentsService agentsService
+  CommandsService commandsService
   DeploymentService deploymentService
   PlannerService plannerService
   DeltaService deltaService
@@ -416,6 +420,31 @@ class AgentsController extends ControllerBase
   }
 
   /**
+   * Commands view page
+   */
+  def commands = {
+    [commands: CommandExecution.findAllByFabricAndAgent(request.fabric.name,
+                                                        params.id,
+                                                        [sort: 'startTime', order: 'desc'])]
+  }
+
+  /**
+   * Executing a command
+   */
+  def executeCommand = {
+    println params
+    if(params.command)
+    {
+      println commandsService.executeShellCommand(request.fabric, params.id, [command: params.command])
+    }
+    else
+    {
+      flash.error = "Please enter a command to execute"
+    }
+    redirect(action: 'commands', id: params.id)
+  }
+
+  /**
    * Retuns the count of agents (HEAD /agents)
    */
   def rest_count_agents = {
@@ -579,6 +608,22 @@ class AgentsController extends ControllerBase
     {
       response.sendError(HttpServletResponse.SC_NO_CONTENT, 'no plan created (nothing to upgrade)')
       render ''
+    }
+  }
+
+  /**
+   * curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/agent/agent-2/commands?command=/tmp/shellScriptTestShellExec.sh%20-1%20-2%20-c%20-e" -H "Content-Type: application/octet-stream" --data-binary 'abcdef'
+   */
+  def rest_execute_shell_command = {
+    def args = GluGroovyCollectionUtils.subMap(params, ['command', 'redirectStderr'])
+
+    if(request.contentLength != 0)
+      args.stdin = request.inputStream
+    
+    commandsService.executeShellCommand(request.fabric, params.id, args) {
+      response.addHeader('X-glu-command-id', it.id)
+      response.contentType = "application/octet-stream"
+      response.outputStream << it.stream
     }
   }
 
