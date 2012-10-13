@@ -33,6 +33,10 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 import org.linkedin.util.clock.Timespan
+import org.linkedin.util.lang.MemorySize
+import org.linkedin.glu.utils.io.LimitedOutputStream
+import org.linkedin.glu.utils.io.DemultiplexedOutputStream
+import org.apache.commons.io.output.TeeOutputStream
 
 /**
  * @author yan@pongasoft.com */
@@ -56,6 +60,13 @@ public class CommandsServiceImpl implements CommandsService
 
   @Initializable
   AuthorizationService authorizationService
+
+  /**
+   * using 255 by default because that is what a <code>String</code> in GORM can hold
+   * You can define it to be less, but more will not work
+   */
+  @Initializable(required = true)
+  MemorySize commandExecutionFirstBytesSize = MemorySize.parse('255')
 
   /**
    * This timeout represents how long to we are willing to wait for the command to complete before
@@ -145,6 +156,19 @@ public class CommandsServiceImpl implements CommandsService
   {
     long startTime = clock.currentTimeMillis()
 
+    // stdin
+    ByteArrayOutputStream stdinFirstBytes = null
+
+    if(args.stdin)
+    {
+      stdinFirstBytes =
+        new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
+      LimitedOutputStream stdinLimited =
+      new LimitedOutputStream(stdinFirstBytes, commandExecutionFirstBytesSize)
+
+      args.stdin = new TeeInputStream(args.stdin, stdinLimited)
+    }
+
     agentsService.executeShellCommand(fabric, agentName, args) { res ->
 
       String commandId = res.id
@@ -165,20 +189,48 @@ public class CommandsServiceImpl implements CommandsService
 
       try
       {
+        // stdout
+        ByteArrayOutputStream stdoutFirstBytes =
+          new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
+        LimitedOutputStream stdoutLimited =
+          new LimitedOutputStream(stdoutFirstBytes, commandExecutionFirstBytesSize)
+
+        // stderr
+        ByteArrayOutputStream stderrFirstBytes =
+          new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
+        LimitedOutputStream stderrLimited =
+          new LimitedOutputStream(stderrFirstBytes, commandExecutionFirstBytesSize)
+
+        // exitValue
+        ByteArrayOutputStream exitValueStream = new ByteArrayOutputStream()
+
+        def streams = [
+          "O": stdoutLimited, // no more than 255 bytes
+          "E": stderrLimited, // no more than 255 bytes
+          "V": exitValueStream
+        ]
+
+        // this will demultiplex the result
+        DemultiplexedOutputStream dos = new DemultiplexedOutputStream(streams)
+
         // we can now consume the entire result while making sure we save it as well
-        def resultOutputStream = commandExecutionStorage.getResultOutputStream(commandId)
-        resultOutputStream = new BufferedOutputStream(resultOutputStream)
-        def closureResult = resultOutputStream.withStream { OutputStream os ->
+        def stream = commandExecutionStorage.getResultOutputStream(commandId)
+        if(stream)
+          stream = new TeeOutputStream(dos, new BufferedOutputStream(stream))
+        else
+          stream = dos
+
+        def closureResult = stream.withStream { OutputStream os ->
           commandResultProcessor(id: commandId, stream: new TeeInputStream(res.stream, os))
         }
 
         // we now update the storage with the various results
         commandExecutionStorage.endExecution(commandId,
                                              clock.currentTimeMillis(),
-                                             null,
-                                             null,
-                                             null,
-                                             null)
+                                             toString(stdinFirstBytes),
+                                             toString(stdoutFirstBytes),
+                                             toString(stderrFirstBytes),
+                                             toString(exitValueStream))
 
         return closureResult
       }
@@ -190,5 +242,13 @@ public class CommandsServiceImpl implements CommandsService
         }
       }
     }
+  }
+
+  private String toString(ByteArrayOutputStream stream)
+  {
+    if(stream)
+      new String(stream.toByteArray(), "UTF-8")
+    else
+      null
   }
 }

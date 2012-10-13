@@ -16,6 +16,7 @@
 
 package org.linkedin.glu.utils.io;
 
+import org.linkedin.util.io.IOUtils;
 import org.linkedin.util.lang.MemorySize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,7 +115,12 @@ public class MultiplexedInputStream extends InputStream
   public static long demultiplex(InputStream inputStream,
                                  Map<String, OutputStream> outputStreams) throws IOException
   {
-    return new OutputStreamsDemultiplexer(inputStream, outputStreams).readAll();
+    DemultiplexedOutputStream demultiplexedOutputStream =
+      new DemultiplexedOutputStream(outputStreams);
+
+    IOUtils.copy(inputStream, demultiplexedOutputStream);
+
+    return demultiplexedOutputStream.getNumberOfBytesWritten();
   }
 
   /**
@@ -126,7 +132,12 @@ public class MultiplexedInputStream extends InputStream
                                  Map<String, OutputStream> outputStreams,
                                  MemorySize bufferSize) throws IOException
   {
-    return new OutputStreamsDemultiplexer(inputStream, outputStreams, bufferSize).readAll();
+    DemultiplexedOutputStream demultiplexedOutputStream =
+      new DemultiplexedOutputStream(outputStreams, bufferSize);
+
+    IOUtils.copy(inputStream, demultiplexedOutputStream);
+
+    return demultiplexedOutputStream.getNumberOfBytesWritten();
   }
 
   private static Map<String, InputStream> computeNames(Collection<InputStream> inputStreams)

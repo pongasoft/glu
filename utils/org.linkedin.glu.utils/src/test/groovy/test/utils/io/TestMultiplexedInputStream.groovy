@@ -20,6 +20,7 @@ import org.linkedin.glu.utils.io.MultiplexedInputStream
 import org.linkedin.util.lang.MemorySize
 import java.util.concurrent.FutureTask
 import java.util.concurrent.TimeUnit
+import org.linkedin.glu.utils.io.DemultiplexedOutputStream
 
 /**
  * @author yan@pongasoft.com */
@@ -56,6 +57,32 @@ public class TestMultiplexedInputStream extends GroovyTestCase
       assertEquals(s2, new String(baos2.toByteArray()))
 
       assertEquals(text.size(), numberOfBytesRead)
+
+      baos1 = new ByteArrayOutputStream()
+      baos2 = new ByteArrayOutputStream()
+
+      def dmos = new DemultiplexedOutputStream([I0: baos1, I1: baos2],
+                                               MemorySize.parse(idx as String))
+      text.bytes.each { dmos.write((int) it) }
+
+      assertEquals(s1, new String(baos1.toByteArray()))
+      assertEquals(s2, new String(baos2.toByteArray()))
+      assertEquals(text.size(), dmos.numberOfBytesWritten)
+
+      baos1 = new ByteArrayOutputStream()
+      baos2 = new ByteArrayOutputStream()
+
+      dmos = new DemultiplexedOutputStream([I0: baos1, I1: baos2],
+                                           MemorySize.parse(idx as String))
+      text.bytes.each {
+        def b = new byte[1]
+        b[0] = it
+        dmos.write(b)
+      }
+
+      assertEquals(s1, new String(baos1.toByteArray()))
+      assertEquals(s2, new String(baos2.toByteArray()))
+      assertEquals(text.size(), dmos.numberOfBytesWritten)
     }
   }
 

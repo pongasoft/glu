@@ -22,25 +22,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.WritableByteChannel;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * This class demultiplexes a stream (previously multiplexed with {@link MultiplexedInputStream})
- * and write each stream into the provided output streams
- *
  * @author yan@pongasoft.com
  */
-public class OutputStreamsDemultiplexer
+public class DemultiplexedOutputStream extends OutputStream
 {
-  public static final String MODULE = OutputStreamsDemultiplexer.class.getName();
+  public static final String MODULE = DemultiplexedOutputStream.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   public static final MemorySize DEFAULT_BUFFER_SIZE = MemorySize.parse("4k");
@@ -49,43 +45,39 @@ public class OutputStreamsDemultiplexer
 
   public static final StringSplitter SS = new StringSplitter('=');
 
-  private final InputStream _inputStream;
   private final Map<String, OutputStream> _outputStreams;
   private final Map<String, WritableByteChannel> _outputChannels;
   private final MemorySize _bufferSize;
 
-  private final ReadableByteChannel _inputChannel;
   private ByteBuffer _buffer;
-  private long _numberOfBytesRead = 0;
+  private long _numberOfBytesWritten = 0;
 
-  // the data currently being read needs to be written there
+  // the data currently being written needs to be written there
   private WritableByteChannel _currentOutputChannel = null;
-  private int _currentNumberOfBytesToRead = 0;
+  private int _currentNumberOfBytesToWrite = 0;
 
   private boolean _expectStreamHeader = true;
   private boolean _expectPartHeader = false;
 
+  private boolean _closed = false;
+
   /**
    * Constructor
    */
-  public OutputStreamsDemultiplexer(InputStream inputStream,
-                                    Map<String, OutputStream> outputStreams)
+  public DemultiplexedOutputStream(Map<String, OutputStream> outputStreams)
   {
-    this(inputStream, outputStreams, DEFAULT_BUFFER_SIZE);
+    this(outputStreams, DEFAULT_BUFFER_SIZE);
   }
 
   /**
    * Constructor
    */
-  public OutputStreamsDemultiplexer(InputStream inputStream,
-                                    Map<String, OutputStream> outputStreams,
-                                    MemorySize bufferSize)
+  public DemultiplexedOutputStream(Map<String, OutputStream> outputStreams,
+                                   MemorySize bufferSize)
   {
-    _inputStream = inputStream;
     _outputStreams = new LinkedHashMap<String, OutputStream>(outputStreams);
     _bufferSize = bufferSize;
 
-    _inputChannel = Channels.newChannel(_inputStream);
     _buffer = ByteBuffer.allocate((int) _bufferSize.getSizeInBytes());
     _outputChannels = new LinkedHashMap<String, WritableByteChannel>();
 
@@ -95,61 +87,84 @@ public class OutputStreamsDemultiplexer
     }
   }
 
-  public InputStream getInputStream()
+  @Override
+  public void write(int b) throws IOException
   {
-    return _inputStream;
+    if(_closed)
+      throw new ClosedChannelException();
+
+    if(_buffer.remaining() == 0)
+      throw new IOException("invalid stream detected");
+
+    _buffer.put((byte) b);
+    
+    processBuffer();
   }
 
-  public Map<String, OutputStream> getOutputStreams()
+  @Override
+  public void write(byte[] b, int off, int len) throws IOException
   {
-    return _outputStreams;
-  }
+    if(_closed)
+      throw new ClosedChannelException();
 
-  public MemorySize getBufferSize()
-  {
-    return _bufferSize;
-  }
-
-  public long readAll() throws IOException
-  {
-    _buffer.clear();
-
-    while(_inputChannel.isOpen() && _inputChannel.read(_buffer) != -1)
+    while(len > 0)
     {
-      if(_buffer.position() > 0)
-        processBuffer();
-    }
+      if(_buffer.remaining() == 0)
+        throw new IOException("invalid stream detected");
 
-    while(_buffer.position() > 0)
+      int numberOfBytesToWrite = Math.min(len, _buffer.remaining());
+
+      _buffer.put(b, off, numberOfBytesToWrite);
       processBuffer();
-
-    return _numberOfBytesRead;
+      len -= numberOfBytesToWrite;
+      off += numberOfBytesToWrite;
+    }
   }
 
+  public long getNumberOfBytesWritten()
+  {
+    return _numberOfBytesWritten;
+  }
+
+  @Override
+  public void flush() throws IOException
+  {
+    for(OutputStream outputStream : _outputStreams.values())
+    {
+      outputStream.flush();
+    }
+  }
+
+  @Override
   public void close() throws IOException
   {
-    _inputChannel.close();
+    _closed = true;
   }
 
   private void processBuffer() throws IOException
   {
+    boolean needMoreBytes = false;
+
     _buffer.flip();
 
     try
     {
-      if(_expectStreamHeader)
+      while(_buffer.hasRemaining() && !needMoreBytes)
       {
-        processStreamHeader();
-      }
-      else
-      {
-        if(_expectPartHeader)
+        if(_expectStreamHeader)
         {
-          processPartHeader();
+          needMoreBytes = processStreamHeader();
         }
         else
         {
-          processData();
+          if(_expectPartHeader)
+          {
+            needMoreBytes = processPartHeader();
+          }
+          else
+          {
+            processData();
+          }
         }
       }
     }
@@ -159,15 +174,17 @@ public class OutputStreamsDemultiplexer
     }
   }
 
-
-  private void processStreamHeader() throws IOException
+  private boolean processStreamHeader() throws IOException
   {
     String line = readLine();
-    if(line == null || line.equals(""))
-    {
-      // we need to read more... or we skip empty lines
-      return;
-    }
+
+    // we need to read more...
+    if(line == null)
+      return true;
+
+    // we skip empty lines
+    if(line.equals(""))
+      return false;
 
     // this should be the header...
     List<String> headerParts = SS.splitAsList(line);
@@ -198,16 +215,22 @@ public class OutputStreamsDemultiplexer
 
     _expectStreamHeader = false;
     _expectPartHeader = true;
+
+    return false;
   }
 
-  private void processPartHeader() throws IOException
+  private boolean processPartHeader() throws IOException
   {
     String line = readLine();
-    if(line == null || line.equals(""))
-    {
-      // we need to read more... or we skip empty lines
-      return;
-    }
+    
+    // we need to read more...
+    if(line == null)
+      return true;
+
+    // we skip empty lines
+    if(line.equals(""))
+      return false;
+
     List<String> headerParts = SS.splitAsList(line);
     if(headerParts.size() != 2)
       throw new IOException("invalid part header: " + line);
@@ -218,7 +241,7 @@ public class OutputStreamsDemultiplexer
 
     try
     {
-      _currentNumberOfBytesToRead = Integer.valueOf(headerParts.get(1));
+      _currentNumberOfBytesToWrite = Integer.valueOf(headerParts.get(1));
     }
     catch(NumberFormatException e)
     {
@@ -226,6 +249,7 @@ public class OutputStreamsDemultiplexer
     }
 
     _expectPartHeader = false;
+    return false;
   }
 
   private void processData() throws IOException
@@ -233,13 +257,13 @@ public class OutputStreamsDemultiplexer
     int numberOfBytesInBuffer = _buffer.remaining();
 
     // all the bytes in the buffer belongs to the current output
-    if(numberOfBytesInBuffer <= _currentNumberOfBytesToRead)
+    if(numberOfBytesInBuffer <= _currentNumberOfBytesToWrite)
     {
       while(_buffer.hasRemaining())
       {
         int numberOfBytesRead = _currentOutputChannel.write(_buffer);
-        _currentNumberOfBytesToRead -= numberOfBytesRead;
-        _numberOfBytesRead += numberOfBytesRead;
+        _currentNumberOfBytesToWrite -= numberOfBytesRead;
+        _numberOfBytesWritten += numberOfBytesRead;
       }
     }
     else
@@ -248,21 +272,21 @@ public class OutputStreamsDemultiplexer
       int limit = _buffer.limit();
 
       // we read only the portion
-      _buffer.limit(_currentNumberOfBytesToRead);
+      _buffer.limit(_currentNumberOfBytesToWrite + _buffer.position());
 
       // then we read them
       while(_buffer.hasRemaining())
       {
         int numberOfBytesRead = _currentOutputChannel.write(_buffer);
-        _currentNumberOfBytesToRead -= numberOfBytesRead;
-        _numberOfBytesRead += numberOfBytesRead;
+        _currentNumberOfBytesToWrite -= numberOfBytesRead;
+        _numberOfBytesWritten += numberOfBytesRead;
       }
 
       // we restore the limit
       _buffer.limit(limit);
     }
 
-    if(_currentNumberOfBytesToRead == 0)
+    if(_currentNumberOfBytesToWrite == 0)
     {
       _currentOutputChannel = null;
       _expectPartHeader = true;
@@ -274,13 +298,15 @@ public class OutputStreamsDemultiplexer
     byte[] array = _buffer.array();
     int limit = _buffer.limit();
 
-    for(int i = 0; i < limit; i++)
+    int off = _buffer.position();
+
+    for(int i = off; i < limit; i++)
     {
       if(array[i] == '\n')
       {
         _buffer.position(i + 1);
-        _numberOfBytesRead += i + 1;
-        return new String(array, 0, i);
+        _numberOfBytesWritten += i - off + 1;
+        return new String(array, off, i - off);
       }
     }
     return null;

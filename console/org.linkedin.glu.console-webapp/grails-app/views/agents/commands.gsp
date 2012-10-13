@@ -20,9 +20,10 @@
   <title>Commands - Agent [${params.id}]</title>
   <meta name="layout" content="main"/>
   <style type="text/css">
-    /*table td {*/
-      /*padding: 0.2em;*/
-    /*}*/
+    pre {
+      padding: 1px;
+      margin: 0;
+    }
   </style>
 </head>
 <body>
@@ -55,19 +56,19 @@
       <th class="stdoutFilter">Stdout</th>
       <th class="stderrFilter">Stderr</th>
       <th class="exitValueFilter">Exit</th>
-      <th class="usernameFilter">Username</th>
+      <th class="usernameFilter">User</th>
       <th class="startTimeFilter">Start Time</th>
       <th class="endTimeFilter">End Time</th>
-      <th class="durationFilter">Duration</th>
+      <th class="durationFilter">Dur.</th>
     </tr>
     </thead>
     <tbody>
     <g:each in="${commands}" var="ce">
       <tr>
         <td class="commandFilter">${ce.command.encodeAsHTML()}</td>
-        <td class="stdinFilter">${ce.stdinFirstBytes?.encodeAsHTML()}</td>
-        <td class="stdoutFilter">${ce.stdoutFirstBytes?.encodeAsHTML()}</td>
-        <td class="stderrFilter">${ce.stderrFirstBytes?.encodeAsHTML()}</td>
+        <td class="stdinFilter"><g:if test="${ce.stdinFirstBytes}"><pre>${ce.stdinFirstBytes?.encodeAsHTML()}</pre></g:if></td>
+        <td class="stdoutFilter"><g:if test="${ce.stdoutFirstBytes}"><pre>${ce.stdoutFirstBytes?.encodeAsHTML()}</pre></g:if></td>
+        <td class="stderrFilter"><g:if test="${ce.stderrFirstBytes}"><pre>${ce.stderrFirstBytes?.encodeAsHTML()}</pre></g:if></td>
         <td class="exitValueFilter">${ce.exitValue?.encodeAsHTML()}</td>
         <td class="usernameFilter">${ce.username.encodeAsHTML()}</td>
         <td class="startTimeFilter"><cl:formatDate time="${ce.startTime}"/></td>
