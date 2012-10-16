@@ -16,30 +16,30 @@
 
 package org.linkedin.glu.orchestration.engine.commands
 
-import org.linkedin.glu.orchestration.engine.agents.AgentsService
-import org.linkedin.util.annotations.Initializable
-import org.linkedin.glu.orchestration.engine.fabric.Fabric
-import org.linkedin.util.clock.SystemClock
-import org.linkedin.util.clock.Clock
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit
+import org.apache.commons.io.input.TeeInputStream
+import org.apache.commons.io.output.TeeOutputStream
+import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
 import org.linkedin.glu.orchestration.engine.commands.CommandExecution.CommandType
-import org.apache.commons.io.input.TeeInputStream
-import org.linkedin.util.io.IOUtils
+import org.linkedin.glu.orchestration.engine.fabric.Fabric
+import org.linkedin.glu.utils.io.DemultiplexedOutputStream
+import org.linkedin.glu.utils.io.LimitedOutputStream
 import org.linkedin.glu.utils.io.NullOutputStream
+import org.linkedin.util.annotations.Initializable
+import org.linkedin.util.clock.Clock
+import org.linkedin.util.clock.SystemClock
+import org.linkedin.util.clock.Timespan
+import org.linkedin.util.io.IOUtils
+import org.linkedin.util.lang.MemorySize
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.concurrent.TimeUnit
-import org.linkedin.util.clock.Timespan
-import org.linkedin.util.lang.MemorySize
-import org.linkedin.glu.utils.io.LimitedOutputStream
-import org.linkedin.glu.utils.io.DemultiplexedOutputStream
-import org.apache.commons.io.output.TeeOutputStream
 
 /**
- * @author yan@pongasoft.com */
+ * @author yan@pongasoft.com  */
 public class CommandsServiceImpl implements CommandsService
 {
   public static final String MODULE = CommandsServiceImpl.class.getName();
@@ -58,12 +58,14 @@ public class CommandsServiceImpl implements CommandsService
   @Initializable(required = true)
   CommandExecutionStorage commandExecutionStorage
 
+  @Initializable(required = true)
+  CommandExecutionIOStorage commandExecutionIOStorage
+
   @Initializable
   AuthorizationService authorizationService
 
   /**
    * using 255 by default because that is what a <code>String</code> in GORM can hold
-   * You can define it to be less, but more will not work
    */
   @Initializable(required = true)
   MemorySize commandExecutionFirstBytesSize = MemorySize.parse('255')
@@ -77,7 +79,7 @@ public class CommandsServiceImpl implements CommandsService
   Timespan defaultSynchronousWaitTimeout = Timespan.parse('1s')
 
   /**
-   * The commands that are currently executing */
+   * The commands that are currently executing  */
   private final Map<String, CommandExecution> _currentCommandExecutions = [:]
 
   @Override
@@ -102,12 +104,12 @@ public class CommandsServiceImpl implements CommandsService
 
     String username = authorizationService.executingPrincipal
 
-    def commandExecutor = { ->
+    def commandExecutor = {->
       try
       {
         doExecuteShellCommand(fabric, agentName, username, args, cop)
       }
-      catch(Throwable th)
+      catch (Throwable th)
       {
         // if an exception is thrown before "cop" is executed, then we could block indefinitely!
         commandStarted.countDown()
@@ -123,7 +125,7 @@ public class CommandsServiceImpl implements CommandsService
       future.get(defaultSynchronousWaitTimeout.getDurationInMilliseconds(),
                  TimeUnit.MILLISECONDS)
     }
-    catch(TimeoutException)
+    catch (TimeoutException)
     {
       // it is ok... we did not get any result during this amount of time
     }
@@ -138,10 +140,10 @@ public class CommandsServiceImpl implements CommandsService
   def executeShellCommand(Fabric fabric, String agentName, args, Closure commandResultProcessor)
   {
     doExecuteShellCommand(fabric,
-                        agentName,
-                        authorizationService.executingPrincipal,
-                        args,
-                        commandResultProcessor)
+                          agentName,
+                          authorizationService.executingPrincipal,
+                          args,
+                          commandResultProcessor)
   }
 
   /**
@@ -156,89 +158,100 @@ public class CommandsServiceImpl implements CommandsService
   {
     long startTime = clock.currentTimeMillis()
 
-    // stdin
-    ByteArrayOutputStream stdinFirstBytes = null
+    commandExecutionIOStorage.captureIO { StreamStorage storage ->
 
-    if(args.stdin)
-    {
-      stdinFirstBytes =
-        new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
-      LimitedOutputStream stdinLimited =
-      new LimitedOutputStream(stdinFirstBytes, commandExecutionFirstBytesSize)
+      // stdin
+      ByteArrayOutputStream stdinFirstBytes = null
 
-      args.stdin = new TeeInputStream(args.stdin, stdinLimited)
-    }
-
-    agentsService.executeShellCommand(fabric, agentName, args) { res ->
-
-      String commandId = res.id
-
-      // first we store the command in the storage
-      def commandExecution = commandExecutionStorage.startExecution(fabric.name,
-                                                                    agentName,
-                                                                    username,
-                                                                    args.command,
-                                                                    commandId,
-                                                                    CommandType.SHELL,
-                                                                    startTime)
-
-      synchronized(_currentCommandExecutions)
+      if(args.stdin)
       {
-        _currentCommandExecutions[commandId] = commandExecution
+        stdinFirstBytes =
+          new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
+        def stdinStream =
+          new LimitedOutputStream(stdinFirstBytes, commandExecutionFirstBytesSize)
+
+        // in parallel, write stdin to IO storage
+        def stdinStorage = storage.findStdinStorage()
+        if(stdinStorage)
+          stdinStream = new TeeOutputStream(stdinStream, new BufferedOutputStream(stdinStorage))
+
+        args.stdin = new TeeInputStream(args.stdin, stdinStream, true)
       }
 
-      try
-      {
-        // stdout
-        ByteArrayOutputStream stdoutFirstBytes =
-          new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
-        LimitedOutputStream stdoutLimited =
-          new LimitedOutputStream(stdoutFirstBytes, commandExecutionFirstBytesSize)
+      agentsService.executeShellCommand(fabric, agentName, args) { res ->
 
-        // stderr
-        ByteArrayOutputStream stderrFirstBytes =
-          new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
-        LimitedOutputStream stderrLimited =
-          new LimitedOutputStream(stderrFirstBytes, commandExecutionFirstBytesSize)
+        String commandId = res.id
 
-        // exitValue
-        ByteArrayOutputStream exitValueStream = new ByteArrayOutputStream()
+        // first we store the command in the storage
+        def commandExecution = commandExecutionStorage.startExecution(fabric.name,
+                                                                      agentName,
+                                                                      username,
+                                                                      args.command,
+                                                                      commandId,
+                                                                      CommandType.SHELL,
+                                                                      startTime)
 
-        def streams = [
-          "O": stdoutLimited, // no more than 255 bytes
-          "E": stderrLimited, // no more than 255 bytes
-          "V": exitValueStream
-        ]
-
-        // this will demultiplex the result
-        DemultiplexedOutputStream dos = new DemultiplexedOutputStream(streams)
-
-        // we can now consume the entire result while making sure we save it as well
-        def stream = commandExecutionStorage.getResultOutputStream(commandId)
-        if(stream)
-          stream = new TeeOutputStream(dos, new BufferedOutputStream(stream))
-        else
-          stream = dos
-
-        def closureResult = stream.withStream { OutputStream os ->
-          commandResultProcessor(id: commandId, stream: new TeeInputStream(res.stream, os))
-        }
-
-        // we now update the storage with the various results
-        commandExecutionStorage.endExecution(commandId,
-                                             clock.currentTimeMillis(),
-                                             toString(stdinFirstBytes),
-                                             toString(stdoutFirstBytes),
-                                             toString(stderrFirstBytes),
-                                             toString(exitValueStream))
-
-        return closureResult
-      }
-      finally
-      {
         synchronized(_currentCommandExecutions)
         {
-          _currentCommandExecutions.remove(commandId)
+          _currentCommandExecutions[commandId] = commandExecution
+        }
+
+        // now command execution is known... set it in the storage
+        storage.commandExecution = commandExecution
+
+        try
+        {
+          // stdout
+          ByteArrayOutputStream stdoutFirstBytes =
+            new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
+          LimitedOutputStream stdoutLimited =
+            new LimitedOutputStream(stdoutFirstBytes, commandExecutionFirstBytesSize)
+
+          // stderr
+          ByteArrayOutputStream stderrFirstBytes =
+            new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
+          LimitedOutputStream stderrLimited =
+            new LimitedOutputStream(stderrFirstBytes, commandExecutionFirstBytesSize)
+
+          // exitValue
+          ByteArrayOutputStream exitValueStream = new ByteArrayOutputStream()
+
+          def streams = [
+            "O": stdoutLimited, // no more than 255 bytes
+            "E": stderrLimited, // no more than 255 bytes
+            "V": exitValueStream
+          ]
+
+          // this will demultiplex the result
+          DemultiplexedOutputStream dos = new DemultiplexedOutputStream(streams)
+
+          // we can now consume the entire result while making sure we save it as well
+          def stream = storage.findResultStreamStorage()
+          if(stream)
+            stream = new TeeOutputStream(dos, new BufferedOutputStream(stream))
+          else
+            stream = dos
+
+          def closureResult = stream.withStream { OutputStream os ->
+            commandResultProcessor(id: commandId, stream: new TeeInputStream(res.stream, os))
+          }
+
+          // we now update the storage with the various results
+          commandExecutionStorage.endExecution(commandId,
+                                               clock.currentTimeMillis(),
+                                               toString(stdinFirstBytes),
+                                               toString(stdoutFirstBytes),
+                                               toString(stderrFirstBytes),
+                                               toString(exitValueStream))
+
+          return closureResult
+        }
+        finally
+        {
+          synchronized(_currentCommandExecutions)
+          {
+            _currentCommandExecutions.remove(commandId)
+          }
         }
       }
     }

@@ -175,6 +175,11 @@
   <!-- *********************** -->
   <!-- commandsService         -->
   <!-- *********************** -->
+  <bean id="commandExecutionIOStorage"
+        class="org.linkedin.glu.orchestration.engine.commands.FileSystemCommandExecutionIOStorage">
+    <property name="commandExecutionFileSystem" ref="commandExecutionFileSystem"/>
+  </bean>
+
   <bean id="commandExecutionStorage"
         class="org.linkedin.glu.orchestration.engine.commands.CommandExecutionStorageImpl"/>
 
@@ -184,6 +189,7 @@
     <property name="authorizationService" ref="authorizationService"/>
     <property name="executorService" ref="executor"/>
     <property name="commandExecutionStorage" ref="commandExecutionStorage"/>
+    <property name="commandExecutionIOStorage" ref="commandExecutionIOStorage"/>
   </bean>
 
   <!-- *********************** -->

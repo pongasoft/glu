@@ -27,8 +27,6 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
   public static final String MODULE = CommandExecutionStorageImpl.class.getName ();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
-  private def _streams = [:]
-
   @Override
   CommandExecution startExecution(String fabric,
                                   String agent,
@@ -84,52 +82,4 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
       return execution
     }
   }
-
-  @Override
-  OutputStream getStdinOutputStream(String commandId)
-  {
-    synchronized(_streams)
-    {
-      def streams = _streams[commandId] ?: [:]
-      streams.stdin = new ByteArrayOutputStream()
-      _streams[commandId] = streams
-
-      return streams.stdin
-    }
-  }
-
-  @Override
-  InputStream getStdinInputStream(String commandId)
-  {
-    synchronized(_streams)
-    {
-      ByteArrayOutputStream baos = _streams[commandId]?.stdin ?: new ByteArrayOutputStream()
-      return new ByteArrayInputStream(baos.toByteArray())
-    }
-  }
-
-  @Override
-  OutputStream getResultOutputStream(String commandId)
-  {
-    synchronized(_streams)
-    {
-      def streams = _streams[commandId] ?: [:]
-      streams.result = new ByteArrayOutputStream()
-      _streams[commandId] = streams
-
-      return streams.result
-    }
-  }
-
-  @Override
-  InputStream getResultInputStream(String commandId)
-  {
-    synchronized(_streams)
-    {
-      ByteArrayOutputStream baos = _streams[commandId]?.result ?: new ByteArrayOutputStream()
-      return new ByteArrayInputStream(baos.toByteArray())
-    }
-  }
-
-
 }

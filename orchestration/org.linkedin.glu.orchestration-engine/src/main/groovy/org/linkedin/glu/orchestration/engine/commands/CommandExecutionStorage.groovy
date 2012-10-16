@@ -36,12 +36,4 @@ public interface CommandExecutionStorage
                                 String stdoutFirstBytes,
                                 String stderrFirstBytes,
                                 String exitValue)
-
-  OutputStream getStdinOutputStream(String commandId)
-
-  InputStream getStdinInputStream(String commandId)
-
-  OutputStream getResultOutputStream(String commandId)
-
-  InputStream getResultInputStream(String commandId)
 }

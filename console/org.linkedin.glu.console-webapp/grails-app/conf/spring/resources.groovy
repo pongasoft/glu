@@ -19,6 +19,8 @@ import org.springframework.cache.ehcache.EhCacheFactoryBean
 import org.linkedin.util.clock.Timespan
 import java.util.concurrent.Executors
 import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import grails.util.Environment
+import org.linkedin.groovy.util.io.fs.FileSystemImpl
 
 // Place your Spring DSL code here
 beans = {
@@ -44,5 +46,19 @@ beans = {
       bean.factoryMethod = "newCachedThreadPool"
       bean.destroyMethod = "shutdown"
     }
+  }
+
+  switch(Environment.current)
+  {
+    case Environment.DEVELOPMENT:
+    case Environment.TEST:
+      commandExecutionFileSystem(FileSystemImpl) { bean ->
+        bean.factoryMethod = "createTempFileSystem"
+        bean.destroyMethod = "destroy"
+      }
+      break
+
+    default:
+      throw new RuntimeException("TODO")
   }
 }
