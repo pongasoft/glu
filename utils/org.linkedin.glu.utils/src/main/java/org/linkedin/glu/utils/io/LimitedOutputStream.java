@@ -31,6 +31,7 @@ public class LimitedOutputStream extends FilterOutputStream
 {
   private final long _limit;
   private long _numberOfBytesWritten = 0;
+  private long _totalNumberOfBytes = 0;
 
   public LimitedOutputStream(OutputStream outputStream, MemorySize limit)
   {
@@ -43,6 +44,21 @@ public class LimitedOutputStream extends FilterOutputStream
     _limit = limit;
   }
 
+  public long getNumberOfBytesWritten()
+  {
+    return _numberOfBytesWritten;
+  }
+
+  public long getTotalNumberOfBytes()
+  {
+    return _totalNumberOfBytes;
+  }
+
+  public long getNumberOfBytesSkipped()
+  {
+    return getTotalNumberOfBytes() - getNumberOfBytesWritten();
+  }
+
   @Override
   public void write(int b) throws IOException
   {
@@ -51,6 +67,7 @@ public class LimitedOutputStream extends FilterOutputStream
       out.write(b);
       _numberOfBytesWritten++;
     }
+    _totalNumberOfBytes++;
   }
 
   @Override
@@ -69,5 +86,7 @@ public class LimitedOutputStream extends FilterOutputStream
       out.write(b, off, (int) numberOfBytesToWrite);
       _numberOfBytesWritten += numberOfBytesToWrite;
     }
+    
+    _totalNumberOfBytes += len;
   }
 }

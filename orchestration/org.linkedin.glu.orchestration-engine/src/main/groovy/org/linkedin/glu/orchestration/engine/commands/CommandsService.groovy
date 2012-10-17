@@ -18,6 +18,14 @@ package org.linkedin.glu.orchestration.engine.commands
 
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 
+enum StreamType
+{
+  STDIN,
+  STDOUT,
+  STDERR,
+  MULTIPLEXED // the multiplexed stream
+}
+
 /**
  * @author yan@pongasoft.com */
 public interface CommandsService
@@ -39,4 +47,14 @@ public interface CommandsService
    * @return whatever <code>commandResultProcessor</code> returns
    */
   def executeShellCommand(Fabric fabric, String agentName, args, Closure commandResultProcessor)
+
+  /**
+   * Writes the stream requested to the provided output stream
+   *
+   * @param closure will be called back with a <code>CommandExecution</code> and the content size
+   *                of the stream requested (may be 0) and may return
+   *                the output stream to write to (if <code>null</code> then it will not write it)
+   */
+  void writeStream(Fabric fabric, String commandId, StreamType streamType, Closure closure)
+    throws NoSuchCommandExecutionException
 }

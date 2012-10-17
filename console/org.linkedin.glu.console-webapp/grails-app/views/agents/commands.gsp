@@ -66,9 +66,9 @@
     <g:each in="${commands}" var="ce">
       <tr>
         <td class="commandFilter">${ce.command.encodeAsHTML()}</td>
-        <td class="stdinFilter"><g:if test="${ce.stdinFirstBytes}"><pre>${ce.stdinFirstBytes?.encodeAsHTML()}</pre></g:if></td>
-        <td class="stdoutFilter"><g:if test="${ce.stdoutFirstBytes}"><pre>${ce.stdoutFirstBytes?.encodeAsHTML()}</pre></g:if></td>
-        <td class="stderrFilter"><g:if test="${ce.stderrFirstBytes}"><pre>${ce.stderrFirstBytes?.encodeAsHTML()}</pre></g:if></td>
+        <td class="stdinFilter"><cl:renderBytes bytes="${ce.stdinFirstBytes}"/></td>
+        <td class="stdoutFilter"><cl:renderBytes bytes="${ce.stdoutFirstBytes}"/></td>
+        <td class="stderrFilter"><cl:renderBytes bytes="${ce.stderrFirstBytes}"/></td>
         <td class="exitValueFilter">${ce.exitValue?.encodeAsHTML()}</td>
         <td class="usernameFilter">${ce.username.encodeAsHTML()}</td>
         <td class="startTimeFilter"><cl:formatDate time="${ce.startTime}"/></td>

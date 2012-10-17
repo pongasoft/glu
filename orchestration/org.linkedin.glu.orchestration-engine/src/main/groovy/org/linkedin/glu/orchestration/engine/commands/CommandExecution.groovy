@@ -43,9 +43,12 @@ public class CommandExecution
     fabric(nullable: false, blank: false)
     agent(nullable: false, blank: false)
     username(nullable: false, blank: false)
-    stdinFirstBytes(nullable: true, blank: true)
-    stdoutFirstBytes(nullable: true, blank: true)
-    stderrFirstBytes(nullable: true, blank: true)
+    stdinFirstBytes(nullable: true, maxSize: 255)
+    stdinTotalBytesCount(nullable: true)
+    stdoutFirstBytes(nullable: true, maxSize: 255)
+    stdoutTotalBytesCount(nullable: true)
+    stderrFirstBytes(nullable: true, maxSize: 255)
+    stderrTotalBytesCount(nullable: true)
     exitValue(nullable: true)
   }
 
@@ -103,17 +106,32 @@ public class CommandExecution
   /**
    * input provided to the command (first bytes...)
    */
-  String stdinFirstBytes
+  byte[] stdinFirstBytes
+
+  /**
+   * The total number of bytes in stdin
+   */
+  Long stdinTotalBytesCount
 
   /**
    * the result (stdout) (first bytes...)
    */
-  String stdoutFirstBytes
+  byte[] stdoutFirstBytes
+
+  /**
+   * The total number of bytes in stdout
+   */
+  Long stdoutTotalBytesCount
 
   /**
    * The result (stderr) (first bytes...)
    */
-  String stderrFirstBytes
+  byte[] stderrFirstBytes
+
+  /**
+   * The total number of bytes in stderr
+   */
+  Long stderrTotalBytesCount
 
   /**
    * The return value of the command

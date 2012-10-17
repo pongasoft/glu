@@ -24,14 +24,18 @@ package org.linkedin.glu.orchestration.engine.commands
 public interface CommandExecutionIOStorage
 {
   /**
-   * @return <code>null</code> is there is no stdin associated
+   * Calls the closure back with stdin stream (and the size of it as a second argument).
+   * Calls the closure with <code>(null, null)</code> when no such stream
+   * @return whatever the closure returns
    */
-  InputStream findStdinInputStream(CommandExecution commandExecution)
+  def withStdinInputStream(CommandExecution commandExecution, Closure closure)
 
   /**
-   * @return <code>null</code> is there is no IO storage for result
+   * Calls the closure back with the result input stream (and the size of it as a second argument).
+   * Calls the closure with <code>(null, null)</code> when no such stream
+   * @return whatever the closure returns
    */
-  InputStream findResultInputStream(CommandExecution commandExecution)
+  def withResultInputStream(CommandExecution commandExecution, Closure closure)
 
   /**
    * Call the closure back with a {@link StreamStorage} instance

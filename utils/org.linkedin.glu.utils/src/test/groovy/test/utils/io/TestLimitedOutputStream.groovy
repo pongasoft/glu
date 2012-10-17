@@ -25,34 +25,40 @@ public class TestLimitedOutputStream extends GroovyTestCase
   public void testNoOutput()
   {
     def baos = new ByteArrayOutputStream()
-    new LimitedOutputStream(baos, 0).withStream { OutputStream os ->
+    def stream = new LimitedOutputStream(baos, 0)
+    stream.withStream { OutputStream os ->
       os << "this is a test"
       os << "a"
       os << "the end"
     }
     assertEquals(0, baos.toByteArray().size())
+    assertEquals(22, stream.totalNumberOfBytes)
   }
 
   public void testShortLimit()
   {
     def baos = new ByteArrayOutputStream()
-    new LimitedOutputStream(baos, 4).withStream { OutputStream os ->
+    def stream = new LimitedOutputStream(baos, 4)
+    stream.withStream { OutputStream os ->
       os << "this is a test"
       os << "a"
       os << "the end"
     }
     assertEquals("this", new String(baos.toByteArray()))
+    assertEquals(22, stream.totalNumberOfBytes)
   }
 
   public void testLongLimit()
   {
     def baos = new ByteArrayOutputStream()
-    new LimitedOutputStream(baos, 100).withStream { OutputStream os ->
+    def stream = new LimitedOutputStream(baos, 100)
+    stream.withStream { OutputStream os ->
       os << "this is a test"
       os << "a"
       os << "the end"
     }
     assertEquals("this is a testathe end", new String(baos.toByteArray()))
+    assertEquals(22, stream.totalNumberOfBytes)
   }
 
   public void testSingleBytes()

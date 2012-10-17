@@ -432,10 +432,9 @@ class AgentsController extends ControllerBase
    * Executing a command
    */
   def executeCommand = {
-    println params
     if(params.command)
     {
-      println commandsService.executeShellCommand(request.fabric, params.id, [command: params.command])
+      commandsService.executeShellCommand(request.fabric, params.id, [command: params.command])
     }
     else
     {

@@ -55,9 +55,12 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
   @Override
   CommandExecution endExecution(String commandId,
                                 long endTime,
-                                String stdinFirstBtes,
-                                String stdoutFirstBytes,
-                                String stderrFirstBytes,
+                                byte[] stdinFirstBtes,
+                                Long stdinTotalBytesCount,
+                                byte[] stdoutFirstBytes,
+                                Long stdoutTotalBytesCount,
+                                byte[] stderrFirstBytes,
+                                Long stderrTotalBytesCount,
                                 String exitValue)
   {
     CommandExecution.withTransaction {
@@ -70,8 +73,11 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
       {
         execution.endTime = endTime
         execution.stdinFirstBytes = stdinFirstBtes
+        execution.stdinTotalBytesCount = stdinTotalBytesCount
         execution.stdoutFirstBytes = stdoutFirstBytes
+        execution.stdoutTotalBytesCount = stdoutTotalBytesCount
         execution.stderrFirstBytes = stderrFirstBytes
+        execution.stderrTotalBytesCount = stderrTotalBytesCount
         execution.exitValue = exitValue
 
         if(!execution.save())
@@ -81,5 +87,11 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
       }
       return execution
     }
+  }
+
+  @Override
+  CommandExecution findCommandExecution(String commandId)
+  {
+    CommandExecution.findByCommandId(commandId)
   }
 }

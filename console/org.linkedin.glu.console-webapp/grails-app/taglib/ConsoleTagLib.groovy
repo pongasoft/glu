@@ -1171,6 +1171,14 @@ public class ConsoleTagLib
     }
   }
 
+  def renderBytes = { args ->
+    def bytes = args.bytes
+    if(bytes)
+    {
+      out << "<pre>" << new String(bytes, "UTF-8").encodeAsHTML() << "</pre>"
+    }
+  }
+
   def extractArtifact(uri)
   {
     if(uri instanceof String)

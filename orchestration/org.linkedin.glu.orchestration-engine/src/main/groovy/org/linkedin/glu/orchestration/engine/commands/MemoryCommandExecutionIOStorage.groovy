@@ -42,15 +42,15 @@ public class MemoryCommandExecutionIOStorage implements CommandExecutionIOStorag
   }
 
   @Override
-  InputStream findStdinInputStream(CommandExecution commandExecution)
+  def withStdinInputStream(CommandExecution commandExecution, Closure closure)
   {
-    findInputStream(commandExecution, 'stdin')
+    withInputStream(commandExecution, 'stdin', closure)
   }
 
   @Override
-  InputStream findResultInputStream(CommandExecution commandExecution)
+  def withResultInputStream(CommandExecution commandExecution, Closure closure)
   {
-    findInputStream(commandExecution, 'result')
+    withInputStream(commandExecution, 'result', closure)
   }
 
   @Override
@@ -72,15 +72,17 @@ public class MemoryCommandExecutionIOStorage implements CommandExecutionIOStorag
     return res
   }
 
-  private InputStream findInputStream(CommandExecution commandExecution, String name)
+  private def withInputStream(CommandExecution commandExecution, String name, Closure closure)
   {
+    byte[] bytes
     synchronized(streams)
     {
-      byte[] bytes = streams[commandExecution.commandId]?."${name}"
-      if(bytes != null)
-        return new ByteArrayInputStream(bytes)
-      else
-        return null;
+      bytes = streams[commandExecution.commandId]?."${name}"
     }
+
+    if(bytes != null)
+      closure(new ByteArrayInputStream(bytes), bytes.size())
+    else
+      closure(null, null)
   }
 }

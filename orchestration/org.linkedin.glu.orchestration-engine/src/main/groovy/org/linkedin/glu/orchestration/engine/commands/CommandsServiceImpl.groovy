@@ -37,6 +37,7 @@ import org.linkedin.util.io.IOUtils
 import org.linkedin.util.lang.MemorySize
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.linkedin.glu.agent.rest.common.AgentRestUtils
 
 /**
  * @author yan@pongasoft.com  */
@@ -146,6 +147,87 @@ public class CommandsServiceImpl implements CommandsService
                           commandResultProcessor)
   }
 
+  @Override
+  void writeStream(Fabric fabric,
+                   String commandId,
+                   StreamType streamType,
+                   Closure closure)
+  {
+    def commandExecution = commandExecutionStorage.findCommandExecution(commandId)
+
+    if(commandExecution?.fabric != fabric.name)
+      throw new NoSuchCommandExecutionException(commandId)
+
+
+    switch(streamType)
+    {
+      case StreamType.STDIN:
+        commandExecutionIOStorage.withStdinInputStream(commandExecution) { stream, size ->
+          doWriteStream(stream,
+                        commandExecution,
+                        commandExecution.stdinTotalBytesCount ?: -1,
+                        closure) { is, os ->
+            os << is
+          }
+        }
+        break
+
+      case StreamType.STDOUT:
+        commandExecutionIOStorage.withResultInputStream(commandExecution) { stream, size ->
+          doWriteStream(stream,
+                        commandExecution,
+                        commandExecution.stdoutTotalBytesCount ?: -1,
+                        closure) { is, os ->
+            AgentRestUtils.demultiplexExecStream(is, os, NullOutputStream.INSTANCE)
+          }
+        }
+        break
+
+      case StreamType.STDERR:
+        commandExecutionIOStorage.withResultInputStream(commandExecution) { stream, size ->
+          doWriteStream(stream,
+                        commandExecution,
+                        commandExecution.stderrTotalBytesCount ?: -1,
+                        closure) { is, os ->
+            AgentRestUtils.demultiplexExecStream(is, NullOutputStream.INSTANCE, os)
+          }
+        }
+        break
+
+      case StreamType.MULTIPLEXED:
+        commandExecutionIOStorage.withResultInputStream(commandExecution) { stream, size ->
+          doWriteStream(stream,
+                        commandExecution,
+                        size ?: 0,
+                        closure) { is, os ->
+            os << is
+          }
+        }
+        break
+
+      default:
+        throw new RuntimeException("not reached")
+    }
+  }
+
+  private void doWriteStream(InputStream inputStream,
+                             CommandExecution commandExecution,
+                             long contentSize,
+                             Closure outputProvider,
+                             Closure outputWriter)
+  {
+    OutputStream out = outputProvider(commandExecution, inputStream == null ? 0 : contentSize)
+    if(inputStream && out)
+    {
+      if(contentSize != -1)
+        out = new LimitedOutputStream(out, contentSize)
+      
+      new BufferedOutputStream(out).withStream { stream ->
+        outputWriter(inputStream, stream)
+      }
+    }
+  }
+
   /**
    * This method can be called from a thread where there is no more executing principal...
    * hence the username argument
@@ -162,20 +244,23 @@ public class CommandsServiceImpl implements CommandsService
 
       // stdin
       ByteArrayOutputStream stdinFirstBytes = null
+      LimitedOutputStream stdinLimited = null
 
       if(args.stdin)
       {
         stdinFirstBytes =
           new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
-        def stdinStream =
+        stdinLimited =
           new LimitedOutputStream(stdinFirstBytes, commandExecutionFirstBytesSize)
 
         // in parallel, write stdin to IO storage
-        def stdinStorage = storage.findStdinStorage()
-        if(stdinStorage)
-          stdinStream = new TeeOutputStream(stdinStream, new BufferedOutputStream(stdinStorage))
+        def stream = storage.findStdinStorage()
+        if(stream)
+          stream = new TeeOutputStream(stdinLimited, new BufferedOutputStream(stream))
+        else
+          stream = stdinLimited
 
-        args.stdin = new TeeInputStream(args.stdin, stdinStream, true)
+        args.stdin = new TeeInputStream(args.stdin, stream, true)
       }
 
       agentsService.executeShellCommand(fabric, agentName, args) { res ->
@@ -239,9 +324,12 @@ public class CommandsServiceImpl implements CommandsService
           // we now update the storage with the various results
           commandExecutionStorage.endExecution(commandId,
                                                clock.currentTimeMillis(),
-                                               toString(stdinFirstBytes),
-                                               toString(stdoutFirstBytes),
-                                               toString(stderrFirstBytes),
+                                               stdinFirstBytes?.toByteArray(),
+                                               stdinLimited?.totalNumberOfBytes,
+                                               stdoutFirstBytes?.toByteArray(),
+                                               stdoutLimited?.totalNumberOfBytes,
+                                               stderrFirstBytes?.toByteArray(),
+                                               stderrLimited?.totalNumberOfBytes,
                                                toString(exitValueStream))
 
           return closureResult

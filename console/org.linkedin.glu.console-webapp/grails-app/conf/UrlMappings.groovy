@@ -568,6 +568,13 @@ class UrlMappings
       __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/agent/$id/commands')
     }
 
+    "/rest/v1/$fabric/command/$id/$streamType"(controller: 'commands') {
+      action = [
+        GET: 'rest_show_command_execution_stream'
+      ]
+      __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/command/$id/$streamType')
+    }
+
     "/rest/v1/$fabric/agents/versions"(controller: 'agents') {
       action = [
         GET: 'rest_list_agents_versions',

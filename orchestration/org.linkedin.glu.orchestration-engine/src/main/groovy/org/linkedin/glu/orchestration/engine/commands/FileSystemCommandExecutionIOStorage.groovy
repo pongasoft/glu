@@ -66,15 +66,16 @@ public class FileSystemCommandExecutionIOStorage implements CommandExecutionIOSt
   }
 
   @Override
-  InputStream findStdinInputStream(CommandExecution commandExecution)
+  def withStdinInputStream(CommandExecution commandExecution, Closure closure)
   {
-    computeInputStream(commandExecution, stdinStreamFileName)
+    withInputStream(commandExecution, stdinStreamFileName, closure)
   }
 
+
   @Override
-  InputStream findResultInputStream(CommandExecution commandExecution)
+  def withResultInputStream(CommandExecution commandExecution, Closure closure)
   {
-    computeInputStream(commandExecution, resultStreamFileName)
+    withInputStream(commandExecution, resultStreamFileName, closure)
   }
 
   @Override
@@ -101,10 +102,20 @@ public class FileSystemCommandExecutionIOStorage implements CommandExecutionIOSt
     }
   }
 
-  private InputStream computeInputStream(CommandExecution commandExecution, String streamName)
+  private def withInputStream(CommandExecution commandExecution,
+                              String streamName,
+                              Closure closure)
   {
     def baseResource = commandExecutionFileSystem.toResource(computePath(commandExecution))
     def streamResource = baseResource.createRelative(streamName)
-    new FileInputStream(streamResource.file)
+    if(streamResource.exists())
+    {
+      def file = streamResource.file
+      new BufferedInputStream(new FileInputStream(file)).withStream { stream ->
+        closure(stream, file.size())
+      }
+    }
+    else
+      closure(null, null)
   }
 }

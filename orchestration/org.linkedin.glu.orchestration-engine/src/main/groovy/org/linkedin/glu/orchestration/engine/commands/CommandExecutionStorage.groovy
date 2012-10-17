@@ -32,8 +32,13 @@ public interface CommandExecutionStorage
 
   CommandExecution endExecution(String commandId,
                                 long endTime,
-                                String stdinFirstBtes,
-                                String stdoutFirstBytes,
-                                String stderrFirstBytes,
+                                byte[] stdinFirstBtes,
+                                Long stdinTotalBytesCount,
+                                byte[] stdoutFirstBytes,
+                                Long stdoutTotalBytesCount,
+                                byte[] stderrFirstBytes,
+                                Long stderrTotalBytesCount,
                                 String exitValue)
+
+  CommandExecution findCommandExecution(String commandId)
 }
