@@ -138,6 +138,21 @@ public class CommandExecution
    */
   String exitValue
 
+  byte[] getFirstBytes(def streamType)
+  {
+    this."${streamType.toString().toLowerCase()}FirstBytes"
+  }
+
+  Long getTotalBytesCount(def streamType)
+  {
+    this."${streamType.toString().toLowerCase()}TotalBytesCount"
+  }
+
+  boolean hasMoreBytes(def streamType)
+  {
+    return getFirstBytes(streamType)?.size() < getTotalBytesCount(streamType)
+  }
+
   static transients = [
     'duration',
   ]

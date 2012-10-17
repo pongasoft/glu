@@ -38,6 +38,7 @@ import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.linkedin.glu.orchestration.engine.commands.CommandsService
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 import org.linkedin.glu.orchestration.engine.commands.CommandExecution
+import org.linkedin.groovy.util.config.Config
 
 /**
  * @author ypujante@linkedin.com
@@ -423,24 +424,46 @@ class AgentsController extends ControllerBase
    * Commands view page
    */
   def commands = {
-    [commands: CommandExecution.findAllByFabricAndAgent(request.fabric.name,
-                                                        params.id,
-                                                        [sort: 'startTime', order: 'desc'])]
+    def pageCommands = CommandExecution.findAllByFabricAndAgent(request.fabric.name,
+                                                                params.id,
+                                                                [sort: 'startTime', order: 'desc'])
+
+    def command = null
+
+    if(params.commandId)
+    {
+      command = pageCommands.find { it.commandId == params.commandId}
+      
+      if(!command)
+        command = CommandExecution.findByFabricAndAgentAndCommandId(request.fabric.name,
+                                                                    params.id,
+                                                                    params.commandId)
+    }
+
+    [commands: pageCommands, command: command]
   }
 
   /**
    * Executing a command
    */
   def executeCommand = {
+    def args = [:]
+    boolean redirectStderr = Config.getOptionalBoolean(params, 'redirectStderr', false)
     if(params.command)
     {
-      commandsService.executeShellCommand(request.fabric, params.id, [command: params.command])
+      args.commandId = commandsService.executeShellCommand(request.fabric,
+                                                           params.id,
+                                                           [ command: params.command,
+                                                           redirectStderr: redirectStderr
+                                                           ])
     }
     else
     {
       flash.error = "Please enter a command to execute"
     }
-    redirect(action: 'commands', id: params.id)
+    if(!redirectStderr)
+      args.redirectStderr = false
+    redirect(action: 'commands', id: params.id, params: args)
   }
 
   /**

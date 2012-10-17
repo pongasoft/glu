@@ -1171,11 +1171,22 @@ public class ConsoleTagLib
     }
   }
 
-  def renderBytes = { args ->
-    def bytes = args.bytes
+  def renderCommandBytes = { args ->
+    def commandExecution = args.command
+    def streamType = args.streamType
+    def bytes = commandExecution.getFirstBytes(streamType)
     if(bytes)
     {
-      out << "<pre>" << new String(bytes, "UTF-8").encodeAsHTML() << "</pre>"
+      out << new String(bytes, "UTF-8").encodeAsHTML()
+      if(commandExecution.hasMoreBytes(streamType))
+      {
+        if(args.onclick)
+        {
+          out << "<a href=\"#\" onclick=\"${args.onclick}\" class=\"moreBytes\">[...]</a>"
+        }
+        else
+          out << "[...]"
+      }
     }
   }
 

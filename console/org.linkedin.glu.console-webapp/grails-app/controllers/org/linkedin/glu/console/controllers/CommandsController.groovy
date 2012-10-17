@@ -29,6 +29,36 @@ public class CommandsController extends ControllerBase
   CommandsService commandsService
 
   /**
+   * Render the stream for the given command
+   */
+  def stream = {
+    StreamType streamType = StreamType.valueOf(params.streamType?.toString()?.toUpperCase())
+
+    try
+    {
+      commandsService.writeStream(request.fabric,
+                                  params.id,
+                                  streamType) { CommandExecution ce, long contentLength ->
+        response.addHeader('X-glu-command-id', ce.commandId)
+        if(contentLength != 0)
+        {
+          response.contentType = "text/plain"
+          if(contentLength != -1)
+            response.contentLength = contentLength
+          return response.outputStream
+        }
+        else
+          return null
+      }
+      null
+    }
+    catch (NoSuchCommandExecutionException e)
+    {
+      render '<not found>'
+    }
+  }
+
+  /**
    * Writes the stream requested
    *
    * curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/command/2d044e0b-a1f5-4cbd-9210-cf42c77f6e94/stdout"

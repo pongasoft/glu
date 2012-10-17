@@ -103,14 +103,6 @@ class UrlMappings
       __nvbe = 'Agents'
       __role = UrlMappings.role('/agents/ps/$id')
     }
-    "/agents/commands/$id"(controller: 'agents', action: 'commands') {
-      __nvbe = 'Agents'
-      __role = UrlMappings.role('/agents/commands/$id')
-    }
-    "/agents/executeCommand/$id"(controller: 'agents', action: 'executeCommand') {
-      __nvbe = 'Agents'
-      __role = UrlMappings.role('/agents/executeCommand/$id')
-    }
     "/agents/fullStackTrace/$id"(controller: 'agents', action: 'fullStackTrace') {
       __nvbe = 'Agents'
       __role = UrlMappings.role('/agents/fullStackTrace/$id')
@@ -236,6 +228,20 @@ class UrlMappings
     "/agents/interruptAction/$id"(controller: 'agents', action: 'interruptAction') { 
       __nvbe = 'Dashboard'
       __role = UrlMappings.role('/agents/interruptAction/$id')
+    }
+    "/agents/commands/$id"(controller: 'agents', action: 'commands') {
+      __nvbe = 'Agents'
+      __role = UrlMappings.role('/agents/commands/$id')
+    }
+    "/agents/executeCommand/$id"(controller: 'agents', action: 'executeCommand') {
+      __nvbe = 'Agents'
+      __role = UrlMappings.role('/agents/executeCommand/$id')
+    }
+
+    // commands
+    "/commands/$id/stream"(controller: 'commands', action: 'stream') {
+      __nvbe = 'Commands'
+      __role = UrlMappings.role('/commands/$id/stream')
     }
 
     // plan
