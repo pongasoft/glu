@@ -26,6 +26,7 @@ public interface CommandExecutionStorage
                                   String agent,
                                   String username,
                                   String command,
+                                  boolean redirectStderr,
                                   String commandId,
                                   CommandType commandType,
                                   long startTime)

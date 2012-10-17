@@ -38,6 +38,7 @@ import org.linkedin.util.lang.MemorySize
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.glu.agent.rest.common.AgentRestUtils
+import org.linkedin.groovy.util.config.Config
 
 /**
  * @author yan@pongasoft.com  */
@@ -267,11 +268,14 @@ public class CommandsServiceImpl implements CommandsService
 
         String commandId = res.id
 
+        boolean redirectStderr = Config.getOptionalBoolean(args, 'redirectStderr', false)
+
         // first we store the command in the storage
         def commandExecution = commandExecutionStorage.startExecution(fabric.name,
                                                                       agentName,
                                                                       username,
                                                                       args.command,
+                                                                      redirectStderr,
                                                                       commandId,
                                                                       CommandType.SHELL,
                                                                       startTime)

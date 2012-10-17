@@ -32,6 +32,7 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
                                   String agent,
                                   String username,
                                   String command,
+                                  boolean redirectStderr,
                                   String commandId,
                                   CommandType commandType,
                                   long startTime)
@@ -41,6 +42,7 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
                                                   agent: agent,
                                                   username: username,
                                                   command: command,
+                                                  redirectStderr: redirectStderr,
                                                   commandId: commandId,
                                                   commandType: commandType,
                                                   startTime: startTime)

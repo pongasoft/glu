@@ -63,6 +63,11 @@ public class CommandExecution
   String command
 
   /**
+   * Whether stderr is redirected to stdout (through the flag... not the command)
+   */
+  boolean redirectStderr
+
+  /**
    * The type of the command
    */
   CommandType commandType

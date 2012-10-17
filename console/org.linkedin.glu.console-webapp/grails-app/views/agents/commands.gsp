@@ -77,7 +77,7 @@ function renderCommandStream(commandId, streamType, success)
       <fieldset>
         <div class="clearfix">
           <g:textField name="command" value="" class="xxlarge"/>
-          2&gt;&amp;1: <cl:checkBoxInitFromParams name="redirectStderr" checkedByDefault="true"/>
+          2&gt;&amp;1 <cl:checkBoxInitFromParams name="redirectStderr" checkedByDefault="${false}"/>
           <g:actionSubmit class="btn primary" action="executeCommand" value="Execute"/>
         </div>
       </fieldset>
@@ -86,7 +86,7 @@ function renderCommandStream(commandId, streamType, success)
 </div>
 
 <g:if test="${command}">
-  <div id="shell-${command.commandId}" class="shell span16"><a class="close" href="#" onclick="toggleShowHide('#shell-${command.commandId}')">&times;</a><div class="cli"><span class="prompt">${command.username.encodeAsHTML()}@${command.agent.encodeAsHTML()}#</span>&nbsp;<span class="command">${command.command.encodeAsHTML()}</span> <span class="date">[<cl:formatDate time="${command.startTime}"/>]</span> <span class="exitValue">[${'$'}?=${command.exitValue?.encodeAsHTML()}]</span></div><g:each in="['stdin', 'stderr', 'stdout']" var="streamType"><g:if test="${command.getTotalBytesCount(streamType) > 0}"><div id="${command.commandId}-${streamType}" class="${streamType}"><cl:renderCommandBytes command="${command}" streamType="${streamType}" onclick="renderCommandStream('${command.commandId}', '${streamType}', '${command.commandId}-${streamType}')"/></div></g:if></g:each><div class="cli"><span class="prompt">${command.username.encodeAsHTML()}@${command.agent.encodeAsHTML()}#</span>&nbsp;<span class="date">[<cl:formatDate time="${command.endTime}"/>]</span></div></div>
+  <div id="shell-${command.commandId}" class="shell span16"><a class="close" href="#" onclick="toggleShowHide('#shell-${command.commandId}')">&times;</a><div class="cli"><span class="prompt">${command.username.encodeAsHTML()}@${command.agent.encodeAsHTML()}#</span>&nbsp;<span class="command">${command.command.encodeAsHTML()}</span> <g:if test="${command.redirectStderr}">2&gt;&amp;1 </g:if><span class="date">[<cl:formatDate time="${command.startTime}"/>]</span> <span class="exitValue">[${'$'}?=${command.exitValue?.encodeAsHTML()}]</span></div><g:each in="['stdin', 'stderr', 'stdout']" var="streamType"><g:if test="${command.getTotalBytesCount(streamType) > 0}"><div id="${command.commandId}-${streamType}" class="${streamType}"><cl:renderCommandBytes command="${command}" streamType="${streamType}" onclick="renderCommandStream('${command.commandId}', '${streamType}', '${command.commandId}-${streamType}')"/></div></g:if></g:each><div class="cli"><span class="prompt">${command.username.encodeAsHTML()}@${command.agent.encodeAsHTML()}#</span>&nbsp;<span class="date">[<cl:formatDate time="${command.endTime}"/>]</span></div></div>
 </g:if>
 
 <h2>History</h2>
