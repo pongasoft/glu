@@ -16,6 +16,7 @@
 
 <%@ page import="org.linkedin.glu.agent.api.Agent" contentType="text/html;charset=UTF-8" %>
 <html>
+<g:set var="filters" value="[streamsFilter: 'Streams', exitValueFilter: 'Exit', usernameFilter: 'Username', startTimeFilter: 'Start Time', endTimeFilter: 'End Time', durationFilter: 'Duration', actionsFilter: 'Actions']"></g:set>
 <head>
   <title>Commands - Agent [${params.id}]</title>
   <meta name="layout" content="main"/>
@@ -61,9 +62,43 @@ function renderCommandStream(commandId, streamType, success)
 --}%
   jQuery.ajax({type:'GET',data:{'streamType': streamType}, url:'/console/commands/' + commandId + '/stream',success:function(data,textStatus){jQuery('#' + success).html(data);},error:function(XMLHttpRequest,textStatus,errorThrown){}});
 }
+function shouldRefresh()
+{
+  return document.getElementById('autoRefresh').checked;
+}
+function autoRefresh()
+{
+  if(shouldRefresh())
+  {
+    setTimeout('refresh()', ${params.refreshRate ?: '2000'});
+    show('#autoRefreshSpinner');
+    showHide();
+  }
+  else
+  {
+    hide('#autoRefreshSpinner');
+  }
+}
+function refresh()
+{
+  if(shouldRefresh())
+  {
+    ${g.remoteFunction(controller: 'commands', action: 'renderHistory', params: [agentId: params.id], update:[success: 'asyncDetails', failure: 'asyncError'], onComplete: 'autoRefresh();')}
+  }
+  else
+  {
+    hide('#autoRefreshSpinner');
+  }
+}
+function showHide()
+{
+  <g:each in="${filters.keySet()}" var="filter">
+    toggleClass('#history .${filter}', !document.getElementById('${filter}').checked, 'hidden');
+  </g:each>
+}
 </g:javascript>
 </head>
-<body>
+<body onload="refresh();">
 <ul class="tabs">
   <li><g:link controller="agents" action="list">List</g:link></li>
   <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
@@ -89,34 +124,15 @@ function renderCommandStream(commandId, streamType, success)
   <div id="shell-${command.commandId}" class="shell span16"><a class="close" href="#" onclick="toggleShowHide('#shell-${command.commandId}')">&times;</a><div class="cli"><span class="prompt">${command.username.encodeAsHTML()}@${command.agent.encodeAsHTML()}#</span>&nbsp;<span class="command">${command.command.encodeAsHTML()}</span> <g:if test="${command.redirectStderr}">2&gt;&amp;1 </g:if><span class="date">[<cl:formatDate time="${command.startTime}"/>]</span> <span class="exitValue">[${'$'}?=${command.exitValue?.encodeAsHTML()}]</span></div><g:each in="['stdin', 'stderr', 'stdout']" var="streamType"><g:if test="${command.getTotalBytesCount(streamType) > 0}"><div id="${command.commandId}-${streamType}" class="${streamType}"><cl:renderCommandBytes command="${command}" streamType="${streamType}" onclick="renderCommandStream('${command.commandId}', '${streamType}', '${command.commandId}-${streamType}')"/></div></g:if></g:each><div class="cli"><span class="prompt">${command.username.encodeAsHTML()}@${command.agent.encodeAsHTML()}#</span>&nbsp;<span class="date">[<cl:formatDate time="${command.endTime}"/>]</span></div></div>
 </g:if>
 
-<h2>History</h2>
-<div class="commands">
-  <table class="bordered-table xtight-table">
-    <thead>
-    <tr>
-      <th class="commandFilter">Command</th>
-      <th class="streamsFilter">Streams</th>
-      <th class="exitValueFilter">Exit</th>
-      <th class="usernameFilter">User</th>
-      <th class="startTimeFilter">Start Time</th>
-      <th class="endTimeFilter">End Time</th>
-      <th class="durationFilter">Dur.</th>
-    </tr>
-    </thead>
-    <tbody>
-    <g:each in="${commands}" var="ce">
-      <tr>
-        <td class="commandFilter"><g:link controller="agents" action="commands" id="${params.id}" params="[commandId: ce.commandId]">${ce.command.encodeAsHTML()}</g:link></td>
-        <td class="streamsFilter shell"><g:each in="['stdin', 'stderr', 'stdout']" var="streamType"><div class="${streamType}"><cl:renderCommandBytes command="${ce}" streamType="${streamType}"/></div></g:each></td>
-        <td class="exitValueFilter">${ce.exitValue?.encodeAsHTML()}</td>
-        <td class="usernameFilter">${ce.username.encodeAsHTML()}</td>
-        <td class="startTimeFilter"><cl:formatDate time="${ce.startTime}"/></td>
-        <td class="endTimeFilter"><cl:formatDate time="${ce.endTime}"/></td>
-        <td class="durationFilter"><cl:formatDuration duration="${ce.duration}"/></td>
-      </tr>
-    </g:each>
-    </tbody>
-  </table>
-</div>
+<h3>History: Auto Refresh: <cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
+    <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/>
+<g:each in="${filters}" var="filter">
+  |  ${filter.value}: <cl:checkBoxInitFromParams name="${filter.key}" id="${filter.key}" onclick="showHide();"/>
+</g:each>
+</h3>
+
+<div id="asyncDetails"></div>
+<div id="asyncError"></div>
+
 </body>
 </html>

@@ -244,6 +244,11 @@ class UrlMappings
       __role = UrlMappings.role('/commands/$id/stream')
     }
 
+    "/commands/renderHistory"(controller: 'commands', action: 'renderHistory') {
+      __nvbe = 'Commands'
+      __role = UrlMappings.role('/commands/renderHistory')
+    }
+
     // plan
     "/plan/execute/$id"(controller: 'plan', action: 'execute') { 
       __nvbe = 'Plans'

@@ -59,6 +59,17 @@ public class CommandsController extends ControllerBase
   }
 
   /**
+   * Render history according to criteria
+   */
+  def renderHistory = {
+    println "renderHistory: ${params}"
+    def commands = CommandExecution.findAllByFabricAndAgent(request.fabric.name,
+                                                            params.agentId,
+                                                            [sort: 'startTime', order: 'desc'])
+    render(template: 'history', model: [commands: commands])
+  }
+
+  /**
    * Writes the stream requested
    *
    * curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/command/2d044e0b-a1f5-4cbd-9210-cf42c77f6e94/stdout"
