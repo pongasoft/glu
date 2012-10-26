@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2012 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,18 +14,32 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.script
-
-import org.linkedin.glu.agent.api.Shell
-import org.linkedin.util.clock.Clock
+package org.linkedin.glu.agent.api
 
 /**
- * Represents the agent context
+ * @author ypujante@linkedin.com
+ *
  */
-public interface AgentContext
+public class NoSuchCommandException extends AgentException
 {
-  Clock getClock()
-  Shell getShellForScripts()
-  Shell getShellForCommands()
-  MOP getMop()
+  private static final long serialVersionUID = 1L;
+
+  public NoSuchCommandException()
+  {
+  }
+
+  public NoSuchCommandException(String s)
+  {
+    super(s);
+  }
+
+  public NoSuchCommandException(String s, Throwable throwable)
+  {
+    super(s, throwable);
+  }
+
+  public NoSuchCommandException(Throwable throwable)
+  {
+    super(throwable);
+  }
 }

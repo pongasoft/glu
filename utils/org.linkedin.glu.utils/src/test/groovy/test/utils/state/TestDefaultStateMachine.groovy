@@ -22,6 +22,7 @@ import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.groovy.util.ant.AntUtils
 import org.linkedin.util.reflect.ReflectUtils
 import java.util.concurrent.Callable
+import org.linkedin.glu.groovy.utils.concurrent.GluGroovyConcurrentUtils
 
 /**
  * Implementation note: since the initialization of the class happens in the static block which
@@ -167,8 +168,8 @@ defaultTransitions =
 
     def loader = new GroovyClassLoader(parentClassLoader)
 
-    ReflectUtils.executeWithClassLoader(loader, {
+    ReflectUtils.executeWithClassLoader(loader, GluGroovyConcurrentUtils.asCallable {
       cl(loader.parseClass(file).newInstance())
-    } as Callable)
+    })
   }
 }

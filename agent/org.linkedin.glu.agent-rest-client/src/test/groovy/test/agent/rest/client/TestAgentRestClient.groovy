@@ -52,7 +52,9 @@ import org.linkedin.glu.agent.impl.storage.Storage
 import org.linkedin.glu.agent.api.ScriptExecutionCauseException
 import org.linkedin.glu.agent.rest.resources.CommandsResource
 import org.linkedin.glu.agent.api.Shell
-import org.linkedin.glu.agent.api.ShellExecException
+
+import org.linkedin.glu.agent.rest.resources.CommandExitValueResource
+import org.linkedin.glu.agent.rest.resources.CommandStreamsResource
 
 /**
  * The code which is in {@link AgentRestClient} is essentially the code to use for calling the rest
@@ -627,6 +629,10 @@ gc: 1000
   {
     router.attach("/commands", CommandsResource)
     router.context.getAttributes().put(CommandsResource.class.name, "/commands")
+    router.attach("/command/{id}/streams", CommandStreamsResource)
+    router.context.getAttributes().put(CommandStreamsResource.class.name, "/command")
+    router.attach("/command/{id}/exitValue", CommandExitValueResource)
+    router.context.getAttributes().put(CommandExitValueResource.class.name, "/command")
 
     AgentFactoryImpl.create(commandsPath: "/commands",
                             sslEnabled: false).withRemoteAgent(serverURI) { arc ->
@@ -660,7 +666,15 @@ gc: 1000
     if(commands.stdin)
       commands.stdin = new ByteArrayInputStream(commands.stdin.getBytes("UTF-8"))
 
-    def stream = agent.executeShellCommand(*: commands).stream
+    def commandId = agent.executeShellCommand(*: commands).id
+
+    def results = agent.streamCommandResults(id: commandId,
+                                             exitValueStream: true,
+                                             exitValueStreamTimeout: 0,
+                                             stdoutStream: true,
+                                             stderrStream: true)
+
+    def stream = results.stream
 
     OutputStream stdoutStream = new ByteArrayOutputStream()
 
@@ -675,6 +689,8 @@ gc: 1000
       assertEquals(stdout, new String(stdoutStream.toByteArray(), "UTF-8"))
       assertEquals(stderr, new String(stderrStream.toByteArray(), "UTF-8"))
     }
+
+    assertEquals(exitValue, agent.waitForCommand(id: commandId))
   }
 }
 

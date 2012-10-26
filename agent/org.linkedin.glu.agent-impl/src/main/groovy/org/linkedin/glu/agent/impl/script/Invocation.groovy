@@ -19,29 +19,31 @@ package org.linkedin.glu.agent.impl.script
 /**
  * @author ypujante@linkedin.com */
 
-class Invocation extends FutureExecutionImpl
+class Invocation<T> extends FutureExecutionImpl<T>
 {
   def source
   String action
   def actionArgs
 
-  def execute()
+  protected T execute() throws Exception
   {
-    def methods = script.metaClass.respondsTo(script, action, actionArgs)
+    def invocable = getInvocable()
+
+    def methods = invocable.metaClass.respondsTo(invocable, action, actionArgs)
     if(methods)
     {
-      methods[0].invoke(script, actionArgs)
+      methods[0].invoke(invocable, actionArgs)
     }
     else
     {
-      def closure = script."${action}"
+      def closure = invocable."${action}"
       closure(actionArgs)
     }
   }
 
-  def getScript()
+  def getInvocable()
   {
-    source.script
+    source.invocable
   }
 
   def String toString()

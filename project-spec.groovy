@@ -50,6 +50,7 @@ spec.scmUrl = "git@github.com:linkedin/${spec.name}.git"
  */
 spec.external = [
   commonsCli: 'commons-cli:commons-cli:1.2',
+  commonsIO: 'commons-io:commons-io:1.4',
   ehcacheCore: 'net.sf.ehcache:ehcache-core:1.7.1', // using same version embedded in grails
   grailsBootstrap: "org.grails:grails-bootstrap:${spec.versions.grails}",
   grailsCore: "org.grails:grails-core:${spec.versions.grails}",

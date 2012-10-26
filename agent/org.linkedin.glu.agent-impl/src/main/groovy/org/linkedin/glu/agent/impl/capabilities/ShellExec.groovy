@@ -25,11 +25,13 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.glu.utils.io.MultiplexedInputStream
 import java.util.concurrent.FutureTask
-import java.util.concurrent.Callable
+
 import org.linkedin.groovy.util.rest.RestException
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.groovy.util.lang.GroovyLangUtils
 import java.util.concurrent.ExecutionException
+import org.linkedin.glu.groovy.utils.concurrent.GluGroovyConcurrentUtils
+import org.linkedin.glu.groovy.utils.io.InputGeneratorStream
 
 /**
  * Because the logic of exec is quite complicated, it requires its own class
@@ -141,7 +143,7 @@ private class ShellExec
       inputStream = process.errorStream
 
     // execute the block call asynchronously
-    FutureTask future = new FutureTask(executeBlockingCall as Callable)
+    FutureTask future = new FutureTask(GluGroovyConcurrentUtils.asCallable(executeBlockingCall))
 
     // we can no longer destroy the process in the finally, it will be destroyed when the
     // input stream is closed
@@ -181,18 +183,7 @@ private class ShellExec
   private InputStream createMultiplexedInputStream()
   {
     // execute the block call asynchronously
-    FutureTask future = new FutureTask(new Callable() {
-      /**
-       * YP Implementation note: using new FutureTask(executeBlockingCall() as Callable) does not
-       * work because it generates a callable which does not throw any exception... so when the
-       * ShellExecException is thrown you actually get a InvocationTargetException
-       */
-      @Override
-      Object call() throws Exception
-      {
-        return executeBlockingCall()
-      }
-    })
+    FutureTask future = new FutureTask(GluGroovyConcurrentUtils.asCallable(executeBlockingCall))
 
     def streams = [:]
 
@@ -212,15 +203,15 @@ private class ShellExec
     InputStream exitValueInputStream = new InputGeneratorStream({
       try
       {
-        future.get().toString().getBytes("UTF-8")
+        future.get().toString()
       }
       catch(ExecutionException e)
       {
-        JsonUtils.prettyPrint(RestException.toJSON(e.cause)).getBytes("UTF-8")
+        JsonUtils.prettyPrint(RestException.toJSON(e.cause))
       }
       catch(Throwable th)
       {
-        JsonUtils.prettyPrint(RestException.toJSON(th)).getBytes("UTF-8")
+        JsonUtils.prettyPrint(RestException.toJSON(th))
       }
     })
     streams['V'] = exitValueInputStream

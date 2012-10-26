@@ -27,8 +27,9 @@ import java.io.OutputStream;
  *
  * @author yan@pongasoft.com
  */
-public class LimitedOutputStream extends FilterOutputStream
+public class LimitedOutputStream extends OutputStream
 {
+  private final OutputStream _outputStream;
   private final long _limit;
   private long _numberOfBytesWritten = 0;
   private long _totalNumberOfBytes = 0;
@@ -40,7 +41,7 @@ public class LimitedOutputStream extends FilterOutputStream
 
   public LimitedOutputStream(OutputStream outputStream, long limit)
   {
-    super(outputStream);
+    _outputStream = outputStream;
     _limit = limit;
   }
 
@@ -60,11 +61,23 @@ public class LimitedOutputStream extends FilterOutputStream
   }
 
   @Override
+  public void flush() throws IOException
+  {
+    _outputStream.flush();
+  }
+
+  @Override
+  public void close() throws IOException
+  {
+    _outputStream.close();
+  }
+
+  @Override
   public void write(int b) throws IOException
   {
     if(_numberOfBytesWritten < _limit)
     {
-      out.write(b);
+      _outputStream.write(b);
       _numberOfBytesWritten++;
     }
     _totalNumberOfBytes++;
@@ -83,7 +96,7 @@ public class LimitedOutputStream extends FilterOutputStream
 
     if(numberOfBytesToWrite > 0)
     {
-      out.write(b, off, (int) numberOfBytesToWrite);
+      _outputStream.write(b, off, (int) numberOfBytesToWrite);
       _numberOfBytesWritten += numberOfBytesToWrite;
     }
     

@@ -278,7 +278,7 @@ class TestScriptExecution extends GroovyTestCase
   {
     if(!(source instanceof Map))
     {
-      source = [script: source, name: name, checkValidTransitionForAction: { }]
+      source = [invocable: source, name: name, checkValidTransitionForAction: { }]
     }
     ScriptExecution se = new ScriptExecution(source, name, log)
     se.heartbeat = Timespan.parse('2s')

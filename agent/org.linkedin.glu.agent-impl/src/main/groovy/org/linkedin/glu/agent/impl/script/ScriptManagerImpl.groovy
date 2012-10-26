@@ -35,8 +35,9 @@ import org.linkedin.groovy.util.state.StateMachine
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeoutException
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
-import org.linkedin.util.url.URLBuilder
+
 import org.linkedin.util.url.QueryBuilder
+import org.linkedin.util.annotations.Initializable
 
 /**
  * Manager for scripts
@@ -49,33 +50,27 @@ def class ScriptManagerImpl implements ScriptManager
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
   final Map<MountPoint, ScriptNode> _scripts = new LinkedHashMap<MountPoint, ScriptNode>()
-  final def _rootScriptFactory
-  final AgentContext _agentContext
+
+  @Initializable(required = true)
+  ScriptFactory rootScriptFactory = new FromClassNameScriptFactory(RootScript)
+
+  @Initializable(required = true)
+  AgentContext agentContext
+
   private volatile boolean _shutdown = false
   Timespan scriptGracePeriod1 = Timespan.parse('1s')
   Timespan scriptGracePeriod2 = Timespan.parse('1m')
 
-  ScriptManagerImpl()
-  {
-    this([:])
-  }
-  
-  ScriptManagerImpl(args)
-  {
-    _rootScriptFactory = args.rootScriptFactory ?: new FromClassNameScriptFactory(RootScript)
-    _agentContext = args.agentContext
-  }
-
   synchronized ScriptNode installRootScript(actionArgs)
   {
-    def scriptConfig = new ScriptConfig(shell: _agentContext.shellForScripts,
-                                        agentContext: _agentContext)
+    def scriptConfig = new ScriptConfig(shell: agentContext.shellForScripts,
+                                        agentContext: agentContext)
 
-    def rootScript = _rootScriptFactory.createScript(scriptConfig)
+    def rootScript = rootScriptFactory.createScript(scriptConfig)
 
     ScriptDefinition sd = new ScriptDefinition(MountPoint.ROOT,
                                                null,
-                                               _rootScriptFactory,
+                                               rootScriptFactory,
                                                [:])
 
     def rootNode = createNode(scriptConfig, sd, rootScript)
@@ -138,12 +133,12 @@ def class ScriptManagerImpl implements ScriptManager
                                                initParameters)
 
     // each script will have its shell pointing to a different tmp root relative to the mount point
-    def shell = _agentContext.shellForScripts
+    def shell = agentContext.shellForScripts
     def fs = shell.fileSystem
     shell = shell.newShell(fs.newFileSystem(fs.root,
                                             fs.tmpRoot.createRelative(mountPoint.path)))
 
-    def scriptConfig = new ScriptConfig(agentContext: _agentContext,
+    def scriptConfig = new ScriptConfig(agentContext: agentContext,
                                         shell: shell)
     
     def childScript
@@ -181,7 +176,7 @@ def class ScriptManagerImpl implements ScriptManager
                                 ScriptDefinition sd,
                                 script)
   {
-    StateMachine stateMachine =  _agentContext.mop.createStateMachine(script: script)
+    StateMachine stateMachine =  agentContext.mop.createStateMachine(script: script)
 
     def scriptProperties = [:]
     def scriptClosures = [:]
@@ -223,11 +218,11 @@ def class ScriptManagerImpl implements ScriptManager
     ])
 
     script =
-      _agentContext.mop.wrapScript(script: script,
+      agentContext.mop.wrapScript(script: script,
                                    scriptProperties: scriptProperties,
                                    scriptClosures: scriptClosures)
 
-    return new ScriptNode(_agentContext, sd, stateMachine, script, log)
+    return new ScriptNode(agentContext, sd, stateMachine, script, log)
   }
   
   /**
@@ -502,7 +497,7 @@ def class ScriptManagerImpl implements ScriptManager
     if(!_shutdown)
       throw new IllegalStateException("call shutdown first")
 
-    GroovyConcurrentUtils.waitForShutdownMultiple(_agentContext.getClock(), timeout, scriptNodes)
+    GroovyConcurrentUtils.waitForShutdownMultiple(agentContext.getClock(), timeout, scriptNodes)
   }
 
   synchronized Collection<ScriptNode> getScriptNodes()

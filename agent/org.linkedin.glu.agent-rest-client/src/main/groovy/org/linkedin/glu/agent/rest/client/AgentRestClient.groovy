@@ -262,22 +262,25 @@ class AgentRestClient implements Agent
   }
 
   @Override
-  def executeShellCommand(args)
+  def executeShellCommand(def args)
   {
+    args = GluGroovyCollectionUtils.subMap(args, ['command', 'redirectStderr', 'stdin'])
+
     def ref = _references.commands.targetRef
 
-    GluGroovyCollectionUtils.subMap(args, ['command', 'redirectStderr']).each { k, v ->
+    def stdin = args.remove('stdin')
+    args.type = 'shell'
+
+    args.each { k, v ->
       if(v != null)
         ref.addQueryParameter(k.toString(), v.toString())
     }
 
-    String id = null
-
-    InputStream stream = handleResponse(ref) { ClientResource client ->
+    def response = handleResponse(ref) { ClientResource client ->
       Representation res
 
-      if(args.stdin)
-        res = client.post(new InputStreamOutputRepresentation(args.stdin))
+      if(stdin)
+        res = client.post(new InputStreamOutputRepresentation(stdin))
       else
       {
         def empty = Representation.createEmpty()
@@ -285,12 +288,91 @@ class AgentRestClient implements Agent
         res = client.post(empty)
       }
 
-      id = client.responseAttributes.'org.restlet.http.headers'?.getFirstValue('X-glu-command-id')
+      return res
+    }
+
+    return getRes(response)
+  }
+
+
+  @Override
+  def waitForCommand(def args)
+  {
+    args = GluGroovyCollectionUtils.subMap(args, ['id', 'timeout'])
+
+    def ref = _references.command.targetRef
+
+    ref = addPath(ref, args.remove('id').toString(), "exitValue")
+
+    args.each { k, v ->
+      if(v != null)
+        ref.addQueryParameter(k.toString(), v.toString())
+    }
+
+    def response = handleResponse(ref) { ClientResource client ->
+      client.get()
+    }
+
+    getRes(response)
+  }
+
+  private def streamCommandResultsInputArgs = [
+          'id',
+          'exitValueStream',
+          'exitValueStreamTimeout',
+          'stdinStream',
+          'stdinOffset',
+          'stdinLen',
+          'stdoutStream',
+          'stdoutOffset',
+          'stdoutLen',
+          'stderrStream',
+          'stderrOffset',
+          'stderrLen',
+  ]
+
+  @Override
+  def streamCommandResults(def args)
+  {
+    args = GluGroovyCollectionUtils.subMap(args, streamCommandResultsInputArgs)
+
+    def ref = _references.command.targetRef
+
+    ref = addPath(ref, args.remove('id').toString(), "streams")
+
+    args.each { k, v ->
+      if(v != null)
+        ref.addQueryParameter(k.toString(), v.toString())
+    }
+
+    def map = [:]
+
+    def expectedHeaders = ['startTime', 'completionTime']
+
+    def response = handleResponse(ref) { ClientResource client ->
+      Representation res = client.get()
+
+      def headers = client.responseAttributes.'org.restlet.http.headers'
+
+      expectedHeaders.each { k ->
+        def value = headers?.getFirstValue("X-glu-command-${k}".toString())
+        if(value)
+          map[k] = value
+      }
 
       return res
     }
 
-    return [id: id, stream: stream]
+    if(response instanceof InputStream)
+      map.stream = response
+
+    return map
+  }
+
+  @Override
+  boolean interruptCommand(def args)
+  {
+    throw new RuntimeException("TBD")
   }
 
   @Override
@@ -401,11 +483,12 @@ class AgentRestClient implements Agent
     return addPath(_references.tags, tagsPath)
   }
 
-  private Reference addPath(Reference ref, String path)
+  private Reference addPath(Reference ref, String... paths)
   {
-    if(path)
+    if(paths)
     {
-      path = PathUtils.addPaths(ref.path, path)
+      String path = ref.path
+      paths.each { path = PathUtils.addPaths(path, it) }
       ref = new Reference(ref, path)
     }
 

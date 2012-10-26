@@ -40,7 +40,11 @@ import org.linkedin.glu.utils.tags.Taggeable
 import org.linkedin.glu.utils.tags.TaggeableTreeSetImpl
 import org.linkedin.glu.agent.impl.script.ScriptNode
 import java.util.concurrent.ExecutionException
-import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.linkedin.glu.agent.impl.command.CommandManager
+import org.linkedin.glu.agent.impl.command.CommandManagerImpl
+import org.linkedin.glu.agent.api.NoSuchCommandException
+import org.linkedin.glu.agent.impl.command.CommandNode
+import org.linkedin.glu.agent.impl.command.MemoryCommandExecutionIOStorage
 
 /**
  * The main implementation of the agent
@@ -58,6 +62,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   private Shell _rootShell
   private Resource _agentLogDir
   private ScriptManager _scriptManager
+  private CommandManager _commandManager
   private MOP _mop
   private Closure _sync
   private Taggeable _taggeable
@@ -84,6 +89,9 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
     _sigar = args.sigar
     _mop = args.mop ?: new MOPImpl()
     _scriptManager = args.scriptManager ?: new ScriptManagerImpl(agentContext: this)
+    _commandManager = args.commandManager ?:
+      new CommandManagerImpl(agentContext: this,
+                             storage: new MemoryCommandExecutionIOStorage(agentContext: this))
     def storage = args.storage
     if(storage != null)
       _scriptManager = new StateKeeperScriptManager(scriptManager: _scriptManager,
@@ -96,7 +104,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
     _taggeable = args.taggeable ?: new TaggeableTreeSetImpl()
   }
 
-  def getClock()
+  Clock getClock()
   {
     return clock
   }
@@ -481,19 +489,57 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   def executeShellCommand(args)
   {
     handleException {
-      args = GluGroovyCollectionUtils.subMap(args, ['command', 'redirectStderr', 'stdin'])
-      
-      def stdin = args.remove('stdin')
+      if(log.isDebugEnabled())
+      {
+        def argsNoStdin = [*:args]
+        def stdin = argsNoStdin.remove('stdin')
+        log.debug("executeShellCommand(${argsNoStdin}${stdin ? ' - stdin ' : ''})")
+      }
+      [id: _commandManager.executeShellCommand(args).id]
+    }
+  }
 
-      // for now, we compute a unique id and pass it along. In the future, it could be used
-      // to come back and get details about the command
-      String id = UUID.randomUUID().toString()
+  @Override
+  def waitForCommand(args)
+  {
+    handleException {
+      if(log.isDebugEnabled())
+        log.debug("waitForCommand(${args})")
+      _commandManager.waitForCommand(args)
+    }
+  }
 
-      log.info "executeShellCommand: ${args}${stdin ? ' - <stdin>' : ''} - ${id}"
+  @Override
+  def streamCommandResults(args)
+  {
+    handleException {
+      if(log.isDebugEnabled())
+        log.debug("streamCommandResults(${args})")
 
-      def stream = shellForCommands.exec(*: args, stdin: stdin, failOnError: false, res: "stream")
+      def res = _commandManager.findCommandNodeAndStreams(args)
+      if(res == null)
+        throw new NoSuchCommandException(args.id)
 
-      return [id: id, stream: stream]
+      CommandNode commandNode = res.remove('commandNode')
+
+      if(commandNode.startTime > 0)
+        res.startTime = commandNode.startTime
+
+      if(commandNode.isCompleted())
+        res.completionTime = commandNode.completionTime
+
+      return res
+    }
+  }
+
+  @Override
+  boolean interruptCommand(args)
+  {
+    handleException {
+      if(log.isDebugEnabled())
+        log.debug("interruptCommand(${args})")
+
+      _commandManager.interruptCommand(args)
     }
   }
 

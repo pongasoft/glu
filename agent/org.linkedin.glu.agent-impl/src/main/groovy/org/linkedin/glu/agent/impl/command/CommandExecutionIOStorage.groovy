@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2012 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,18 +14,23 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.script
 
-import org.linkedin.glu.agent.api.Shell
-import org.linkedin.util.clock.Clock
+
+package org.linkedin.glu.agent.impl.command
 
 /**
- * Represents the agent context
- */
-public interface AgentContext
+ * This class encapsulates the storage of IO for commands, this way it is easy to "disable" the
+ * storage.
+ *
+ * @author yan@pongasoft.com */
+public interface CommandExecutionIOStorage
 {
-  Clock getClock()
-  Shell getShellForScripts()
-  Shell getShellForCommands()
-  MOP getMop()
+  def findCommandNodeAndStreams(String commandId, def args)
+
+  /**
+   * @return the command node of a previously run/stored command
+   */
+  CommandNode findCommandNode(String commandId)
+
+  CommandNodeWithStorage createStorageForCommand(def args)
 }

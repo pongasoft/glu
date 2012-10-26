@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2012 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,18 +14,31 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.script
 
-import org.linkedin.glu.agent.api.Shell
-import org.linkedin.util.clock.Clock
+
+package org.linkedin.glu.agent.rest.resources
+
+import org.restlet.Context
+import org.restlet.Request
+import org.restlet.Response
 
 /**
- * Represents the agent context
- */
-public interface AgentContext
+ * @author yan@pongasoft.com */
+public class CommandBaseResource extends BaseResource
 {
-  Clock getClock()
-  Shell getShellForScripts()
-  Shell getShellForCommands()
-  MOP getMop()
+  protected String commandId
+
+  CommandBaseResource(Context context, Request request, Response response)
+  {
+    super(context, request, response);
+    commandId = request.getAttributes().get("id")
+  }
+
+  @Override
+  def getRequestArgs()
+  {
+    def res = super.getRequestArgs()
+    res.id = commandId
+    return res
+  }
 }

@@ -76,6 +76,17 @@ class BaseResource extends Resource
     return args
   }
 
+  def getRequestArgs()
+  {
+    def form = request.originalRef.queryAsForm
+    if(form)
+    {
+      return toArgs(form)
+    }
+    else
+      return [:]
+  }
+
   def static toRepresentation(res)
   {
     return new JsonRepresentation(JsonUtils.toJSON(res))

@@ -26,6 +26,7 @@ dependencies {
   compile spec.external.linkedinZookeeperImpl
   compile spec.external.sigar
   compile spec.external.mimeUtil
+  compile spec.external.commonsIO
 
   groovy spec.external.groovy
 

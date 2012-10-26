@@ -70,16 +70,26 @@ interface AgentsService
   SystemModel getCurrentSystemModel(Fabric fabric)
 
   /**
-   * Executes the shell command and uses the closure to stream the result
+   * Executes the shell command. Note that this call is non blocking.
    *
-   * @param commandResultProcessor a closure which will take a map <code>id</code> and
-   *                               <code>stream</code>
-   * @return whatever the closure returns
+   * @return whatever <code>org.linkedin.glu.agent.api.Agent#executeShellCommand</code> returns
    * @see org.linkedin.glu.agent.api.Agent#executeShellCommand for details on args
    */
   def executeShellCommand(Fabric fabric,
                           String agentName,
-                          args,
-                          Closure commandResultProcessor)
+                          args)
+
+  /**
+   * Streams the results from the command.
+   *
+   * @param commandResultProcessor a closure which takes the output of
+   *                            <code>org.linkedin.glu.agent.api.Agent#streamCommandResults</code>
+   * @return whatever the closure returns
+   * @see org.linkedin.glu.agent.api.Agent#streamCommandResults for details on args
+   */
+  def streamCommandResults(Fabric fabric,
+                           String agentName,
+                           args,
+                           Closure commandResultProcessor)
 
 }

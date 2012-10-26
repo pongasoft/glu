@@ -17,24 +17,13 @@
 
 package org.linkedin.glu.agent.impl.script
 
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.FutureTask
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
-import java.util.concurrent.Callable
-import java.util.concurrent.RunnableFuture
-import org.linkedin.glu.agent.api.FutureExecution
-import org.linkedin.util.clock.Timespan
+import org.linkedin.glu.agent.impl.concurrent.FutureTaskExecution
 
 /**
  * @author ypujante@linkedin.com */
 
-class FutureExecutionImpl implements RunnableFuture, FutureExecution, Comparable<FutureExecutionImpl>
+class FutureExecutionImpl<T> extends FutureTaskExecution<T> implements Comparable<FutureExecutionImpl>
 {
-  /**
-   * Unique id of the execution */
-  final String id = UUID.randomUUID().toString()
-
   /**
    * id in the queue */
   int queueId
@@ -42,89 +31,19 @@ class FutureExecutionImpl implements RunnableFuture, FutureExecution, Comparable
   /**
    * The callback to call on cancel
    */
-  def cancelCallback
-
-  /**
-   * when the execution should start (0 means start now) */
-  synchronized long futureExecutionTime = 0L
-
-  /**
-   * when the execution started */
-  synchronized long startTime = 0L
-
-  /**
-   * when the execution completes */
-  synchronized long completionTime = 0L
-
-  /**
-   * Internally use a future task
-   */
-  private final FutureTask _futureTask
+  Closure cancelCallback
 
   FutureExecutionImpl()
   {
-    _futureTask = new FutureTask({ execute() } as Callable)
-  }
-
-  FutureExecutionImpl(Closure closure)
-  {
-    this(closure as Callable)
-  }
-
-  FutureExecutionImpl(Callable callable)
-  {
-    _futureTask = new FutureTask(callable)
-  }
-
-  /**
-   * You can either extend this class to provide the code to be executed in this method
-   * or provide the code directly in one of the constructor(s).
-   */
-  def execute()
-  {
-    // nothing to do in the base class
+    super()
   }
 
   boolean cancel(boolean mayInterruptIfRunning)
   {
-    def res = _futureTask.cancel(mayInterruptIfRunning)
+    def res = super.cancel(mayInterruptIfRunning)
     if(cancelCallback)
       cancelCallback(this)
     return res
-  }
-
-  void run()
-  {
-    _futureTask.run()
-  }
-
-  boolean isCancelled()
-  {
-    return _futureTask.isCancelled();
-  }
-
-  boolean isDone()
-  {
-    return _futureTask.isDone();
-  }
-
-  Object get()
-  {
-    return _futureTask.get();
-  }
-
-  Object get(long l, TimeUnit timeUnit)
-  {
-    return _futureTask.get(l, timeUnit);
-  }
-
-  Object get(timeout) throws InterruptedException, ExecutionException, TimeoutException
-  {
-    timeout = Timespan.parse(timeout?.toString())
-    if(!timeout?.durationInMilliseconds)
-      get()
-    else
-      get(timeout.durationInMilliseconds, TimeUnit.MILLISECONDS)
   }
 
   int compareTo(FutureExecutionImpl o)
@@ -152,6 +71,4 @@ class FutureExecutionImpl implements RunnableFuture, FutureExecution, Comparable
 
     return sb.toString();
   }
-
-
 }

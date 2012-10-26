@@ -253,19 +253,7 @@ public interface Agent
 
   /**
    * Executes the shell command. Note that this methods returns right away and does not wait
-   * for the command to complete. Note that you must read the input stream provided
-   * otherwise the command has the potential to never complete and block indefinitely (if it
-   * outputs anything for example). You should also properly close it. Example:
-   *
-   * InputStream stream = agent.executeShellCommand(command: 'xxxx').stream
-   * try
-   * {
-   *   // read stream
-   * }
-   * finally
-   * {
-   *   stream.close()
-   * }
+   * for the command to complete.
    *
    * @param args.command the command to execute. It will be delegated to the shell so it should
    *                     be native to the OS on which the agent runs (required)
@@ -275,10 +263,59 @@ public interface Agent
    * @param args.redirectStderr <code>boolean</code> to redirect stderr into stdout
    *                            (optional, default to <code>false</code>). Note that this can also
    *                            be accomplished with the command itself with something like "2>&1"
-   * @return a map with id being the id of the command being executed, and stream the (multiplexed)
-   *         input stream (@see {Shell#exec(Map)} for details on the result
+   * @return a map with id being the id of the command being executed
    */
   def executeShellCommand(args) throws AgentException
+
+  /**
+   * Wait (no longer than the timeout provided) for the command to complete and return the exit
+   * value
+   *
+   * @param args.id the id of the command (as returned by {@lin #executeShellCommand})
+   * @param args.timeout if not <code>null</code>, the amount of time to wait maximum. If
+   *                     <code>null</code>, wait until the command completes.
+   * @return the exit value
+   */
+  def waitForCommand(args) throws NoSuchCommandException, TimeOutException, AgentException
+
+  /**
+   * This method allows you to start streaming the results (stdout, stderr,...) while the command
+   * is still running.
+   *
+   * @param args.id the id of the command (as returned by {@lin #executeShellCommand})
+   * @param args.exitValueStream if you want the exit value to be part of the stream
+   *                             (<code>boolean</code>, optional, <code>false</code> by default)
+   * @param args.exitValueStreamTimeout how long to wait to get the exit value if the command is
+   *                                    not completed yet (optional, in the event that
+   *                                    <code>exitValueStream</code> is set to
+   *                                    <code>true</code> and <code>exitValueStreamTimeout</code>
+   *                                    is not provided, it will not block and return no exit value
+   *                                    stream)
+   * @param args.stdinStream if you want stdin to be part of the stream
+   *                         (<code>boolean</code>, optional, <code>false</code> by default)
+   * @param args.stdinOffset where to start in the stdin stream (optional, <code>int</code>,
+   *                          <code>0</code> by default)
+   * @param args.stdinLen how many bytes to read maximum (optional, <code>int</code>,
+   *                       <code>-1</code> by default which means read all)
+   * @param args.stdoutStream if you want stdout to be part of the stream
+   *                          (<code>boolean</code>, optional, <code>false</code> by default)
+   * @param args.stdoutOffset where to start in the stdout stream (optional, <code>int</code>,
+   *                          <code>0</code> by default)
+   * @param args.stdoutLen how many bytes to read maximum (optional, <code>int</code>,
+   *                       <code>-1</code> by default which means read all)
+   * @param args.stderrStream if you want stdout to be part of the stream
+   *                          (<code>boolean</code>, optional, <code>false</code> by default)
+   * @param args.stderrOffset where to start in the stdout stream (optional, <code>int</code>,
+   *                          <code>0</code> by default)
+   * @param args.stderrLen how many bytes to read maximum (optional, <code>int</code>,
+   *                       <code>-1</code> by default which means read all)
+   * @return a map with <code>startTime</code>, <code>completionTime</code> (if any) and
+   *         <code>stream</code> (if any)
+   * @throw NoSuchCommandException if not found
+   */
+  def streamCommandResults(def args) throws NoSuchCommandException, AgentException
+
+  boolean interruptCommand(args) throws AgentException
 
   /********************************************************************
    * Tags

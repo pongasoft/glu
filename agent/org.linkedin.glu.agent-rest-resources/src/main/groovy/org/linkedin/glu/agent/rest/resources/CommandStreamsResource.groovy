@@ -19,45 +19,46 @@ package org.linkedin.glu.agent.rest.resources
 import org.restlet.Context
 import org.restlet.Request
 import org.restlet.Response
-import org.restlet.representation.InputRepresentation
 import org.restlet.representation.Representation
+import org.restlet.representation.Variant
+import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
+import org.restlet.representation.EmptyRepresentation
 
 /**
  * @author yan@pongasoft.com */
-public class CommandsResource extends BaseResource
+public class CommandStreamsResource extends CommandBaseResource
 {
-  CommandsResource(Context context, Request request, Response response)
+  CommandStreamsResource(Context context, Request request, Response response)
   {
     super(context, request, response);
   }
 
   @Override
-  boolean allowPost()
+  boolean allowGet()
   {
     return true
   }
 
   /**
-   * Handle POST
+   * GET: return the stream(s) and information about the command
    */
-  @Override
-  public void acceptRepresentation(Representation representation)
+  public Representation represent(Variant variant)
   {
-    noException {
-      def args = toArgs(request.originalRef.queryAsForm)
+    return noException {
 
-      if(representation instanceof InputRepresentation)
-        args.stdin = representation.stream
+      def res = agent.streamCommandResults(requestArgs)
 
-      def res
+      def stream = res.remove('stream')
 
-      if(args.type == "shell")
-      {
-        res = agent.executeShellCommand(args)
-        response.setEntity(toRepresentation(res: res))
+      res.each { k,v ->
+        addResponseHeader("X-glu-command-${k}", v)
       }
+
+      if(stream)
+        return new InputStreamOutputRepresentation(stream)
       else
-        throw new UnsupportedOperationException("unknown command type [${args.toString()}]")
+        return EmptyRepresentation.createEmpty()
     }
   }
+
 }

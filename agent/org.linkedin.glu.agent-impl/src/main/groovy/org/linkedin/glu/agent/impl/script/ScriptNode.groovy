@@ -242,6 +242,11 @@ def class ScriptNode implements Shutdownable, Startable, GluScript
     return _scriptState.script
   }
 
+  def getInvocable()
+  {
+    return script
+  }
+
   def waitForState(state, timeout)
   {
     return _scriptState.stateMachine.waitForState(state, timeout)

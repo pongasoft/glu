@@ -46,8 +46,6 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
 
   private final StateMachine stateMachine = DefaultStateMachine.INSTANCE
 
-  private final def availableStates = stateMachine.availableStates as Set
-
   // will be dependency injected
   @Initializable(required = true)
   AgentFactory agentFactory
@@ -235,13 +233,18 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
   }
 
   @Override
-  def executeShellCommand(Fabric fabric,
-                          String agentName,
-                          args,
-                          Closure commandResultProcessor)
+  def executeShellCommand(Fabric fabric, String agentName, def args)
   {
     withRemoteAgent(fabric, agentName) { Agent agent ->
-      commandResultProcessor(agent.executeShellCommand(args))
+      agent.executeShellCommand(args)
+    }
+  }
+
+  @Override
+  def streamCommandResults(Fabric fabric, String agentName, Object args, Closure commandResultProcessor)
+  {
+    withRemoteAgent(fabric, agentName) { Agent agent ->
+      commandResultProcessor(agent.streamCommandResults(args))
     }
   }
 

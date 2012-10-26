@@ -64,6 +64,8 @@ import org.linkedin.glu.agent.impl.storage.WriteOnlyStorage
 import org.linkedin.util.lifecycle.Configurable
 import org.linkedin.glu.agent.rest.resources.AgentConfigResource
 import org.linkedin.glu.agent.rest.resources.CommandsResource
+import org.linkedin.glu.agent.rest.resources.CommandExitValueResource
+import org.linkedin.glu.agent.rest.resources.CommandStreamsResource
 
 /**
  * This is the main class to start the agent.
@@ -527,17 +529,19 @@ class AgentMain implements LifecycleListener, Configurable
     attributes.put('codec', remoteConfigCodec)
 
     [
-      agent: [clazz: AgentResource, matchingMode: Template.MODE_STARTS_WITH],
-      host: [clazz: HostResource],
-      config: [clazz: AgentConfigResource],
-      process: [clazz: ProcessResource, matchingMode: Template.MODE_STARTS_WITH],
-      mountPoint: [clazz: MountPointResource, matchingMode: Template.MODE_STARTS_WITH],
-      log: [clazz: LogResource, matchingMode: Template.MODE_STARTS_WITH],
-      file: [clazz: FileResource, matchingMode: Template.MODE_STARTS_WITH],
-      tags: [clazz: TagsResource, matchingMode: Template.MODE_STARTS_WITH],
-      commands: [clazz: CommandsResource],
+            agent: [clazz: AgentResource, matchingMode: Template.MODE_STARTS_WITH],
+            host: [clazz: HostResource],
+            config: [clazz: AgentConfigResource],
+            process: [clazz: ProcessResource, matchingMode: Template.MODE_STARTS_WITH],
+            mountPoint: [clazz: MountPointResource, matchingMode: Template.MODE_STARTS_WITH],
+            log: [clazz: LogResource, matchingMode: Template.MODE_STARTS_WITH],
+            file: [clazz: FileResource, matchingMode: Template.MODE_STARTS_WITH],
+            tags: [clazz: TagsResource, matchingMode: Template.MODE_STARTS_WITH],
+            commands: [clazz: CommandsResource],
+            commandExitValue: [clazz: CommandExitValueResource, path: "/command/{id}/exitValue"],
+            commandStreams: [clazz: CommandStreamsResource, path: "/command/{id}/stream"],
     ].each { name, map ->
-      def path = "/${name}".toString()
+      def path = map.path ?: "/${name}".toString()
       Class clazz = map.clazz
       def route = router.attach(path, clazz)
       if(map.matchingMode)

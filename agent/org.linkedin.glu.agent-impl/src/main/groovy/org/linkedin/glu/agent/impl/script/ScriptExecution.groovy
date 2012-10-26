@@ -344,6 +344,7 @@ class ScriptExecution implements Startable, Shutdownable
     synchronized(lock)
     {
       futureExecution.queueId = ++_counter
+      futureExecution.clock = clock
       _futureExecutions[futureExecution.id] = futureExecution
       _timeline << futureExecution
       if(futureExecution instanceof TimerExecution)
@@ -573,13 +574,11 @@ class ScriptExecution implements Startable, Shutdownable
 
       if(_current)
       {
-        _current.startTime = clock.currentTimeMillis()
         if(_log.isDebugEnabled())
         {
           _log.debug("executeFutureTasks: running ${_current}")
         }
         _current.run()
-        _current.completionTime = clock.currentTimeMillis()
         if(_log.isDebugEnabled())
         {
           _log.debug("executeFutureTasks: completed ${_current}")

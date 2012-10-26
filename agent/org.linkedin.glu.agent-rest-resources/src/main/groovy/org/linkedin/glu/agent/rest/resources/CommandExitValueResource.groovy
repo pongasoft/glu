@@ -14,50 +14,39 @@
  * the License.
  */
 
+
+
 package org.linkedin.glu.agent.rest.resources
 
 import org.restlet.Context
 import org.restlet.Request
 import org.restlet.Response
-import org.restlet.representation.InputRepresentation
 import org.restlet.representation.Representation
+import org.restlet.representation.Variant
 
 /**
  * @author yan@pongasoft.com */
-public class CommandsResource extends BaseResource
+public class CommandExitValueResource extends CommandBaseResource
 {
-  CommandsResource(Context context, Request request, Response response)
+  CommandExitValueResource(Context context, Request request, Response response)
   {
     super(context, request, response);
   }
 
   @Override
-  boolean allowPost()
+  boolean allowGet()
   {
     return true
   }
 
   /**
-   * Handle POST
+   * GET: return the exit value of the command (blocking call with optional timeout)
    */
-  @Override
-  public void acceptRepresentation(Representation representation)
+  public Representation represent(Variant variant)
   {
-    noException {
-      def args = toArgs(request.originalRef.queryAsForm)
-
-      if(representation instanceof InputRepresentation)
-        args.stdin = representation.stream
-
-      def res
-
-      if(args.type == "shell")
-      {
-        res = agent.executeShellCommand(args)
-        response.setEntity(toRepresentation(res: res))
-      }
-      else
-        throw new UnsupportedOperationException("unknown command type [${args.toString()}]")
+    return noException {
+      return toRepresentation(res: agent.waitForCommand(requestArgs))
     }
   }
+
 }

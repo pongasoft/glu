@@ -16,7 +16,6 @@
 
 package org.linkedin.glu.orchestration.engine.commands
 
-import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
@@ -39,6 +38,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.glu.agent.rest.common.AgentRestUtils
 import org.linkedin.groovy.util.config.Config
+import java.util.concurrent.TimeoutException
+import org.linkedin.glu.groovy.utils.concurrent.GluGroovyConcurrentUtils
 
 /**
  * @author yan@pongasoft.com  */
@@ -120,14 +121,14 @@ public class CommandsServiceImpl implements CommandsService
     }
 
     // we execute the command in a separate thread
-    def future = executorService.submit(commandExecutor as Callable)
+    def future = executorService.submit(GluGroovyConcurrentUtils.asCallable(commandExecutor))
 
     try
     {
       future.get(defaultSynchronousWaitTimeout.getDurationInMilliseconds(),
                  TimeUnit.MILLISECONDS)
     }
-    catch (TimeoutException)
+    catch (TimeoutException e)
     {
       // it is ok... we did not get any result during this amount of time
     }

@@ -30,15 +30,15 @@ class TimerExecution extends FutureExecutionImpl
 
   def execute()
   {
-    def closure = script."${timer}"
+    def closure = invocable."${timer}"
     GroovyLangUtils.noExceptionWithMessage("TimerExecution(${timer}): [${source.name}]") {
       closure()
     }
   }
 
-  def getScript()
+  def getInvocable()
   {
-    source.script
+    source.invocable
   }
 
   def String toString()

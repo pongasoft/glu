@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2012 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,18 +14,33 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.script
+package org.linkedin.glu.utils.io;
 
-import org.linkedin.glu.agent.api.Shell
-import org.linkedin.util.clock.Clock
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * Represents the agent context
+ * @author yan@pongasoft.com
  */
-public interface AgentContext
+public class EmptyInputStream extends InputStream
 {
-  Clock getClock()
-  Shell getShellForScripts()
-  Shell getShellForCommands()
-  MOP getMop()
+  public static final EmptyInputStream INSTANCE = new EmptyInputStream();
+
+  public static EmptyInputStream instance()
+  {
+    return INSTANCE;
+  }
+
+  /**
+   * Constructor
+   */
+  public EmptyInputStream()
+  {
+  }
+
+  @Override
+  public int read() throws IOException
+  {
+    return -1;
+  }
 }

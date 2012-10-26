@@ -42,9 +42,10 @@ import java.util.concurrent.TimeoutException
 import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.glu.agent.impl.storage.TagsStorage
 import org.linkedin.util.concurrent.ThreadPerTaskExecutor
-import java.util.concurrent.Callable
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import org.linkedin.glu.groovy.utils.concurrent.GluGroovyConcurrentUtils
+import org.linkedin.glu.agent.api.Shell
 
 /**
  * Test for AgentImpl
@@ -681,7 +682,8 @@ def class TestAgentImpl extends GroovyTestCase
                                    timeout: '10s')
     }
 
-    Future futureWaitForState = ThreadPerTaskExecutor.execute(asyncWaitForState as Callable)
+    Future futureWaitForState =
+      ThreadPerTaskExecutor.execute(GluGroovyConcurrentUtils.asCallable(asyncWaitForState))
 
     agent.shutdown()
 
@@ -807,6 +809,68 @@ gc: 1000
 
     // we make sure it is serializable
     new ObjectOutputStream(new ByteArrayOutputStream()).writeObject(ramStorage) 
+  }
+
+  /**
+   * The content of this test is very similar to TestCapabilities.testGenericExec (minus the test
+   * for arguments that don't make sense)
+   */
+  public void testCommands()
+  {
+    FileSystemImpl.createTempFileSystem() { FileSystem fs ->
+      def shell = new ShellImpl(fileSystem: fs)
+      def shellScript = shell.fetch("./src/test/resources/shellScriptTestShellExec.sh")
+      // let's make sure it is executable
+      fs.chmod(shellScript, '+x')
+
+      // stdout only
+      checkShellExec(shell, [command: [shellScript, "-1"]], 0, "this goes to stdout\n", "")
+
+      // both stdout and stderr in their proper channel
+      checkShellExec(shell, [command: [shellScript, "-1", "-2"]], 0, "this goes to stdout\n", "this goes to stderr\n")
+
+      // redirecting stderr to stdout
+      checkShellExec(shell, [command: [shellScript, "-1", "-2"], redirectStderr: true], 0, "this goes to stdout\nthis goes to stderr\n", "")
+
+      // testing for failure/exit value
+      checkShellExec(shell, [command: [shellScript, "-1", "-e"]], 1, "this goes to stdout\n", "")
+
+      // reading from stdin
+      checkShellExec(shell, [command: [shellScript, "-1", "-c"], stdin: "abc\ndef\n"], 0, "this goes to stdout\nabc\ndef\n", "")
+    }
+  }
+
+  private void checkShellExec(Shell shell, commands, exitValue, stdout, stderr)
+  {
+    commands.command = commands.command.collect { it.toString() }.join(" ")
+    if(commands.stdin)
+      commands.stdin = new ByteArrayInputStream(commands.stdin.getBytes("UTF-8"))
+
+    def commandId = agent.executeShellCommand(*: commands).id
+
+    def results = agent.streamCommandResults(id: commandId,
+                                             exitValueStream: true,
+                                             exitValueStreamTimeout: 0,
+                                             stdoutStream: true,
+                                             stderrStream: true)
+
+    def stream = results.stream
+
+    OutputStream stdoutStream = new ByteArrayOutputStream()
+
+    OutputStream stderrStream = new ByteArrayOutputStream()
+
+    try
+    {
+      assertEquals(exitValue, shell.demultiplexExecStream(stream, stdoutStream, stderrStream))
+    }
+    finally
+    {
+      assertEquals(stdout, new String(stdoutStream.toByteArray(), "UTF-8"))
+      assertEquals(stderr, new String(stderrStream.toByteArray(), "UTF-8"))
+    }
+
+    assertEquals(exitValue, agent.waitForCommand(id: commandId))
   }
 }
 

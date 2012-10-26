@@ -101,14 +101,18 @@ public class AuditedAgentsService implements AgentsService
 
   def executeShellCommand(Fabric fabric,
                           String agentName,
-                          args,
-                          Closure commandResultProcessor)
+                          args)
   {
-    agentsService.executeShellCommand(fabric, agentName, args) { res ->
+    def res = null
+    try
+    {
+      res = agentsService.executeShellCommand(fabric, agentName, args)
+    }
+    finally
+    {
       auditLogService.audit('agent.executeShellCommand',
                             "fabric: ${fabric.name}, agent: ${agentName}, command: ${args.command}",
-                            res.id.toString())
-      commandResultProcessor(res)
+                            res?.id?.toString())
     }
   }
 }

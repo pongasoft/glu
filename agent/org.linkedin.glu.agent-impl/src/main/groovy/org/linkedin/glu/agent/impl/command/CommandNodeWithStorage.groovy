@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2012 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,18 +14,22 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.script
-
-import org.linkedin.glu.agent.api.Shell
-import org.linkedin.util.clock.Clock
+package org.linkedin.glu.agent.impl.command
 
 /**
- * Represents the agent context
- */
-public interface AgentContext
+ * @author yan@pongasoft.com */
+public class CommandNodeWithStorage extends CommandNode
 {
-  Clock getClock()
-  Shell getShellForScripts()
-  Shell getShellForCommands()
-  MOP getMop()
+  private final CommandExecutionIOStorage _storage
+
+  CommandNodeWithStorage(def command, String commandId, CommandExecutionIOStorage storage)
+  {
+    super(command, commandId)
+    _storage = storage
+  }
+
+  def captureIO(Closure closure)
+  {
+    _storage.captureIO(this, closure)
+  }
 }
