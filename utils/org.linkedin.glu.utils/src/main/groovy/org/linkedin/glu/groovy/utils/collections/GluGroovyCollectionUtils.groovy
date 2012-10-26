@@ -25,7 +25,8 @@ public class GluGroovyCollectionUtils extends GroovyCollectionsUtils
   /**
    * The issue with map.subMap(['a', 'b']) is that it will add a 'b' key if not present in
    * original map! The intent of this call is to fix it!
-   * @return a map containing only the keys specified (if they were present in the original map!)
+   * @return a new map (always) containing only the keys specified (if they were present in
+   * the original map!) or <code>null</code> if <code>map</code> is <code>null</code>
    */
   static Map subMap(Map map, Collection keys)
   {
@@ -43,5 +44,25 @@ public class GluGroovyCollectionUtils extends GroovyCollectionsUtils
     }
 
     return res
+  }
+
+  /**
+   * Similar to {@link #subMap} but return a map which contains only keys NOT specified in keys
+   *
+   * @return a new map (alway) containing only the keys NOT specified or <code>null</code> if
+   * <code>map</code> is <code>null</code>
+   */
+  static Map xorMap(Map map, Collection keys)
+  {
+    if(map == null)
+      return null
+
+    if(keys == null)
+      keys = []
+
+    def newKeys = new LinkedHashSet(map.keySet())
+    newKeys.removeAll(keys)
+
+    subMap(map, newKeys)
   }
 }

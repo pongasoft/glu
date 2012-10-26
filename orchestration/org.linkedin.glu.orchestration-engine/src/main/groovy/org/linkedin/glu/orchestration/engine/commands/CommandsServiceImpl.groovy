@@ -92,12 +92,14 @@ public class CommandsServiceImpl implements CommandsService
 
     String commandId = null
 
-    def cop = { res ->
-      commandId = res.id
+    def onCommandStarted = { CommandExecution ce ->
+      commandId = ce.commandId
 
       // the command has been started and the id set
       commandStarted.countDown()
+    }
 
+    def onResultStreamAvailable = { res ->
       // we can now consume the entire result (we disregard the output as it is already
       // being saved locally
       res.stream.withStream { InputStream is ->
@@ -110,13 +112,18 @@ public class CommandsServiceImpl implements CommandsService
     def commandExecutor = {->
       try
       {
-        doExecuteShellCommand(fabric, agentName, username, args, cop)
+        doExecuteShellCommand(fabric,
+                              agentName,
+                              username,
+                              args,
+                              onCommandStarted,
+                              onResultStreamAvailable)
       }
-      catch (Throwable th)
+      finally
       {
-        // if an exception is thrown before "cop" is executed, then we could block indefinitely!
+        // if an exception is thrown before "onCommandStarted" is executed,
+        // then we could block indefinitely!
         commandStarted.countDown()
-        log.warn("unexpected exception while executing shell command [${args.command}]", th)
       }
     }
 
@@ -146,6 +153,7 @@ public class CommandsServiceImpl implements CommandsService
                           agentName,
                           authorizationService.executingPrincipal,
                           args,
+                          null,
                           commandResultProcessor)
   }
 
@@ -238,7 +246,8 @@ public class CommandsServiceImpl implements CommandsService
                                     String agentName,
                                     String username,
                                     args,
-                                    Closure commandResultProcessor)
+                                    Closure onCommandStarted,
+                                    Closure onResultStreamAvailable)
   {
     long startTime = clock.currentTimeMillis()
 
@@ -265,32 +274,46 @@ public class CommandsServiceImpl implements CommandsService
         args.stdin = new TeeInputStream(args.stdin, stream, true)
       }
 
-      agentsService.executeShellCommand(fabric, agentName, args) { res ->
+      String commandId = agentsService.executeShellCommand(fabric, agentName, args).id
 
-        String commandId = res.id
+      boolean redirectStderr = Config.getOptionalBoolean(args, 'redirectStderr', false)
 
-        boolean redirectStderr = Config.getOptionalBoolean(args, 'redirectStderr', false)
+      // first we store the command in the storage
+      def commandExecution = commandExecutionStorage.startExecution(fabric.name,
+                                                                    agentName,
+                                                                    username,
+                                                                    args.command,
+                                                                    redirectStderr,
+                                                                    commandId,
+                                                                    CommandType.SHELL,
+                                                                    startTime)
 
-        // first we store the command in the storage
-        def commandExecution = commandExecutionStorage.startExecution(fabric.name,
-                                                                      agentName,
-                                                                      username,
-                                                                      args.command,
-                                                                      redirectStderr,
-                                                                      commandId,
-                                                                      CommandType.SHELL,
-                                                                      startTime)
+      synchronized(_currentCommandExecutions)
+      {
+        _currentCommandExecutions[commandId] = commandExecution
+      }
 
-        synchronized(_currentCommandExecutions)
-        {
-          _currentCommandExecutions[commandId] = commandExecution
-        }
+      try
+      {
+
+        if(onCommandStarted)
+          onCommandStarted(commandExecution)
 
         // now command execution is known... set it in the storage
         storage.commandExecution = commandExecution
 
-        try
-        {
+
+        args = [
+                id: commandId,
+                exitValueStream: true,
+                exitValueStreamTimeout: 0,
+                stdoutStream: true,
+        ]
+
+        if(!redirectStderr)
+          args.stderrStream = true
+
+        agentsService.streamCommandResults(fabric, agentName, args) { res ->
           // stdout
           ByteArrayOutputStream stdoutFirstBytes =
             new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
@@ -307,9 +330,9 @@ public class CommandsServiceImpl implements CommandsService
           ByteArrayOutputStream exitValueStream = new ByteArrayOutputStream()
 
           def streams = [
-            "O": stdoutLimited, // no more than 255 bytes
-            "E": stderrLimited, // no more than 255 bytes
-            "V": exitValueStream
+                  "O": stdoutLimited, // no more than 255 bytes
+                  "E": stderrLimited, // no more than 255 bytes
+                  "V": exitValueStream
           ]
 
           // this will demultiplex the result
@@ -323,7 +346,7 @@ public class CommandsServiceImpl implements CommandsService
             stream = dos
 
           def closureResult = stream.withStream { OutputStream os ->
-            commandResultProcessor(id: commandId, stream: new TeeInputStream(res.stream, os))
+            onResultStreamAvailable(id: commandId, stream: new TeeInputStream(res.stream, os))
           }
 
           // we now update the storage with the various results
@@ -339,12 +362,12 @@ public class CommandsServiceImpl implements CommandsService
 
           return closureResult
         }
-        finally
+      }
+      finally
+      {
+        synchronized(_currentCommandExecutions)
         {
-          synchronized(_currentCommandExecutions)
-          {
-            _currentCommandExecutions.remove(commandId)
-          }
+          _currentCommandExecutions.remove(commandId)
         }
       }
     }

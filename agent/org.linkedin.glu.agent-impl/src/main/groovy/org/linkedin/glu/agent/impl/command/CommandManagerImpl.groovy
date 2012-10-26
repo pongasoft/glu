@@ -118,7 +118,7 @@ public class CommandManagerImpl implements CommandManager
         _commands.remove(command.id)
         throw th
       }
-      command.log.info("execute(...)")
+      command.log.info("execute(${GluGroovyCollectionUtils.xorMap(args, ['stdin'])}${args.stdin ? ', stdin:<...>': ''})")
       return command
     }
   }
@@ -134,12 +134,12 @@ public class CommandManagerImpl implements CommandManager
     try
     {
       def res = node.waitForCompletion(args.timeout)
-      node.log.info("waitForCommand(${args}): ${res}")
+      node.log.info("waitForCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])}): ${res}")
       return res
     }
     catch(TimeoutException e)
     {
-      node.log.info("waitForCommand(${args}): <timeout>")
+      node.log.info("waitForCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])}): <timeout>")
       throw e
     }
   }
@@ -147,6 +147,11 @@ public class CommandManagerImpl implements CommandManager
   @Override
   def findCommandNodeAndStreams(def args)
   {
+    CommandNode node = findCommand(args.id)
+    if(node)
+      node.log.info("findCommandNodeAndStreams(${GluGroovyCollectionUtils.xorMap(args, ['id'])})")
+    else
+      log.info("findCommandNodeAndStreams(${args})): not found")
     return storage.findCommandNodeAndStreams(args.id, args)
   }
 
@@ -162,7 +167,11 @@ public class CommandManagerImpl implements CommandManager
     if(node)
     {
       res = node.interruptExecution()
-      node.log.info("interruptCommand(${args})")
+      node.log.info("interruptCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])})")
+    }
+    else
+    {
+      log.info("interruptCommand(${args})): not found")
     }
 
     return res
