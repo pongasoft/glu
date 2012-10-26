@@ -126,7 +126,19 @@ class ClientMain implements Startable
     if(Config.getOptionalBoolean(config, "stdin", false))
       args.stdin = System.in
 
-    InputStream mis = agent.executeShellCommand(args).stream
+    def id = agent.executeShellCommand(args).id
+
+    args = [
+            id: id,
+            exitValueStream: true,
+            exitValueStreamTimeout: 0,
+            stdoutStream: true,
+    ]
+
+    if(!redirectStderr)
+      args.stderrStream = true
+
+    InputStream mis  = agent.streamCommandResults(args).stream
 
     exitValue = AgentRestUtils.demultiplexExecStream(mis, System.out, System.err) as int
   }

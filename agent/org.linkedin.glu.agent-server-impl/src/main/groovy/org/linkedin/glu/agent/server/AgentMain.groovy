@@ -539,7 +539,7 @@ class AgentMain implements LifecycleListener, Configurable
             tags: [clazz: TagsResource, matchingMode: Template.MODE_STARTS_WITH],
             commands: [clazz: CommandsResource],
             commandExitValue: [clazz: CommandExitValueResource, path: "/command/{id}/exitValue"],
-            commandStreams: [clazz: CommandStreamsResource, path: "/command/{id}/stream"],
+            commandStreams: [clazz: CommandStreamsResource, path: "/command/{id}/streams"],
     ].each { name, map ->
       def path = map.path ?: "/${name}".toString()
       Class clazz = map.clazz

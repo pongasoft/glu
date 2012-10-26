@@ -23,6 +23,7 @@ import org.restlet.representation.Representation
 import org.restlet.representation.Variant
 import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
 import org.restlet.representation.EmptyRepresentation
+import org.restlet.data.Status
 
 /**
  * @author yan@pongasoft.com */
@@ -57,7 +58,10 @@ public class CommandStreamsResource extends CommandBaseResource
       if(stream)
         return new InputStreamOutputRepresentation(stream)
       else
+      {
+        response.setStatus(Status.SUCCESS_NO_CONTENT)
         return EmptyRepresentation.createEmpty()
+      }
     }
   }
 
