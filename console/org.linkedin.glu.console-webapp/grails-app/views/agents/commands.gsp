@@ -52,16 +52,8 @@
     }
 
   </style>
+<g:render template="/commands/command_js"/>
 <g:javascript>
-function renderCommandStream(commandId, streamType, success)
-{
-%{--YP Implementation note: this is obviously hacky, but there does not seem to be a way to use g.remoteFunction + javascript variables in all places!
-
-  ${g.remoteFunction(controller: 'commands', id: <javascript commandId>, action: 'stream', params: [streamType: <javascript streamType>], update:[success: '<javascript variable>'])}
-
---}%
-  jQuery.ajax({type:'GET',data:{'streamType': streamType}, url:'/console/commands/' + commandId + '/stream',success:function(data,textStatus){jQuery('#' + success).html(data);},error:function(XMLHttpRequest,textStatus,errorThrown){}});
-}
 function shouldRefresh()
 {
   return document.getElementById('autoRefresh').checked;
@@ -120,8 +112,8 @@ function showHide()
   </div>
 </div>
 
-<g:if test="${command}">
-  <div id="shell-${command.commandId}" class="shell span16"><a class="close" href="#" onclick="toggleShowHide('#shell-${command.commandId}')">&times;</a><div class="cli"><span class="prompt">${command.username.encodeAsHTML()}@${command.agent.encodeAsHTML()}#</span>&nbsp;<span class="command">${command.command.encodeAsHTML()}</span> <g:if test="${command.redirectStderr}">2&gt;&amp;1 </g:if><span class="date">[<cl:formatDate time="${command.startTime}"/>]</span> <span class="exitValue">[${'$'}?=${command.exitValue?.encodeAsHTML()}]</span></div><g:each in="['stdin', 'stderr', 'stdout']" var="streamType"><g:if test="${command.getTotalBytesCount(streamType) > 0}"><div id="${command.commandId}-${streamType}" class="${streamType}"><cl:renderCommandBytes command="${command}" streamType="${streamType}" onclick="renderCommandStream('${command.commandId}', '${streamType}', '${command.commandId}-${streamType}')"/></div></g:if></g:each><div class="cli"><span class="prompt">${command.username.encodeAsHTML()}@${command.agent.encodeAsHTML()}#</span>&nbsp;<span class="date">[<cl:formatDate time="${command.endTime}"/>]</span></div></div>
+<g:if test="${params.commandId}">
+  <div id="included-command"><g:include controller="commands" action="renderCommand" id="${params.commandId}"/></div>
 </g:if>
 
 <h3>History: Auto Refresh: <cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>

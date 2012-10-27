@@ -62,3 +62,11 @@ function show(selector)
 {
   toggleClass(selector, false, 'hidden');
 }
+
+/**
+ * Returns a boolean if the object is visible
+ */
+function isHidden(selector)
+{
+  return $(selector).hasClass('hidden')
+}

@@ -62,11 +62,37 @@ public class CommandsController extends ControllerBase
    * Render history according to criteria
    */
   def renderHistory = {
-    println "renderHistory: ${params}"
     def commands = CommandExecution.findAllByFabricAndAgent(request.fabric.name,
                                                             params.agentId,
                                                             [sort: 'startTime', order: 'desc'])
     render(template: 'history', model: [commands: commands])
+  }
+
+  /**
+   * Renders a single command
+   */
+  def renderCommand = {
+    def command = null
+    boolean isCommandRunning = false
+
+    if(params.id)
+    {
+      command = commandsService.findCurrentCommandExecutions([params.id])[params.id]
+
+      if(!command)
+      {
+        command = CommandExecution.findByCommandId(params.id)
+
+        isCommandRunning = false
+      }
+      else
+        isCommandRunning = true
+    }
+
+    if(command)
+      render(template: 'command', model: [command: command, isCommandRunning: isCommandRunning])
+    else
+      render "not found"
   }
 
   /**

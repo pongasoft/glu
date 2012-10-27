@@ -40,6 +40,7 @@ import org.linkedin.glu.agent.rest.common.AgentRestUtils
 import org.linkedin.groovy.util.config.Config
 import java.util.concurrent.TimeoutException
 import org.linkedin.glu.groovy.utils.concurrent.GluGroovyConcurrentUtils
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 
 /**
  * @author yan@pongasoft.com  */
@@ -84,6 +85,15 @@ public class CommandsServiceImpl implements CommandsService
   /**
    * The commands that are currently executing  */
   private final Map<String, CommandExecution> _currentCommandExecutions = [:]
+
+  @Override
+  Map<String, CommandExecution> findCurrentCommandExecutions(Collection<String> commandIds)
+  {
+    synchronized(_currentCommandExecutions)
+    {
+      GluGroovyCollectionUtils.subMap(_currentCommandExecutions, commandIds)
+    }
+  }
 
   @Override
   String executeShellCommand(Fabric fabric, String agentName, args)

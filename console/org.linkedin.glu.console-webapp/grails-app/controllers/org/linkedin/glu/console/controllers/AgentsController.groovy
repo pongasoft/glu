@@ -424,23 +424,27 @@ class AgentsController extends ControllerBase
    * Commands view page
    */
   def commands = {
-    def pageCommands = CommandExecution.findAllByFabricAndAgent(request.fabric.name,
-                                                                params.id,
-                                                                [sort: 'startTime', order: 'desc'])
-
     def command = null
+    boolean isCommandRunning = false
 
     if(params.commandId)
     {
-      command = pageCommands.find { it.commandId == params.commandId}
-      
+      command = commandsService.findCurrentCommandExecutions([params.commandId])[params.commandId]
+
       if(!command)
-        command = CommandExecution.findByFabricAndAgentAndCommandId(request.fabric.name,
-                                                                    params.id,
-                                                                    params.commandId)
+      {
+        command = CommandExecution.findByCommandId(params.commandId)
+
+//        command = CommandExecution.findAllByFabricAndAgentAndCommandId(request.fabric.name,
+//                                                                    params.id,
+//                                                                    params.commandId)
+        isCommandRunning = false
+      }
+      else
+        isCommandRunning = true
     }
 
-    [commands: pageCommands, command: command]
+    [command: command, isCommandRunning: isCommandRunning]
   }
 
   /**

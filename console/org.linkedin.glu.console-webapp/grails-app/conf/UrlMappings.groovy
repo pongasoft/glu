@@ -240,13 +240,18 @@ class UrlMappings
 
     // commands
     "/commands/$id/stream"(controller: 'commands', action: 'stream') {
-      __nvbe = 'Commands'
+      __nvbe = 'Agents'
       __role = UrlMappings.role('/commands/$id/stream')
     }
 
     "/commands/renderHistory"(controller: 'commands', action: 'renderHistory') {
-      __nvbe = 'Commands'
+      __nvbe = 'Agents'
       __role = UrlMappings.role('/commands/renderHistory')
+    }
+
+    "/commands/renderCommand/$id"(controller: 'commands', action: 'renderCommand') {
+      __nvbe = 'Agents'
+      __role = UrlMappings.role('/commands/renderCommand')
     }
 
     // plan

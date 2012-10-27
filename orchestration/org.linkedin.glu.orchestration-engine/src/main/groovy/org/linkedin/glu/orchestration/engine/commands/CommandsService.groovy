@@ -57,4 +57,9 @@ public interface CommandsService
    */
   void writeStream(Fabric fabric, String commandId, StreamType streamType, Closure closure)
     throws NoSuchCommandExecutionException
+
+  /**
+   * @return a map with all currently running commands
+   */
+  Map<String, CommandExecution> findCurrentCommandExecutions(Collection<String> commandIds)
 }
