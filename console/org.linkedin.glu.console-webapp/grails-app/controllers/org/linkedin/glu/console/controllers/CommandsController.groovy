@@ -21,12 +21,20 @@ import org.linkedin.glu.orchestration.engine.commands.CommandExecution
 import org.linkedin.glu.orchestration.engine.commands.NoSuchCommandExecutionException
 import javax.servlet.http.HttpServletResponse
 import org.linkedin.glu.orchestration.engine.commands.StreamType
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 
 /**
  * @author yan@pongasoft.com */
 public class CommandsController extends ControllerBase
 {
   CommandsService commandsService
+
+  /**
+   * Commands view page
+   */
+  def list = {
+    // nothing special to do... simply renders the gsp
+  }
 
   /**
    * Render the stream for the given command
@@ -62,35 +70,22 @@ public class CommandsController extends ControllerBase
    * Render history according to criteria
    */
   def renderHistory = {
-    def commands = CommandExecution.findAllByFabricAndAgent(request.fabric.name,
-                                                            params.agentId,
-                                                            [sort: 'startTime', order: 'desc'])
-    render(template: 'history', model: [commands: commands])
+    println params
+    def res = commandsService.findCommandExecutions(request.fabric,
+                                                    params.agentId,
+                                                    params)
+
+    render(template: 'history', model: res)
   }
 
   /**
    * Renders a single command
    */
   def renderCommand = {
-    def command = null
-    boolean isCommandRunning = false
-
-    if(params.id)
-    {
-      command = commandsService.findCurrentCommandExecutions([params.id])[params.id]
-
-      if(!command)
-      {
-        command = CommandExecution.findByCommandId(params.id)
-
-        isCommandRunning = false
-      }
-      else
-        isCommandRunning = true
-    }
+    def command = commandsService.findCommandExecution(request.fabric, params.id)
 
     if(command)
-      render(template: 'command', model: [command: command, isCommandRunning: isCommandRunning])
+      render(template: 'command', model: [command: command])
     else
       render "not found"
   }

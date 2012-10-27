@@ -247,3 +247,33 @@ li.filter-LogicSystemFilterChain {
 .summary-checkbox, .errorsOnly-checkbox {
   text-align: center;
 }
+
+.shell {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background-color: #000080;
+  color: #ffff00;
+  font-family: Monaco, Andale Mono, Courier New, monospace;
+  font-size: 12px;
+  padding: 2px;
+}
+
+.shell .cli {
+  font-size: 120%;
+}
+
+.shell .stderr {
+  color: #ffaaaa;
+}
+
+.shell .stdin {
+  color: #aaffaa;
+}
+
+.shell .date, .shell .exitValue {
+  color: #aaaaaa;
+}
+
+.shell .close {
+  color: #ffff00;
+}

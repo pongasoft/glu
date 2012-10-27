@@ -41,5 +41,7 @@ public interface CommandExecutionStorage
                                 Long stderrTotalBytesCount,
                                 String exitValue)
 
-  CommandExecution findCommandExecution(String commandId)
+  CommandExecution findCommandExecution(String fabric, String commandId)
+
+  Map findCommandExecutions(String fabric, String agent, def params)
 }

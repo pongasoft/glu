@@ -19,6 +19,8 @@ package org.linkedin.glu.orchestration.engine.commands
 import org.linkedin.glu.orchestration.engine.commands.CommandExecution.CommandType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.linkedin.util.annotations.Initializable
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -26,6 +28,9 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
 {
   public static final String MODULE = CommandExecutionStorageImpl.class.getName ();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
+
+  @Initializable
+  int maxResults = 25
 
   @Override
   CommandExecution startExecution(String fabric,
@@ -92,8 +97,35 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
   }
 
   @Override
-  CommandExecution findCommandExecution(String commandId)
+  CommandExecution findCommandExecution(String fabric, String commandId)
   {
-    CommandExecution.findByCommandId(commandId)
+    CommandExecution.findByCommandIdAndFabric(commandId, fabric)
+  }
+
+  @Override
+  Map findCommandExecutions(String fabric, String agent, def params)
+  {
+    params = GluGroovyCollectionUtils.subMap(params, ['offset', 'max', 'sort', 'order'])
+
+    if(params.offset == null)
+      params.offset = 0
+    params.max = Math.min(params.max ? params.max.toInteger() : maxResults, maxResults)
+    params.sort = params.sort ?: 'startTime'
+    params.order = params.order ?: 'desc'
+
+    def ces
+    def count
+    if(agent)
+    {
+      ces = CommandExecution.findAllByFabricAndAgent(fabric, agent, params)
+      count = CommandExecution.countByFabricAndAgent(fabric, agent)
+    }
+    else
+    {
+      ces = CommandExecution.findAllByFabric(fabric, params)
+      count = CommandExecution.countByFabric(fabric)
+    }
+
+    [ commandExecutions: ces, count: count ]
   }
 }

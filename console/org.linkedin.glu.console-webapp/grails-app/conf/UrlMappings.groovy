@@ -251,7 +251,12 @@ class UrlMappings
 
     "/commands/renderCommand/$id"(controller: 'commands', action: 'renderCommand') {
       __nvbe = 'Agents'
-      __role = UrlMappings.role('/commands/renderCommand')
+      __role = UrlMappings.role('/commands/renderCommand/$id')
+    }
+
+    "/commands/list"(controller: 'commands', action: 'list') {
+      __nvbe = 'Agents'
+      __role = UrlMappings.role('/commands/list')
     }
 
     // plan

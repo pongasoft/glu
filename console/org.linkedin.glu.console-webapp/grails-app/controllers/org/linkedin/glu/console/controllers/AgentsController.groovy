@@ -37,7 +37,6 @@ import org.linkedin.glu.groovy.util.state.DefaultStateMachine
 import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.linkedin.glu.orchestration.engine.commands.CommandsService
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
-import org.linkedin.glu.orchestration.engine.commands.CommandExecution
 import org.linkedin.groovy.util.config.Config
 
 /**
@@ -424,27 +423,7 @@ class AgentsController extends ControllerBase
    * Commands view page
    */
   def commands = {
-    def command = null
-    boolean isCommandRunning = false
-
-    if(params.commandId)
-    {
-      command = commandsService.findCurrentCommandExecutions([params.commandId])[params.commandId]
-
-      if(!command)
-      {
-        command = CommandExecution.findByCommandId(params.commandId)
-
-//        command = CommandExecution.findAllByFabricAndAgentAndCommandId(request.fabric.name,
-//                                                                    params.id,
-//                                                                    params.commandId)
-        isCommandRunning = false
-      }
-      else
-        isCommandRunning = true
-    }
-
-    [command: command, isCommandRunning: isCommandRunning]
+    // nothing special to do... simply renders the gsp
   }
 
   /**

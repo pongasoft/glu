@@ -14,9 +14,11 @@
   - the License.
   --}%
 
+
+
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
-<g:set var="filters" value="[streamsFilter: 'Streams', exitValueFilter: 'Exit', usernameFilter: 'Username', startTimeFilter: 'Start Time', endTimeFilter: 'End Time', durationFilter: 'Duration', actionsFilter: 'Actions']"></g:set>
+<g:set var="filters" value="[agentFilter: 'Agent', streamsFilter: 'Streams', exitValueFilter: 'Exit', usernameFilter: 'Username', startTimeFilter: 'Start Time', endTimeFilter: 'End Time', durationFilter: 'Duration', actionsFilter: 'Actions']"></g:set>
 <head>
   <title>Commands - Agent [${params.id}]</title>
   <meta name="layout" content="main"/>
@@ -25,11 +27,14 @@
     padding-top: 0.5em;
     padding-bottom: 0.5em;
   }
+  .shortcut {
+    float: right;
+  }
   </style>
-<g:render template="/commands/command_js"/>
 <g:set var="offset" value="${params.offset ?: '0'}"/>
 <g:set var="max" value="${params.max ?: '25'}"/>
 <g:set var="isFirstPage" value="${offset == '0'}"/>
+<g:render template="/commands/command_js"/>
 <g:javascript>
 <g:if test="${isFirstPage}">
 function shouldRefresh()
@@ -53,7 +58,7 @@ function refresh()
 {
   if(shouldRefresh())
   {
-    ${g.remoteFunction(controller: 'commands', action: 'renderHistory', params: [agentId: params.id, offset: offset, max: max], update:[success: 'asyncDetails', failure: 'asyncError'], onComplete: 'autoRefresh();')}
+    ${g.remoteFunction(controller: 'commands', action: 'renderHistory', params: [offset: offset, max: max], update:[success: 'asyncDetails', failure: 'asyncError'], onComplete: 'autoRefresh();')}
   }
   else
   {
@@ -72,25 +77,8 @@ function showHide()
 <body onload="refresh();">
 <ul class="tabs">
   <li><g:link controller="agents" action="list">List</g:link></li>
-  <li><g:link controller="commands" action="list">All Commands</g:link></li>
-  <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
-  <li><g:link action="plans" id="${params.id}">Plans</g:link></li>
-  <li class="active"><a href="#">Commands</a></li>
-  <li><g:link action="ps" id="${params.id}">All Processes</g:link></li>
+  <li class="active"><a href="#">All Commands</a></li>
 </ul>
-<div class="row">
-  <div class="span20">
-    <g:form class="form-stacked" id="${params.id}" action="executeCommand" method="post">
-      <fieldset>
-        <div class="clearfix">
-          <g:textField name="command" value="" class="xxlarge"/>
-          2&gt;&amp;1 <cl:checkBoxInitFromParams name="redirectStderr" checkedByDefault="${false}"/>
-          <g:actionSubmit class="btn primary" action="executeCommand" value="Execute"/>
-        </div>
-      </fieldset>
-    </g:form>
-  </div>
-</div>
 
 <g:if test="${params.commandId}">
   <div><g:include controller="commands" action="renderCommand" id="${params.commandId}"/></div>
@@ -102,13 +90,12 @@ function showHide()
   |  ${filter.value}: <cl:checkBoxInitFromParams name="${filter.key}" id="${filter.key}" onclick="showHide();"/>
 </g:each>
 </h4>
-
 <g:if test="${isFirstPage}">
 <div id="asyncDetails"></div>
 <div id="asyncError"></div>
 </g:if>
 <g:else>
-  <g:include controller="commands" action="renderHistory" params="[agentId: params.id, offset: offset, max: max]"/>
+  <g:include controller="commands" action="renderHistory" params="[offset: offset, max: max]"/>
 </g:else>
 
 </body>

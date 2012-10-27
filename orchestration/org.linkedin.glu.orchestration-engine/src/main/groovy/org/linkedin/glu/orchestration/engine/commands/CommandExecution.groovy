@@ -158,7 +158,17 @@ public class CommandExecution
     return getFirstBytes(streamType)?.size() < getTotalBytesCount(streamType)
   }
 
+  boolean isExecuting = false
+
+  /**
+   * Means it never completed for some reason (currently not running and exit value was never set!)
+   */
+  boolean isAborted()
+  {
+    !isExecuting && exitValue == null
+  }
+
   static transients = [
-    'duration',
+    'duration', 'executing', 'aborted'
   ]
 }

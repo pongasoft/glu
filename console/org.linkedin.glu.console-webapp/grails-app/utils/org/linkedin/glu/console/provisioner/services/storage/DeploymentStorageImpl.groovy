@@ -22,6 +22,7 @@ import org.linkedin.glu.console.domain.DbDeployment
 import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.console.domain.LightDbDeployment
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -44,6 +45,8 @@ public class DeploymentStorageImpl implements DeploymentStorage
                              boolean includeDetails,
                              def params)
   {
+    params = GluGroovyCollectionUtils.subMap(params, ['offset', 'max', 'sort', 'order'])
+
     if(params.offset == null)
       params.offset = 0
     params.max = Math.min(params.max ? params.max.toInteger() : maxResults, maxResults)

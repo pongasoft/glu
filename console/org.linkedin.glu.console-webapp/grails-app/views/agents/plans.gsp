@@ -41,6 +41,7 @@
 <g:if test="${agent}">
   <ul class="tabs">
     <li><g:link controller="agents" action="list">List</g:link></li>
+    <li><g:link controller="commands" action="list">All Commands</g:link></li>
     <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
     <li class="active"><a href="#">Plans</a></li>
     <li><g:link action="commands" id="${params.id}">Commands</g:link></li>

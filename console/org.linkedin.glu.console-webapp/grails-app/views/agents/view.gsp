@@ -26,6 +26,7 @@
 <g:if test="${model}">
   <ul class="tabs">
     <li><g:link controller="agents" action="list">List</g:link></li>
+    <li><g:link controller="commands" action="list">All Commands</g:link></li>
     <li class="active"><a href="#">agent [${model.agent.agentName}]</a></li>
     <li><g:link action="plans" id="${model.agent.agentName}">Plans</g:link></li>
     <li><g:link action="commands" id="${model.agent.agentName}">Commands</g:link></li>

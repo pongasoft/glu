@@ -23,6 +23,7 @@
 <body>
 <ul class="tabs">
   <li class="active"><a href="#">List</a></li>
+  <li><g:link controller="commands" action="list">All Commands</g:link></li>
 </ul>
 <table class="bordered-table xtight-table">
   <thead>

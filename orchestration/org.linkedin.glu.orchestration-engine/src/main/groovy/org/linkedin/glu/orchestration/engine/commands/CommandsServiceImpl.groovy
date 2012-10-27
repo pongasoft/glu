@@ -96,6 +96,44 @@ public class CommandsServiceImpl implements CommandsService
   }
 
   @Override
+  CommandExecution findCommandExecution(Fabric fabric, String commandId)
+  {
+    CommandExecution commandExecution
+
+    synchronized(_currentCommandExecutions)
+    {
+      commandExecution = _currentCommandExecutions[commandId]
+      if(commandExecution?.fabric != fabric.name)
+        commandExecution = null
+    }
+
+    if(!commandExecution)
+      commandExecution = commandExecutionStorage.findCommandExecution(fabric.name, commandId)
+
+    return commandExecution
+  }
+
+  @Override
+  Map findCommandExecutions(Fabric fabric, String agentName, def params)
+  {
+    def map = commandExecutionStorage.findCommandExecutions(fabric.name, agentName, params)
+
+    synchronized(_currentCommandExecutions)
+    {
+      // replace db by current running
+      map.commandExecutions = map.commandExecutions?.collect { CommandExecution ce ->
+        def current = _currentCommandExecutions[ce.commandId]
+        if(current)
+          return current
+        else
+          return ce
+      }
+    }
+
+    return map
+  }
+
+  @Override
   String executeShellCommand(Fabric fabric, String agentName, args)
   {
     CountDownLatch commandStarted = new CountDownLatch(1)
@@ -173,7 +211,7 @@ public class CommandsServiceImpl implements CommandsService
                    StreamType streamType,
                    Closure closure)
   {
-    def commandExecution = commandExecutionStorage.findCommandExecution(commandId)
+    def commandExecution = commandExecutionStorage.findCommandExecution(fabric.name, commandId)
 
     if(commandExecution?.fabric != fabric.name)
       throw new NoSuchCommandExecutionException(commandId)
@@ -300,6 +338,7 @@ public class CommandsServiceImpl implements CommandsService
 
       synchronized(_currentCommandExecutions)
       {
+        commandExecution.isExecuting = true
         _currentCommandExecutions[commandId] = commandExecution
       }
 
@@ -360,15 +399,20 @@ public class CommandsServiceImpl implements CommandsService
           }
 
           // we now update the storage with the various results
-          commandExecutionStorage.endExecution(commandId,
-                                               clock.currentTimeMillis(),
-                                               stdinFirstBytes?.toByteArray(),
-                                               stdinLimited?.totalNumberOfBytes,
-                                               stdoutFirstBytes?.toByteArray(),
-                                               stdoutLimited?.totalNumberOfBytes,
-                                               stderrFirstBytes?.toByteArray(),
-                                               stderrLimited?.totalNumberOfBytes,
-                                               toString(exitValueStream))
+          def execution = commandExecutionStorage.endExecution(commandId,
+                                                               clock.currentTimeMillis(),
+                                                               stdinFirstBytes?.toByteArray(),
+                                                               stdinLimited?.totalNumberOfBytes,
+                                                               stdoutFirstBytes?.toByteArray(),
+                                                               stdoutLimited?.totalNumberOfBytes,
+                                                               stderrFirstBytes?.toByteArray(),
+                                                               stderrLimited?.totalNumberOfBytes,
+                                                               toString(exitValueStream))
+          synchronized(_currentCommandExecutions)
+          {
+            execution.isExecuting = false
+            _currentCommandExecutions[commandId] = execution
+          }
 
           return closureResult
         }
@@ -377,6 +421,7 @@ public class CommandsServiceImpl implements CommandsService
       {
         synchronized(_currentCommandExecutions)
         {
+          commandExecution.isExecuting = false
           _currentCommandExecutions.remove(commandId)
         }
       }

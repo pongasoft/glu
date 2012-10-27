@@ -14,9 +14,18 @@
   - the License.
   --}%
 <div id="history">
+  <div class="paginateButtons">
+    <g:if test="${params.agentId}">
+      <g:paginate total="${count}" controller="agents" action="commands" id="${params.agentId}"/>
+    </g:if>
+    <g:else>
+      <g:paginate total="${count}" controller="commands" action="list"/>
+    </g:else>
+  </div>
   <table class="bordered-table xtight-table">
     <thead>
     <tr>
+      <g:if test="${!params.agentId}"><th class="agentFilter">Agent</th></g:if>
       <th class="commandFilter">Command</th>
       <th class="streamsFilter">Streams</th>
       <th class="exitValueFilter">Exit</th>
@@ -27,9 +36,10 @@
     </tr>
     </thead>
     <tbody>
-    <g:each in="${commands}" var="ce">
+    <g:each in="${commandExecutions}" var="ce">
       <tr>
-        <td class="commandFilter"><g:link controller="agents" action="commands" id="${params.agentId}" params="[commandId: ce.commandId]" title="${ce.commandId.encodeAsHTML()}">${ce.command.encodeAsHTML()}</g:link></td>
+        <g:if test="${!params.agentId}"><td class="agentFilter"><g:link controller="agents" action="commands" id="${ce.agent}">${ce.agent.encodeAsHTML()}</g:link><g:link controller="agents" action="view" id="${ce.agent}"><img class="shortcut" src="${g.resource(dir: 'images', file: 'magnifier.png')}" alt="view agent"/></g:link></td></g:if>
+        <td class="commandFilter"><g:link controller="agents" action="commands" id="${ce.agent}" params="[commandId: ce.commandId]" title="${ce.commandId.encodeAsHTML()}">${ce.command.encodeAsHTML()}</g:link></td>
         <td class="streamsFilter shell"><g:each in="['stdin', 'stderr', 'stdout']" var="streamType"><div class="${streamType}"><cl:renderCommandBytes command="${ce}" streamType="${streamType}"/></div></g:each></td>
         <td class="exitValueFilter">${ce.exitValue?.encodeAsHTML()}</td>
         <td class="usernameFilter">${ce.username.encodeAsHTML()}</td>
@@ -40,4 +50,12 @@
     </g:each>
     </tbody>
   </table>
+  <div class="paginateButtons">
+    <g:if test="${params.agentId}">
+      <g:paginate total="${count}" controller="agents" action="commands" id="${params.agentId}"/>
+    </g:if>
+    <g:else>
+      <g:paginate total="${count}" controller="commands" action="list"/>
+    </g:else>
+  </div>
 </div>

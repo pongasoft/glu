@@ -62,4 +62,8 @@ public interface CommandsService
    * @return a map with all currently running commands
    */
   Map<String, CommandExecution> findCurrentCommandExecutions(Collection<String> commandIds)
+
+  CommandExecution findCommandExecution(Fabric fabric, String commandId)
+
+  Map findCommandExecutions(Fabric fabric, String agentName, def params)
 }
