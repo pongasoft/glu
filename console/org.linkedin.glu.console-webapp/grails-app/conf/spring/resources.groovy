@@ -21,6 +21,13 @@ import java.util.concurrent.Executors
 import org.codehaus.groovy.grails.commons.ConfigurationHolder
 import grails.util.Environment
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
+import org.linkedin.glu.grails.utils.ConsoleConfig
+import org.linkedin.glu.orchestration.engine.commands.CommandsServiceImpl
+import org.linkedin.util.reflect.ObjectProxyBuilder
+import org.linkedin.glu.utils.core.DisabledFeatureProxy
+import org.linkedin.glu.orchestration.engine.commands.CommandsService
+import org.linkedin.glu.orchestration.engine.commands.CommandExecutionStorageImpl
+import org.linkedin.glu.orchestration.engine.commands.FileSystemCommandExecutionIOStorage
 
 // Place your Spring DSL code here
 beans = {
@@ -29,8 +36,10 @@ beans = {
     timeToLive = 0 // use only the timeToIdle parameter...
   }
 
+  def consoleConfig = new ConsoleConfig()
+
   def fixedThreadPoolSize =
-    ConfigurationHolder.config.console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize ?: 0
+    consoleConfig.console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize ?: 0
 
   if(fixedThreadPoolSize ?: 0 > 0)
   {
@@ -48,17 +57,47 @@ beans = {
     }
   }
 
-  switch(Environment.current)
-  {
-    case Environment.DEVELOPMENT:
-    case Environment.TEST:
-      commandExecutionFileSystem(FileSystemImpl) { bean ->
-        bean.factoryMethod = "createTempFileSystem"
-        bean.destroyMethod = "destroy"
-      }
-      break
 
-    default:
-      throw new RuntimeException("TODO")
+  /**
+   * CommandsService
+   */
+  if(consoleConfig.isFeatureEnabled("commands"))
+  {
+    // storage (DB)
+    commandExecutionStorage(CommandExecutionStorageImpl)
+
+    // IO Storage (command)
+    switch(Environment.current)
+    {
+      case Environment.DEVELOPMENT:
+      case Environment.TEST:
+        commandExecutionFileSystem(FileSystemImpl) { bean ->
+          bean.factoryMethod = "createTempFileSystem"
+          bean.destroyMethod = "destroy"
+        }
+        break
+
+      default:
+        throw new RuntimeException("TODO")
+    }
+
+    commandExecutionIOStorage(FileSystemCommandExecutionIOStorage) {
+      commandExecutionFileSystem = ref("commandExecutionFileSystem")
+    }
+
+    commandsService(CommandsServiceImpl) {
+      agentsService = ref("agentsService")
+      authorizationService = ref("authorizationService")
+      executorService = ref("executor")
+      commandExecutionStorage = ref("commandExecutionStorage")
+      commandExecutionIOStorage = ref("commandExecutionIOStorage")
+    }
+  }
+  else
+  {
+    // in the disabled case, return a proxy that will throw exceptions
+    commandsService(ObjectProxyBuilder, new DisabledFeatureProxy("commands"), CommandsService) { bean ->
+      bean.factoryMethod = "createProxy"
+    }
   }
 }

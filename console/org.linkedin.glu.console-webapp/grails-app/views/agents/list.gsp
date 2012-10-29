@@ -23,7 +23,7 @@
 <body>
 <ul class="tabs">
   <li class="active"><a href="#">List</a></li>
-  <li><g:link controller="commands" action="list">All Commands</g:link></li>
+  <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
 </ul>
 <table class="bordered-table xtight-table">
   <thead>

@@ -1190,6 +1190,11 @@ public class ConsoleTagLib
     }
   }
 
+  def whenFeatureEnabled = { args, body ->
+    if(consoleConfig.isFeatureEnabled(args.feature))
+      out << body()
+  }
+
   def extractArtifact(uri)
   {
     if(uri instanceof String)

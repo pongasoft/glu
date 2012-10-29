@@ -41,10 +41,10 @@
 <g:if test="${agent}">
   <ul class="tabs">
     <li><g:link controller="agents" action="list">List</g:link></li>
-    <li><g:link controller="commands" action="list">All Commands</g:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
     <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
     <li class="active"><a href="#">Plans</a></li>
-    <li><g:link action="commands" id="${params.id}">Commands</g:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><g:link action="commands" id="${params.id}">Commands</g:link></li></cl:whenFeatureEnabled>
     <li><g:link action="ps" id="${params.id}">All Processes</g:link></li>
   </ul>
   <g:render template="/plan/selectPlan" model="[title: title, hasDelta: hasDelta]"/>

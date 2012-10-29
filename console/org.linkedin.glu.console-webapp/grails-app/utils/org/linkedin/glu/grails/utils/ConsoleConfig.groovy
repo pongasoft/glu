@@ -48,4 +48,17 @@ class ConsoleConfig
   {
     return defaults[name]
   }
+
+  def propertyMissing(String name)
+  {
+    config."${name}"
+  }
+
+  boolean isFeatureEnabled(feature)
+  {
+    return org.linkedin.groovy.util.config.Config.getOptionalBoolean(getDefault('features'),
+                                                                     feature,
+                                                                     true)
+  }
+
 }

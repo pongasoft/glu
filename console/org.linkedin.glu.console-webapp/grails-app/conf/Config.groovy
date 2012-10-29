@@ -161,6 +161,11 @@ console.dev.defaults =
           'glu-dev-1': ['drMode': 'primary'],
           'glu-dev-2': ['drMode': 'secondary']
       ],
+
+    features:
+    [
+      commands: true
+    ],
   ]
 
 /**

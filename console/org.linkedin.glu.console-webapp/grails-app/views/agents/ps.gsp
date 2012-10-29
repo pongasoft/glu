@@ -30,10 +30,10 @@
 <g:if test="${params.pid}">
   <ul class="tabs">
     <li><g:link controller="agents" action="list">List</g:link></li>
-    <li><g:link controller="commands" action="list">All Commands</g:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
     <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
     <li><g:link action="plans" id="${params.id}">Plans</g:link></li>
-    <li><g:link action="commands" id="${params.id}">Commands</g:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><g:link action="commands" id="${params.id}">Commands</g:link></li></cl:whenFeatureEnabled>
     <li><g:link action="ps" id="${params.id}">All Processes</g:link></li>
     <li class="active"><a href="#">process[${params.pid}]</a></li>
   </ul>
@@ -59,10 +59,10 @@
 <g:else>
   <ul class="tabs">
     <li><g:link controller="agents" action="list">List</g:link></li>
-    <li><g:link controller="commands" action="list">All Commands</g:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
     <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
     <li><g:link action="plans" id="${params.id}">Plans</g:link></li>
-    <li><g:link action="commands" id="${params.id}">Commands</g:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><g:link action="commands" id="${params.id}">Commands</g:link></li></cl:whenFeatureEnabled>
     <li class="active"><a href="#">All Processes</a></li>
   </ul>
   <table class="bordered-table tight-table zebra-striped">

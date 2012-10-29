@@ -21,7 +21,6 @@ import org.linkedin.glu.orchestration.engine.commands.CommandExecution
 import org.linkedin.glu.orchestration.engine.commands.NoSuchCommandExecutionException
 import javax.servlet.http.HttpServletResponse
 import org.linkedin.glu.orchestration.engine.commands.StreamType
-import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -70,7 +69,6 @@ public class CommandsController extends ControllerBase
    * Render history according to criteria
    */
   def renderHistory = {
-    println params
     def res = commandsService.findCommandExecutions(request.fabric,
                                                     params.agentId,
                                                     params)

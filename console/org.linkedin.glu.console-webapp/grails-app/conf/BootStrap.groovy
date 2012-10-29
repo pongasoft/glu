@@ -143,6 +143,12 @@ class BootStrap {
     if(defaultCustomDeltaDefinition)
       deltaService.saveDefaultCustomDeltaDefinition(defaultCustomDeltaDefinition)
 
+    def features = consoleConfig.defaults.features
+
+    features?.each { feature, enabled ->
+      log.info "Feature [${feature}] => [${enabled ? 'enabled' : 'disabled'}]"
+    }
+
     log.info "Console started."
   }
 
