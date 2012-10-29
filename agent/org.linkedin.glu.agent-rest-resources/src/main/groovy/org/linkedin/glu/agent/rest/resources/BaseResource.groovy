@@ -37,6 +37,7 @@ import org.restlet.ext.json.JsonRepresentation
 import org.restlet.representation.Representation
 import org.restlet.representation.Variant
 import org.restlet.resource.Resource
+import org.linkedin.glu.utils.exceptions.DisabledFeatureException
 
 /**
  * Base class for resources to the agent
@@ -117,6 +118,10 @@ class BaseResource extends Resource
     catch(AgentException e)
     {
       handleException(Status.SERVER_ERROR_INTERNAL, e)
+    }
+    catch(DisabledFeatureException e)
+    {
+      handleException(Status.SERVER_ERROR_NOT_IMPLEMENTED, e)
     }
     catch(Throwable th)
     {

@@ -66,6 +66,10 @@ import org.linkedin.glu.agent.rest.resources.AgentConfigResource
 import org.linkedin.glu.agent.rest.resources.CommandsResource
 import org.linkedin.glu.agent.rest.resources.CommandExitValueResource
 import org.linkedin.glu.agent.rest.resources.CommandStreamsResource
+import org.linkedin.glu.agent.impl.command.CommandManager
+import org.linkedin.glu.utils.core.DisabledFeatureProxy
+import org.linkedin.glu.agent.impl.command.CommandManagerImpl
+import org.linkedin.glu.agent.impl.command.MemoryCommandExecutionIOStorage
 
 /**
  * This is the main class to start the agent.
@@ -145,31 +149,15 @@ class AgentMain implements LifecycleListener, Configurable
     Properties config = mergeConfig(configFromCli, configFromPreviousStart)
 
     // determine the host name of the agent
-    def hf = Config.getOptionalString(config,
-                                      "${prefix}.agent.hostnameFactory",
-                                      ':ip')
-
-    switch(hf)
-    {
-      case ':ip':
-        hostnameFactory = { InetAddress.getLocalHost().hostAddress }
-        break
-
-      case ':canonical':
-        hostnameFactory = { InetAddress.getLocalHost().canonicalHostName }
-        break
-
-      default:
-        hostnameFactory = { hf }
-        break
-    }
+    def hf = computeHostnameFactory(config)
+    hostnameFactory = hf.factory
 
     _agentName = Config.getOptionalString(config,
                                           "${prefix}.agent.name",
                                           InetAddress.getLocalHost().canonicalHostName)
 
     configFromCli["${prefix}.agent.name".toString()] = _agentName
-    configFromCli["${prefix}.agent.hostnameFactory".toString()] = hf
+    configFromCli["${prefix}.agent.hostnameFactory".toString()] = hf.propertyValue
     configFromCli["${prefix}.agent.hostname".toString()] = hostnameFactory()
     configFromCli["${prefix}.agent.version".toString()] = config['org.linkedin.app.version']
 
@@ -210,6 +198,7 @@ class AgentMain implements LifecycleListener, Configurable
     setOptionalProperty(config, "${prefix}.agent.port", "12906")
     setOptionalProperty(config, "${prefix}.agent.sslEnabled", "true")
     setOptionalProperty(config, "${prefix}.agent.rest.server.defaultThreads", '3')
+    setOptionalProperty(config, "${prefix}.agent.features.commands.enabled", "true")
     if(_zkClient)
       setOptionalProperty(config,
                           "${prefix}.${IZKClientFactory.ZK_CONNECT_STRING}",
@@ -238,15 +227,15 @@ class AgentMain implements LifecycleListener, Configurable
    * Use the <code>glu.agent.hostname</code> config value to determine how to compute
    * hostname.
    */
-  protected Closure computeHostnameFactory(Properties config)
+  protected def computeHostnameFactory(Properties config)
   {
     Closure res
 
-    def hostname = Config.getOptionalString(config,
-                                          "${prefix}.agent.hostname",
-                                          ':ip')
+    def hf = Config.getOptionalString(config,
+                                      "${prefix}.agent.hostnameFactory",
+                                      ':ip')
 
-    switch(hostname)
+    switch(hf)
     {
       case ':ip':
         res = { InetAddress.getLocalHost().hostAddress }
@@ -257,11 +246,11 @@ class AgentMain implements LifecycleListener, Configurable
         break
 
       default:
-        res = { hostname }
+        res = { hf }
         break
     }
 
-    return res
+    return [propertyValue: hf, factory: res]
   }
 
   /**
@@ -450,6 +439,7 @@ class AgentMain implements LifecycleListener, Configurable
     [
       rootShell: rootShell,
       shellForScripts: createShell(rootShell, "${prefix}.agent.scriptRootDir"),
+      commandManager: createCommandsManager(),
       agentLogDir: rootShell.toResource(Config.getRequiredString(_config, "${prefix}.agent.logDir")),
       storage: _storage,
       sigar: _sigar,
@@ -625,6 +615,21 @@ class AgentMain implements LifecycleListener, Configurable
     def fileSystem = new FileSystemImpl(new File('/'), _agentTempDir)
     return new ShellImpl(fileSystem: fileSystem,
                          agentProperties: _agentProperties)
+  }
+
+  protected CommandManager createCommandsManager()
+  {
+    if(Config.getOptionalBoolean(_config, "${prefix}.agent.features.commands.enabled", true))
+    {
+      new CommandManagerImpl(agentContext: _agent,
+                             storage: new MemoryCommandExecutionIOStorage(agentContext: _agent))
+    }
+    else
+    {
+      log.info "Feature [commands] => [disabled]"
+      // disabling all commands methods...
+      ObjectProxyBuilder.createProxy(new DisabledFeatureProxy("commands"), CommandManager)
+    }
   }
 
   protected Storage createStorage()
