@@ -90,19 +90,19 @@ class TestAgentRestClient extends GroovyTestCase
     ram = new RAMDirectory()
     RAMResourceProvider rp = new RAMResourceProvider(ram)
     fileSystem = [
-            mkdirs: { dir ->
-              ram.mkdirhier(dir.toString())
-              return rp.createResource(dir.toString())
-            },
-            rmdirs: { dir ->
-              ram.rm(dir.toString())
-            },
+      mkdirs: { dir ->
+        ram.mkdirhier(dir.toString())
+        return rp.createResource(dir.toString())
+      },
+      rmdirs: { dir ->
+        ram.rm(dir.toString())
+      },
 
-            getRoot: { rp.createResource('/') },
+      getRoot: { rp.createResource('/') },
 
-            getTmpRoot: { rp.createResource('/tmp') },
+      getTmpRoot: { rp.createResource('/tmp') },
 
-            newFileSystem: { r,t -> fileSystem }
+      newFileSystem: { r,t -> fileSystem }
     ] as FileSystem
 
     // the agent is logging for each script... we don't want the output in the test
@@ -638,6 +638,10 @@ gc: 1000
                             sslEnabled: false).withRemoteAgent(serverURI) { arc ->
       FileSystemImpl.createTempFileSystem() { FileSystem fs ->
         def shell = new ShellImpl(fileSystem: fs)
+
+        // setting a shell for commands
+        router.context.getAttributes().put('shellForCommands', shell)
+
         def shellScript = shell.fetch("./src/test/resources/shellScriptTestAgentExecShellCommand.sh")
         // let's make sure it is executable
         fs.chmod(shellScript, '+x')

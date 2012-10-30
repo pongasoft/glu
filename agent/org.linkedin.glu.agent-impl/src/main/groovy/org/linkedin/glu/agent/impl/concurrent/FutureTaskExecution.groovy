@@ -128,7 +128,14 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
   T runSync()
   {
     _future.run()
-    _future.get()
+    try
+    {
+      _future.get()
+    }
+    catch(ExecutionException e)
+    {
+      throw e.cause
+    }
   }
 
   @Override

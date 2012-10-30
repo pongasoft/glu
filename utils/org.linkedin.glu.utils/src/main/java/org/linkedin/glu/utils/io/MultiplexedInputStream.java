@@ -90,6 +90,7 @@ public class MultiplexedInputStream extends InputStream
 
   private boolean _closed = false;
   private int _endOfStream = 0;
+  private Collection<Throwable> _exceptions = new ArrayList<Throwable>();
 
   /**
    * Constructor
@@ -258,7 +259,7 @@ public class MultiplexedInputStream extends InputStream
     {
       try
       {
-        while(_multiplexedBuffer.position() == 0 && _endOfStream != 0 && !_closed)
+        while(_multiplexedBuffer.position() == 0 && _endOfStream != 0 && !_closed && _exceptions.isEmpty())
           _multiplexedBuffer.wait();
       }
       catch(InterruptedException e)
@@ -269,6 +270,19 @@ public class MultiplexedInputStream extends InputStream
       if(_closed)
         throw new IOException("closed");
 
+      // some exceptions were generated...
+      if(!_exceptions.isEmpty())
+      {
+        Throwable exceptionToThrow = null;
+        for(Throwable throwable : _exceptions)
+        {
+          if(exceptionToThrow == null)
+            exceptionToThrow = throwable;
+          else
+            log.warn("Multiple exception detected. This one is ignored", throwable);
+        }
+        throw new IOException(exceptionToThrow);
+      }
       // nothing else to read... reach end of all streams!
       if(_multiplexedBuffer.position() == 0)
         return -1;
@@ -461,6 +475,14 @@ public class MultiplexedInputStream extends InputStream
         // after the end of the channel there may still be some data in the buffer!
         while(_buffer.position() > 0)
           writeToMultiplexBuffer();
+      }
+      catch(Throwable th)
+      {
+        synchronized(_multiplexedBuffer)
+        {
+          // no need to call notifyAll: the finally block will take care of it...
+          _exceptions.add(th);
+        }
       }
       finally
       {

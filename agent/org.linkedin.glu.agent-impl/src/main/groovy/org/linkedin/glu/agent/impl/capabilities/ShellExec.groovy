@@ -243,11 +243,10 @@ private class ShellExec
   private def executeBlockingCall = {
 
     // if stdin then provide it to subprocess
-    if(stdin)
-    {
-      def stream = new BufferedOutputStream(process.outputStream)
-      IOUtils.copy(new BufferedInputStream(stdin), stream)
-      stream.close()
+    stdin?.withStream { InputStream sis ->
+      new BufferedOutputStream(process.outputStream).withStream { os ->
+        os << new BufferedInputStream(sis)
+      }
     }
 
     // make sure that the thread complete properly
