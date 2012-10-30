@@ -20,8 +20,8 @@ package org.linkedin.glu.agent.impl.script
 import java.util.concurrent.TimeoutException
 import org.slf4j.Logger
 import org.linkedin.glu.agent.api.AgentException
-import org.linkedin.glu.agent.api.FutureExecution
 import org.linkedin.util.lifecycle.Shutdownable
+import org.linkedin.glu.groovy.utils.concurrent.FutureExecution
 
 /**
  * Manager for scripts

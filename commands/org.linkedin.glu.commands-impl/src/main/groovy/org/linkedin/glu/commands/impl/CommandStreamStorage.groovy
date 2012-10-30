@@ -14,22 +14,13 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.command
+package org.linkedin.glu.commands.impl
 
 /**
  * @author yan@pongasoft.com */
-public class CommandNodeWithStorage extends CommandNode
+public interface CommandStreamStorage
 {
-  private final CommandExecutionIOStorage _storage
-
-  CommandNodeWithStorage(def command, String commandId, CommandExecutionIOStorage storage)
-  {
-    super(command, commandId)
-    _storage = storage
-  }
-
-  def captureIO(Closure closure)
-  {
-    _storage.captureIO(this, closure)
-  }
+  OutputStream findStdinStorage()
+  OutputStream findStdoutStorage()
+  OutputStream findStderrStorage()
 }

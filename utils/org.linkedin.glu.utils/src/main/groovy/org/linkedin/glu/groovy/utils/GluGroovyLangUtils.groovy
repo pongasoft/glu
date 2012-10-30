@@ -66,4 +66,18 @@ public class GluGroovyLangUtils extends GroovyLangUtils
       return res
     }
   }
+
+  /**
+   * @return the long found in the config or the default value
+   */
+  static long getOptionalLong(config, String name, long defaultValue)
+  {
+    def value = config?."${name}"
+
+    if(value == null)
+      return defaultValue
+
+    return value as long
+  }
+
 }

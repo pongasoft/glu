@@ -14,9 +14,8 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.concurrent
+package org.linkedin.glu.groovy.utils.concurrent
 
-import org.linkedin.glu.agent.api.FutureExecution
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.Callable
 import org.linkedin.util.clock.Clock
@@ -24,7 +23,6 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeoutException
 import org.linkedin.util.clock.Timespan
 
-import org.linkedin.glu.groovy.utils.concurrent.GluGroovyConcurrentUtils
 import java.util.concurrent.ExecutorService
 
 import java.util.concurrent.FutureTask

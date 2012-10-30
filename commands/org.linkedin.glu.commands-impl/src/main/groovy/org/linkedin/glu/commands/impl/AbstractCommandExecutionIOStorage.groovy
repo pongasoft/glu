@@ -14,9 +14,8 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.command
+package org.linkedin.glu.commands.impl
 
-import org.linkedin.glu.agent.impl.script.AgentContext
 import org.linkedin.glu.groovy.utils.io.InputGeneratorStream
 import org.linkedin.glu.utils.io.LimitedInputStream
 import org.linkedin.glu.utils.io.MultiplexedInputStream
@@ -26,6 +25,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.util.concurrent.TimeoutException
+import org.linkedin.util.clock.Clock
+import org.linkedin.util.clock.SystemClock
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -34,38 +36,47 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
   public static final String MODULE = AbstractCommandExecutionIOStorage.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
+  @Initializable(required = false)
+  Clock clock = SystemClock.INSTANCE
+
   @Initializable(required = true)
-  AgentContext agentContext
+  GluCommandFactory gluCommandFactory
 
   @Override
-  CommandNodeWithStorage createStorageForCommand(def args)
+  CommandExecution createStorageForCommandExecution(def args)
   {
     String commandId =
-      "${Long.toHexString(agentContext.clock.currentTimeMillis())}-${UUID.randomUUID().toString()}"
+      "${Long.toHexString(clock.currentTimeMillis())}-${UUID.randomUUID().toString()}"
 
-    CommandNodeWithStorage command = new CommandNodeWithStorage(createGluCommand(args.type, commandId),
-                                                                commandId,
-                                                                this)
+    CommandExecution commandExecution =
+      new CommandExecution(args, gluCommandFactory.createGluCommand(commandId, args))
+    commandExecution.storage = this
 
-    return saveCommandNode(command)
+    return saveCommandExecution(commandExecution)
   }
+
+  /**
+   * Should save the command in persistent state
+   * @return the command (eventually tweaked)
+   */
+  protected abstract CommandExecution saveCommandExecution(CommandExecution commandExecution)
 
   /**
    * {@inheritdoc}
    */
   @Override
-  def findCommandNodeAndStreams(String commandId, def args)
+  def findCommandExecutionAndStreams(String commandId, Object args)
   {
     int numberOfStreams = 0
 
-    CommandNode node = findCommandNode(commandId)
+    CommandExecution commandExecution = findCommandExecution(commandId)
 
-    if(node == null)
+    if(commandExecution == null)
       return null
 
     def res = [:]
 
-    res.commandNode = node
+    res.commandExecution = commandExecution
 
     Map<String, InputStream> streams = [:]
 
@@ -79,12 +90,12 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
 
     def timeout = args.exitValueStreamTimeout
 
-    if(exitValueStream && (timeout != null || node.isCompleted()))
+    if(exitValueStream && (timeout != null || commandExecution.isCompleted()))
     {
       exitValueFactory = {
         try
         {
-          return node.getExitValue(timeout).toString()
+          return commandExecution.getExitValue(timeout).toString()
         }
         catch(TimeoutException e)
         {
@@ -116,8 +127,8 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
           def m = findInputStreamWithSize(commandId, streamType)
           if(m != null)
           {
-            long offset = getOptionalLong(args, "${name}Offset", 0)
-            long len = getOptionalLong(args, "${name}Len", -1)
+            long offset = GluGroovyLangUtils.getOptionalLong(args, "${name}Offset", 0)
+            long len = GluGroovyLangUtils.getOptionalLong(args, "${name}Len", -1)
 
             InputStream is = m.stream
 
@@ -164,44 +175,8 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
   protected abstract def findInputStreamWithSize(String commandId, StreamType streamType)
 
   /**
-   * Should save the command in persistent state
-   * @return the command (eventually tweaked)
+   * Will be called back to capture the IO
+   * @return whatever the closure returns
    */
-  protected abstract CommandNodeWithStorage saveCommandNode(CommandNodeWithStorage commandNode)
-
-  /**
-   * Create the correct glu command
-   */
-  private def createGluCommand(String type, String id)
-  {
-    if(type != "shell")
-      throw new UnsupportedOperationException("cannot create non shell commands")
-
-    def shellCommand = new ShellGluCommand()
-
-    def commandProperties = [:]
-
-    def log = LoggerFactory.getLogger("org.linkedin.glu.agent.command.${id}")
-
-    commandProperties.putAll(
-    [
-            getId: { id },
-            getShell: { agentContext.shellForCommands },
-            getLog: { log },
-            getSelf: { findCommandNode(id) },
-    ])
-
-    return agentContext.mop.wrapScript(script: shellCommand,
-                                       scriptProperties: commandProperties)
-  }
-
-  static long getOptionalLong(config, String name, long defaultValue)
-  {
-    def value = config?."${name}"
-
-    if(value == null)
-      return defaultValue
-
-    return value as long
-  }
+  protected abstract def captureIO(CommandExecution commandExecution, Closure closure)
 }

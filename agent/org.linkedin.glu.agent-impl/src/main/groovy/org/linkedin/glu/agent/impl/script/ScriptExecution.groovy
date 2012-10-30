@@ -20,7 +20,6 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import org.slf4j.Logger
-import org.linkedin.glu.agent.api.FutureExecution
 import org.linkedin.util.lifecycle.Startable
 import org.linkedin.util.lifecycle.Shutdownable
 import org.linkedin.util.clock.SystemClock
@@ -28,6 +27,11 @@ import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.Timespan
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.util.clock.ClockUtils
+import org.linkedin.glu.groovy.utils.concurrent.FutureExecutionImpl
+import org.linkedin.glu.groovy.utils.concurrent.ActionExecution
+import org.linkedin.glu.groovy.utils.concurrent.CallExecution
+import org.linkedin.glu.groovy.utils.concurrent.TimerExecution
+import org.linkedin.glu.groovy.utils.concurrent.FutureExecution
 
 /**
  * @author ypujante@linkedin.com */
@@ -44,7 +48,7 @@ class ScriptExecution implements Startable, Shutdownable
 
   /**
    * The timeline is sorted by futureExecutionTime first then queueing order
-   * ({@link FutureExecutionImpl#compareTo} method)
+   * ({@link org.linkedin.glu.groovy.utils.concurrent.FutureExecutionImpl#compareTo} method)
    */
   private final def _timeline = new TreeSet<FutureExecutionImpl>()
 

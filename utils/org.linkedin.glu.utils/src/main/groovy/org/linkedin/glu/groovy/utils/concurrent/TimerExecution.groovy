@@ -15,7 +15,7 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.script
+package org.linkedin.glu.groovy.utils.concurrent
 
 import org.linkedin.util.clock.Timespan
 import org.linkedin.groovy.util.lang.GroovyLangUtils

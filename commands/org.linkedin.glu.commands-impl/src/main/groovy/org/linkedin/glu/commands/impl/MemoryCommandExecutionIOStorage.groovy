@@ -16,7 +16,7 @@
 
 
 
-package org.linkedin.glu.agent.impl.command
+package org.linkedin.glu.commands.impl
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -35,7 +35,7 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
     ByteArrayOutputStream stdin = new ByteArrayOutputStream()
     ByteArrayOutputStream stdout = new ByteArrayOutputStream()
     ByteArrayOutputStream stderr
-    CommandNodeWithStorage commandNode
+    CommandExecution commandExecution
 
     @Override
     OutputStream findStdinStorage() { stdin }
@@ -56,11 +56,11 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
   }
 
   @Override
-  CommandNode findCommandNode(String commandId)
+  CommandExecution findCommandExecution(String commandId)
   {
     synchronized(commands)
     {
-      commands[commandId]?.commandNode
+      commands[commandId]?.commandExecution
     }
   }
 
@@ -74,29 +74,29 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
   }
 
   @Override
-  protected CommandNodeWithStorage saveCommandNode(CommandNodeWithStorage commandNode)
+  protected CommandExecution saveCommandExecution(CommandExecution commandExecution)
   {
     synchronized(commands)
     {
-      if(commands.containsKey(commandNode.id))
-        throw new IllegalArgumentException("duplicate command id [${commandNode.id}]")
+      if(commands.containsKey(commandExecution.id))
+        throw new IllegalArgumentException("duplicate command id [${commandExecution.id}]")
 
-      commands[commandNode.id] = new MemoryStreamStorage(commandNode: commandNode)
+      commands[commandExecution.id] = new MemoryStreamStorage(commandExecution: commandExecution)
     }
 
-    return commandNode
+    return commandExecution
   }
 
-  def captureIO(CommandNodeWithStorage commandNode, Closure closure)
+  def captureIO(CommandExecution commandExecution, Closure closure)
   {
     CommandStreamStorage streamStorage
 
     synchronized(commands)
     {
-      streamStorage = commands[commandNode.id]
+      streamStorage = commands[commandExecution.id]
     }
 
-    if(streamStorage == null || !streamStorage.commandNode.is(commandNode))
+    if(streamStorage == null || !streamStorage.commandExecution.is(commandExecution))
       throw new IllegalArgumentException("not the same command node...")
 
     return closure(streamStorage)

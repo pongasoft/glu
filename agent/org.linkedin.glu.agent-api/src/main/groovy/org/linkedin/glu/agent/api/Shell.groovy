@@ -613,30 +613,6 @@ def interface Shell
                             OutputStream stderr)
 
   /**
-   * Runs the closure asynchronously. This call returns right away and does not wait for the closure
-   * to complete execution. Use the returned value to wait on the completion if necessary. Note
-   * that this call should be used carefully and the typical use case is to parallelize a couple of
-   * I/O intensive operations. But you should "wait" before the end of the phase. Example:
-   *
-   * def install = {
-   *   def f1 = shell.async {
-   *     skeleton = shell.fetch(params.skeleton)
-   *   }
-   *   def f2 = shell.async {
-   *     war = shell.fetch(params.war)
-   *   }
-   *
-   *   // wait for both operation to complete!
-   *   f1.get()
-   *   f2.get()
-   * }
-   *
-   * @param closure
-   * @return the future
-   */
-  FutureExecution async(Closure closure)
-
-  /**
    * Shortcut/More efficient implementation of the more generic {@link #chmod(Object, Object)} call
    *
    * @param file ({@see #toResource(Object)} for possible values)

@@ -41,8 +41,6 @@ import org.linkedin.util.io.resource.Resource
 import javax.management.Attribute
 import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.util.url.QueryBuilder
-import org.linkedin.glu.agent.impl.script.FutureExecutionImpl
-import org.linkedin.glu.agent.api.FutureExecution
 import org.linkedin.groovy.util.rest.RestException
 import org.linkedin.util.reflect.ReflectUtils
 import org.linkedin.glu.agent.rest.common.AgentRestUtils
@@ -624,33 +622,6 @@ def class ShellImpl implements Shell
     }
 
     return originalException
-  }
-
-  /**
-   * Runs the closure asynchronously. This call returns right away and does not wait for the closure
-   * to complete execution. Use the returned value to wait on the completion if necessary.
-   *
-   * @param closure
-   * @return the future
-   */
-  FutureExecution async(Closure closure)
-  {
-    FutureExecutionImpl future = new FutureExecutionImpl(closure)
-
-    future.startTime = clock.currentTimeMillis()
-
-    Thread.startDaemon { ->
-      try
-      {
-        future.run()
-      }
-      finally
-      {
-        future.completionTime = clock.currentTimeMillis()
-      }
-    }
-
-    return future
   }
 
   /**

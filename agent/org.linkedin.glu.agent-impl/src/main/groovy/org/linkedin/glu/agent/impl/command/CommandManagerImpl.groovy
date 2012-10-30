@@ -17,7 +17,7 @@
 package org.linkedin.glu.agent.impl.command
 
 import org.linkedin.glu.agent.impl.script.AgentContext
-import org.linkedin.glu.agent.impl.script.CallExecution
+import org.linkedin.glu.groovy.utils.concurrent.CallExecution
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -27,10 +27,14 @@ import java.util.concurrent.Executors
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.agent.api.NoSuchCommandException
 import org.linkedin.glu.agent.api.AgentException
-import org.linkedin.glu.agent.impl.concurrent.FutureTaskExecution
+import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 import org.apache.commons.io.input.TeeInputStream
 import java.util.concurrent.TimeoutException
 import org.linkedin.groovy.util.config.Config
+import org.linkedin.glu.commands.impl.CommandStreamStorage
+import org.linkedin.glu.commands.impl.CommandExecutionIOStorage
+import org.linkedin.glu.commands.impl.CommandExecution
+import org.linkedin.glu.commands.impl.GluCommandFactory
 
 /**
  * @author yan@pongasoft.com */
@@ -48,19 +52,24 @@ public class CommandManagerImpl implements CommandManager
   @Initializable(required = true)
   CommandExecutionIOStorage storage
 
-  private final Map<String, CommandNode> _commands = [:]
+  private final Map<String, CommandExecution> _commands = [:]
 
-  /**
+  void setStorage(CommandExecutionIOStorage storage)
+  {
+    storage.gluCommandFactory = createGluCommand as GluCommandFactory
+    this.storage = storage
+  }
+/**
    * {@inheritdoc}
    */
   @Override
-  CommandNode executeShellCommand(def args)
+  CommandExecution executeShellCommand(def args)
   {
     args = GluGroovyCollectionUtils.subMap(args, ['command', 'redirectStderr', 'stdin'])
 
     args.type = 'shell'
 
-    CommandNodeWithStorage command = storage.createStorageForCommand(args)
+    CommandExecution command = storage.createStorageForCommandExecution(args)
 
     def asyncProcessing = {
       command.captureIO { CommandStreamStorage storage ->
@@ -129,30 +138,30 @@ public class CommandManagerImpl implements CommandManager
   @Override
   def waitForCommand(def args) throws AgentException
   {
-    CommandNode node = getCommand(args.id)
+    CommandExecution commandExecution = getCommand(args.id)
 
     try
     {
-      def res = node.waitForCompletion(args.timeout)
-      node.log.info("waitForCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])}): ${res}")
+      def res = commandExecution.waitForCompletion(args.timeout)
+      commandExecution.log.info("waitForCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])}): ${res}")
       return res
     }
     catch(TimeoutException e)
     {
-      node.log.info("waitForCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])}): <timeout>")
+      commandExecution.log.info("waitForCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])}): <timeout>")
       throw e
     }
   }
 
   @Override
-  def findCommandNodeAndStreams(def args)
+  def findCommandExecutionAndStreams(def args)
   {
-    CommandNode node = findCommand(args.id)
-    if(node)
-      node.log.info("findCommandNodeAndStreams(${GluGroovyCollectionUtils.xorMap(args, ['id'])})")
+    CommandExecution commandExecution = findCommand(args.id)
+    if(commandExecution)
+      commandExecution.log.info("findCommandExecutionAndStreams(${GluGroovyCollectionUtils.xorMap(args, ['id'])})")
     else
-      log.info("findCommandNodeAndStreams(${args})): not found")
-    return storage.findCommandNodeAndStreams(args.id, args)
+      log.info("findCommandExecutionAndStreams(${args})): not found")
+    return storage.findCommandExecutionAndStreams(args.id, args)
   }
 
   /**
@@ -163,11 +172,11 @@ public class CommandManagerImpl implements CommandManager
   {
     boolean res = false
 
-    def node = findCommand(args.id)
-    if(node)
+    def commandExecution = findCommand(args.id)
+    if(commandExecution)
     {
-      res = node.interruptExecution()
-      node.log.info("interruptCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])})")
+      res = commandExecution.interruptExecution()
+      commandExecution.log.info("interruptCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])})")
     }
     else
     {
@@ -177,28 +186,54 @@ public class CommandManagerImpl implements CommandManager
     return res
   }
 
-  CommandNode findCommand(String id)
+  CommandExecution findCommand(String id)
   {
-    CommandNode commandNode
+    CommandExecution commandExecution
 
     // first we look to see if the command is still currently running
     synchronized(_commands)
     {
-      commandNode = _commands[id]
+      commandExecution = _commands[id]
     }
 
     // not found... should be completed => look in storage
-    if(!commandNode)
-      commandNode = storage.findCommandNode(id)
+    if(!commandExecution)
+      commandExecution = storage.findCommandExecution(id)
 
-    return commandNode
+    return commandExecution
   }
 
-  CommandNode getCommand(String id)
+  CommandExecution getCommand(String id)
   {
-    CommandNode command = findCommand(id)
+    CommandExecution command = findCommand(id)
     if(!command)
       throw new NoSuchCommandException(id)
     return command
   }
+  
+  /**
+   * Create the correct glu command
+   */
+  def createGluCommand = {String commandId, def args ->
+    if(args.type != "shell")
+      throw new UnsupportedOperationException("cannot create non shell commands")
+
+    def shellCommand = new ShellGluCommand()
+
+    def commandProperties = [:]
+
+    def log = LoggerFactory.getLogger("org.linkedin.glu.agent.command.${commandId}")
+
+    commandProperties.putAll(
+    [
+            getId: { commandId },
+            getShell: { agentContext.shellForCommands },
+            getLog: { log },
+            getSelf: { findCommand(commandId) },
+    ])
+
+    return agentContext.mop.wrapScript(script: shellCommand,
+                                       scriptProperties: commandProperties)
+  }
+  
 }

@@ -14,66 +14,72 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.command
 
+
+package org.linkedin.glu.commands.impl
+
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.ExecutorService
+import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
+import org.linkedin.glu.groovy.utils.concurrent.FutureExecution
 import org.linkedin.glu.agent.api.GluCommand
 import org.linkedin.glu.agent.api.Shell
 import org.slf4j.Logger
-import org.linkedin.glu.agent.api.FutureExecution
-import java.util.concurrent.ExecutorService
-import org.linkedin.glu.agent.impl.concurrent.FutureTaskExecution
-import java.util.concurrent.ExecutionException
 
 /**
  * @author yan@pongasoft.com */
-public class CommandNode implements GluCommand
+public class CommandExecution implements GluCommand
 {
-  private final def _command
-  private final String _commandId
+  private final def _args
+  private final def _gluCommand
 
   FutureTaskExecution futureExecution
+  CommandExecutionIOStorage storage
 
-  CommandNode(def command, String commandId)
+  CommandExecution(args, def gluCommand)
   {
-    _command = command
-    _commandId = commandId
-  }
-
-  def getCommand()
-  {
-    return _command
-  }
-
-  def getInvocable()
-  {
-    return command
+    _args = args
+    _gluCommand = gluCommand
   }
 
   @Override
   String getId()
   {
-    return _commandId
+    _gluCommand.id
   }
 
   @Override
   Shell getShell()
   {
-    return command.shell
+    _gluCommand.shell
   }
 
   @Override
   Logger getLog()
   {
-    return command.log
+    _gluCommand.log
   }
 
   @Override
   GluCommand getSelf()
   {
-    return this
+    _gluCommand.self
+  }
+
+  def getInvocable()
+  {
+    _gluCommand
   }
 
   /**
+   * Map of arguments used to create the command
+   */
+  def getArgs()
+  {
+    return _args
+  }
+
+/**
    * when the execution started */
   long getStartTime()
   {
@@ -136,5 +142,10 @@ public class CommandNode implements GluCommand
     {
       throw e.cause
     }
+  }
+
+  def captureIO(Closure closure)
+  {
+    storage.captureIO(this, closure)
   }
 }

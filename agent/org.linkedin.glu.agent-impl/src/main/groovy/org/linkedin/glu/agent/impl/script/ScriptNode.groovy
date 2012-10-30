@@ -22,7 +22,6 @@ import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.api.AgentException
 import org.slf4j.Logger
 import org.linkedin.glu.agent.api.ScriptIllegalStateException
-import org.linkedin.glu.agent.api.FutureExecution
 import java.util.concurrent.TimeoutException
 import org.linkedin.glu.agent.api.NoSuchActionException
 
@@ -34,6 +33,8 @@ import org.linkedin.glu.agent.api.GluScript
 import org.linkedin.glu.agent.api.Shell
 import org.linkedin.glu.agent.api.StateManager
 import org.linkedin.glu.agent.api.Timers
+import org.linkedin.glu.groovy.utils.concurrent.FutureExecutionImpl
+import org.linkedin.glu.groovy.utils.concurrent.FutureExecution
 
 /**
  * A script node (recursive structure)

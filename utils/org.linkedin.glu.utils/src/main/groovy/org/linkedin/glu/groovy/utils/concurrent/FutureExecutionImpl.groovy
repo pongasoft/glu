@@ -15,9 +15,7 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.script
-
-import org.linkedin.glu.agent.impl.concurrent.FutureTaskExecution
+package org.linkedin.glu.groovy.utils.concurrent
 
 /**
  * @author ypujante@linkedin.com */

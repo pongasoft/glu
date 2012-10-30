@@ -27,7 +27,6 @@ import org.linkedin.glu.agent.api.Agent
 import org.slf4j.Logger
 
 import org.linkedin.glu.agent.api.ScriptIllegalStateException
-import org.linkedin.glu.agent.api.FutureExecution
 import org.linkedin.glu.agent.api.Timers
 import org.linkedin.glu.agent.api.StateManager
 import org.linkedin.util.clock.Timespan
@@ -38,6 +37,7 @@ import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
 
 import org.linkedin.util.url.QueryBuilder
 import org.linkedin.util.annotations.Initializable
+import org.linkedin.glu.groovy.utils.concurrent.FutureExecution
 
 /**
  * Manager for scripts
@@ -190,7 +190,7 @@ def class ScriptManagerImpl implements ScriptManager
     scriptClosures.putAll(smClosures)
 
     def timers = [
-        schedule: { args -> getScript(sd.mountPoint).scheduleTimer(args) },
+        schedule: { args -> new FutureExecutionAdapter(futureExecution: getScript(sd.mountPoint).scheduleTimer(args)) },
         cancel: { args -> getScript(sd.mountPoint).cancelTimer(args) }
     ] as Timers
 

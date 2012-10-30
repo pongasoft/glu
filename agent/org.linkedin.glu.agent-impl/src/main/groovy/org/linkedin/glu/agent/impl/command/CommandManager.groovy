@@ -17,15 +17,16 @@
 package org.linkedin.glu.agent.impl.command
 
 import org.linkedin.glu.agent.api.AgentException
+import org.linkedin.glu.commands.impl.CommandExecution
 
 /**
  * @author yan@pongasoft.com */
 public interface CommandManager
 {
   /**
-   * TODO HIGH YP
+   * {@see org.linkedin.glu.agent.api.Agent#executeShellCommand} for a description of the arguments
    */
-  CommandNode executeShellCommand(def args) throws AgentException
+  CommandExecution executeShellCommand(def args) throws AgentException
 
   /**
    * @param args.exitValue if you want the exit value to be part of the stream
@@ -52,15 +53,18 @@ public interface CommandManager
    *                          <code>0</code> by default)
    * @param args.stderrLen how many bytes to read maximum (optional, <code>int</code>,
    *                       <code>-1</code> by default which means read all)
-   * @return a map with <code>commandNode</code> and <code>stream</code> or <code>null</code> if
+   * @return a map with <code>commandExecution</code> and <code>stream</code> or <code>null</code> if
    *         not found
    */
-  def findCommandNodeAndStreams(def args) throws AgentException
+  def findCommandExecutionAndStreams(def args) throws AgentException
 
   /**
-   * TODO HIGH YP
+   * {@see org.linkedin.glu.agent.api.Agent#waitForCommand} for a description of the arguments
    */
   def waitForCommand(def args) throws AgentException
 
+  /**
+   * {@see org.linkedin.glu.agent.api.Agent#interruptCommand} for a description of the arguments
+   */
   boolean interruptCommand(def args) throws AgentException
 }

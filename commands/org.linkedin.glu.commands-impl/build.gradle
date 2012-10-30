@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2012 Yan Pujante
+ * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,21 +15,15 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.command
+apply plugin: 'groovy'
+apply plugin: 'org.linkedin.release'
 
-/**
- * @author yan@pongasoft.com */
-public enum StreamType
-{
-  STDIN("I"),
-  STDOUT("O"),
-  STDERR("E"),
-  EXIT_VALUE("V");
+dependencies {
+  compile project(':agent:org.linkedin.glu.agent-api')
+  compile project(':utils:org.linkedin.glu.utils')
+  compile spec.external.linkedinUtilsCore
 
-  String multiplexName;
+  groovy spec.external.groovy
 
-  private StreamType(String multiplexName)
-  {
-    this.multiplexName = multiplexName
-  }
+  testCompile spec.external.junit
 }

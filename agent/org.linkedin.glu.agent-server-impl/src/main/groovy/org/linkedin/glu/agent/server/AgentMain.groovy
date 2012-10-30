@@ -69,7 +69,7 @@ import org.linkedin.glu.agent.rest.resources.CommandStreamsResource
 import org.linkedin.glu.agent.impl.command.CommandManager
 import org.linkedin.glu.utils.core.DisabledFeatureProxy
 import org.linkedin.glu.agent.impl.command.CommandManagerImpl
-import org.linkedin.glu.agent.impl.command.MemoryCommandExecutionIOStorage
+import org.linkedin.glu.commands.impl.MemoryCommandExecutionIOStorage
 
 /**
  * This is the main class to start the agent.
@@ -623,7 +623,7 @@ class AgentMain implements LifecycleListener, Configurable
     if(Config.getOptionalBoolean(_config, "${prefix}.agent.features.commands.enabled", true))
     {
       new CommandManagerImpl(agentContext: _agent,
-                             storage: new MemoryCommandExecutionIOStorage(agentContext: _agent))
+                             storage: new MemoryCommandExecutionIOStorage(clock: _agent.clock))
     }
     else
     {

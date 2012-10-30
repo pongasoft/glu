@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.script
+package org.linkedin.glu.groovy.utils.concurrent
 
 /**
  * @author ypujante@linkedin.com */

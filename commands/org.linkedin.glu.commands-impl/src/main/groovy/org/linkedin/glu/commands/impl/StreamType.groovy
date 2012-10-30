@@ -14,23 +14,21 @@
  * the License.
  */
 
-
-
-package org.linkedin.glu.agent.impl.command
+package org.linkedin.glu.commands.impl
 
 /**
- * This class encapsulates the storage of IO for commands, this way it is easy to "disable" the
- * storage.
- *
  * @author yan@pongasoft.com */
-public interface CommandExecutionIOStorage
+public enum StreamType
 {
-  def findCommandNodeAndStreams(String commandId, def args)
+  STDIN("I"),
+  STDOUT("O"),
+  STDERR("E"),
+  EXIT_VALUE("V");
 
-  /**
-   * @return the command node of a previously run/stored command
-   */
-  CommandNode findCommandNode(String commandId)
+  String multiplexName;
 
-  CommandNodeWithStorage createStorageForCommand(def args)
+  private StreamType(String multiplexName)
+  {
+    this.multiplexName = multiplexName
+  }
 }

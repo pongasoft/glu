@@ -14,13 +14,17 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.command
+package org.linkedin.glu.agent.impl.script
 
 /**
+ * Simple adapter to "bridge" the 2 apis coming from 2 different packages
+ *
  * @author yan@pongasoft.com */
-public interface CommandStreamStorage
+public class FutureExecutionAdapter<K> implements
+  org.linkedin.glu.groovy.utils.concurrent.FutureExecution<K>,
+  org.linkedin.glu.agent.api.FutureExecution<K>
 {
-  OutputStream findStdinStorage()
-  OutputStream findStdoutStorage()
-  OutputStream findStderrStorage()
+  // YP Implementation note: using FutureExecution does not work with the compile (don't ask
+  // me why!)
+  @Delegate org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution<K> futureExecution
 }

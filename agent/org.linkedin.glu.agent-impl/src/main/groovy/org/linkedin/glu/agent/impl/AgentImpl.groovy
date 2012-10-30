@@ -43,8 +43,8 @@ import java.util.concurrent.ExecutionException
 import org.linkedin.glu.agent.impl.command.CommandManager
 import org.linkedin.glu.agent.impl.command.CommandManagerImpl
 import org.linkedin.glu.agent.api.NoSuchCommandException
-import org.linkedin.glu.agent.impl.command.CommandNode
-import org.linkedin.glu.agent.impl.command.MemoryCommandExecutionIOStorage
+import org.linkedin.glu.commands.impl.MemoryCommandExecutionIOStorage
+import org.linkedin.glu.commands.impl.CommandExecution
 
 /**
  * The main implementation of the agent
@@ -91,7 +91,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
     _scriptManager = args.scriptManager ?: new ScriptManagerImpl(agentContext: this)
     _commandManager = args.commandManager ?:
       new CommandManagerImpl(agentContext: this,
-                             storage: new MemoryCommandExecutionIOStorage(agentContext: this))
+                             storage: new MemoryCommandExecutionIOStorage(clock: clock))
     def storage = args.storage
     if(storage != null)
       _scriptManager = new StateKeeperScriptManager(scriptManager: _scriptManager,
@@ -516,17 +516,17 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
       if(log.isDebugEnabled())
         log.debug("streamCommandResults(${args})")
 
-      def res = _commandManager.findCommandNodeAndStreams(args)
+      def res = _commandManager.findCommandExecutionAndStreams(args)
       if(res == null)
         throw new NoSuchCommandException(args.id)
 
-      CommandNode commandNode = res.remove('commandNode')
+      CommandExecution commandExecution = res.remove('commandExecution')
 
-      if(commandNode.startTime > 0)
-        res.startTime = commandNode.startTime
+      if(commandExecution.startTime > 0)
+        res.startTime = commandExecution.startTime
 
-      if(commandNode.isCompleted())
-        res.completionTime = commandNode.completionTime
+      if(commandExecution.isCompleted())
+        res.completionTime = commandExecution.completionTime
 
       return res
     }
