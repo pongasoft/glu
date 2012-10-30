@@ -46,7 +46,7 @@ class Client:
   def __init__(self, fabric="dev", url="http://localhost:8080", username="glua", password="password"
                , version="v1"):
     self.uriBase = url
-    self.uriPath = "console/rest/" + version + "/" + fabric
+    self.uriPath = "console/rest/%s/%s" % (version, fabric)
     self.auth = restkit.BasicAuth(username, password)
     self._action_successful = None
 
@@ -152,7 +152,7 @@ class Client:
       self._action_successful = True
       return "GLU Console message: %s" % createdPlan.status.split(' ', 1)[-1]
 
-    url2UriPat = "https?://[-\.\w:]*" + self.uriPath + "/"
+    url2UriPat = r"https?://[-.:\w]+/(?:.*?/)?%s/" % self.uriPath
 
     # unique identifier for the plan just created
     planUrl = createdPlan['location']
