@@ -123,8 +123,10 @@ Trust this certificate? [no]:  yes
 Certificate was added to keystore
 
 # generating the pem file for testing:
-# I used the application called portecle: http://portecle.sourceforge.net/
-# I loaded the keystore console.keystore and then exported the private key + certificate as PEM
+# Use the groovy script provided in this folder:
+# groovy JksToPem.groovy
+# Enter keystore password: linkedin
+# Enter key password: password
 
 # In order to test manually: start the agent and run the following command:
 curl -k https://localhost:12906/agent -E console.pem

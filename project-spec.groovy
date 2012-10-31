@@ -18,7 +18,7 @@
 spec = [
     name: 'glu',
     group: 'org.linkedin',
-    version: '4.5.1',
+    version: '4.5.2',
 
     versions: [
       grails: '1.3.5',
@@ -84,11 +84,10 @@ spec.external = [
   restlet: "org.restlet.jse:org.restlet:${spec.versions.restlet}",
   restletExtHttpClient: "org.restlet.jse:org.restlet.ext.httpclient:${spec.versions.restlet}",
   restletExtJson: "org.restlet.jse:org.restlet.ext.json:${spec.versions.restlet}",
-  restletExtSimple: "org.restlet.jse:org.restlet.ext.simple:${spec.versions.restlet}",
+  restletExtJetty: "org.restlet.jse:org.restlet.ext.jetty:${spec.versions.restlet}",
   servletApi: 'javax.servlet:servlet-api:2.5',
   shiro: "org.apache.shiro:shiro-all:1.0.0-incubating",
   sigar: "com.hyperic:sigar:${spec.versions.sigar}",
-  simpleFramework: 'org.simpleframework:simple:4.1.21',
   slf4j: "org.slf4j:slf4j-api:${spec.versions.slf4j}",
   slf4jLog4j: "org.slf4j:slf4j-log4j12:${spec.versions.slf4j}",
   slf4jJul: "org.slf4j:jul-to-slf4j:${spec.versions.slf4j}",

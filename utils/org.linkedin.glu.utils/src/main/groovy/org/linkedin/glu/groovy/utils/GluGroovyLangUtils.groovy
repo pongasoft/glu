@@ -47,4 +47,23 @@ public class GluGroovyLangUtils extends GroovyLangUtils
 
     throw new IllegalArgumentException("not a boolean : ${value}");
   }
+
+  /**
+   * Call all the closures and make sure none of it throws an exception. This method itself
+   * does not throws exception. The value returned by the last closure in the collection will be
+   * returned
+   */
+  static def noException(Collection<Closure> closures)
+  {
+    noException {
+      def res = null
+      closures?.each { c ->
+      if(c)
+        res = noException(c)
+      else
+        res = null
+      }
+      return res
+    }
+  }
 }

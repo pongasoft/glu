@@ -18,14 +18,12 @@
 package org.linkedin.glu.agent.server
 
 import org.linkedin.glu.agent.rest.resources.AgentConfigResource
-import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.config.Config
 import org.linkedin.util.clock.Timespan
 import org.linkedin.util.collections.CollectionsUtils
 import org.linkedin.util.lifecycle.Configurable
 import org.linkedin.zookeeper.client.IZKClient
 import org.linkedin.zookeeper.client.ZKClient
-import org.restlet.ext.simple.HttpServerHelper
 import org.restlet.routing.Router
 import org.restlet.Component
 import org.restlet.data.Protocol
@@ -125,7 +123,6 @@ class IZKClientFactory implements Configurable
     attributes.put('configurable', this)
     attributes.put('codec', codec)
     component.getDefaultHost().attach(router);
-    new HttpServerHelper(server)
     component.start()
 
     def serverAddress = server.address ?: InetAddress.getLocalHost().canonicalHostName

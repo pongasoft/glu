@@ -39,7 +39,6 @@ import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.groovy.util.ivy.IvyURLHandler
 import org.linkedin.groovy.util.net.GroovyNetUtils
 import org.linkedin.groovy.util.net.SingletonURLStreamHandlerFactory
-import org.linkedin.util.clock.Timespan
 import org.linkedin.util.codec.Base64Codec
 import org.linkedin.util.codec.Codec
 import org.linkedin.util.codec.CodecUtils
@@ -53,8 +52,6 @@ import org.linkedin.zookeeper.client.LifecycleListener
 import org.linkedin.zookeeper.client.ZooKeeperURLHandler
 import org.restlet.util.Series
 import org.restlet.routing.Router
-import org.restlet.ext.simple.HttpsServerHelper
-import org.restlet.ext.simple.HttpServerHelper
 import org.linkedin.groovy.util.config.Config
 import org.restlet.Component
 import org.restlet.data.Protocol
@@ -80,8 +77,6 @@ class AgentMain implements LifecycleListener, Configurable
   private static final Codec TWO_WAY_CODEC
   private static final OneWayCodec ONE_WAY_CODEC
   private static final OneWayCodec ONE_WAY_CODEC_2
-
-  public static final Timespan PROCESS_TRACKER_HEARTBEAT = Timespan.parse('10s')
 
   static {
     String p0 = "gluos2way"
@@ -432,6 +427,11 @@ class AgentMain implements LifecycleListener, Configurable
 
   def start()
   {
+    start(true)
+  }
+
+  def start(boolean withTerminationHandler)
+  {
     _shutdown = new Shutdown()
     _agent = new AgentImpl()
     _agentTempDir = GroovyIOUtils.toFile(Config.getRequiredString(_config, "${prefix}.agent.tempDir"))
@@ -461,52 +461,55 @@ class AgentMain implements LifecycleListener, Configurable
 
     startRestServer()
 
-    registerTerminationHandler()
+    if(withTerminationHandler)
+      registerTerminationHandler()
 
     log.info 'Agent started.'
   }
 
   def registerTerminationHandler()
   {
-    addShutdownHook {
-      log.info 'Shutting down...'
+    addShutdownHook(stop)
+  }
 
-      synchronized(_lock) {
-        _receivedShutdown = true
-        _lock.notify()
-      }
+  def stop = {
+    log.info 'Shutting down...'
 
-      // first we make sure that no calls can come in and that all pending calls have
-      // gone through
-      _shutdown.shutdown()
-      _shutdown.waitForShutdown()
-
-      if(_restServer)
-      {
-        log.info 'Stopping REST service...'
-        _restServer.stop()
-        log.info 'REST service stopped.'
-      }
-
-      if(_agent)
-      {
-        log.info 'Shutting down the agent...'
-        _agent.shutdown()
-        _agent.waitForShutdown()
-        log.info 'Agent shut down...'
-      }
-
-      if(_zkClient)
-      {
-        log.info 'Stopping ZooKeeper client...'
-        _zkClient.destroy()
-        _zkClient = null
-        log.info 'ZooKeeper client stopped.'
-      }
-
-
-      log.info 'Shutdown sequence complete.'
+    synchronized(_lock) {
+      _receivedShutdown = true
+      _lock.notify()
     }
+
+    // first we make sure that no calls can come in and that all pending calls have
+    // gone through
+    _shutdown.shutdown()
+    _shutdown.waitForShutdown()
+
+    if(_restServer)
+    {
+      log.info 'Stopping REST service...'
+      _restServer.stop()
+      log.info 'REST service stopped.'
+    }
+
+    if(_agent)
+    {
+      log.info 'Shutting down the agent...'
+      _agent.shutdown()
+      _agent.waitForShutdown()
+      log.info 'Agent shut down...'
+    }
+
+    if(_zkClient)
+    {
+      log.info 'Stopping ZooKeeper client...'
+      _zkClient.destroy()
+      _zkClient = null
+      log.info 'ZooKeeper client stopped.'
+    }
+
+
+    log.info 'Shutdown sequence complete.'
   }
 
   def startRestServer()
@@ -557,9 +560,9 @@ class AgentMain implements LifecycleListener, Configurable
       params.add('keyPassword', getPassword(_config, "${prefix}.agent.keyPassword"))
 
       // truststore
-      def trustore = fetchFile(Config.getRequiredString(_config, "${prefix}.agent.truststorePath"),
-                               Config.getRequiredString(_config, "${prefix}.agent.truststoreChecksum"))
-      params.add('truststorePath', trustore.path)
+      def truststore = fetchFile(Config.getRequiredString(_config, "${prefix}.agent.truststorePath"),
+                                 Config.getRequiredString(_config, "${prefix}.agent.truststoreChecksum"))
+      params.add('truststorePath', truststore.path)
       params.add('truststorePassword', getPassword(_config, "${prefix}.agent.truststorePassword"))
 
       params.add('sslContextFactory', 'org.restlet.engine.security.DefaultSslContextFactory')
@@ -571,14 +574,12 @@ class AgentMain implements LifecycleListener, Configurable
       
       def server = _restServer.getServers().add(Protocol.HTTPS, port);
       server.setContext(serverContext)
-      new HttpsServerHelper(server)
 
       secure = '(secure)'
     }
     else
     {
-      def server = _restServer.getServers().add(Protocol.HTTP, port);
-      new HttpServerHelper(server)
+      _restServer.getServers().add(Protocol.HTTP, port);
     }
 
     _restServer.start()
@@ -761,6 +762,12 @@ class AgentMain implements LifecycleListener, Configurable
   }
 
   protected def readConfig(url, Properties properties)
+  {
+    staticReadConfig(url, properties)
+  }
+
+  // creating a new method in order not to change the non static one
+  static def staticReadConfig(url, Properties properties)
   {
     if(url)
     {

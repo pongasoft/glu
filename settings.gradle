@@ -38,4 +38,6 @@ include ':agent:org.linkedin.glu.agent-api',
         ':scripts:org.linkedin.glu.script-hello-world',
         ':samples:org.linkedin.glu.samples.sample-webapp',
         ':utils:org.linkedin.glu.scripts-test-fwk',
+        ':utils:org.linkedin.glu.scripts-test-fwk',
+        ':utils:org.linkedin.glu.utils.log4j-test-config',
         ':utils:org.linkedin.glu.utils'

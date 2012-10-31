@@ -251,7 +251,7 @@ and issue the command which is doing a ``GET /agent`` on agent-2 using the right
 
     {"fullState":{"scriptDefinition":{"initParameters":{},"mountPoint":"/","scriptFactory":    {"class":"org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory","className":    "org.linkedin.glu.agent.impl.script.RootScript"}},"scriptState":{"stateMachine":{"currentState":"installed"},"script":{"rootPath":"/"}}}}
 
-The passphrase you are promted for is: ``password``
+The passphrase you are prompted for is: ``password``
 
 Note how what you get back is a json string
 
