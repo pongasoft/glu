@@ -1,6 +1,29 @@
 Latest changes
 ==============
 
+4.5.2 (2012/10/31)
+------------------
+
+.. warning:: This release contains a critical bug fix and is highly recommended. 
+
+Only the agent needs to be upgraded. The issue fixed is the ability to talk to the agent over ssl without any certificate (the agent is not honoring the ``needClientAuth`` flag).
+
+.. note:: In order to know if you are affected by this issue and you should upgrade, follow the 
+          simple steps:
+
+          * if you are running your agent with ``sslEnabled`` set to ``false`` then you are not affected
+          * otherwise run the following command::
+
+             curl -v -k https://<agentIP>:<agentPort>/agent
+
+            * if you receive an error message then you are not affected by the issue
+            * if you do not receive an error message and simply an OK (200) response from the agent (which should be 
+              a json document with the list of all mount points), then you are affected and it is highly 
+              recommended to upgrade
+
+* Fixed `glu-175 <https://github.com/linkedin/glu/issues/175>`_: `client auth not working for agent with ssl enabled`
+
+
 4.5.1 (2012/09/23)
 ------------------
 
