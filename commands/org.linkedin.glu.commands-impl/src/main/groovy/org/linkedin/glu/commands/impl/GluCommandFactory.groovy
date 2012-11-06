@@ -20,5 +20,5 @@ package org.linkedin.glu.commands.impl
  * @author yan@pongasoft.com */
 public interface GluCommandFactory
 {
-  def createGluCommand(String commandId, def args)
+  def createGluCommand(CommandExecution commandExecution)
 }

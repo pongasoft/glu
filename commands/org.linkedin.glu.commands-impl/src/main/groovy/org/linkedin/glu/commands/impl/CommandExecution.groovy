@@ -21,7 +21,6 @@ package org.linkedin.glu.commands.impl
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
-import org.linkedin.glu.groovy.utils.concurrent.FutureExecution
 import org.slf4j.Logger
 import org.linkedin.groovy.util.config.Config
 
@@ -32,6 +31,9 @@ public class CommandExecution
   private final String _commandId
   private final def _args
   def command
+
+  synchronized long startTime = 0L
+  synchronized long completionTime = 0L
 
   FutureTaskExecution futureExecution
   def storage
@@ -71,20 +73,6 @@ public class CommandExecution
     return _args.stdin
   }
 
-  /**
-   * when the execution started */
-  long getStartTime()
-  {
-    futureExecution.startTime
-  }
-
-  /**
-   * when the execution completes */
-  long getCompletionTime()
-  {
-    futureExecution.completionTime
-  }
-
   boolean isCompleted()
   {
     completionTime > 0
@@ -109,6 +97,7 @@ public class CommandExecution
 
   def getExitValue()
   {
+    if(isCompleted())
     try
     {
       futureExecution.get()

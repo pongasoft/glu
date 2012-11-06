@@ -26,6 +26,7 @@ import org.linkedin.util.clock.Timespan
 import java.util.concurrent.ExecutorService
 
 import java.util.concurrent.FutureTask
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -45,7 +46,7 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
 
   /**
    * when the execution completes */
-  private long _completionTime = 0L
+  synchronized long completionTime = 0L
 
   /**
    * The clock
@@ -133,7 +134,7 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
       if(_onCompletionCallback != null)
         throw new IllegalStateException("already set")
       _onCompletionCallback = onCompletionCallback
-      if(_completionTime > 0)
+      if(completionTime > 0)
       {
         callback = _onCompletionCallback
         _onCompletionCallbackCalled = true
@@ -148,31 +149,6 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
   Closure getOnCompletionCallback()
   {
     return _onCompletionCallback
-  }
-
-  synchronized long getCompletionTime()
-  {
-    return _completionTime
-  }
-
-  void setCompletionTime(long completionTime)
-  {
-    def callback = null
-
-    synchronized(this)
-    {
-      _completionTime = completionTime
-
-      if(!_onCompletionCallbackCalled)
-      {
-        callback = _onCompletionCallback
-        _onCompletionCallbackCalled = true
-      }
-    }
-
-    // we make sure to call the callback *outside* the synchronized section!
-    if(callback)
-      callback()
   }
 
   void run()
@@ -203,18 +179,38 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
 
     try
     {
-      def res
+      try
+      {
+        def res
 
-      if(_callable != null)
-        res = _callable.call()
-      else
-        res = execute()
+        if(_callable != null)
+          res = _callable.call()
+        else
+          res = execute()
 
-      return res
+        return res
+      }
+      finally
+      {
+        completionTime = clock.currentTimeMillis()
+      }
     }
     finally
     {
-      setCompletionTime(clock.currentTimeMillis())
+      def callback = null
+
+      synchronized(this)
+      {
+        if(!_onCompletionCallbackCalled)
+        {
+          callback = _onCompletionCallback
+          _onCompletionCallbackCalled = true
+        }
+      }
+
+      // we make sure to call the callback *outside* the synchronized section!
+      if(callback)
+        GluGroovyLangUtils.noException(callback)
     }
   }
 

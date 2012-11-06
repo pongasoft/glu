@@ -94,7 +94,8 @@ public class CommandManagerImpl implements CommandManager
                                                   actionArgs: actionArgs,
                                                   clock: agentContext.clock,
                                                   source: [invocable: command.command])
-            callExecution.runSync()
+
+            return [exitValue: callExecution.runSync()]
           }
         }
       }
@@ -210,8 +211,11 @@ public class CommandManagerImpl implements CommandManager
   /**
    * Create the correct glu command
    */
-  def createGluCommand = {String commandId, def args ->
-    if(args.type != "shell")
+  def createGluCommand = { CommandExecution command ->
+
+    final String commandId = command.id
+
+    if(command.args.type != "shell")
       throw new UnsupportedOperationException("cannot create non shell commands")
 
     def shellCommand = new ShellGluCommand()

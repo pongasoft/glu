@@ -36,8 +36,8 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
 {
   FileSystemImpl fs
   SettableClock clock = new SettableClock()
-  GluCommandFactory factory = { commandId, args ->
-    [fromCommandFactory: [id: commandId, args: [*:args]]]
+  GluCommandFactory factory = { ce ->
+    [fromCommandFactory: [id: ce.id, args: [*:ce.args]]]
   } as GluCommandFactory
 
   def shutdownSequence = []
@@ -91,8 +91,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                                  id: commandId,
                                  redirectStderr: false,
                                  command: 'c0',
-                                 xtra0: 'x0',
-                                 startTime: startTime],
+                                 xtra0: 'x0'],
                              ]],
                              ce.command)
 
@@ -109,6 +108,8 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").exists())
     assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").exists())
 
+    long completionTime = 0L
+
     def processing = { CommandStreamStorage storage ->
       storage.withStorageInput(StreamType.STDIN) { stdin ->
         assertNull("no stdin", stdin)
@@ -122,7 +123,12 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
             // simulate delay
             clock.addDuration(Timespan.parse("1s"))
 
-            return 14
+            completionTime = clock.currentTimeMillis()
+
+            // simulate delay
+            clock.addDuration(Timespan.parse("1s"))
+
+            return [exitValue: 14, completionTime: completionTime]
           }
         }
       }
@@ -130,7 +136,6 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
 
     assertEquals(14, ce.syncCaptureIO(processing))
 
-    long completionTime = clock.currentTimeMillis()
     assertEquals(completionTime, startTime + Timespan.parse("1s").durationInMilliseconds)
 
     assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").exists())
@@ -174,9 +179,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                                    id: commandId,
                                    redirectStderr: false,
                                    command: 'c0',
-                                   xtra0: 'x0',
-                                   startTime: startTime,
-                                   completionTime: completionTime],
+                                   xtra0: 'x0'],
                                ]],
                              command.command)
     }
@@ -245,7 +248,6 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                                  redirectStderr: false,
                                  command: 'c0',
                                  xtra0: 'x0',
-                                 startTime: startTime,
                                  stdin: true],
                              ]],
                              ce.command)
@@ -277,7 +279,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
             // simulate delay
             clock.addDuration(Timespan.parse("1s"))
 
-            return 14
+            return [exitValue: 14]
           }
         }
       }
@@ -332,8 +334,6 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                                    redirectStderr: false,
                                    command: 'c0',
                                    xtra0: 'x0',
-                                   startTime: startTime,
-                                   completionTime: completionTime,
                                    stdin: true,
                                  ],
                                ]],
@@ -401,8 +401,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                                  id: commandId,
                                  redirectStderr: true,
                                  command: 'c0',
-                                 xtra0: 'x0',
-                                 startTime: startTime],
+                                 xtra0: 'x0'],
                              ]],
                              ce.command)
 
@@ -433,7 +432,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
             // simulate delay
             clock.addDuration(Timespan.parse("1s"))
 
-            return 14
+            return [exitValue: 14]
           }
         }
       }
@@ -485,9 +484,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                                    id: commandId,
                                    redirectStderr: true,
                                    command: 'c0',
-                                   xtra0: 'x0',
-                                   startTime: startTime,
-                                   completionTime: completionTime],
+                                   xtra0: 'x0'],
                                ]],
                              command.command)
     }

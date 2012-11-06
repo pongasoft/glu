@@ -51,7 +51,6 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
     args = [*:args]
 
     def startTime = clock.currentTimeMillis()
-    args.startTime = startTime
 
     String commandId = args.id ?:
       "${Long.toHexString(startTime)}-${UUID.randomUUID().toString()}"
@@ -62,12 +61,13 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
     if(stdin)
       args.stdin = true
 
-    CommandExecution commandExecution = saveCommandExecution(new CommandExecution(commandId, args),
-                                                             stdin)
+    CommandExecution commandExecution = new CommandExecution(commandId, args)
+    commandExecution.startTime = startTime
+
+    commandExecution = saveCommandExecution(commandExecution, stdin)
     commandExecution.storage = this
 
-    commandExecution.command = gluCommandFactory.createGluCommand(commandId,
-                                                                  commandExecution.args)
+    commandExecution.command = gluCommandFactory.createGluCommand(commandExecution)
 
     return commandExecution
   }
@@ -261,11 +261,7 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
    */
   def syncCaptureIO(CommandExecution commandExecution, Closure closure)
   {
-    def processing = { captureIO(commandExecution, closure) }
-    def futureExecution = new FutureTaskExecution(processing)
-    futureExecution.clock = clock
-    commandExecution.futureExecution = futureExecution
-    futureExecution.runSync()
+    doCaptureIO(commandExecution, null, closure)
   }
 
   /**
@@ -275,11 +271,29 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
                                      ExecutorService executorService,
                                      Closure closure)
   {
-    def processing = { captureIO(commandExecution, closure) }
+    doCaptureIO(commandExecution, executorService, closure)
+  }
+
+  private def doCaptureIO(CommandExecution commandExecution,
+                          ExecutorService executorService,
+                          Closure closure)
+  {
+    def processing = {
+      def res = captureIO(commandExecution, closure)
+      commandExecution.completionTime = res.completionTime ?: clock.currentTimeMillis()
+      if(res.exception)
+        throw res.exception
+      else
+        return res.exitValue
+    }
     def futureExecution = new FutureTaskExecution(processing)
     futureExecution.clock = clock
     commandExecution.futureExecution = futureExecution
-    futureExecution.runAsync(executorService)
+
+    if(executorService)
+      futureExecution.runAsync(executorService)
+    else
+      futureExecution.runSync()
   }
 
   /**
@@ -297,7 +311,7 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
 
   /**
    * Will be called back to capture the IO
-   * @return the exitValue of the command execution
+   * @return a map with exitValue of the command execution and completionTime
    */
   protected abstract def captureIO(CommandExecution commandExecution, Closure closure)
 }

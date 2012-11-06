@@ -89,7 +89,12 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
       if(exception)
         exitValueProvider = { throw exception }
 
+      long startTime = args.remove('startTime')
+      long completionTime = args.remove('completionTime')
+
       CommandExecution commandExecution = new CommandExecution(commandId, args)
+      commandExecution.startTime = startTime
+      commandExecution.completionTime = completionTime
       commandExecution.storage = this
 
       FutureTaskExecution fe = new FutureTaskExecution(exitValueProvider)
@@ -106,13 +111,7 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
         // no need to log it
       }
 
-      if(args.startTime)
-        fe.startTime = args.startTime
-      if(args.completionTime)
-        fe.completionTime = args.completionTime
-
-      commandExecution.command =
-        gluCommandFactory.createGluCommand(commandId, commandExecution.args)
+      commandExecution.command = gluCommandFactory.createGluCommand(commandExecution)
 
       return commandExecution
     }
@@ -134,9 +133,12 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
     if(!commandFile.file.createNewFile())
       throw new IllegalArgumentException("duplicate command id [${commandExecution.id}]")
 
+    def args = [*:commandExecution.args]
+    args.startTime = commandExecution.startTime
+
     // save the command to the file system
     new FileOutputStream(commandFile.file).withStream { out ->
-      out << JsonUtils.compactPrint(commandExecution.args)
+      out << JsonUtils.compactPrint(args)
     }
 
     // save stdin if there is any
@@ -179,11 +181,12 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
 
     try
     {
-      def exitValue = null
-      Throwable exception = null
+      def res = null
+      Throwable exception
       try
       {
-        exitValue = closure(storage)
+        res = closure(storage)
+        exception = res.exception
       }
       catch(Throwable th)
       {
@@ -195,15 +198,20 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
       if(exception != null)
         args.exception = GluGroovyJsonUtils.extractFullStackTrace(exception)
       else
-        args.exitValue = exitValue
-      args.completionTime = clock.currentTimeMillis()
+        args.exitValue = res?.exitValue
+      args.startTime = commandExecution.startTime
+      args.completionTime = res?.completionTime ?: clock.currentTimeMillis()
 
       // save the command to the file system
       new FileOutputStream(storage.commandResource.file).withStream { out ->
         out << JsonUtils.compactPrint(args)
       }
 
-      return exitValue
+      return [
+        exitValue: args.exitValue,
+        exception: args.exception,
+        completionTime: args.completionTime
+      ]
     }
     finally
     {

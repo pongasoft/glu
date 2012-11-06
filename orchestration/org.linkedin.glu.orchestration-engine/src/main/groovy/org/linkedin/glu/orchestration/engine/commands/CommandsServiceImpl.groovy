@@ -44,7 +44,6 @@ import org.linkedin.glu.commands.impl.CommandExecutionIOStorage
 import org.linkedin.glu.commands.impl.CommandStreamStorage
 import org.linkedin.glu.commands.impl.GluCommandFactory
 import org.apache.tools.ant.util.TeeOutputStream
-import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 
 /**
  * @author yan@pongasoft.com  */
@@ -231,7 +230,6 @@ public class CommandsServiceImpl implements CommandsService
     args.type = 'shell'
 
     // set the various parameters for the call
-    args.startTime = clock.currentTimeMillis()
     args.fabric = fabric.name
     args.agent = agentName
     args.username = authorizationService.executingPrincipal
@@ -293,16 +291,18 @@ public class CommandsServiceImpl implements CommandsService
               onResultStreamAvailable(id: command.id, stream: new TeeInputStream(res.stream, os))
             }
 
+            long completionTime = clock.currentTimeMillis()
+
             // we now update the storage with the various results
             def exitValue = commandExecutionStorage.endExecution(command.id,
-                                                                 clock.currentTimeMillis(),
+                                                                 completionTime,
                                                                  stdout.bytes,
                                                                  stdout.totalNumberOfBytes,
                                                                  stderr.bytes,
                                                                  stderr.totalNumberOfBytes,
                                                                  toString(exitValueStream)).exitValue
 
-            return exitValue
+            return [exitValue: exitValue, completionTime: completionTime]
           }
         }
       }
@@ -341,9 +341,11 @@ public class CommandsServiceImpl implements CommandsService
   /**
    * Factory to create a command (first try to read it from the db or store it first in the db)
    */
-  def createGluCommand = { String commandId, def args ->
+  def createGluCommand = { CommandExecution command ->
 
-    def ce = commandExecutionStorage.findCommandExecution(args.fabric, args.id)
+    final String commandId = command.id
+
+    def ce = commandExecutionStorage.findCommandExecution(command.args.fabric, commandId)
 
     if(!ce)
     {
@@ -358,16 +360,16 @@ public class CommandsServiceImpl implements CommandsService
           return m.size
         }
 
-      ce = commandExecutionStorage.startExecution(args.fabric,
-                                                  args.agent,
-                                                  args.username,
-                                                  args.command,
-                                                  args.redirectStderr,
+      ce = commandExecutionStorage.startExecution(command.args.fabric,
+                                                  command.args.agent,
+                                                  command.args.username,
+                                                  command.args.command,
+                                                  command.redirectStderr,
                                                   stdinFirstBytes?.toByteArray(),
                                                   stdinSize,
                                                   commandId,
                                                   CommandType.SHELL,
-                                                  args.startTime)
+                                                  command.startTime)
     }
 
     return ce
