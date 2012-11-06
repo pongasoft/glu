@@ -24,9 +24,9 @@ import org.linkedin.util.clock.Timespan
 /**
  * @author yan@pongasoft.com */
 @Entity
-public class CommandExecution
+public class DbCommandExecution
 {
-  public static final String MODULE = CommandExecution.class.getName();
+  public static final String MODULE = DbCommandExecution.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   // for now only SHELL

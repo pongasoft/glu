@@ -18,13 +18,13 @@ package org.linkedin.glu.agent.rest.common
 
 import org.linkedin.groovy.util.rest.RestException
 import org.restlet.data.Status
-import org.linkedin.util.reflect.ReflectUtils
 import org.linkedin.glu.agent.api.AgentException
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.utils.io.NullOutputStream
 import org.linkedin.glu.utils.io.MultiplexedInputStream
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.linkedin.glu.groovy.utils.rest.GluGroovyRestUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -59,26 +59,7 @@ public class AgentRestUtils
    */
   public static Throwable rebuildAgentException(RestException restException)
   {
-    Throwable originalException = restException
-    try
-    {
-      def exceptionClass = ReflectUtils.forName(restException.originalClassName)
-      originalException = exceptionClass.newInstance([restException.originalMessage] as Object[])
-
-      originalException.setStackTrace(restException.stackTrace)
-
-      if(restException.cause)
-        originalException.initCause(rebuildAgentException(restException.cause))
-    }
-    catch(Exception e)
-    {
-      if(log.isDebugEnabled())
-      {
-        log.debug("Cannot instantiate: ${restException.originalClassName}... ignored", e)
-      }
-    }
-
-    return originalException
+    GluGroovyRestUtils.rebuildException(restException)
   }
 
   /**

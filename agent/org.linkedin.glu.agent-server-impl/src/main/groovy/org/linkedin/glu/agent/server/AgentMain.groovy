@@ -515,7 +515,6 @@ class AgentMain implements LifecycleListener, Configurable
     def attributes = context.getAttributes()
 
     attributes.put('agent', _proxiedAgent)
-    attributes.put('shellForCommands', _agent.shellForCommands)
     attributes.put('configurable', this)
     attributes.put('codec', remoteConfigCodec)
 

@@ -28,6 +28,9 @@ import java.util.concurrent.TimeoutException
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
+import java.util.concurrent.ExecutorService
 
 /**
  * @author yan@pongasoft.com */
@@ -45,28 +48,51 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
   @Override
   CommandExecution createStorageForCommandExecution(def args)
   {
-    String commandId =
-      "${Long.toHexString(clock.currentTimeMillis())}-${UUID.randomUUID().toString()}"
+    args = [*:args]
 
-    CommandExecution commandExecution =
-      new CommandExecution(args, gluCommandFactory.createGluCommand(commandId, args))
+    def startTime = clock.currentTimeMillis()
+    args.startTime = startTime
+
+    String commandId = args.id ?:
+      "${Long.toHexString(startTime)}-${UUID.randomUUID().toString()}"
+
+    args.id = commandId
+
+    def stdin = args.remove('stdin')
+    if(stdin)
+      args.stdin = true
+
+    CommandExecution commandExecution = saveCommandExecution(new CommandExecution(commandId, args),
+                                                             stdin)
     commandExecution.storage = this
 
-    return saveCommandExecution(commandExecution)
-  }
+    commandExecution.command = gluCommandFactory.createGluCommand(commandId,
+                                                                  commandExecution.args)
 
-  /**
-   * Should save the command in persistent state
-   * @return the command (eventually tweaked)
-   */
-  protected abstract CommandExecution saveCommandExecution(CommandExecution commandExecution)
+    return commandExecution
+  }
 
   /**
    * {@inheritdoc}
    */
   @Override
-  def findCommandExecutionAndStreams(String commandId, Object args)
+  def findCommandExecutionAndStreams(String commandId, def args)
   {
+    args= GluGroovyCollectionUtils.subMap(args,
+                                          [
+                                            'exitValueStream',
+                                            'exitValueStreamTimeout',
+                                            'stdinStream',
+                                            'stdinOffset',
+                                            'stdinLen',
+                                            'stdoutStream',
+                                            'stdoutOffset',
+                                            'stdoutLen',
+                                            'stderrStream',
+                                            'stderrOffset',
+                                            'stderrLen',
+                                          ])
+
     int numberOfStreams = 0
 
     CommandExecution commandExecution = findCommandExecution(commandId)
@@ -110,7 +136,12 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
       streams[StreamType.EXIT_VALUE.multiplexName] = exitValueInputStream
     }
 
-    [StreamType.STDIN, StreamType.STDOUT, StreamType.STDERR].each { streamType ->
+    def m = [:]
+    m[StreamType.STDIN] = commandExecution.hasStdin()
+    m[StreamType.STDOUT] = true
+    m[StreamType.STDERR] = !commandExecution.redirectStderr
+
+    m.each { streamType, include ->
 
       def name = streamType.toString().toLowerCase()
 
@@ -119,34 +150,30 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
       {
         numberOfStreams++
 
-        def inputStreamFactory = {
+        if(include)
+        {
+          def inputStreamFactory = {
 
-          // either wait or not
-          exitValueFactory()
+            // either wait or not
+            exitValueFactory()
 
-          def m = findInputStreamWithSize(commandId, streamType)
-          if(m != null)
-          {
-            long offset = GluGroovyLangUtils.getOptionalLong(args, "${name}Offset", 0)
-            long len = GluGroovyLangUtils.getOptionalLong(args, "${name}Len", -1)
+            def streamAndSize = findStreamWithSize(commandExecution,
+                                                   streamType,
+                                                   [
+                                                     offset: args."${name}Offset",
+                                                     len: args."${name}Len",
+                                                   ])
 
-            InputStream is = m.stream
-
-
-            if(offset < 0)
-              offset = m.size + offset
-
-            if(offset > 0)
-              is.skip(offset)
-
-            if(len > -1)
-              is = new LimitedInputStream(is, len)
-
-            return is
+            if(streamAndSize)
+            {
+              return new LimitedInputStream(streamAndSize.stream, streamAndSize.size)
+            }
+            else
+              return null
           }
-        }
 
-        streams[streamType.multiplexName] = new InputGeneratorStream(inputStreamFactory)
+          streams[streamType.multiplexName] = new InputGeneratorStream(inputStreamFactory)
+        }
       }
     }
 
@@ -169,14 +196,108 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
     return res
   }
 
+  @Override
+  def withOrWithoutCommandExecutionAndStreams(String commandId, args, Closure closure)
+  {
+    def m = findCommandExecutionAndStreams(commandId, args)
+    if(m?.stream)
+      m.stream.withStream { closure([stream: it, commandExecution: m.commandExecution])}
+    else
+      closure(m)
+  }
+
+  def findStreamWithSize(String commandId, StreamType streamType, def args)
+  {
+    findStreamWithSize(findCommandExecution(commandId), streamType, args)
+  }
+
+  def findStreamWithSize(CommandExecution command, StreamType streamType, def args)
+  {
+    def m = findInputStreamWithSize(command, streamType)
+    if(m != null)
+    {
+      long offset = GluGroovyLangUtils.getOptionalLong(args, "offset", 0)
+      long len = GluGroovyLangUtils.getOptionalLong(args, "len", -1)
+
+      InputStream is = m.stream
+
+      if(offset < 0)
+        offset = m.size + offset
+
+      if(offset > 0)
+        is.skip(offset)
+
+      if(len > -1)
+        is = new LimitedInputStream(is, len)
+
+      return [stream: is, size: m.size]
+    }
+    else
+      return null
+  }
+
+  @Override
+  def withStreamAndSize(String commandId, StreamType streamType, def args, Closure closure)
+  {
+    withOrWithoutStreamAndSize(commandId, streamType, args) { m ->
+      if(m) closure(m)
+    }
+  }
+
+  @Override
+  def withOrWithoutStreamAndSize(String commandId, StreamType streamType, def args, Closure closure)
+  {
+    def m = findStreamWithSize(commandId, streamType, args)
+
+    if(m)
+      m.stream.withStream { closure([stream: it, size: m.size]) }
+    else
+      closure(null)
+  }
+
+  /**
+   * Synchronously executes the command
+   * @return the exitValue of the command execution
+   */
+  def syncCaptureIO(CommandExecution commandExecution, Closure closure)
+  {
+    def processing = { captureIO(commandExecution, closure) }
+    def futureExecution = new FutureTaskExecution(processing)
+    futureExecution.clock = clock
+    commandExecution.futureExecution = futureExecution
+    futureExecution.runSync()
+  }
+
+  /**
+   * Asynchronously executes the command. Returns right away.
+   */
+  FutureTaskExecution asyncCaptureIO(CommandExecution commandExecution,
+                                     ExecutorService executorService,
+                                     Closure closure)
+  {
+    def processing = { captureIO(commandExecution, closure) }
+    def futureExecution = new FutureTaskExecution(processing)
+    futureExecution.clock = clock
+    commandExecution.futureExecution = futureExecution
+    futureExecution.runAsync(executorService)
+  }
+
+  /**
+   * Should save the command in persistent state (as well as stdin if there is any)
+   * @return the command (eventually tweaked)
+   */
+  protected abstract CommandExecution saveCommandExecution(CommandExecution commandExecution,
+                                                           def stdin)
+
   /**
    * @return an input stream for the commandId as well as its size
    */
-  protected abstract def findInputStreamWithSize(String commandId, StreamType streamType)
+  protected abstract def findInputStreamWithSize(CommandExecution commandExecution,
+                                                 StreamType streamType)
 
   /**
    * Will be called back to capture the IO
-   * @return whatever the closure returns
+   * @return the exitValue of the command execution
    */
   protected abstract def captureIO(CommandExecution commandExecution, Closure closure)
 }

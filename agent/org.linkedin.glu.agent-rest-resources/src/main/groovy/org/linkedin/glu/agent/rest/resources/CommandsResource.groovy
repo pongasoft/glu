@@ -21,20 +21,14 @@ import org.restlet.Request
 import org.restlet.Response
 import org.restlet.representation.InputRepresentation
 import org.restlet.representation.Representation
-import org.linkedin.glu.agent.api.Shell
-import org.linkedin.groovy.util.lang.GroovyLangUtils
-import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
 
 /**
  * @author yan@pongasoft.com */
 public class CommandsResource extends BaseResource
 {
-  private final Shell _shell
-
   CommandsResource(Context context, Request request, Response response)
   {
     super(context, request, response);
-    _shell = context.attributes['shellForCommands'] as Shell
   }
 
   @Override
@@ -52,10 +46,9 @@ public class CommandsResource extends BaseResource
     noException {
       def args = toArgs(request.originalRef.queryAsForm)
 
-      def stdin = getCopyOfStdin(representation)
-
-      if(stdin)
-        args.stdin = stdin
+      // stdin will be copied right away in executeShellCommand
+      if(representation instanceof InputRepresentation)
+        args.stdin = representation.stream
 
       def res
 
@@ -66,47 +59,6 @@ public class CommandsResource extends BaseResource
       }
       else
         throw new UnsupportedOperationException("unknown command type [${args.toString()}]")
-    }
-  }
-
-  /**
-   * Due to the nature of HTTP, we need to first copy stdin locally because we need to return right
-   * away and use the local copy instead
-   *
-   * @return
-   */
-  private InputStream getCopyOfStdin(Representation representation)
-  {
-    if(representation instanceof InputRepresentation)
-    {
-      def copyOfStdin = _shell.tempFile()
-
-      String password = UUID.randomUUID().toString()
-
-      try
-      {
-        // we store an encrypted copy of stdin since it is on the file system
-        _shell.withOutputStream(copyOfStdin) { OutputStream os ->
-          GluGroovyIOUtils.withStreamToEncrypt(password, os) { OutputStream eos ->
-            eos << representation.stream
-          }
-        }
-
-        return GluGroovyIOUtils.decryptStream(password, copyOfStdin.inputStream)
-      }
-      finally
-      {
-        // implementation note: the temp file is deleted after getting an input stream out of it
-        // under Unix this is fine... the file will no longer be available on the filesystem
-        // but will still "exist" until the stream is read/closed
-        GroovyLangUtils.noException {
-          _shell.rm(copyOfStdin)
-        }
-      }
-    }
-    else
-    {
-      return null
     }
   }
 }

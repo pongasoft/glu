@@ -22,6 +22,7 @@ dependencies {
   compile project(':provisioner:org.linkedin.glu.provisioner-core')
   compile project(':agent:org.linkedin.glu.agent-rest-client')
   compile project(':agent:org.linkedin.glu.agent-tracker')
+  compile project(':commands:org.linkedin.glu.commands-impl')
   compile spec.external.linkedinZookeeperImpl
   compile spec.external.linkedinUtilsGroovy
   compile spec.external.grailsBootstrap

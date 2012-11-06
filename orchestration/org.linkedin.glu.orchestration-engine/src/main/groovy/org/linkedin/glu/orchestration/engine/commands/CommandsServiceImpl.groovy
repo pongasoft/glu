@@ -16,14 +16,13 @@
 
 package org.linkedin.glu.orchestration.engine.commands
 
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
+
 import org.apache.commons.io.input.TeeInputStream
-import org.apache.commons.io.output.TeeOutputStream
+
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
-import org.linkedin.glu.orchestration.engine.commands.CommandExecution.CommandType
+import org.linkedin.glu.orchestration.engine.commands.DbCommandExecution.CommandType
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.utils.io.DemultiplexedOutputStream
 import org.linkedin.glu.utils.io.LimitedOutputStream
@@ -32,15 +31,20 @@ import org.linkedin.util.annotations.Initializable
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
 import org.linkedin.util.clock.Timespan
-import org.linkedin.util.io.IOUtils
+
 import org.linkedin.util.lang.MemorySize
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.linkedin.glu.agent.rest.common.AgentRestUtils
-import org.linkedin.groovy.util.config.Config
 import java.util.concurrent.TimeoutException
-import org.linkedin.glu.groovy.utils.concurrent.GluGroovyConcurrentUtils
+
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.linkedin.glu.commands.impl.StreamType
+import org.linkedin.glu.commands.impl.CommandExecution
+import org.linkedin.glu.commands.impl.CommandExecutionIOStorage
+import org.linkedin.glu.commands.impl.CommandStreamStorage
+import org.linkedin.glu.commands.impl.GluCommandFactory
+import org.apache.tools.ant.util.TeeOutputStream
+import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 
 /**
  * @author yan@pongasoft.com  */
@@ -65,6 +69,15 @@ public class CommandsServiceImpl implements CommandsService
   @Initializable(required = true)
   CommandExecutionIOStorage commandExecutionIOStorage
 
+  /**
+   * This is somewhat hacky but cannot do it in spring due to circular reference...
+   */
+  void setCommandExecutionIOStorage(CommandExecutionIOStorage storage)
+  {
+    storage.gluCommandFactory = createGluCommand as GluCommandFactory
+    commandExecutionIOStorage = storage
+  }
+
   @Initializable
   AuthorizationService authorizationService
 
@@ -76,18 +89,68 @@ public class CommandsServiceImpl implements CommandsService
 
   /**
    * This timeout represents how long to we are willing to wait for the command to complete before
-   * returning. The commmand will still complete in the background... this allows "fast" commands
+   * returning. The command will still complete in the background... this allows "fast" commands
    * to be handled more naturally in the UI.
    */
   @Initializable
   Timespan defaultSynchronousWaitTimeout = Timespan.parse('1s')
 
   /**
+   * Helper class to manage stream capture
+   */
+  private class CommandExecutionStream
+  {
+    StreamType streamType
+    boolean captureStream
+    CommandStreamStorage storage
+    def streams
+
+    private ByteArrayOutputStream _firstBytesOutputStream
+    private LimitedOutputStream _limitedOutputStream
+    private OutputStream _stream
+
+    def capture(Closure c)
+    {
+      if(captureStream)
+      {
+        _firstBytesOutputStream =
+          new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
+        _limitedOutputStream =
+          new LimitedOutputStream(_firstBytesOutputStream, commandExecutionFirstBytesSize)
+
+        storage.withStorageOutput(streamType) { OutputStream stream ->
+
+          if(stream)
+            _stream = new TeeOutputStream(stream, _limitedOutputStream)
+          else
+            _stream = _limitedOutputStream
+
+          streams[streamType.multiplexName] = _stream
+
+          _stream.withStream { c(this) }
+        }
+      }
+      else
+        c(this)
+    }
+
+    byte[] getBytes()
+    {
+      _firstBytesOutputStream?.toByteArray()
+    }
+
+    Long getTotalNumberOfBytes()
+    {
+      _limitedOutputStream?.totalNumberOfBytes
+    }
+  }
+
+  /**
    * The commands that are currently executing  */
   private final Map<String, CommandExecution> _currentCommandExecutions = [:]
 
   @Override
-  Map<String, CommandExecution> findCurrentCommandExecutions(Collection<String> commandIds)
+  Map<String, DbCommandExecution> findCurrentCommandExecutions(Collection<String> commandIds)
   {
     synchronized(_currentCommandExecutions)
     {
@@ -96,9 +159,9 @@ public class CommandsServiceImpl implements CommandsService
   }
 
   @Override
-  CommandExecution findCommandExecution(Fabric fabric, String commandId)
+  DbCommandExecution findCommandExecution(Fabric fabric, String commandId)
   {
-    CommandExecution commandExecution
+    DbCommandExecution commandExecution
 
     synchronized(_currentCommandExecutions)
     {
@@ -121,7 +184,7 @@ public class CommandsServiceImpl implements CommandsService
     synchronized(_currentCommandExecutions)
     {
       // replace db by current running
-      map.commandExecutions = map.commandExecutions?.collect { CommandExecution ce ->
+      map.commandExecutions = map.commandExecutions?.collect { DbCommandExecution ce ->
         def current = _currentCommandExecutions[ce.commandId]
         if(current)
           return current
@@ -136,62 +199,178 @@ public class CommandsServiceImpl implements CommandsService
   @Override
   String executeShellCommand(Fabric fabric, String agentName, args)
   {
-    CountDownLatch commandStarted = new CountDownLatch(1)
-
-    String commandId = null
-
-    def onCommandStarted = { CommandExecution ce ->
-      commandId = ce.commandId
-
-      // the command has been started and the id set
-      commandStarted.countDown()
+    CommandExecution command = doExecuteShellCommand(fabric, agentName, args) { res ->
+      // we do not care about the stream in this version, it will be properly stored in storage
+      NullOutputStream.INSTANCE << res.stream
     }
-
-    def onResultStreamAvailable = { res ->
-      // we can now consume the entire result (we disregard the output as it is already
-      // being saved locally
-      res.stream.withStream { InputStream is ->
-        IOUtils.copy(is, NullOutputStream.INSTANCE)
-      }
-    }
-
-    String username = authorizationService.executingPrincipal
-
-    def commandExecutor = {->
-      try
-      {
-        doExecuteShellCommand(fabric,
-                              agentName,
-                              username,
-                              args,
-                              onCommandStarted,
-                              onResultStreamAvailable)
-      }
-      finally
-      {
-        // if an exception is thrown before "onCommandStarted" is executed,
-        // then we could block indefinitely!
-        commandStarted.countDown()
-      }
-    }
-
-    // we execute the command in a separate thread
-    def future = executorService.submit(GluGroovyConcurrentUtils.asCallable(commandExecutor))
 
     try
     {
-      future.get(defaultSynchronousWaitTimeout.getDurationInMilliseconds(),
-                 TimeUnit.MILLISECONDS)
+      // we are willing to wait a little bit for the command to complete before returning
+      command.getExitValue(defaultSynchronousWaitTimeout)
     }
     catch (TimeoutException e)
     {
       // it is ok... we did not get any result during this amount of time
     }
 
-    // we wait for the command to be started...
-    commandStarted.await()
+    return command.id
+  }
 
-    return commandId
+  /**
+   * Executes the command asynchronously
+   */
+  CommandExecution doExecuteShellCommand(Fabric fabric,
+                                         String agentName,
+                                         args,
+                                         Closure onResultStreamAvailable)
+  {
+    args = GluGroovyCollectionUtils.subMap(args, ['command', 'redirectStderr', 'stdin'])
+
+    // it is a shell command
+    args.type = 'shell'
+
+    // set the various parameters for the call
+    args.startTime = clock.currentTimeMillis()
+    args.fabric = fabric.name
+    args.agent = agentName
+    args.username = authorizationService.executingPrincipal
+
+    // prepare the storage for the command execution (this should make a copy of stdin if
+    // there is one)
+    CommandExecution command = commandExecutionIOStorage.createStorageForCommandExecution(args)
+
+    // define what will do asynchronously
+    def asyncProcessing = { CommandStreamStorage storage ->
+
+      def agentArgs = [*:command.args]
+
+      // we execute the command on the proper agent (this is an asynchronous call which return
+      // right away)
+      storage.withStorageInput(StreamType.STDIN) { stdin ->
+        if(stdin)
+          agentArgs.stdin = stdin
+
+        agentsService.executeShellCommand(fabric, agentName, agentArgs)
+      }
+
+      def streamResultArgs = [
+        id: command.id,
+        exitValueStream: true,
+        exitValueStreamTimeout: 0, // we block until the command completes
+        stdoutStream: true,
+        username: args.username
+      ]
+
+      if(!command.redirectStderr)
+        streamResultArgs.stderrStream = true
+
+      // this is a blocking call
+      agentsService.streamCommandResults(fabric, agentName, streamResultArgs) { res ->
+
+        def streams = [:]
+
+        // stdout
+        new CommandExecutionStream(streamType: StreamType.STDOUT,
+                                   captureStream: true,
+                                   storage: storage,
+                                   streams: streams).capture { stdout ->
+
+          // stderr
+          new CommandExecutionStream(streamType: StreamType.STDERR,
+                                     captureStream: !command.redirectStderr,
+                                     storage: storage,
+                                     streams: streams).capture { stderr ->
+
+            // exitValue
+            ByteArrayOutputStream exitValueStream = new ByteArrayOutputStream()
+            streams[StreamType.EXIT_VALUE.multiplexName] = exitValueStream
+
+            // this will demultiplex the result
+            DemultiplexedOutputStream dos = new DemultiplexedOutputStream(streams)
+
+            dos.withStream { OutputStream os ->
+              onResultStreamAvailable(id: command.id, stream: new TeeInputStream(res.stream, os))
+            }
+
+            // we now update the storage with the various results
+            def exitValue = commandExecutionStorage.endExecution(command.id,
+                                                                 clock.currentTimeMillis(),
+                                                                 stdout.bytes,
+                                                                 stdout.totalNumberOfBytes,
+                                                                 stderr.bytes,
+                                                                 stderr.totalNumberOfBytes,
+                                                                 toString(exitValueStream)).exitValue
+
+            return exitValue
+          }
+        }
+      }
+    }
+
+    // what to do when the command ends
+    def endCommandExecution = {
+      synchronized(_currentCommandExecutions)
+      {
+        command.command.isExecuting = false
+        _currentCommandExecutions.remove(command.id)
+      }
+    }
+
+    synchronized(_currentCommandExecutions)
+    {
+      command.command.isExecuting = true
+      _currentCommandExecutions[command.id] = command
+      try
+      {
+        def future = command.asyncCaptureIO(executorService, asyncProcessing)
+        future.onCompletionCallback = endCommandExecution
+      }
+      catch(Throwable th)
+      {
+        // this is to avoid the case when the command is added to the map but we cannot
+        // run the asynchronous execution which will remove it from the map when complete
+        endCommandExecution()
+        throw th
+      }
+    }
+
+    return command
+  }
+
+  /**
+   * Factory to create a command (first try to read it from the db or store it first in the db)
+   */
+  def createGluCommand = { String commandId, def args ->
+
+    def ce = commandExecutionStorage.findCommandExecution(args.fabric, args.id)
+
+    if(!ce)
+    {
+      ByteArrayOutputStream stdinFirstBytes = null
+
+      def stdinSize =
+        commandExecutionIOStorage.withStreamAndSize(commandId,
+                                                    StreamType.STDIN,
+                                                    [ len: commandExecutionFirstBytesSize.sizeInBytes ]) { m ->
+          stdinFirstBytes = new ByteArrayOutputStream()
+          stdinFirstBytes << m.stream
+          return m.size
+        }
+
+      ce = commandExecutionStorage.startExecution(args.fabric,
+                                                  args.agent,
+                                                  args.username,
+                                                  args.command,
+                                                  args.redirectStderr,
+                                                  stdinFirstBytes?.toByteArray(),
+                                                  stdinSize,
+                                                  commandId,
+                                                  CommandType.SHELL,
+                                                  args.startTime)
+    }
+
+    return ce
   }
 
   @Override
@@ -199,232 +378,25 @@ public class CommandsServiceImpl implements CommandsService
   {
     doExecuteShellCommand(fabric,
                           agentName,
-                          authorizationService.executingPrincipal,
                           args,
-                          null,
                           commandResultProcessor)
   }
 
   @Override
-  void writeStream(Fabric fabric,
-                   String commandId,
-                   StreamType streamType,
-                   Closure closure)
+  def withCommandExecutionAndWithOrWithoutStreams(Fabric fabric,
+                                                  String commandId,
+                                                  def args,
+                                                  Closure closure)
   {
     def commandExecution = commandExecutionStorage.findCommandExecution(fabric.name, commandId)
 
     if(commandExecution?.fabric != fabric.name)
       throw new NoSuchCommandExecutionException(commandId)
 
-
-    switch(streamType)
-    {
-      case StreamType.STDIN:
-        commandExecutionIOStorage.withStdinInputStream(commandExecution) { stream, size ->
-          doWriteStream(stream,
-                        commandExecution,
-                        commandExecution.stdinTotalBytesCount ?: -1,
-                        closure) { is, os ->
-            os << is
-          }
-        }
-        break
-
-      case StreamType.STDOUT:
-        commandExecutionIOStorage.withResultInputStream(commandExecution) { stream, size ->
-          doWriteStream(stream,
-                        commandExecution,
-                        commandExecution.stdoutTotalBytesCount ?: -1,
-                        closure) { is, os ->
-            AgentRestUtils.demultiplexExecStream(is, os, NullOutputStream.INSTANCE)
-          }
-        }
-        break
-
-      case StreamType.STDERR:
-        commandExecutionIOStorage.withResultInputStream(commandExecution) { stream, size ->
-          doWriteStream(stream,
-                        commandExecution,
-                        commandExecution.stderrTotalBytesCount ?: -1,
-                        closure) { is, os ->
-            AgentRestUtils.demultiplexExecStream(is, NullOutputStream.INSTANCE, os)
-          }
-        }
-        break
-
-      case StreamType.MULTIPLEXED:
-        commandExecutionIOStorage.withResultInputStream(commandExecution) { stream, size ->
-          doWriteStream(stream,
-                        commandExecution,
-                        size ?: 0,
-                        closure) { is, os ->
-            os << is
-          }
-        }
-        break
-
-      default:
-        throw new RuntimeException("not reached")
-    }
-  }
-
-  private void doWriteStream(InputStream inputStream,
-                             CommandExecution commandExecution,
-                             long contentSize,
-                             Closure outputProvider,
-                             Closure outputWriter)
-  {
-    OutputStream out = outputProvider(commandExecution, inputStream == null ? 0 : contentSize)
-    if(inputStream && out)
-    {
-      if(contentSize != -1)
-        out = new LimitedOutputStream(out, contentSize)
-      
-      new BufferedOutputStream(out).withStream { stream ->
-        outputWriter(inputStream, stream)
-      }
-    }
-  }
-
-  /**
-   * This method can be called from a thread where there is no more executing principal...
-   * hence the username argument
-   */
-  private def doExecuteShellCommand(Fabric fabric,
-                                    String agentName,
-                                    String username,
-                                    args,
-                                    Closure onCommandStarted,
-                                    Closure onResultStreamAvailable)
-  {
-    long startTime = clock.currentTimeMillis()
-
-    commandExecutionIOStorage.captureIO { StreamStorage storage ->
-
-      // stdin
-      ByteArrayOutputStream stdinFirstBytes = null
-      LimitedOutputStream stdinLimited = null
-
-      if(args.stdin)
-      {
-        stdinFirstBytes =
-          new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
-        stdinLimited =
-          new LimitedOutputStream(stdinFirstBytes, commandExecutionFirstBytesSize)
-
-        // in parallel, write stdin to IO storage
-        def stream = storage.findStdinStorage()
-        if(stream)
-          stream = new TeeOutputStream(stdinLimited, new BufferedOutputStream(stream))
-        else
-          stream = stdinLimited
-
-        args.stdin = new TeeInputStream(args.stdin, stream, true)
-      }
-
-      String commandId = agentsService.executeShellCommand(fabric, agentName, args).id
-
-      boolean redirectStderr = Config.getOptionalBoolean(args, 'redirectStderr', false)
-
-      // first we store the command in the storage
-      def commandExecution = commandExecutionStorage.startExecution(fabric.name,
-                                                                    agentName,
-                                                                    username,
-                                                                    args.command,
-                                                                    redirectStderr,
-                                                                    commandId,
-                                                                    CommandType.SHELL,
-                                                                    startTime)
-
-      synchronized(_currentCommandExecutions)
-      {
-        commandExecution.isExecuting = true
-        _currentCommandExecutions[commandId] = commandExecution
-      }
-
-      try
-      {
-
-        if(onCommandStarted)
-          onCommandStarted(commandExecution)
-
-        // now command execution is known... set it in the storage
-        storage.commandExecution = commandExecution
-
-
-        args = [
-                id: commandId,
-                exitValueStream: true,
-                exitValueStreamTimeout: 0,
-                stdoutStream: true,
-        ]
-
-        if(!redirectStderr)
-          args.stderrStream = true
-
-        agentsService.streamCommandResults(fabric, agentName, args) { res ->
-          // stdout
-          ByteArrayOutputStream stdoutFirstBytes =
-            new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
-          LimitedOutputStream stdoutLimited =
-            new LimitedOutputStream(stdoutFirstBytes, commandExecutionFirstBytesSize)
-
-          // stderr
-          ByteArrayOutputStream stderrFirstBytes =
-            new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
-          LimitedOutputStream stderrLimited =
-            new LimitedOutputStream(stderrFirstBytes, commandExecutionFirstBytesSize)
-
-          // exitValue
-          ByteArrayOutputStream exitValueStream = new ByteArrayOutputStream()
-
-          def streams = [
-                  "O": stdoutLimited, // no more than 255 bytes
-                  "E": stderrLimited, // no more than 255 bytes
-                  "V": exitValueStream
-          ]
-
-          // this will demultiplex the result
-          DemultiplexedOutputStream dos = new DemultiplexedOutputStream(streams)
-
-          // we can now consume the entire result while making sure we save it as well
-          def stream = storage.findResultStreamStorage()
-          if(stream)
-            stream = new TeeOutputStream(dos, new BufferedOutputStream(stream))
-          else
-            stream = dos
-
-          def closureResult = stream.withStream { OutputStream os ->
-            onResultStreamAvailable(id: commandId, stream: new TeeInputStream(res.stream, os))
-          }
-
-          // we now update the storage with the various results
-          def execution = commandExecutionStorage.endExecution(commandId,
-                                                               clock.currentTimeMillis(),
-                                                               stdinFirstBytes?.toByteArray(),
-                                                               stdinLimited?.totalNumberOfBytes,
-                                                               stdoutFirstBytes?.toByteArray(),
-                                                               stdoutLimited?.totalNumberOfBytes,
-                                                               stderrFirstBytes?.toByteArray(),
-                                                               stderrLimited?.totalNumberOfBytes,
-                                                               toString(exitValueStream))
-          synchronized(_currentCommandExecutions)
-          {
-            execution.isExecuting = false
-            _currentCommandExecutions[commandId] = execution
-          }
-
-          return closureResult
-        }
-      }
-      finally
-      {
-        synchronized(_currentCommandExecutions)
-        {
-          commandExecution.isExecuting = false
-          _currentCommandExecutions.remove(commandId)
-        }
-      }
+    commandExecutionIOStorage.withOrWithoutCommandExecutionAndStreams(commandId, args) { m ->
+      if(!m)
+        throw new NoSuchCommandExecutionException(commandId)
+      closure(m)
     }
   }
 

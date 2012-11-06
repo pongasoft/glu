@@ -294,6 +294,8 @@ private class ShellExec
         return stderrAsBytes
 
       case 'exitValue':
+      case "stdoutStream":
+      case "stderrStream":
       case 'stream':
         return exitValue
 

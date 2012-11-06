@@ -20,7 +20,13 @@ package org.linkedin.glu.commands.impl
  * @author yan@pongasoft.com */
 public interface CommandStreamStorage
 {
-  OutputStream findStdinStorage()
-  OutputStream findStdoutStorage()
-  OutputStream findStderrStorage()
+  OutputStream findStorageOutput(StreamType streamType)
+  def withStorageOutput(StreamType streamType, Closure c)
+  InputStream findStorageInput(StreamType streamType)
+  def withStorageInput(StreamType streamType, Closure c)
+
+  /**
+   * @return map with <code>stream</code> and <code>size</code> or <code>null</code>
+   */
+  def findStorageInputWithSize(StreamType streamType)
 }

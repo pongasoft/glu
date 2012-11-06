@@ -16,32 +16,32 @@
 
 package org.linkedin.glu.orchestration.engine.commands
 
-import org.linkedin.glu.orchestration.engine.commands.CommandExecution.CommandType
+import org.linkedin.glu.orchestration.engine.commands.DbCommandExecution.CommandType
 
 /**
  * @author yan@pongasoft.com */
 public interface CommandExecutionStorage
 {
-  CommandExecution startExecution(String fabric,
-                                  String agent,
-                                  String username,
-                                  String command,
-                                  boolean redirectStderr,
-                                  String commandId,
-                                  CommandType commandType,
-                                  long startTime)
+  DbCommandExecution startExecution(String fabric,
+                                    String agent,
+                                    String username,
+                                    String command,
+                                    boolean redirectStderr,
+                                    byte[] stdinFirstBytes,
+                                    Long stdinTotalBytesCount,
+                                    String commandId,
+                                    CommandType commandType,
+                                    long startTime)
 
-  CommandExecution endExecution(String commandId,
-                                long endTime,
-                                byte[] stdinFirstBtes,
-                                Long stdinTotalBytesCount,
-                                byte[] stdoutFirstBytes,
-                                Long stdoutTotalBytesCount,
-                                byte[] stderrFirstBytes,
-                                Long stderrTotalBytesCount,
-                                String exitValue)
+  DbCommandExecution endExecution(String commandId,
+                                  long endTime,
+                                  byte[] stdoutFirstBytes,
+                                  Long stdoutTotalBytesCount,
+                                  byte[] stderrFirstBytes,
+                                  Long stderrTotalBytesCount,
+                                  String exitValue)
 
-  CommandExecution findCommandExecution(String fabric, String commandId)
+  DbCommandExecution findCommandExecution(String fabric, String commandId)
 
   Map findCommandExecutions(String fabric, String agent, def params)
 }

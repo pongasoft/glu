@@ -17,10 +17,11 @@
 package org.linkedin.glu.console.controllers
 
 import org.linkedin.glu.orchestration.engine.commands.CommandsService
-import org.linkedin.glu.orchestration.engine.commands.CommandExecution
+
 import org.linkedin.glu.orchestration.engine.commands.NoSuchCommandExecutionException
 import javax.servlet.http.HttpServletResponse
-import org.linkedin.glu.orchestration.engine.commands.StreamType
+
+import org.linkedin.glu.utils.core.Sizeable
 
 /**
  * @author yan@pongasoft.com */
@@ -36,33 +37,10 @@ public class CommandsController extends ControllerBase
   }
 
   /**
-   * Render the stream for the given command
+   * Render the stream(s) for the given command
    */
-  def stream = {
-    StreamType streamType = StreamType.valueOf(params.streamType?.toString()?.toUpperCase())
-
-    try
-    {
-      commandsService.writeStream(request.fabric,
-                                  params.id,
-                                  streamType) { CommandExecution ce, long contentLength ->
-        response.addHeader('X-glu-command-id', ce.commandId)
-        if(contentLength != 0)
-        {
-          response.contentType = "text/plain"
-          if(contentLength != -1)
-            response.contentLength = contentLength
-          return response.outputStream
-        }
-        else
-          return null
-      }
-      null
-    }
-    catch (NoSuchCommandExecutionException e)
-    {
-      render '<not found>'
-    }
+  def streams = {
+    rest_show_command_execution_streams()
   }
 
   /**
@@ -93,21 +71,23 @@ public class CommandsController extends ControllerBase
    *
    * curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/command/2d044e0b-a1f5-4cbd-9210-cf42c77f6e94/stdout"
    */
-  def rest_show_command_execution_stream = {
-    StreamType streamType = StreamType.valueOf(params.streamType?.toString()?.toUpperCase())
-
+  def rest_show_command_execution_streams = {
     try
     {
-      commandsService.writeStream(request.fabric,
-                                  params.id,
-                                  streamType) { CommandExecution ce, long contentLength ->
-        response.addHeader('X-glu-command-id', ce.commandId)
-        if(contentLength != 0)
+      commandsService.withCommandExecutionAndWithOrWithoutStreams(request.fabric,
+                                                                  params.id,
+                                                                  params) { args ->
+        response.addHeader('X-glu-command-id', params.id)
+        if(args.stream)
         {
           response.contentType = "application/octet-stream"
+          def contentLength = -1
+          if(args.stream instanceof Sizeable)
+            contentLength = args.stream.size
           if(contentLength != -1)
             response.contentLength = contentLength
-          return response.outputStream
+
+          response.outputStream << args.stream
         }
         else
         {

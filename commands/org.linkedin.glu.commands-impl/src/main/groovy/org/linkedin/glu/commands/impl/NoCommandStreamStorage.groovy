@@ -18,18 +18,23 @@ package org.linkedin.glu.commands.impl
 
 /**
  * @author yan@pongasoft.com */
-public enum StreamType
+public class NoCommandStreamStorage extends AbstractCommandStreamStorage
 {
-  STDIN("I"),
-  STDOUT("O"),
-  STDERR("E"),
-  EXIT_VALUE("V"),
-  MULTIPLEXED(null);
-
-  String multiplexName;
-
-  private StreamType(String multiplexName)
+  @Override
+  OutputStream findStorageOutput(StreamType streamType)
   {
-    this.multiplexName = multiplexName
+    return null
+  }
+
+  @Override
+  InputStream findStorageInput(StreamType streamType)
+  {
+    return null
+  }
+
+  @Override
+  def findStorageInputWithSize(StreamType streamType)
+  {
+    return null
   }
 }

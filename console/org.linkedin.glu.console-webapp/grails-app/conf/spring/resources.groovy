@@ -18,7 +18,7 @@
 import org.springframework.cache.ehcache.EhCacheFactoryBean
 import org.linkedin.util.clock.Timespan
 import java.util.concurrent.Executors
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+
 import grails.util.Environment
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.glu.grails.utils.ConsoleConfig
@@ -27,7 +27,7 @@ import org.linkedin.util.reflect.ObjectProxyBuilder
 import org.linkedin.glu.utils.core.DisabledFeatureProxy
 import org.linkedin.glu.orchestration.engine.commands.CommandsService
 import org.linkedin.glu.orchestration.engine.commands.CommandExecutionStorageImpl
-import org.linkedin.glu.orchestration.engine.commands.FileSystemCommandExecutionIOStorage
+import org.linkedin.glu.commands.impl.FileSystemCommandExecutionIOStorage
 
 // Place your Spring DSL code here
 beans = {
@@ -56,7 +56,6 @@ beans = {
       bean.destroyMethod = "shutdown"
     }
   }
-
 
   /**
    * CommandsService

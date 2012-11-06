@@ -27,14 +27,12 @@ import java.util.concurrent.Executors
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.agent.api.NoSuchCommandException
 import org.linkedin.glu.agent.api.AgentException
-import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
-import org.apache.commons.io.input.TeeInputStream
 import java.util.concurrent.TimeoutException
-import org.linkedin.groovy.util.config.Config
 import org.linkedin.glu.commands.impl.CommandStreamStorage
 import org.linkedin.glu.commands.impl.CommandExecutionIOStorage
 import org.linkedin.glu.commands.impl.CommandExecution
 import org.linkedin.glu.commands.impl.GluCommandFactory
+import org.linkedin.glu.commands.impl.StreamType
 
 /**
  * @author yan@pongasoft.com */
@@ -59,72 +57,70 @@ public class CommandManagerImpl implements CommandManager
     storage.gluCommandFactory = createGluCommand as GluCommandFactory
     this.storage = storage
   }
-/**
+
+  /**
    * {@inheritdoc}
    */
   @Override
   CommandExecution executeShellCommand(def args)
   {
-    args = GluGroovyCollectionUtils.subMap(args, ['command', 'redirectStderr', 'stdin'])
+    args = GluGroovyCollectionUtils.subMap(args, ['id', 'command', 'redirectStderr', 'stdin'])
 
     args.type = 'shell'
 
     CommandExecution command = storage.createStorageForCommandExecution(args)
 
-    def asyncProcessing = {
-      command.captureIO { CommandStreamStorage storage ->
-        if(args.stdin)
-        {
-          // in parallel, write stdin to IO storage
-          def stream = storage.findStdinStorage()
-          if(stream)
-            args.stdin = new TeeInputStream(args.stdin, stream, true)
-        }
+    def asyncProcessing = { CommandStreamStorage storage ->
+
+      def actionArgs = [*:command.args]
+
+      // handle stdin...
+      storage.withStorageInput(StreamType.STDIN) { stdin ->
+        if(stdin)
+          actionArgs.stdin = stdin
 
         // handle stdout...
-        def stdout = storage.findStdoutStorage()
-        if(stdout)
-          args.stdout = stdout
+        storage.withStorageOutput(StreamType.STDOUT) { stdout ->
+          if(stdout)
+            actionArgs.stdout = stdout
 
-        // handle stderr...
-        if(!Config.getOptionalBoolean(args, 'redirectStderr', false))
-        {
-          def stderr = storage.findStderrStorage()
-          if(stderr)
-            args.stderr = stderr
+          // handle stderr
+          storage.withStorageOutput(StreamType.STDERR) { stderr ->
+            if(stderr)
+              actionArgs.stderr = stderr
+
+            // finally run the command
+            def callExecution = new CallExecution(action: 'run',
+                                                  actionArgs: actionArgs,
+                                                  clock: agentContext.clock,
+                                                  source: [invocable: command.command])
+            callExecution.runSync()
+          }
         }
-
-        // finally run the command
-        def callExecution = new CallExecution(action: 'run',
-                                              actionArgs: args,
-                                              clock: agentContext.clock,
-                                              source: command)
-        callExecution.runSync()
       }
     }
 
-    def futureExecution = new FutureTaskExecution(asyncProcessing)
-    futureExecution.clock = agentContext.clock
-    futureExecution.onCompletionCallback = {
+    // what to do when the command ends
+    def endExecution = {
       synchronized(_commands)
       {
         _commands.remove(command.id)
       }
     }
-    command.futureExecution = futureExecution
 
     synchronized(_commands)
     {
       _commands[command.id] = command
       try
       {
-        command.runAsync(executorService)
+        def future = command.asyncCaptureIO(executorService, asyncProcessing)
+        future.onCompletionCallback = endExecution
       }
       catch(Throwable th)
       {
         // this is to avoid the case when the command is added to the map but we cannot
         // run the asynchronous execution which will remove it from the map when complete
-        _commands.remove(command.id)
+        endExecution()
         throw th
       }
       command.log.info("execute(${GluGroovyCollectionUtils.xorMap(args, ['stdin'])}${args.stdin ? ', stdin:<...>': ''})")
@@ -229,7 +225,7 @@ public class CommandManagerImpl implements CommandManager
             getId: { commandId },
             getShell: { agentContext.shellForCommands },
             getLog: { log },
-            getSelf: { findCommand(commandId) },
+            getSelf: { findCommand(commandId).command },
     ])
 
     return agentContext.mop.wrapScript(script: shellCommand,

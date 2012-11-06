@@ -241,7 +241,7 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
   }
 
   @Override
-  def streamCommandResults(Fabric fabric, String agentName, Object args, Closure commandResultProcessor)
+  def streamCommandResults(Fabric fabric, String agentName, def args, Closure commandResultProcessor)
   {
     withRemoteAgent(fabric, agentName) { Agent agent ->
       commandResultProcessor(agent.streamCommandResults(args))

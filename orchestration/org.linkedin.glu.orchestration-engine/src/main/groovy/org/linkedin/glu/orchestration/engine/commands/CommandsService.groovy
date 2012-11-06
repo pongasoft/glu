@@ -18,14 +18,6 @@ package org.linkedin.glu.orchestration.engine.commands
 
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 
-enum StreamType
-{
-  STDIN,
-  STDOUT,
-  STDERR,
-  MULTIPLEXED // the multiplexed stream
-}
-
 /**
  * @author yan@pongasoft.com */
 public interface CommandsService
@@ -41,29 +33,30 @@ public interface CommandsService
 
   /**
    * Executes the shell command. Note that this is a blocking call and the
-   * <code>commandResultProcessor</code> will be called with a map (<code>id</code>,
+   * <code>commandResultProcessor</code> will be called with a map (<code>command</code>,
    * <code>stream</code>). The <code>stream</code> should be properly read and closed!
    *
-   * @return whatever <code>commandResultProcessor</code> returns
+   * @return the exit value of the shell command
    */
   def executeShellCommand(Fabric fabric, String agentName, args, Closure commandResultProcessor)
 
   /**
-   * Writes the stream requested to the provided output stream
-   *
-   * @param closure will be called back with a <code>CommandExecution</code> and the content size
-   *                of the stream requested (may be 0) and may return
-   *                the output stream to write to (if <code>null</code> then it will not write it)
+   * @param closure will be called back with a map with <code>commandExecution</code>
+   *        and <code>stream</code> (if any)
+   * @throws NoSuchCommandExecutionException if there is no such command
    */
-  void writeStream(Fabric fabric, String commandId, StreamType streamType, Closure closure)
+  def withCommandExecutionAndWithOrWithoutStreams(Fabric fabric,
+                                                  String commandId,
+                                                  def args,
+                                                  Closure closure)
     throws NoSuchCommandExecutionException
 
   /**
    * @return a map with all currently running commands
    */
-  Map<String, CommandExecution> findCurrentCommandExecutions(Collection<String> commandIds)
+  Map<String, DbCommandExecution> findCurrentCommandExecutions(Collection<String> commandIds)
 
-  CommandExecution findCommandExecution(Fabric fabric, String commandId)
+  DbCommandExecution findCommandExecution(Fabric fabric, String commandId)
 
   Map findCommandExecutions(Fabric fabric, String agentName, def params)
 }

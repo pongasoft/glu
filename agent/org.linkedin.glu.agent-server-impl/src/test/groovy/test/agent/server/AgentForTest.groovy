@@ -124,7 +124,7 @@ glu.agent.truststorePassword=nacEn92x8-1
   @Override
   void destroy()
   {
-    GluGroovyLangUtils.noException(shutdownSequence.reverse())
+    GluGroovyLangUtils.onlyOneException(shutdownSequence.reverse())
   }
 
   def saveProperties(String higherPriorityProperties, String lowerPriorityProperties)

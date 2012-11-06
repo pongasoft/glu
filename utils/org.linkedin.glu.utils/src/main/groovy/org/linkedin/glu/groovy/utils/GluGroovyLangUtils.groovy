@@ -17,6 +17,7 @@
 package org.linkedin.glu.groovy.utils
 
 import org.linkedin.groovy.util.lang.GroovyLangUtils
+import org.linkedin.glu.utils.exceptions.MultipleExceptions
 
 /**
  * @author yan@pongasoft.com */
@@ -65,6 +66,37 @@ public class GluGroovyLangUtils extends GroovyLangUtils
       }
       return res
     }
+  }
+
+  /**
+   * Throw only 1 exception (at most) even if there are multiple.
+   */
+  static def onlyOneException(Collection<Closure> closures)
+  {
+    def res = null
+    Collection<Throwable> exceptions = []
+
+    noException {
+      closures?.each { c ->
+        if(c)
+        {
+          try
+          {
+            res = c()
+          }
+          catch(Throwable th)
+          {
+            exceptions << th
+          }
+        }
+        else
+          res = null
+      }
+    }
+
+    MultipleExceptions.throwIfExceptions(exceptions)
+
+    return res
   }
 
   /**

@@ -264,7 +264,7 @@ class AgentRestClient implements Agent
   @Override
   def executeShellCommand(def args)
   {
-    args = GluGroovyCollectionUtils.subMap(args, ['command', 'redirectStderr', 'stdin'])
+    args = GluGroovyCollectionUtils.subMap(args, ['id', 'command', 'redirectStderr', 'stdin'])
 
     def ref = _references.commands.targetRef
 

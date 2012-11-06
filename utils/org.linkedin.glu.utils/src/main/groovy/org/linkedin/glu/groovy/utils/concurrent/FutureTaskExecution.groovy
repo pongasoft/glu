@@ -45,7 +45,7 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
 
   /**
    * when the execution completes */
-  synchronized long completionTime = 0L
+  private long _completionTime = 0L
 
   /**
    * The clock
@@ -66,7 +66,12 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
   /**
    * Callback to be called once the future ends
    */
-  Closure onCompletionCallback
+  volatile Closure _onCompletionCallback
+
+  /**
+   * set when the completion callback has been called
+   */
+  private boolean _onCompletionCallbackCalled = false
 
   /**
    * In this case, the {@link #execute} method will be called
@@ -115,6 +120,61 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
     _id = id
   }
 
+  /**
+   * This method ensures that the completion callback is called even if the command has already run
+   * and is completed!
+   */
+  void setOnCompletionCallback(Closure onCompletionCallback)
+  {
+    def callback = null
+
+    synchronized(this)
+    {
+      if(_onCompletionCallback != null)
+        throw new IllegalStateException("already set")
+      _onCompletionCallback = onCompletionCallback
+      if(_completionTime > 0)
+      {
+        callback = _onCompletionCallback
+        _onCompletionCallbackCalled = true
+      }
+    }
+
+    // we make sure to call the callback *outside* the synchronized section!
+    if(callback)
+      callback()
+  }
+
+  Closure getOnCompletionCallback()
+  {
+    return _onCompletionCallback
+  }
+
+  synchronized long getCompletionTime()
+  {
+    return _completionTime
+  }
+
+  void setCompletionTime(long completionTime)
+  {
+    def callback = null
+
+    synchronized(this)
+    {
+      _completionTime = completionTime
+
+      if(!_onCompletionCallbackCalled)
+      {
+        callback = _onCompletionCallback
+        _onCompletionCallbackCalled = true
+      }
+    }
+
+    // we make sure to call the callback *outside* the synchronized section!
+    if(callback)
+      callback()
+  }
+
   void run()
   {
     _future.run()
@@ -139,30 +199,22 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
   @Override
   final T call()
   {
+    startTime = clock.currentTimeMillis()
+
     try
     {
-      startTime = clock.currentTimeMillis()
+      def res
 
-      try
-      {
-        def res
+      if(_callable != null)
+        res = _callable.call()
+      else
+        res = execute()
 
-        if(_callable != null)
-          res = _callable.call()
-        else
-          res = execute()
-
-        return res
-      }
-      finally
-      {
-        completionTime = clock.currentTimeMillis()
-      }
+      return res
     }
     finally
     {
-      if(onCompletionCallback)
-        onCompletionCallback()
+      setCompletionTime(clock.currentTimeMillis())
     }
   }
 

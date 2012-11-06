@@ -16,7 +16,7 @@
 
 package org.linkedin.glu.orchestration.engine.commands
 
-import org.linkedin.glu.orchestration.engine.commands.CommandExecution.CommandType
+import org.linkedin.glu.orchestration.engine.commands.DbCommandExecution.CommandType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.util.annotations.Initializable
@@ -33,24 +33,28 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
   int maxResults = 25
 
   @Override
-  CommandExecution startExecution(String fabric,
-                                  String agent,
-                                  String username,
-                                  String command,
-                                  boolean redirectStderr,
-                                  String commandId,
-                                  CommandType commandType,
-                                  long startTime)
+  DbCommandExecution startExecution(String fabric,
+                                    String agent,
+                                    String username,
+                                    String command,
+                                    boolean redirectStderr,
+                                    byte[] stdinFirstBytes,
+                                    Long stdinTotalBytesCount,
+                                    String commandId,
+                                    CommandType commandType,
+                                    long startTime)
   {
-    CommandExecution.withTransaction {
-      CommandExecution res = new CommandExecution(fabric: fabric,
-                                                  agent: agent,
-                                                  username: username,
-                                                  command: command,
-                                                  redirectStderr: redirectStderr,
-                                                  commandId: commandId,
-                                                  commandType: commandType,
-                                                  startTime: startTime)
+    DbCommandExecution.withTransaction {
+      DbCommandExecution res = new DbCommandExecution(fabric: fabric,
+                                                      agent: agent,
+                                                      username: username,
+                                                      command: command,
+                                                      redirectStderr: redirectStderr,
+                                                      stdinFirstBytes: stdinFirstBytes,
+                                                      stdinTotalBytesCount: stdinTotalBytesCount,
+                                                      commandId: commandId,
+                                                      commandType: commandType,
+                                                      startTime: startTime)
 
       if(!res.save())
         throw new Exception("cannot save command execution ${commandId}: ${res.errors}")
@@ -60,18 +64,16 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
   }
 
   @Override
-  CommandExecution endExecution(String commandId,
-                                long endTime,
-                                byte[] stdinFirstBtes,
-                                Long stdinTotalBytesCount,
-                                byte[] stdoutFirstBytes,
-                                Long stdoutTotalBytesCount,
-                                byte[] stderrFirstBytes,
-                                Long stderrTotalBytesCount,
-                                String exitValue)
+  DbCommandExecution endExecution(String commandId,
+                                  long endTime,
+                                  byte[] stdoutFirstBytes,
+                                  Long stdoutTotalBytesCount,
+                                  byte[] stderrFirstBytes,
+                                  Long stderrTotalBytesCount,
+                                  String exitValue)
   {
-    CommandExecution.withTransaction {
-      CommandExecution execution = CommandExecution.findByCommandId(commandId)
+    DbCommandExecution.withTransaction {
+      DbCommandExecution execution = DbCommandExecution.findByCommandId(commandId)
       if(!execution)
       {
         log.warn("could not find command execution ${commandId}")
@@ -79,8 +81,6 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
       else
       {
         execution.endTime = endTime
-        execution.stdinFirstBytes = stdinFirstBtes
-        execution.stdinTotalBytesCount = stdinTotalBytesCount
         execution.stdoutFirstBytes = stdoutFirstBytes
         execution.stdoutTotalBytesCount = stdoutTotalBytesCount
         execution.stderrFirstBytes = stderrFirstBytes
@@ -97,9 +97,9 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
   }
 
   @Override
-  CommandExecution findCommandExecution(String fabric, String commandId)
+  DbCommandExecution findCommandExecution(String fabric, String commandId)
   {
-    CommandExecution.findByCommandIdAndFabric(commandId, fabric)
+    DbCommandExecution.findByCommandIdAndFabric(commandId, fabric)
   }
 
   @Override
@@ -117,13 +117,13 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
     def count
     if(agent)
     {
-      ces = CommandExecution.findAllByFabricAndAgent(fabric, agent, params)
-      count = CommandExecution.countByFabricAndAgent(fabric, agent)
+      ces = DbCommandExecution.findAllByFabricAndAgent(fabric, agent, params)
+      count = DbCommandExecution.countByFabricAndAgent(fabric, agent)
     }
     else
     {
-      ces = CommandExecution.findAllByFabric(fabric, params)
-      count = CommandExecution.countByFabric(fabric)
+      ces = DbCommandExecution.findAllByFabric(fabric, params)
+      count = DbCommandExecution.countByFabric(fabric)
     }
 
     [ commandExecutions: ces, count: count ]

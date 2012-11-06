@@ -22,53 +22,35 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 import org.linkedin.glu.groovy.utils.concurrent.FutureExecution
-import org.linkedin.glu.agent.api.GluCommand
-import org.linkedin.glu.agent.api.Shell
 import org.slf4j.Logger
+import org.linkedin.groovy.util.config.Config
 
 /**
  * @author yan@pongasoft.com */
-public class CommandExecution implements GluCommand
+public class CommandExecution
 {
+  private final String _commandId
   private final def _args
-  private final def _gluCommand
+  def command
 
   FutureTaskExecution futureExecution
-  CommandExecutionIOStorage storage
+  def storage
 
-  CommandExecution(args, def gluCommand)
+  CommandExecution(String commandId, args)
   {
-    _args = args
-    _gluCommand = gluCommand
+    _args = [*:args] // copy
+    _args.redirectStderr = Config.getOptionalBoolean(args, 'redirectStderr', false)
+    _commandId = commandId
   }
 
-  @Override
   String getId()
   {
-    _gluCommand.id
+    _commandId
   }
 
-  @Override
-  Shell getShell()
-  {
-    _gluCommand.shell
-  }
-
-  @Override
   Logger getLog()
   {
-    _gluCommand.log
-  }
-
-  @Override
-  GluCommand getSelf()
-  {
-    _gluCommand.self
-  }
-
-  def getInvocable()
-  {
-    _gluCommand
+    command.log
   }
 
   /**
@@ -79,7 +61,17 @@ public class CommandExecution implements GluCommand
     return _args
   }
 
-/**
+  boolean isRedirectStderr()
+  {
+    return _args.redirectStderr
+  }
+
+  boolean hasStdin()
+  {
+    return _args.stdin
+  }
+
+  /**
    * when the execution started */
   long getStartTime()
   {
@@ -96,11 +88,6 @@ public class CommandExecution implements GluCommand
   boolean isCompleted()
   {
     completionTime > 0
-  }
-
-  FutureExecution runAsync(ExecutorService executorService)
-  {
-    futureExecution.runAsync(executorService)
   }
 
   def waitForCompletion(def timeout)
@@ -144,8 +131,21 @@ public class CommandExecution implements GluCommand
     }
   }
 
-  def captureIO(Closure closure)
+  /**
+   * Synchronously executes the command
+   * @return the exitValue of the command execution
+   */
+  def syncCaptureIO(Closure closure)
   {
-    storage.captureIO(this, closure)
+    storage.syncCaptureIO(this, closure)
+  }
+
+  /**
+   * Asynchronously executes the command. Returns right away
+   */
+  FutureTaskExecution asyncCaptureIO(ExecutorService executorService,
+                                     Closure closure)
+  {
+    storage.asyncCaptureIO(this, executorService, closure)
   }
 }

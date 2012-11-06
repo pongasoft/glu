@@ -14,22 +14,14 @@
  * the License.
  */
 
-package org.linkedin.glu.commands.impl
+package org.linkedin.glu.utils.core;
 
 /**
- * @author yan@pongasoft.com */
-public enum StreamType
+ * Simple interface that marks an object which has a size
+ *
+ * @author yan@pongasoft.com
+ */
+public interface Sizeable
 {
-  STDIN("I"),
-  STDOUT("O"),
-  STDERR("E"),
-  EXIT_VALUE("V"),
-  MULTIPLEXED(null);
-
-  String multiplexName;
-
-  private StreamType(String multiplexName)
-  {
-    this.multiplexName = multiplexName
-  }
+  long getSize();
 }

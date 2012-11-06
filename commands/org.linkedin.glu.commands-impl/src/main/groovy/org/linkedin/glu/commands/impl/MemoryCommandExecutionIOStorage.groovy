@@ -14,84 +14,91 @@
  * the License.
  */
 
-
-
 package org.linkedin.glu.commands.impl
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.linkedin.util.annotations.Initializable
+import org.linkedin.glu.utils.collections.EvictingWithLRUPolicyMap
+import org.linkedin.util.annotations.Initializer
 
 /**
+ * This implementation is obviously very ephemeral and should be used carefully
+ *
  * @author yan@pongasoft.com */
 public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOStorage
 {
   public static final String MODULE = MemoryCommandExecutionIOStorage.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
-  final Map<String, MemoryStreamStorage> commands = [:]
+  @Initializable
+  int maxNumberOfElements = 25
 
-  private static class MemoryStreamStorage implements CommandStreamStorage
+  /**
+   * Keeps a maximum number of elements.
+   */
+  Map<String, MemoryStreamStorage> commands =
+    new EvictingWithLRUPolicyMap<String, MemoryStreamStorage>(maxNumberOfElements)
+
+  /**
+   * For the compile to stop bugging me with commands being non final... */
+  private final Object _lock = new Object()
+
+  @Initializer
+  void setMaxNumberOfElements(int maxNumberOfElements)
   {
-    ByteArrayOutputStream stdin = new ByteArrayOutputStream()
-    ByteArrayOutputStream stdout = new ByteArrayOutputStream()
-    ByteArrayOutputStream stderr
-    CommandExecution commandExecution
-
-    @Override
-    OutputStream findStdinStorage() { stdin }
-
-    @Override
-    OutputStream findStdoutStorage() { stdout }
-
-    @Override
-    OutputStream findStderrStorage() { stderr = new ByteArrayOutputStream(); return stderr }
-  }
-
-  byte[] findBytes(String commandId, StreamType streamType)
-  {
-    synchronized(commands)
-    {
-      commands[commandId]?."${streamType.toString().toLowerCase()}"?.toByteArray()
-    }
+    this.maxNumberOfElements = maxNumberOfElements
+    commands = new EvictingWithLRUPolicyMap<String, MemoryStreamStorage>(maxNumberOfElements)
   }
 
   @Override
   CommandExecution findCommandExecution(String commandId)
   {
-    synchronized(commands)
+    synchronized(_lock)
     {
       commands[commandId]?.commandExecution
     }
   }
 
   @Override
-  protected findInputStreamWithSize(String commandId, StreamType streamType)
+  protected CommandExecution saveCommandExecution(CommandExecution commandExecution, def stdin)
   {
-    def bytes = findBytes(commandId, streamType)
-    if(bytes == null)
-      return null
-    return [stream: new ByteArrayInputStream(bytes), size: bytes.size()]
-  }
-
-  @Override
-  protected CommandExecution saveCommandExecution(CommandExecution commandExecution)
-  {
-    synchronized(commands)
+    synchronized(_lock)
     {
       if(commands.containsKey(commandExecution.id))
         throw new IllegalArgumentException("duplicate command id [${commandExecution.id}]")
 
-      commands[commandExecution.id] = new MemoryStreamStorage(commandExecution: commandExecution)
-    }
+      def storage = new MemoryStreamStorage(commandExecution: commandExecution)
 
-    return commandExecution
+      if(!commandExecution.redirectStderr)
+        storage.stderr = new ByteArrayOutputStream()
+
+      if(stdin)
+      {
+        storage.stdin = new ByteArrayOutputStream()
+        stdin.withStream { storage.stdin << it }
+      }
+
+      commands[commandExecution.id] = storage
+
+      return commandExecution
+    }
+  }
+
+  @Override
+  protected findInputStreamWithSize(CommandExecution commandExecution, StreamType streamType)
+  {
+    synchronized(_lock)
+    {
+      commands[commandExecution.id]?.findStorageInputWithSize(streamType)
+    }
   }
 
   def captureIO(CommandExecution commandExecution, Closure closure)
   {
     CommandStreamStorage streamStorage
 
-    synchronized(commands)
+    synchronized(_lock)
     {
       streamStorage = commands[commandExecution.id]
     }

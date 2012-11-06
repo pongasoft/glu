@@ -239,9 +239,9 @@ class UrlMappings
     }
 
     // commands
-    "/commands/$id/stream"(controller: 'commands', action: 'stream') {
+    "/commands/$id/streams"(controller: 'commands', action: 'streams') {
       __nvbe = 'Agents'
-      __role = UrlMappings.role('/commands/$id/stream')
+      __role = UrlMappings.role('/commands/$id/streams')
     }
 
     "/commands/renderHistory"(controller: 'commands', action: 'renderHistory') {
@@ -589,11 +589,11 @@ class UrlMappings
       __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/agent/$id/commands')
     }
 
-    "/rest/v1/$fabric/command/$id/$streamType"(controller: 'commands') {
+    "/rest/v1/$fabric/command/$id/streams"(controller: 'commands') {
       action = [
-        GET: 'rest_show_command_execution_stream'
+        GET: 'rest_show_command_execution_streams'
       ]
-      __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/command/$id/$streamType')
+      __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/command/$id/streams')
     }
 
     "/rest/v1/$fabric/agents/versions"(controller: 'agents') {

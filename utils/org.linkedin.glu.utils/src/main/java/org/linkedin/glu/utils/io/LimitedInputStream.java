@@ -16,6 +16,7 @@
 
 package org.linkedin.glu.utils.io;
 
+import org.linkedin.glu.utils.core.Sizeable;
 import org.linkedin.util.lang.MemorySize;
 
 import java.io.IOException;
@@ -24,7 +25,7 @@ import java.io.InputStream;
 /**
  * @author yan@pongasoft.com
  */
-public class LimitedInputStream extends InputStream
+public class LimitedInputStream extends InputStream implements Sizeable
 {
   private final InputStream _inputStream;
   private final long _limit;
@@ -50,6 +51,12 @@ public class LimitedInputStream extends InputStream
   public long getNumberOfBytesRead()
   {
     return _numberOfBytesRead;
+  }
+
+  @Override
+  public long getSize()
+  {
+    return _limit;
   }
 
   @Override

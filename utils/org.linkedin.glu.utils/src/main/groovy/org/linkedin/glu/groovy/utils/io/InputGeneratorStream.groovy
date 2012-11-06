@@ -17,19 +17,26 @@
 package org.linkedin.glu.groovy.utils.io
 
 import org.linkedin.glu.utils.io.EmptyInputStream
+import org.linkedin.glu.utils.core.Sizeable
 
 /**
  * @author yan@pongasoft.com */
-public class InputGeneratorStream extends InputStream
+public class InputGeneratorStream extends InputStream implements Sizeable
 {
   private final Closure _inputStreamFactory
 
   private InputStream _inputStream = null
   private volatile boolean _isClosed = false
+  private volatile long _size = -1
 
   InputGeneratorStream(Closure inputStreamFactory)
   {
     _inputStreamFactory = inputStreamFactory
+  }
+
+  long getSize()
+  {
+    return _size
   }
 
   @Override
@@ -95,17 +102,23 @@ public class InputGeneratorStream extends InputStream
       if(input == null)
       {
         _inputStream = EmptyInputStream.INSTANCE
+        _size = 0
       }
       else
       {
         if(input instanceof InputStream)
+        {
           _inputStream = input
+          if(input instanceof Sizeable)
+            _size = input.size
+        }
         else
         {
-          if(input instanceof byte[])
-            _inputStream = new ByteArrayInputStream(input)
-          else
-            _inputStream = new ByteArrayInputStream(input.toString().getBytes("UTF-8"))
+          if(!(input instanceof byte[]))
+            input = input.toString().getBytes("UTF-8")
+
+          _inputStream = new ByteArrayInputStream(input)
+          _size = input.size()
         }
       }
 
