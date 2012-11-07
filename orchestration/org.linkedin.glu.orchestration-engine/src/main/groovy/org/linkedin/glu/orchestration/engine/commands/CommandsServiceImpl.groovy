@@ -125,12 +125,10 @@ public class CommandsServiceImpl implements CommandsService
             _stream = _limitedOutputStream
 
           streams[streamType.multiplexName] = _stream
-
-          _stream.withStream { c(this) }
         }
       }
-      else
-        c(this)
+
+      c(this)
     }
 
     byte[] getBytes()

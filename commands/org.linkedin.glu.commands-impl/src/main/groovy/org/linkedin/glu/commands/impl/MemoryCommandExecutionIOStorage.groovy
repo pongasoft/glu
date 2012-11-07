@@ -35,10 +35,14 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
   int maxNumberOfElements = 25
 
   /**
-   * Keeps a maximum number of elements.
+   * Completed commands: keeps a maximum number of elements.
    */
-  Map<String, CommandExecution> commands =
+  Map<String, CommandExecution> completedCommands =
     new EvictingWithLRUPolicyMap<String, CommandExecution>(maxNumberOfElements)
+
+  /**
+   * The commands that are currently executing */
+  Map<String, CommandExecution> executingCommands = [:]
 
   /**
    * For the compile to stop bugging me with commands being non final... */
@@ -48,16 +52,20 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
   void setMaxNumberOfElements(int maxNumberOfElements)
   {
     this.maxNumberOfElements = maxNumberOfElements
-    commands = new EvictingWithLRUPolicyMap<String, CommandExecution>(maxNumberOfElements)
+    completedCommands = new EvictingWithLRUPolicyMap<String, CommandExecution>(maxNumberOfElements)
   }
 
   @Override
   CommandExecution findCommandExecution(String commandId)
   {
+    CommandExecution commandExecution
     synchronized(_lock)
     {
-      return commands[commandId]
+      commandExecution = executingCommands[commandId]
+      if(!commandExecution)
+        commandExecution = completedCommands[commandId]
     }
+    return commandExecution
   }
 
   @Override
@@ -66,7 +74,8 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
   {
     synchronized(_lock)
     {
-      if(commands.containsKey(commandExecution.id))
+      if(completedCommands.containsKey(commandExecution.id) ||
+         executingCommands.containsKey(commandExecution.id))
         throw new IllegalArgumentException("duplicate command id [${commandExecution.id}]")
 
       def storage = new MemoryStreamStorage(commandExecution: commandExecution)
@@ -80,15 +89,30 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
         new BufferedInputStream(stdin).withStream { storage.stdin << it }
       }
 
-      commands[commandExecution.id] = commandExecution
-
       return storage
     }
   }
 
   def captureIO(CommandExecution commandExecution, Closure closure)
   {
-    // nothing to do here really since we are not really storing it anywhere else...
-    return closure(commandExecution.storage)
+    def commandId = commandExecution.id
+
+    synchronized(_lock)
+    {
+      executingCommands[commandId] = commandExecution
+    }
+
+    try
+    {
+      return closure(commandExecution.storage)
+    }
+    finally
+    {
+      synchronized(_lock)
+      {
+        executingCommands.remove(commandId)
+        completedCommands[commandId] = commandExecution
+      }
+    }
   }
 }

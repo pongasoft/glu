@@ -14,34 +14,28 @@
  * the License.
  */
 
+
 package test.commands.impl
 
-import org.linkedin.glu.commands.impl.FileSystemCommandExecutionIOStorage
-import org.linkedin.util.clock.SettableClock
-import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
-import org.linkedin.groovy.util.io.fs.FileSystemImpl
-import org.linkedin.glu.commands.impl.GluCommandFactory
-import java.text.SimpleDateFormat
-import org.linkedin.groovy.util.json.JsonUtils
-import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
-import org.linkedin.glu.commands.impl.CommandStreamStorage
-import org.linkedin.glu.commands.impl.StreamType
-import org.linkedin.util.clock.Timespan
-import org.linkedin.util.io.resource.Resource
 import org.linkedin.glu.commands.impl.CommandExecution
+import org.linkedin.glu.commands.impl.CommandStreamStorage
+import org.linkedin.glu.commands.impl.GluCommandFactory
+import org.linkedin.glu.commands.impl.MemoryCommandExecutionIOStorage
+import org.linkedin.glu.commands.impl.StreamType
+import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
+import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.util.clock.SettableClock
+import org.linkedin.util.clock.Timespan
 import org.linkedin.glu.utils.io.MultiplexedInputStream
 
 /**
  * @author yan@pongasoft.com */
-public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
+public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
 {
-  FileSystemImpl fs
   SettableClock clock = new SettableClock()
   GluCommandFactory factory = { ce ->
     [fromCommandFactory: [id: ce.id, args: [*:ce.args]]]
   } as GluCommandFactory
-
-  def shutdownSequence = []
 
   @Override
   protected void setUp()
@@ -49,15 +43,6 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     super.setUp()
 
     clock.setCurrentTimeMillis(100000000)
-
-    fs = FileSystemImpl.createTempFileSystem()
-    shutdownSequence << { fs.destroy() }
-  }
-
-  @Override
-  protected void tearDown()
-  {
-    GluGroovyLangUtils.onlyOneException(shutdownSequence.reverse() << { super.tearDown() })
   }
 
   /**
@@ -65,10 +50,10 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
    */
   public void testHappyPath()
   {
-    FileSystemCommandExecutionIOStorage ioStorage =
-      new FileSystemCommandExecutionIOStorage(clock: clock,
-                                              commandExecutionFileSystem: fs,
-                                              gluCommandFactory: factory)
+    MemoryCommandExecutionIOStorage ioStorage =
+      new MemoryCommandExecutionIOStorage(clock: clock,
+                                          maxNumberOfElements: 2,
+                                          gluCommandFactory: factory)
 
     def ce = ioStorage.createStorageForCommandExecution([command: 'c0', xtra0: "x0"])
 
@@ -77,10 +62,8 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
 
     assertTrue(commandId.startsWith("${Long.toHexString(clock.currentTimeMillis())}-"))
 
-    // check the file stored on the file system
-    def path = new SimpleDateFormat('yyyy/MM/dd/HH/z').format(clock.currentDate())
-    def commandResource = fs.toResource("${path}/${commandId}/${ioStorage.commandFileName}")
-    assertTrue(commandResource.exists())
+    assertTrue(ioStorage.completedCommands.isEmpty())
+    assertTrue(ioStorage.executingCommands.isEmpty())
 
     long startTime = clock.currentTimeMillis()
 
@@ -96,22 +79,14 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                              ]],
                              ce.command)
 
-    // make sure that the information is properly stored
-    assertEqualsIgnoreType([
-                             id: commandId,
-                             redirectStderr: false,
-                             command: 'c0',
-                             xtra0: 'x0',
-                             startTime: startTime],
-                           commandResource)
-
-    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").exists())
-    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").exists())
-    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").exists())
-
     long completionTime = 0L
 
     def processing = { CommandStreamStorage storage ->
+
+      assertTrue(ioStorage.completedCommands.isEmpty())
+      assertEquals(1, ioStorage.executingCommands.size())
+      assertTrue(ioStorage.executingCommands[ce.id].is(ce))
+
       storage.withStorageInput(StreamType.STDIN) { stdin ->
         assertNull("no stdin", stdin)
 
@@ -139,19 +114,9 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
 
     assertEquals(completionTime, startTime + Timespan.parse("1s").durationInMilliseconds)
 
-    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").exists())
-    assertEquals("out0", fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").file.text)
-    assertEquals("err0", fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").file.text)
-
-    assertEqualsIgnoreType([
-                             id: commandId,
-                             redirectStderr: false,
-                             command: 'c0',
-                             xtra0: 'x0',
-                             startTime: startTime,
-                             exitValue: 14,
-                             completionTime: completionTime],
-                           commandResource)
+    assertEquals(1, ioStorage.completedCommands.size())
+    assertTrue(ioStorage.completedCommands[ce.id].is(ce))
+    assertTrue(ioStorage.executingCommands.isEmpty())
 
     assertEquals(14, ce.exitValue)
     assertEquals(startTime, ce.startTime)
@@ -160,33 +125,11 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     assertFalse(ce.isRedirectStderr())
     assertFalse(ce.hasStdin())
 
-    // after the call there is no more command in the map!
-    assertTrue(ioStorage.commands.isEmpty())
-
     def checkCommand = { CommandExecution command ->
-      // all values should have been "restored"
-      assertEquals(14, command.exitValue)
-      assertEquals(startTime, command.startTime)
-      assertEquals(completionTime, command.completionTime)
-      assertTrue(command.isCompleted())
-      assertFalse(command.isRedirectStderr())
-      assertFalse(command.hasStdin())
-
-      // command factory should have been called
-      assertEqualsIgnoreType([
-                               fromCommandFactory: [
-                                 id: commandId,
-                                 args: [
-                                   id: commandId,
-                                   redirectStderr: false,
-                                   command: 'c0',
-                                   xtra0: 'x0'],
-                               ]],
-                             command.command)
+      assertTrue(command.is(ce))
     }
 
-    // now that the command has completed, we should be able to rebuild it exactly from the
-    // filesystem
+    // now that the command has completed, it should still be available
     checkCommand(ioStorage.findCommandExecution(commandId))
 
     // not requesting any stream
@@ -219,10 +162,10 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
    */
   public void testStdin()
   {
-    FileSystemCommandExecutionIOStorage ioStorage =
-      new FileSystemCommandExecutionIOStorage(clock: clock,
-                                              commandExecutionFileSystem: fs,
-                                              gluCommandFactory: factory)
+    MemoryCommandExecutionIOStorage ioStorage =
+      new MemoryCommandExecutionIOStorage(clock: clock,
+                                          maxNumberOfElements: 2,
+                                          gluCommandFactory: factory)
 
     def ce = ioStorage.createStorageForCommandExecution([command: 'c0',
                                                           xtra0: "x0",
@@ -233,10 +176,8 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
 
     assertTrue(commandId.startsWith("${Long.toHexString(clock.currentTimeMillis())}-"))
 
-    // check the file stored on the file system
-    def path = new SimpleDateFormat('yyyy/MM/dd/HH/z').format(clock.currentDate())
-    def commandResource = fs.toResource("${path}/${commandId}/${ioStorage.commandFileName}")
-    assertTrue(commandResource.exists())
+    assertTrue(ioStorage.completedCommands.isEmpty())
+    assertTrue(ioStorage.executingCommands.isEmpty())
 
     long startTime = clock.currentTimeMillis()
 
@@ -253,21 +194,12 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                              ]],
                              ce.command)
 
-    // make sure that the information is properly stored
-    assertEqualsIgnoreType([
-                             id: commandId,
-                             redirectStderr: false,
-                             command: 'c0',
-                             xtra0: 'x0',
-                             startTime: startTime,
-                             stdin: true],
-                           commandResource)
-
-    assertEquals("in0", fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").file.text)
-    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").exists())
-    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").exists())
-
     def processing = { CommandStreamStorage storage ->
+
+      assertTrue(ioStorage.completedCommands.isEmpty())
+      assertEquals(1, ioStorage.executingCommands.size())
+      assertTrue(ioStorage.executingCommands[ce.id].is(ce))
+
       storage.withStorageInput(StreamType.STDIN) { stdin ->
         assertEquals("in0", stdin.text)
 
@@ -291,21 +223,9 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     long completionTime = clock.currentTimeMillis()
     assertEquals(completionTime, startTime + Timespan.parse("1s").durationInMilliseconds)
 
-    assertEquals("in0", fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").file.text)
-    assertEquals("out0", fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").file.text)
-    assertEquals("err0", fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").file.text)
-
-    assertEqualsIgnoreType([
-                             id: commandId,
-                             redirectStderr: false,
-                             command: 'c0',
-                             xtra0: 'x0',
-                             startTime: startTime,
-                             exitValue: 14,
-                             completionTime: completionTime,
-                             stdin: true,
-                           ],
-                           commandResource)
+    assertEquals(1, ioStorage.completedCommands.size())
+    assertTrue(ioStorage.completedCommands[ce.id].is(ce))
+    assertTrue(ioStorage.executingCommands.isEmpty())
 
     assertEquals(14, ce.exitValue)
     assertEquals(startTime, ce.startTime)
@@ -314,31 +234,8 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     assertFalse(ce.isRedirectStderr())
     assertTrue(ce.hasStdin())
 
-    // after the call there is no more command in the map!
-    assertTrue(ioStorage.commands.isEmpty())
-
     def checkCommand = { CommandExecution command ->
-      // all values should have been "restored"
-      assertEquals(14, command.exitValue)
-      assertEquals(startTime, command.startTime)
-      assertEquals(completionTime, command.completionTime)
-      assertTrue(command.isCompleted())
-      assertFalse(command.isRedirectStderr())
-      assertTrue(command.hasStdin())
-
-      // command factory should have been called
-      assertEqualsIgnoreType([
-                               fromCommandFactory: [
-                                 id: commandId,
-                                 args: [
-                                   id: commandId,
-                                   redirectStderr: false,
-                                   command: 'c0',
-                                   xtra0: 'x0',
-                                   stdin: true,
-                                 ],
-                               ]],
-                             command.command)
+      assertTrue(command.is(ce))
     }
 
     // now that the command has completed, we should be able to rebuild it exactly from the
@@ -375,10 +272,10 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
    */
   public void testRedirectStderr()
   {
-    FileSystemCommandExecutionIOStorage ioStorage =
-      new FileSystemCommandExecutionIOStorage(clock: clock,
-                                              commandExecutionFileSystem: fs,
-                                              gluCommandFactory: factory)
+    MemoryCommandExecutionIOStorage ioStorage =
+      new MemoryCommandExecutionIOStorage(clock: clock,
+                                          maxNumberOfElements: 2,
+                                          gluCommandFactory: factory)
 
     def ce = ioStorage.createStorageForCommandExecution([command: 'c0', xtra0: "x0", redirectStderr: true])
 
@@ -387,10 +284,8 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
 
     assertTrue(commandId.startsWith("${Long.toHexString(clock.currentTimeMillis())}-"))
 
-    // check the file stored on the file system
-    def path = new SimpleDateFormat('yyyy/MM/dd/HH/z').format(clock.currentDate())
-    def commandResource = fs.toResource("${path}/${commandId}/${ioStorage.commandFileName}")
-    assertTrue(commandResource.exists())
+    assertTrue(ioStorage.completedCommands.isEmpty())
+    assertTrue(ioStorage.executingCommands.isEmpty())
 
     long startTime = clock.currentTimeMillis()
 
@@ -406,20 +301,13 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                              ]],
                              ce.command)
 
-    // make sure that the information is properly stored
-    assertEqualsIgnoreType([
-                             id: commandId,
-                             redirectStderr: true,
-                             command: 'c0',
-                             xtra0: 'x0',
-                             startTime: startTime],
-                           commandResource)
-
-    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").exists())
-    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").exists())
-    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").exists())
 
     def processing = { CommandStreamStorage storage ->
+
+      assertTrue(ioStorage.completedCommands.isEmpty())
+      assertEquals(1, ioStorage.executingCommands.size())
+      assertTrue(ioStorage.executingCommands[ce.id].is(ce))
+
       storage.withStorageInput(StreamType.STDIN) { stdin ->
         assertNull("no stdin", stdin)
 
@@ -444,19 +332,9 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     long completionTime = clock.currentTimeMillis()
     assertEquals(completionTime, startTime + Timespan.parse("1s").durationInMilliseconds)
 
-    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").exists())
-    assertEquals("out0", fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").file.text)
-    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").exists())
-
-    assertEqualsIgnoreType([
-                             id: commandId,
-                             redirectStderr: true,
-                             command: 'c0',
-                             xtra0: 'x0',
-                             startTime: startTime,
-                             exitValue: 14,
-                             completionTime: completionTime],
-                           commandResource)
+    assertEquals(1, ioStorage.completedCommands.size())
+    assertTrue(ioStorage.completedCommands[ce.id].is(ce))
+    assertTrue(ioStorage.executingCommands.isEmpty())
 
     assertEquals(14, ce.exitValue)
     assertEquals(startTime, ce.startTime)
@@ -465,29 +343,9 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     assertTrue(ce.isRedirectStderr())
     assertFalse(ce.hasStdin())
 
-    // after the call there is no more command in the map!
-    assertTrue(ioStorage.commands.isEmpty())
 
     def checkCommand = { CommandExecution command ->
-      // all values should have been "restored"
-      assertEquals(14, command.exitValue)
-      assertEquals(startTime, command.startTime)
-      assertEquals(completionTime, command.completionTime)
-      assertTrue(command.isCompleted())
-      assertTrue(command.isRedirectStderr())
-      assertFalse(command.hasStdin())
-
-      // command factory should have been called
-      assertEqualsIgnoreType([
-                               fromCommandFactory: [
-                                 id: commandId,
-                                 args: [
-                                   id: commandId,
-                                   redirectStderr: true,
-                                   command: 'c0',
-                                   xtra0: 'x0'],
-                               ]],
-                             command.command)
+      assertTrue(command.is(ce))
     }
 
     // now that the command has completed, we should be able to rebuild it exactly from the
@@ -524,10 +382,10 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
    */
   public void testReadWhileExecuting()
   {
-    FileSystemCommandExecutionIOStorage ioStorage =
-      new FileSystemCommandExecutionIOStorage(clock: clock,
-                                              commandExecutionFileSystem: fs,
-                                              gluCommandFactory: factory)
+    MemoryCommandExecutionIOStorage ioStorage =
+      new MemoryCommandExecutionIOStorage(clock: clock,
+                                          maxNumberOfElements: 2,
+                                          gluCommandFactory: factory)
 
     def ce = ioStorage.createStorageForCommandExecution([command: 'c0',
                                                           xtra0: "x0",
@@ -538,16 +396,10 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
 
     assertTrue(commandId.startsWith("${Long.toHexString(clock.currentTimeMillis())}-"))
 
-    // check the file stored on the file system
-    def path = new SimpleDateFormat('yyyy/MM/dd/HH/z').format(clock.currentDate())
-    def commandResource = fs.toResource("${path}/${commandId}/${ioStorage.commandFileName}")
-    assertTrue(commandResource.exists())
+    assertTrue(ioStorage.completedCommands.isEmpty())
+    assertTrue(ioStorage.executingCommands.isEmpty())
 
     long startTime = clock.currentTimeMillis()
-
-    assertTrue(fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").exists())
-    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").exists())
-    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").exists())
 
     def processing = { CommandStreamStorage storage ->
       storage.withStorageInput(StreamType.STDIN) { stdin ->
@@ -559,11 +411,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
             stdout.write("o0".bytes)
             stderr.write("e0".bytes)
 
-            // due to buffering, there should be anything written yet
-            assertEquals("", fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").file.text)
-            assertEquals("", fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").file.text)
-
-            // but if we use the api it should flush the output
+            // if we use the api it should flush the output
             ioStorage.withOrWithoutCommandExecutionAndStreams(commandId,
                                                               [stdinStream: true,
                                                                 stdoutStream: true,
@@ -577,10 +425,6 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
               assertEquals("o0", res[StreamType.STDOUT.multiplexName])
               assertEquals("e0", res[StreamType.STDERR.multiplexName])
             }
-
-            assertEquals("o0", fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").file.text)
-            assertEquals("e0", fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").file.text)
-
 
             stdout << "o1"
             stderr << "e1"
@@ -601,26 +445,99 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     long completionTime = clock.currentTimeMillis()
     assertEquals(completionTime, startTime + Timespan.parse("1s").durationInMilliseconds)
 
-    assertEquals("in0", fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").file.text)
-    assertEquals("o0o1", fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").file.text)
-    assertEquals("e0e1", fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").file.text)
+    // if we use the api it should flush the output
+    ioStorage.withOrWithoutCommandExecutionAndStreams(commandId,
+                                                      [stdinStream: true,
+                                                        stdoutStream: true,
+                                                        stderrStream: true]) { m ->
+      def res =
+        MultiplexedInputStream.demultiplexToString(m.stream,
+                   [StreamType.STDIN, StreamType.STDOUT, StreamType.STDERR].collect { it.multiplexName } as Set,
+                   null)
+
+      assertEquals("in0", res[StreamType.STDIN.multiplexName])
+      assertEquals("o0o1", res[StreamType.STDOUT.multiplexName])
+      assertEquals("e0e1", res[StreamType.STDERR.multiplexName])
+    }
   }
 
   /**
-   * Convenient call to compare and ignore type
-   */
-  void assertEqualsIgnoreType(Map o1, String s2)
+   * Testing that we don't keep more completed commands than expected  */
+  public void testMaxNumberElements()
   {
-    assertEqualsIgnoreType(o1, JsonUtils.fromJSON(s2))
+    MemoryCommandExecutionIOStorage ioStorage =
+      new MemoryCommandExecutionIOStorage(clock: clock,
+                                          maxNumberOfElements: 2,
+                                          gluCommandFactory: factory)
+
+    // command 0
+    def ce0 = ioStorage.createStorageForCommandExecution([command: 'c0', xtra0: "x0"])
+
+    assertTrue(ioStorage.completedCommands.isEmpty())
+    assertTrue(ioStorage.executingCommands.isEmpty())
+
+    def processing = { CommandStreamStorage storage ->
+      assertTrue(ioStorage.completedCommands.isEmpty())
+      assertEquals(1, ioStorage.executingCommands.size())
+      assertTrue(ioStorage.executingCommands[ce0.id].is(ce0))
+      return [exitValue: 14]
+    }
+
+    assertEquals(14, ce0.syncCaptureIO(processing))
+
+    assertEquals(1, ioStorage.completedCommands.size())
+    assertTrue(ioStorage.completedCommands[ce0.id].is(ce0))
+    assertTrue(ioStorage.executingCommands.isEmpty())
+
+    // command 1
+    def ce1 = ioStorage.createStorageForCommandExecution([command: 'c1', xtra0: "x1"])
+
+    assertEquals(1, ioStorage.completedCommands.size())
+    assertTrue(ioStorage.completedCommands[ce0.id].is(ce0))
+    assertTrue(ioStorage.executingCommands.isEmpty())
+
+    processing = { CommandStreamStorage storage ->
+      assertEquals(1, ioStorage.completedCommands.size())
+      assertTrue(ioStorage.completedCommands[ce0.id].is(ce0))
+      assertEquals(1, ioStorage.executingCommands.size())
+      assertTrue(ioStorage.executingCommands[ce1.id].is(ce1))
+      return [exitValue: 15]
+    }
+
+    assertEquals(15, ce1.syncCaptureIO(processing))
+
+    assertEquals(2, ioStorage.completedCommands.size())
+    assertTrue(ioStorage.completedCommands[ce0.id].is(ce0))
+    assertTrue(ioStorage.completedCommands[ce1.id].is(ce1))
+    assertTrue(ioStorage.executingCommands.isEmpty())
+
+    // command 2
+    def ce2 = ioStorage.createStorageForCommandExecution([command: 'c2', xtra0: "x2"])
+
+    assertEquals(2, ioStorage.completedCommands.size())
+    assertTrue(ioStorage.completedCommands[ce0.id].is(ce0))
+    assertTrue(ioStorage.completedCommands[ce1.id].is(ce1))
+    assertTrue(ioStorage.executingCommands.isEmpty())
+
+    processing = { CommandStreamStorage storage ->
+      assertEquals(2, ioStorage.completedCommands.size())
+      assertTrue(ioStorage.completedCommands[ce0.id].is(ce0))
+      assertTrue(ioStorage.completedCommands[ce1.id].is(ce1))
+      assertEquals(1, ioStorage.executingCommands.size())
+      assertTrue(ioStorage.executingCommands[ce2.id].is(ce2))
+      return [exitValue: 16]
+    }
+
+    assertEquals(16, ce2.syncCaptureIO(processing))
+
+    // make sure that command 0 has been evicted
+    assertEquals(2, ioStorage.completedCommands.size())
+    assertTrue(ioStorage.completedCommands[ce1.id].is(ce1))
+    assertTrue(ioStorage.completedCommands[ce2.id].is(ce2))
+    assertTrue(ioStorage.executingCommands.isEmpty())
+
   }
 
-  /**
-   * Convenient call to compare and ignore type
-   */
-  void assertEqualsIgnoreType(Map o1, Resource r2)
-  {
-    assertEqualsIgnoreType(o1, r2.file.text)
-  }
 
   /**
    * Convenient call to compare and ignore type
