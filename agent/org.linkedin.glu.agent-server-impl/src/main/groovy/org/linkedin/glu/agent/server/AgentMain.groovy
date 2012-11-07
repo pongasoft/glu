@@ -619,7 +619,7 @@ class AgentMain implements LifecycleListener, Configurable
 
   protected CommandManager createCommandsManager(ShellImpl rootShell)
   {
-    if(Config.getOptionalBoolean(_config, "${prefix}.agent.features.commands.enabled", true))
+    if(Config.getOptionalBoolean(_config, "${prefix}.agent.features.commands.enabled", false))
     {
       log.info "Feature [commands] => [enabled]"
 
