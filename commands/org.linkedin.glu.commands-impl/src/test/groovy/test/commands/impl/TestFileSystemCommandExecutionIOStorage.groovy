@@ -29,6 +29,8 @@ import org.linkedin.glu.commands.impl.StreamType
 import org.linkedin.util.clock.Timespan
 import org.linkedin.util.io.resource.Resource
 import org.linkedin.glu.commands.impl.CommandExecution
+import org.linkedin.glu.utils.io.DemultiplexedOutputStream
+import org.linkedin.glu.utils.io.MultiplexedInputStream
 
 /**
  * @author yan@pongasoft.com */
@@ -367,6 +369,93 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
       checkCommand(m.commandExecution)
       assertEquals("err0", m.stream.text)
     }
+  }
+
+  /**
+   * Test read while executing
+   */
+  public void testReadWhileExecuting()
+  {
+    FileSystemCommandExecutionIOStorage ioStorage =
+      new FileSystemCommandExecutionIOStorage(clock: clock,
+                                              commandExecutionFileSystem: fs,
+                                              gluCommandFactory: factory)
+
+    def ce = ioStorage.createStorageForCommandExecution([command: 'c0',
+                                                          xtra0: "x0",
+                                                          stdin: new ByteArrayInputStream("in0".bytes)])
+
+    // commandId should start with the current time
+    def commandId = ce.id
+
+    assertTrue(commandId.startsWith("${Long.toHexString(clock.currentTimeMillis())}-"))
+
+    // check the file stored on the file system
+    def path = new SimpleDateFormat('yyyy/MM/dd/HH/z').format(clock.currentDate())
+    def commandResource = fs.toResource("${path}/${commandId}/${ioStorage.commandFileName}")
+    assertTrue(commandResource.exists())
+
+    long startTime = clock.currentTimeMillis()
+
+    assertTrue(fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").exists())
+    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").exists())
+    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").exists())
+
+    def processing = { CommandStreamStorage storage ->
+      storage.withStorageInput(StreamType.STDIN) { stdin ->
+
+        storage.withStorageOutput(StreamType.STDOUT) { stdout ->
+
+          storage.withStorageOutput(StreamType.STDERR) { stderr->
+
+            stdout.write("o0".bytes)
+            stderr.write("e0".bytes)
+
+            // due to buffering, there should be anything written yet
+            assertEquals("", fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").file.text)
+            assertEquals("", fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").file.text)
+
+            // but if we use the api it should flush the output
+            ioStorage.withOrWithoutCommandExecutionAndStreams(commandId,
+                                                              [stdinStream: true,
+                                                                stdoutStream: true,
+                                                                stderrStream: true]) { m ->
+              def res =
+                MultiplexedInputStream.demultiplexToString(m.stream,
+                   [StreamType.STDIN, StreamType.STDOUT, StreamType.STDERR].collect { it.multiplexName } as Set,
+                   null)
+
+              assertEquals("in0", res[StreamType.STDIN.multiplexName])
+              assertEquals("o0", res[StreamType.STDOUT.multiplexName])
+              assertEquals("e0", res[StreamType.STDERR.multiplexName])
+            }
+
+            assertEquals("o0", fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").file.text)
+            assertEquals("e0", fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").file.text)
+
+
+            stdout << "o1"
+            stderr << "e1"
+
+            assertEquals("in0", stdin.text)
+
+            // simulate delay
+            clock.addDuration(Timespan.parse("1s"))
+
+            return [exitValue: 14]
+          }
+        }
+      }
+    }
+
+    assertEquals(14, ce.syncCaptureIO(processing))
+
+    long completionTime = clock.currentTimeMillis()
+    assertEquals(completionTime, startTime + Timespan.parse("1s").durationInMilliseconds)
+
+    assertEquals("in0", fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").file.text)
+    assertEquals("o0o1", fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").file.text)
+    assertEquals("e0e1", fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").file.text)
   }
 
   /**

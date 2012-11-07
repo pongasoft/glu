@@ -21,6 +21,7 @@ import org.linkedin.util.lang.MemorySize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
@@ -114,7 +116,7 @@ public class MultiplexedInputStream extends InputStream
    * @return the total number of bytes read
    */
   public static long demultiplex(InputStream inputStream,
-                                 Map<String, OutputStream> outputStreams) throws IOException
+                                 Map<String, ? extends OutputStream> outputStreams) throws IOException
   {
     DemultiplexedOutputStream demultiplexedOutputStream =
       new DemultiplexedOutputStream(outputStreams);
@@ -130,7 +132,7 @@ public class MultiplexedInputStream extends InputStream
    * @return the total number of bytes read
    */
   public static long demultiplex(InputStream inputStream,
-                                 Map<String, OutputStream> outputStreams,
+                                 Map<String, ? extends OutputStream> outputStreams,
                                  MemorySize bufferSize) throws IOException
   {
     DemultiplexedOutputStream demultiplexedOutputStream =
@@ -139,6 +141,52 @@ public class MultiplexedInputStream extends InputStream
     IOUtils.copy(inputStream, demultiplexedOutputStream);
 
     return demultiplexedOutputStream.getNumberOfBytesWritten();
+  }
+
+  /**
+   * Demultiplexes to byte array
+   */
+  public static Map<String, byte[]> demultiplexToByteArray(InputStream inputStream,
+                                                           Set<String> streamNames,
+                                                           MemorySize bufferSize)
+    throws IOException
+  {
+    Map<String, ByteArrayOutputStream> outputStreams =
+      new LinkedHashMap<String, ByteArrayOutputStream>();
+
+    for(String streamName : streamNames)
+      outputStreams.put(streamName, new ByteArrayOutputStream());
+
+    demultiplex(inputStream, outputStreams, bufferSize);
+
+    Map<String, byte[]> res = new LinkedHashMap<String, byte[]>();
+
+    for(Map.Entry<String, ByteArrayOutputStream> entry : outputStreams.entrySet())
+    {
+      res.put(entry.getKey(), entry.getValue().toByteArray());
+    }
+
+    return res;
+  }
+
+  /**
+   * Demultiplexes to <code>String</code>
+   */
+  public static Map<String, String> demultiplexToString(InputStream inputStream,
+                                                        Set<String> streamNames,
+                                                        MemorySize bufferSize)
+    throws IOException
+  {
+    Map<String, byte[]> streams = demultiplexToByteArray(inputStream, streamNames, bufferSize);
+
+    Map<String, String> res = new LinkedHashMap<String, String>();
+
+    for(Map.Entry<String, byte[]> entry : streams.entrySet())
+    {
+      res.put(entry.getKey(), new String(entry.getValue(), "UTF-8"));
+    }
+
+    return res;
   }
 
   private static Map<String, InputStream> computeNames(Collection<InputStream> inputStreams)
@@ -169,6 +217,9 @@ public class MultiplexedInputStream extends InputStream
    */
   public MultiplexedInputStream(Map<String, InputStream> inputStreams, MemorySize bufferSize)
   {
+    if(bufferSize == null)
+      bufferSize = DEFAULT_BUFFER_SIZE;
+
     _inputStreams = inputStreams;
 
     int bufferSizeInBytes = (int) bufferSize.getSizeInBytes();

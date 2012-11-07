@@ -137,7 +137,7 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
     args.startTime = commandExecution.startTime
 
     // save the command to the file system
-    new FileOutputStream(commandFile.file).withStream { out ->
+    new BufferedOutputStream(new FileOutputStream(commandFile.file)).withStream { out ->
       out << JsonUtils.compactPrint(args)
     }
 
@@ -203,13 +203,13 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
       args.completionTime = res?.completionTime ?: clock.currentTimeMillis()
 
       // save the command to the file system
-      new FileOutputStream(storage.commandResource.file).withStream { out ->
+      new BufferedOutputStream(new FileOutputStream(storage.commandResource.file)).withStream { out ->
         out << JsonUtils.compactPrint(args)
       }
 
       return [
         exitValue: args.exitValue,
-        exception: args.exception,
+        exception: exception,
         completionTime: args.completionTime
       ]
     }

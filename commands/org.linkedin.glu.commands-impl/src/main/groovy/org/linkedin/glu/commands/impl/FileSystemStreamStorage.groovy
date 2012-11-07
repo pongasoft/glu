@@ -33,7 +33,7 @@ class FileSystemStreamStorage extends AbstractCommandStreamStorage
    */
   synchronized void flush()
   {
-    streams.values().out.flush()
+    _streams.values().out.each { it?.flush() }
   }
 
   /**
@@ -41,7 +41,7 @@ class FileSystemStreamStorage extends AbstractCommandStreamStorage
    */
   synchronized void close()
   {
-    streams.values().out.close()
+    _streams.values().out.each { it?.close() }
   }
 
   synchronized def getStreams()
@@ -71,7 +71,7 @@ class FileSystemStreamStorage extends AbstractCommandStreamStorage
     OutputStream stream = m.out
     if(stream == null)
     {
-      stream = new FileOutputStream(streams[type].resource.file)
+      stream = new BufferedOutputStream(new FileOutputStream(streams[type].resource.file))
       streams[type].out = stream
     }
     return stream
@@ -85,7 +85,7 @@ class FileSystemStreamStorage extends AbstractCommandStreamStorage
 
     Resource resource = m.resource
     if(resource.exists())
-      return resource.inputStream
+      return new BufferedInputStream(resource.inputStream)
     else
       return null
   }
@@ -98,7 +98,7 @@ class FileSystemStreamStorage extends AbstractCommandStreamStorage
 
     Resource resource = m.resource
     if(resource.exists())
-      return [stream: resource.inputStream, size: resource.length()]
+      return [stream: new BufferedInputStream(resource.inputStream), size: resource.length()]
     else
       return null
   }

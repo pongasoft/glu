@@ -64,7 +64,7 @@ public class DemultiplexedOutputStream extends OutputStream
   /**
    * Constructor
    */
-  public DemultiplexedOutputStream(Map<String, OutputStream> outputStreams)
+  public DemultiplexedOutputStream(Map<String, ? extends OutputStream> outputStreams)
   {
     this(outputStreams, DEFAULT_BUFFER_SIZE);
   }
@@ -72,16 +72,19 @@ public class DemultiplexedOutputStream extends OutputStream
   /**
    * Constructor
    */
-  public DemultiplexedOutputStream(Map<String, OutputStream> outputStreams,
+  public DemultiplexedOutputStream(Map<String, ? extends OutputStream> outputStreams,
                                    MemorySize bufferSize)
   {
+    if(bufferSize == null)
+      bufferSize = DEFAULT_BUFFER_SIZE;
+    
     _outputStreams = new LinkedHashMap<String, OutputStream>(outputStreams);
     _bufferSize = bufferSize;
 
     _buffer = ByteBuffer.allocate((int) _bufferSize.getSizeInBytes());
     _outputChannels = new LinkedHashMap<String, WritableByteChannel>();
 
-    for(Map.Entry<String, OutputStream> entry : outputStreams.entrySet())
+    for(Map.Entry<String, ? extends OutputStream> entry : outputStreams.entrySet())
     {
       _outputChannels.put(entry.getKey(), Channels.newChannel(entry.getValue()));
     }

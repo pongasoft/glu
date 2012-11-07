@@ -76,7 +76,7 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
       if(stdin)
       {
         storage.stdin = new ByteArrayOutputStream()
-        stdin.withStream { storage.stdin << it }
+        new BufferedInputStream(stdin).withStream { storage.stdin << it }
       }
 
       commands[commandExecution.id] = storage

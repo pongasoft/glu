@@ -201,7 +201,7 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
   {
     def m = findCommandExecutionAndStreams(commandId, args)
     if(m?.stream)
-      m.stream.withStream { closure([stream: it, commandExecution: m.commandExecution])}
+      m.stream.withStream { closure([stream: it, commandExecution: m.commandExecution]) }
     else
       closure(m)
   }
