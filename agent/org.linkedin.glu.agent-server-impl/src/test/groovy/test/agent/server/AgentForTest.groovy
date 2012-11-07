@@ -60,6 +60,7 @@ glu.agent.homeDir=${fileSystem.toResource("/agent/server/home").file.canonicalPa
 
 glu.agent.scriptRootDir=\${glu.agent.apps}
 glu.agent.dataDir=\${glu.agent.homeDir}/data
+glu.agent.commandsDir=\${glu.agent.homeDir}/commands
 glu.agent.logDir=\${glu.agent.dataDir}/logs
 glu.agent.tempDir=\${glu.agent.dataDir}/tmp
 glu.agent.scriptStateDir=\${glu.agent.dataDir}/scripts/state
@@ -73,6 +74,10 @@ glu.agent.fabric=test-fabric
 glu.agent.port=${agentPort}
 glu.agent.zkConnectString=localhost:${zkClientPort}
 glu.agent.zookeeper.root=/org/glu
+
+glu.agent.features.commands.enabled=true
+glu.agent.commands.storageType=filesystem
+glu.agent.commands.filesystem.dir=\${glu.agent.dataDir}/commands
 
 # security
 glu.agent.sslEnabled=true

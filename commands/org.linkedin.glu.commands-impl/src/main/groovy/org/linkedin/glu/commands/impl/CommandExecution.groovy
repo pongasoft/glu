@@ -26,11 +26,11 @@ import org.linkedin.groovy.util.config.Config
 
 /**
  * @author yan@pongasoft.com */
-public class CommandExecution
+public class CommandExecution<T>
 {
   private final String _commandId
   private final def _args
-  def command
+  T command
 
   synchronized long startTime = 0L
   synchronized long completionTime = 0L

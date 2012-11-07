@@ -146,14 +146,15 @@ public class CommandsServiceImpl implements CommandsService
 
   /**
    * The commands that are currently executing  */
-  private final Map<String, CommandExecution> _currentCommandExecutions = [:]
+  private final Map<String, CommandExecution<DbCommandExecution>> _currentCommandExecutions = [:]
 
   @Override
   Map<String, DbCommandExecution> findCurrentCommandExecutions(Collection<String> commandIds)
   {
     synchronized(_currentCommandExecutions)
     {
-      GluGroovyCollectionUtils.subMap(_currentCommandExecutions, commandIds)
+      def map = GluGroovyCollectionUtils.subMap(_currentCommandExecutions, commandIds)
+      GluGroovyCollectionUtils.collectKey(map, [:]) { k, v -> v.command }
     }
   }
 
@@ -164,7 +165,7 @@ public class CommandsServiceImpl implements CommandsService
 
     synchronized(_currentCommandExecutions)
     {
-      commandExecution = _currentCommandExecutions[commandId]
+      commandExecution = _currentCommandExecutions[commandId]?.command
       if(commandExecution?.fabric != fabric.name)
         commandExecution = null
     }
@@ -184,7 +185,7 @@ public class CommandsServiceImpl implements CommandsService
     {
       // replace db by current running
       map.commandExecutions = map.commandExecutions?.collect { DbCommandExecution ce ->
-        def current = _currentCommandExecutions[ce.commandId]
+        def current = _currentCommandExecutions[ce.commandId]?.command
         if(current)
           return current
         else

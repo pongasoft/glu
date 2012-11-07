@@ -69,7 +69,7 @@ import org.linkedin.glu.agent.rest.resources.CommandStreamsResource
 import org.linkedin.glu.agent.impl.command.CommandManager
 import org.linkedin.glu.utils.core.DisabledFeatureProxy
 import org.linkedin.glu.agent.impl.command.CommandManagerImpl
-import org.linkedin.glu.commands.impl.MemoryCommandExecutionIOStorage
+import org.linkedin.glu.commands.impl.FileSystemCommandExecutionIOStorage
 
 /**
  * This is the main class to start the agent.
@@ -439,7 +439,7 @@ class AgentMain implements LifecycleListener, Configurable
     [
       rootShell: rootShell,
       shellForScripts: createShell(rootShell, "${prefix}.agent.scriptRootDir"),
-      commandManager: createCommandsManager(),
+      commandManager: createCommandsManager(rootShell),
       agentLogDir: rootShell.toResource(Config.getRequiredString(_config, "${prefix}.agent.logDir")),
       storage: _storage,
       sigar: _sigar,
@@ -617,12 +617,35 @@ class AgentMain implements LifecycleListener, Configurable
                          agentProperties: _agentProperties)
   }
 
-  protected CommandManager createCommandsManager()
+  protected CommandManager createCommandsManager(ShellImpl rootShell)
   {
     if(Config.getOptionalBoolean(_config, "${prefix}.agent.features.commands.enabled", true))
     {
+      log.info "Feature [commands] => [enabled]"
+
+      def storageType = Config.getOptionalString(_config,
+                                                 "${prefix}.agent.commands.storageType",
+                                                 "filesystem")
+
+      def storage
+
+      switch(storageType)
+      {
+        case "filesystem":
+          def commandsDir = Config.getRequiredString(_config,
+                                                     "${prefix}.agent.commands.filesystem.dir")
+          def filesystem =  rootShell.fileSystem.newFileSystem(commandsDir)
+          storage = new FileSystemCommandExecutionIOStorage(commandExecutionFileSystem: filesystem)
+          break
+
+        default:
+          throw new IllegalArgumentException("unsupported storageType [${storageType}]")
+      }
+
+      storage.clock = _agent.clock
+
       new CommandManagerImpl(agentContext: _agent,
-                             storage: new MemoryCommandExecutionIOStorage(clock: _agent.clock))
+                             storage: storage)
     }
     else
     {
