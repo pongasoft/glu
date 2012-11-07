@@ -351,14 +351,13 @@ public class CommandsServiceImpl implements CommandsService
     {
       ByteArrayOutputStream stdinFirstBytes = null
 
-      def stdinSize =
-        commandExecutionIOStorage.withStreamAndSize(commandId,
-                                                    StreamType.STDIN,
-                                                    [ len: commandExecutionFirstBytesSize.sizeInBytes ]) { m ->
+      Long stdinSize =
+        command.storage.withStorageInputWithSize(StreamType.STDIN,
+                                                 [ len: commandExecutionFirstBytesSize.sizeInBytes ]) { m ->
           stdinFirstBytes = new ByteArrayOutputStream()
           stdinFirstBytes << m.stream
           return m.size
-        }
+        } as Long
 
       ce = commandExecutionStorage.startExecution(command.args.fabric,
                                                   command.args.agent,

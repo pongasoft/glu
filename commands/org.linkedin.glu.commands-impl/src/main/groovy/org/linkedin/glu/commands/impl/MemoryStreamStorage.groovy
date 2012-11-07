@@ -18,7 +18,7 @@ package org.linkedin.glu.commands.impl
 
 /**
  * @author yan@pongasoft.com */
-class MemoryStreamStorage extends AbstractCommandStreamStorage
+class MemoryStreamStorage extends AbstractCommandStreamStorage<MemoryCommandExecutionIOStorage>
 {
   ByteArrayOutputStream stdin
   ByteArrayOutputStream stdout = new ByteArrayOutputStream()

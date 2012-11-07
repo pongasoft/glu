@@ -37,8 +37,8 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
   /**
    * Keeps a maximum number of elements.
    */
-  Map<String, MemoryStreamStorage> commands =
-    new EvictingWithLRUPolicyMap<String, MemoryStreamStorage>(maxNumberOfElements)
+  Map<String, CommandExecution> commands =
+    new EvictingWithLRUPolicyMap<String, CommandExecution>(maxNumberOfElements)
 
   /**
    * For the compile to stop bugging me with commands being non final... */
@@ -48,7 +48,7 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
   void setMaxNumberOfElements(int maxNumberOfElements)
   {
     this.maxNumberOfElements = maxNumberOfElements
-    commands = new EvictingWithLRUPolicyMap<String, MemoryStreamStorage>(maxNumberOfElements)
+    commands = new EvictingWithLRUPolicyMap<String, CommandExecution>(maxNumberOfElements)
   }
 
   @Override
@@ -56,12 +56,13 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
   {
     synchronized(_lock)
     {
-      commands[commandId]?.commandExecution
+      return commands[commandId]
     }
   }
 
   @Override
-  protected CommandExecution saveCommandExecution(CommandExecution commandExecution, def stdin)
+  protected AbstractCommandStreamStorage saveCommandExecution(CommandExecution commandExecution,
+                                                              def stdin)
   {
     synchronized(_lock)
     {
@@ -79,33 +80,15 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
         new BufferedInputStream(stdin).withStream { storage.stdin << it }
       }
 
-      commands[commandExecution.id] = storage
+      commands[commandExecution.id] = commandExecution
 
-      return commandExecution
-    }
-  }
-
-  @Override
-  protected findInputStreamWithSize(CommandExecution commandExecution, StreamType streamType)
-  {
-    synchronized(_lock)
-    {
-      commands[commandExecution.id]?.findStorageInputWithSize(streamType)
+      return storage
     }
   }
 
   def captureIO(CommandExecution commandExecution, Closure closure)
   {
-    CommandStreamStorage streamStorage
-
-    synchronized(_lock)
-    {
-      streamStorage = commands[commandExecution.id]
-    }
-
-    if(streamStorage == null || !streamStorage.commandExecution.is(commandExecution))
-      throw new IllegalArgumentException("not the same command node...")
-
-    return closure(streamStorage)
+    // nothing to do here really since we are not really storing it anywhere else...
+    return closure(commandExecution.storage)
   }
 }

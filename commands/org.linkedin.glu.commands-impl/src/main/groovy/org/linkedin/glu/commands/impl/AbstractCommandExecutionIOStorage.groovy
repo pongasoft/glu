@@ -16,21 +16,11 @@
 
 package org.linkedin.glu.commands.impl
 
-import org.linkedin.glu.groovy.utils.io.InputGeneratorStream
-import org.linkedin.glu.utils.io.LimitedInputStream
-import org.linkedin.glu.utils.io.MultiplexedInputStream
-import org.linkedin.groovy.util.config.Config
 import org.linkedin.util.annotations.Initializable
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
-import java.util.concurrent.TimeoutException
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
-import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
-import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
-import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
-import java.util.concurrent.ExecutorService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * @author yan@pongasoft.com */
@@ -64,8 +54,9 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
     CommandExecution commandExecution = new CommandExecution(commandId, args)
     commandExecution.startTime = startTime
 
-    commandExecution = saveCommandExecution(commandExecution, stdin)
-    commandExecution.storage = this
+    AbstractCommandStreamStorage storage = saveCommandExecution(commandExecution, stdin)
+    storage.ioStorage = this
+    commandExecution.storage = storage
 
     commandExecution.command = gluCommandFactory.createGluCommand(commandExecution)
 
@@ -78,236 +69,35 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
   @Override
   def findCommandExecutionAndStreams(String commandId, def args)
   {
-    args= GluGroovyCollectionUtils.subMap(args,
-                                          [
-                                            'exitValueStream',
-                                            'exitValueStreamTimeout',
-                                            'stdinStream',
-                                            'stdinOffset',
-                                            'stdinLen',
-                                            'stdoutStream',
-                                            'stdoutOffset',
-                                            'stdoutLen',
-                                            'stderrStream',
-                                            'stderrOffset',
-                                            'stderrLen',
-                                          ])
-
-    int numberOfStreams = 0
-
     CommandExecution commandExecution = findCommandExecution(commandId)
 
-    if(commandExecution == null)
-      return null
-
-    def res = [:]
-
-    res.commandExecution = commandExecution
-
-    Map<String, InputStream> streams = [:]
-
-    def exitValueStream = Config.getOptionalBoolean(args, 'exitValueStream', false)
-
-    // Factory to compute the exit value
-    def exitValueFactory = { null }
-
-    if(exitValueStream)
-      numberOfStreams++
-
-    def timeout = args.exitValueStreamTimeout
-
-    if(exitValueStream && (timeout != null || commandExecution.isCompleted()))
-    {
-      exitValueFactory = {
-        try
-        {
-          return commandExecution.getExitValue(timeout).toString()
-        }
-        catch(TimeoutException e)
-        {
-          if(log.isDebugEnabled())
-            log.debug("timeout reached", e)
-          // ok: ignored...
-          return null
-        }
-      }
-
-      InputStream exitValueInputStream = new InputGeneratorStream(exitValueFactory)
-      streams[StreamType.EXIT_VALUE.multiplexName] = exitValueInputStream
-    }
-
-    def m = [:]
-    m[StreamType.STDIN] = commandExecution.hasStdin()
-    m[StreamType.STDOUT] = true
-    m[StreamType.STDERR] = !commandExecution.redirectStderr
-
-    m.each { streamType, include ->
-
-      def name = streamType.toString().toLowerCase()
-
-      // is the stream requested?
-      if(Config.getOptionalBoolean(args, "${name}Stream", false))
-      {
-        numberOfStreams++
-
-        if(include)
-        {
-          def inputStreamFactory = {
-
-            // either wait or not
-            exitValueFactory()
-
-            def streamAndSize = findStreamWithSize(commandExecution,
-                                                   streamType,
-                                                   [
-                                                     offset: args."${name}Offset",
-                                                     len: args."${name}Len",
-                                                   ])
-
-            if(streamAndSize)
-            {
-              return new LimitedInputStream(streamAndSize.stream, streamAndSize.size)
-            }
-            else
-              return null
-          }
-
-          streams[streamType.multiplexName] = new InputGeneratorStream(inputStreamFactory)
-        }
-      }
-    }
-
-    // no streams were found
-    if(streams.size() > 0)
-    {
-      // case when requesting only 1 stream
-      if(numberOfStreams == 1)
-      {
-        // we return the only stream
-        res.stream = streams.values().iterator().next()
-      }
-      else
-      {
-        // we multiplex the result
-        res.stream = new MultiplexedInputStream(streams)
-      }
-    }
-
-    return res
+    if(commandExecution)
+      [commandExecution: commandExecution, stream: commandExecution.storage.findStorageInput(args)]
+    else
+      null
   }
 
   @Override
   def withOrWithoutCommandExecutionAndStreams(String commandId, args, Closure closure)
   {
-    def m = findCommandExecutionAndStreams(commandId, args)
-    if(m?.stream)
-      m.stream.withStream { closure([stream: it, commandExecution: m.commandExecution]) }
-    else
-      closure(m)
-  }
+    CommandExecution commandExecution = findCommandExecution(commandId)
 
-  def findStreamWithSize(String commandId, StreamType streamType, def args)
-  {
-    findStreamWithSize(findCommandExecution(commandId), streamType, args)
-  }
-
-  def findStreamWithSize(CommandExecution command, StreamType streamType, def args)
-  {
-    def m = findInputStreamWithSize(command, streamType)
-    if(m != null)
+    if(commandExecution)
     {
-      long offset = GluGroovyLangUtils.getOptionalLong(args, "offset", 0)
-      long len = GluGroovyLangUtils.getOptionalLong(args, "len", -1)
-
-      InputStream is = m.stream
-
-      if(offset < 0)
-        offset = m.size + offset
-
-      if(offset > 0)
-        is.skip(offset)
-
-      if(len > -1)
-        is = new LimitedInputStream(is, len)
-
-      return [stream: is, size: m.size]
+      commandExecution.storage.withOrWithoutStorageInput(args) { stream ->
+        closure([stream: stream, commandExecution: commandExecution])
+      }
     }
-    else
-      return null
-  }
-
-  @Override
-  def withStreamAndSize(String commandId, StreamType streamType, def args, Closure closure)
-  {
-    withOrWithoutStreamAndSize(commandId, streamType, args) { m ->
-      if(m) closure(m)
-    }
-  }
-
-  @Override
-  def withOrWithoutStreamAndSize(String commandId, StreamType streamType, def args, Closure closure)
-  {
-    def m = findStreamWithSize(commandId, streamType, args)
-
-    if(m)
-      m.stream.withStream { closure([stream: it, size: m.size]) }
     else
       closure(null)
   }
 
   /**
-   * Synchronously executes the command
-   * @return the exitValue of the command execution
-   */
-  def syncCaptureIO(CommandExecution commandExecution, Closure closure)
-  {
-    doCaptureIO(commandExecution, null, closure)
-  }
-
-  /**
-   * Asynchronously executes the command. Returns right away.
-   */
-  FutureTaskExecution asyncCaptureIO(CommandExecution commandExecution,
-                                     ExecutorService executorService,
-                                     Closure closure)
-  {
-    doCaptureIO(commandExecution, executorService, closure)
-  }
-
-  private def doCaptureIO(CommandExecution commandExecution,
-                          ExecutorService executorService,
-                          Closure closure)
-  {
-    def processing = {
-      def res = captureIO(commandExecution, closure)
-      commandExecution.completionTime = res.completionTime ?: clock.currentTimeMillis()
-      if(res.exception)
-        throw res.exception
-      else
-        return res.exitValue
-    }
-    def futureExecution = new FutureTaskExecution(processing)
-    futureExecution.clock = clock
-    commandExecution.futureExecution = futureExecution
-
-    if(executorService)
-      futureExecution.runAsync(executorService)
-    else
-      futureExecution.runSync()
-  }
-
-  /**
    * Should save the command in persistent state (as well as stdin if there is any)
-   * @return the command (eventually tweaked)
+   * @return the storage
    */
-  protected abstract CommandExecution saveCommandExecution(CommandExecution commandExecution,
-                                                           def stdin)
-
-  /**
-   * @return an input stream for the commandId as well as its size
-   */
-  protected abstract def findInputStreamWithSize(CommandExecution commandExecution,
-                                                 StreamType streamType)
+  protected abstract AbstractCommandStreamStorage saveCommandExecution(CommandExecution commandExecution,
+                                                                       def stdin)
 
   /**
    * Will be called back to capture the IO

@@ -55,21 +55,21 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
   /**
    * Contains the storage of the commands while capture IO is executing only!
    */
-  final Map<String, FileSystemStreamStorage> commands = [:]
+  final Map<String, CommandExecution> commands = [:]
 
   @Override
   CommandExecution findCommandExecution(String commandId)
   {
-    FileSystemStreamStorage storage
+    CommandExecution commandExecution
 
     synchronized(commands)
     {
-      storage = commands[commandId]
+      commandExecution = commands[commandId]
     }
 
     // already in the map, meaning IO is being captured... simply return it
-    if(storage != null)
-      return storage.commandExecution
+    if(commandExecution != null)
+      return commandExecution
 
     // not in the map, needs to rebuild it from file system
     def baseDir = computeDir(commandId)
@@ -89,13 +89,13 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
       if(exception)
         exitValueProvider = { throw exception }
 
-      long startTime = args.remove('startTime')
-      long completionTime = args.remove('completionTime')
+      long startTime = args.remove('startTime') ?: 0
+      long completionTime = args.remove('completionTime') ?: 0
 
-      CommandExecution commandExecution = new CommandExecution(commandId, args)
+      commandExecution = new CommandExecution(commandId, args)
       commandExecution.startTime = startTime
       commandExecution.completionTime = completionTime
-      commandExecution.storage = this
+      commandExecution.storage = createStorage(commandExecution)
 
       FutureTaskExecution fe = new FutureTaskExecution(exitValueProvider)
       fe.clock = clock
@@ -120,7 +120,8 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
   }
 
   @Override
-  protected CommandExecution saveCommandExecution(CommandExecution commandExecution, def stdin)
+  protected AbstractCommandStreamStorage saveCommandExecution(CommandExecution commandExecution,
+                                                              def stdin)
   {
     def storage = createStorage(commandExecution)
 
@@ -145,38 +146,18 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
     if(stdin)
       storage.withStorageOutput(StreamType.STDIN) { it << stdin }
 
-    return commandExecution
-  }
-
-  @Override
-  protected findInputStreamWithSize(CommandExecution commandExecution, StreamType streamType)
-  {
-    FileSystemStreamStorage storage
-
-    synchronized(commands)
-    {
-      storage = commands[commandExecution.id]
-    }
-
-    if(storage == null)
-      storage = createStorage(commandExecution)
-    else
-      storage.flush()
-
-    return storage.findStorageInputWithSize(streamType)
+    return storage
   }
 
   @Override
   protected def captureIO(CommandExecution commandExecution, Closure closure)
   {
-    FileSystemStreamStorage storage = createStorage(commandExecution)
-
     synchronized(commands)
     {
       if(commands.containsKey(commandExecution.id))
-        throw new IllegalArgumentException("duplicate command id [${commandExecution.id}]")
+        throw new IllegalStateException("already capturing IO for ${commandExecution.id}")
 
-      commands[commandExecution.id] = storage
+      commands[commandExecution.id] = commandExecution
     }
 
     try
@@ -185,13 +166,16 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
       Throwable exception
       try
       {
-        res = closure(storage)
+        res = closure(commandExecution.storage)
         exception = res.exception
       }
       catch(Throwable th)
       {
         exception = th
       }
+
+      // close all open output stream
+      commandExecution.storage.close()
 
       // now we update the command with the exit value
       def args = [*:commandExecution.args]
@@ -203,7 +187,8 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
       args.completionTime = res?.completionTime ?: clock.currentTimeMillis()
 
       // save the command to the file system
-      new BufferedOutputStream(new FileOutputStream(storage.commandResource.file)).withStream { out ->
+      def fos = new FileOutputStream(commandExecution.storage.commandResource.file)
+      new BufferedOutputStream(fos).withStream { out ->
         out << JsonUtils.compactPrint(args)
       }
 

@@ -36,7 +36,7 @@ public class CommandExecution
   synchronized long completionTime = 0L
 
   FutureTaskExecution futureExecution
-  def storage
+  CommandStreamStorage storage
 
   CommandExecution(String commandId, args)
   {
@@ -126,7 +126,7 @@ public class CommandExecution
    */
   def syncCaptureIO(Closure closure)
   {
-    storage.syncCaptureIO(this, closure)
+    storage.syncCaptureIO(closure)
   }
 
   /**
@@ -135,6 +135,6 @@ public class CommandExecution
   FutureTaskExecution asyncCaptureIO(ExecutorService executorService,
                                      Closure closure)
   {
-    storage.asyncCaptureIO(this, executorService, closure)
+    storage.asyncCaptureIO(executorService, closure)
   }
 }

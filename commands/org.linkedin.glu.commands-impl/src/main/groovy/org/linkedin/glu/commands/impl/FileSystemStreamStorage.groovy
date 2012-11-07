@@ -21,20 +21,11 @@ import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 
 /**
  * @author yan@pongasoft.com */
-class FileSystemStreamStorage extends AbstractCommandStreamStorage
+class FileSystemStreamStorage extends AbstractCommandStreamStorage<FileSystemCommandExecutionIOStorage>
 {
-  FileSystemCommandExecutionIOStorage ioStorage
   Resource baseDir
 
   def _streams
-
-  /**
-   * Flush all streams we know about
-   */
-  synchronized void flush()
-  {
-    _streams.values().out.each { it?.flush() }
-  }
 
   /**
    * Close all streams we know about
@@ -83,6 +74,9 @@ class FileSystemStreamStorage extends AbstractCommandStreamStorage
     if(m == null)
       return null
 
+    // make sure to flush output first...
+    m.out?.flush()
+
     Resource resource = m.resource
     if(resource.exists())
       return new BufferedInputStream(resource.inputStream)
@@ -95,6 +89,9 @@ class FileSystemStreamStorage extends AbstractCommandStreamStorage
     def m = streams[type]
     if(m == null)
       return null
+
+    // make sure to flush output first...
+    m.out?.flush()
 
     Resource resource = m.resource
     if(resource.exists())

@@ -66,43 +66,6 @@ public interface CommandExecutionIOStorage
   def withOrWithoutCommandExecutionAndStreams(String commandId, def args, Closure closure)
 
   /**
-   * Return the stream for the command. Does not wait
-   *
-   * @param args.offset where to start in the stream (optional, <code>int</code>,
-   *                    <code>0</code> by default)
-   * @param args.len how many bytes to read maximum (optional, <code>int</code>,
-   *                 <code>-1</code> by default which means read all)
-   * @return a map with <code>stream</code> and <code>size</code> or <code>null</code>
-   */
-  def findStreamWithSize(String commandId, StreamType streamType, def args)
-
-  /**
-   * Same as {@link #findStreamWithSize} but call the closure with the map (and make sure
-   * that the stream gets closed properly). This version does not call the closure if
-   * there is no such stream
-   *
-   * @param args.offset where to start in the stream (optional, <code>int</code>,
-   *                    <code>0</code> by default)
-   * @param args.len how many bytes to read maximum (optional, <code>int</code>,
-   *                 <code>-1</code> by default which means read all)
-   * @return whatever the closure returns
-   */
-  def withStreamAndSize(String commandId, StreamType streamType, def args, Closure closure)
-
-  /**
-   * Same as {@link #findStreamWithSize} but call the closure with the map (and make sure
-   * that the stream gets closed properly). This version always calls the closure, potentially
-   * with <code>null</code>
-   *
-   * @param args.offset where to start in the stream (optional, <code>int</code>,
-   *                    <code>0</code> by default)
-   * @param args.len how many bytes to read maximum (optional, <code>int</code>,
-   *                 <code>-1</code> by default which means read all)
-   * @return whatever the closure returns
-   */
-  def withOrWithoutStreamAndSize(String commandId, StreamType streamType, def args, Closure closure)
-
-  /**
    * @return the command of a previously run/stored command
    */
   CommandExecution findCommandExecution(String commandId)
