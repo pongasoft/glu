@@ -37,6 +37,8 @@ import org.linkedin.util.clock.Timespan
 import org.linkedin.glu.orchestration.engine.commands.DbCommandExecution
 import org.linkedin.glu.commands.impl.CommandExecution
 import org.linkedin.util.lang.MemorySize
+import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
+import java.util.concurrent.CancellationException
 
 /**
  * @author yan@pongasoft.com */
@@ -509,6 +511,128 @@ public class TestCommandsServiceImpl extends GroovyTestCase
       assertNull(dbCommandExecution.stderrTotalBytesCount)
       assertNull(dbCommandExecution.exitValue)
       assertFalse(dbCommandExecution.isExecuting)
+    }
+  }
+
+  /**
+   * Make sure that interrupts work as advertised!
+   */
+  public void testInterrupt()
+  {
+    def tc = new ThreadControl(Timespan.parse('30s'))
+
+    def f1 = new Fabric(name: "f1")
+
+    withAuthorizationService {
+
+      final def agentsServiceMock = new MockFor(AgentsService)
+
+      final def lock = new Object()
+
+      def simulateBlockingCommand = {
+        synchronized(lock)
+        {
+          tc.blockWithException("simulateBlockingCommand.start")
+          lock.wait()
+        }
+      }
+
+      def future = new FutureTaskExecution(simulateBlockingCommand)
+      future.clock = clock
+
+      // executeShellCommand
+      agentsServiceMock.demand.executeShellCommand { fabric, agentName, args ->
+        clock.addDuration(Timespan.parse("10s"))
+        future.runSync()
+      }
+
+      // interrupt command
+      agentsServiceMock.demand.interruptCommand { fabric, agentName, args ->
+        future.cancel(true)
+      }
+
+      AgentsService agentsService = agentsServiceMock.proxyInstance()
+      service.agentsService = agentsService
+
+      long startTime = clock.currentTimeMillis()
+
+      // execute the shell command
+      String cid = service.executeShellCommand(f1,
+                                               "a1",
+                                               [
+                                                 command: "uptime",
+                                                 redirectStderr: true
+                                               ])
+
+      // we wait until the shell command is "executing"
+      tc.waitForBlock("simulateBlockingCommand.start")
+
+      long completionTime = clock.currentTimeMillis()
+
+      assertTrue(service.interruptCommand(f1, "a1", cid))
+
+      // get the results
+      service.withCommandExecutionAndWithOrWithoutStreams(f1,
+                                                          cid,
+                                                          [
+                                                            exitValueStream: true,
+                                                            exitValueStreamTimeout: 0
+                                                          ]) { args ->
+
+        shouldFailWithCause(CancellationException) {
+          MultiplexedInputStream.demultiplexToString(args.stream,
+                                                     [
+                                                       StreamType.EXIT_VALUE.multiplexName,
+                                                     ] as Set,
+                                                     null)
+        }
+      }
+
+      agentsServiceMock.verify(agentsService)
+
+      CommandExecution ce = ioStorage.findCommandExecution(cid)
+      assertTrue(ce.isCompleted())
+      def baos = new ByteArrayOutputStream()
+      new PrintStream(baos).withStream { ce.completionValue.printStackTrace(it) }
+
+      assertNull("command is completed", service._currentCommandExecutions[cid])
+      DbCommandExecution dbCommandExecution = service.findCommandExecution(f1, cid)
+      assertEquals(cid, dbCommandExecution.commandId)
+      assertEquals("uptime", dbCommandExecution.command)
+      assertTrue(dbCommandExecution.redirectStderr)
+      assertEquals(DbCommandExecution.CommandType.SHELL, dbCommandExecution.commandType)
+      assertEquals(startTime, dbCommandExecution.startTime)
+      assertEquals(completionTime, dbCommandExecution.completionTime)
+      assertEquals(f1.name, dbCommandExecution.fabric)
+      assertEquals("a1", dbCommandExecution.agent)
+      assertNull(dbCommandExecution.stdinFirstBytes)
+      assertNull(dbCommandExecution.stdinTotalBytesCount)
+      assertNull(dbCommandExecution.stdoutFirstBytes)
+      assertNull(dbCommandExecution.stdoutTotalBytesCount)
+      assertNull(dbCommandExecution.stderrFirstBytes)
+      assertNull(dbCommandExecution.stderrTotalBytesCount)
+      assertEquals(new String(baos.toByteArray()), dbCommandExecution.exitValue)
+      assertTrue(dbCommandExecution.isException)
+      assertFalse(dbCommandExecution.isExecuting)
+
+      // now that the command is complete...
+      service.withCommandExecutionAndWithOrWithoutStreams(f1,
+                                                          cid,
+                                                          [
+                                                            exitValueStream: true,
+                                                            exitValueStreamTimeout: 0
+                                                          ]) { args ->
+        dbCommandExecution = args.commandExecution
+        assertTrue(dbCommandExecution.isException)
+
+        shouldFailWithCause(CancellationException) {
+          MultiplexedInputStream.demultiplexToString(args.stream,
+                                                     [
+                                                       StreamType.EXIT_VALUE.multiplexName,
+                                                     ] as Set,
+                                                     null)
+        }
+      }
     }
   }
 

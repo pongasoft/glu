@@ -143,6 +143,11 @@ public class DbCommandExecution
    */
   String exitValue
 
+  /**
+   * When an exception is generated, then the exit value contains the exception
+   */
+  boolean isException
+
   byte[] getFirstBytes(def streamType)
   {
     this."${streamType.toString().toLowerCase()}FirstBytes"

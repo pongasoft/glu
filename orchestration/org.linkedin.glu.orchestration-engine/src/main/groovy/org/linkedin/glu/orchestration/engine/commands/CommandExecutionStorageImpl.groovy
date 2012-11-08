@@ -21,6 +21,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.linkedin.util.lang.MemorySize
+import org.linkedin.glu.utils.io.LimitedOutputStream
 
 /**
  * @author yan@pongasoft.com */
@@ -31,6 +33,9 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
 
   @Initializable
   int maxResults = 25
+
+  @Initializable
+  MemorySize stackTraceMaxSize = MemorySize.parse('255')
 
   @Override
   DbCommandExecution startExecution(String fabric,
@@ -72,6 +77,25 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
                                   Long stderrTotalBytesCount,
                                   String exitValue)
   {
+    endExecution(commandId,
+                 endTime,
+                 stdoutFirstBytes,
+                 stdoutTotalBytesCount,
+                 stderrFirstBytes,
+                 stderrTotalBytesCount,
+                 exitValue,
+                 false)
+  }
+
+  DbCommandExecution endExecution(String commandId,
+                                  long endTime,
+                                  byte[] stdoutFirstBytes,
+                                  Long stdoutTotalBytesCount,
+                                  byte[] stderrFirstBytes,
+                                  Long stderrTotalBytesCount,
+                                  String exitValue,
+                                  boolean isException)
+  {
     DbCommandExecution.withTransaction {
       DbCommandExecution execution = DbCommandExecution.findByCommandId(commandId)
       if(!execution)
@@ -86,6 +110,7 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
         execution.stderrFirstBytes = stderrFirstBytes
         execution.stderrTotalBytesCount = stderrTotalBytesCount
         execution.exitValue = exitValue
+        execution.isException = isException
 
         if(!execution.save())
         {
@@ -94,6 +119,29 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
       }
       return execution
     }
+  }
+
+  @Override
+  DbCommandExecution endExecution(String commandId,
+                                  long endTime,
+                                  byte[] stdoutFirstBytes,
+                                  Long stdoutTotalBytesCount,
+                                  byte[] stderrFirstBytes,
+                                  Long stderrTotalBytesCount,
+                                  Throwable exception)
+  {
+    def baos = new ByteArrayOutputStream()
+
+    def os = new PrintStream(new LimitedOutputStream(baos, stackTraceMaxSize))
+    os.withStream { exception.printStackTrace(it) }
+    endExecution(commandId,
+                 endTime,
+                 stdoutFirstBytes,
+                 stdoutTotalBytesCount,
+                 stderrFirstBytes,
+                 stderrTotalBytesCount,
+                 new String(baos.toByteArray()),
+                 true)
   }
 
   @Override

@@ -128,10 +128,6 @@ public class InputGeneratorStream extends InputStream implements Sizeable
       {
         throw e
       }
-      catch(RuntimeException e)
-      {
-        throw e
-      }
       catch(Throwable th)
       {
         throw new IOException("issue while generating the input stream", th)

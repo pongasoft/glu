@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutorService
 
 import java.util.concurrent.FutureTask
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
+import org.linkedin.util.clock.SystemClock
 
 /**
  * @author yan@pongasoft.com */
@@ -51,7 +52,7 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
   /**
    * The clock
    */
-  Clock clock
+  Clock clock = SystemClock.instance()
 
   /**
    * The actual future task on which all the calls will be delegated to implement the

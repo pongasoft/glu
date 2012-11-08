@@ -94,6 +94,13 @@ public class CommandsServiceImpl implements CommandsService
   Timespan defaultSynchronousWaitTimeout = Timespan.parse('1s')
 
   /**
+   * This timeout represents how long to we are willing to wait for the command to wait for the
+   * interrupt to propagate before we interrupt it on this side
+   */
+  @Initializable
+  Timespan defaultInterruptTimeout = Timespan.parse('5s')
+
+  /**
    * The commands that are currently executing  */
   private final Map<String, CommandExecution<DbCommandExecution>> _currentCommandExecutions = [:]
 
@@ -167,6 +174,36 @@ public class CommandsServiceImpl implements CommandsService
     }
 
     return command.id
+  }
+
+  @Override
+  boolean interruptCommand(Fabric fabric, String agentName, String commandId)
+  {
+    // first we interrupt the command "remotely"
+    def res = agentsService.interruptCommand(fabric, agentName, [id: commandId])
+
+    CommandExecution commandExecution
+
+    synchronized(_currentCommandExecutions)
+    {
+      commandExecution = _currentCommandExecutions[commandId]
+    }
+
+    if(commandExecution)
+    {
+      try
+      {
+        // we wait for the interrupt to propagate back
+        commandExecution.waitForCompletion(defaultInterruptTimeout)
+      }
+      catch(TimeoutException e)
+      {
+        // not completed yet... forcing interrupting on this side
+        res &= commandExecution.interruptExecution()
+      }
+    }
+
+    return res
   }
 
   /**
@@ -244,8 +281,27 @@ public class CommandsServiceImpl implements CommandsService
               // this will demultiplex the result
               DemultiplexedOutputStream dos = new DemultiplexedOutputStream(streams)
 
-              dos.withStream { OutputStream os ->
-                onResultStreamAvailable(id: command.id, stream: new TeeInputStream(res.stream, os))
+              try
+              {
+                dos.withStream { OutputStream os ->
+                  onResultStreamAvailable(id: command.id, stream: new TeeInputStream(res.stream, os))
+                }
+              }
+              catch(Throwable th)
+              {
+                long completionTime = clock.currentTimeMillis()
+
+                GroovyLangUtils.noException {
+                  commandExecutionStorage.endExecution(command.id,
+                                                       completionTime,
+                                                       stdout.bytes,
+                                                       stdout.totalNumberOfBytes,
+                                                       stderr.bytes,
+                                                       stderr.totalNumberOfBytes,
+                                                       th)
+                }
+
+                return [completionTime: completionTime, exception: th]
               }
 
               long completionTime = clock.currentTimeMillis()
@@ -257,7 +313,7 @@ public class CommandsServiceImpl implements CommandsService
                                                                    stdout.totalNumberOfBytes,
                                                                    stderr.bytes,
                                                                    stderr.totalNumberOfBytes,
-                                                                   toString(exitValueStream)).exitValue
+                                                                   (String) toString(exitValueStream)).exitValue
 
               return [exitValue: exitValue, completionTime: completionTime]
             }
@@ -275,7 +331,7 @@ public class CommandsServiceImpl implements CommandsService
                                                null,
                                                null,
                                                null,
-                                               null)
+                                               th)
         }
 
         return [completionTime: completionTime, exception: th]
@@ -363,7 +419,7 @@ public class CommandsServiceImpl implements CommandsService
                                                   def args,
                                                   Closure closure)
   {
-    def commandExecution = commandExecutionStorage.findCommandExecution(fabric.name, commandId)
+    def commandExecution = findCommandExecution(fabric, commandId)
 
     if(commandExecution?.fabric != fabric.name)
       throw new NoSuchCommandExecutionException(commandId)
@@ -371,7 +427,7 @@ public class CommandsServiceImpl implements CommandsService
     commandExecutionIOStorage.withOrWithoutCommandExecutionAndStreams(commandId, args) { m ->
       if(!m)
         throw new NoSuchCommandExecutionException(commandId)
-      closure(m)
+      closure([commandExecution: commandExecution, stream: m.stream])
     }
   }
 

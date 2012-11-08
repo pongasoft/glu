@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutorService
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 import org.slf4j.Logger
 import org.linkedin.groovy.util.config.Config
+import java.util.concurrent.TimeoutException
 
 /**
  * @author yan@pongasoft.com */
@@ -78,15 +79,18 @@ public class CommandExecution<T>
     completionTime > 0
   }
 
-  def waitForCompletion(def timeout)
+  void waitForCompletion(def timeout)
   {
-    try
+    if(!isCompleted())
     {
-      futureExecution.get(timeout)
-    }
-    catch(ExecutionException e)
-    {
-      throw e.cause
+      try
+      {
+        futureExecution.get(timeout)
+      }
+      catch(ExecutionException e)
+      {
+        // ok we just want to wait until the command completes but no more than the timeout
+      }
     }
   }
 
@@ -98,14 +102,18 @@ public class CommandExecution<T>
   def getExitValue()
   {
     if(isCompleted())
-    try
     {
-      futureExecution.get()
+      try
+      {
+        futureExecution.get()
+      }
+      catch(ExecutionException e)
+      {
+        throw e.cause
+      }
     }
-    catch(ExecutionException e)
-    {
-      throw e.cause
-    }
+    else
+      return null
   }
 
   def getExitValue(timeout)
@@ -117,6 +125,44 @@ public class CommandExecution<T>
     catch(ExecutionException e)
     {
       throw e.cause
+    }
+  }
+
+  /**
+   * Completion value either return the result of the call if succeeded or the exception
+   * if an exception was thrown. Does not throw an exception! Does not wait!
+   */
+  def getCompletionValue()
+  {
+    if(isCompleted())
+    {
+      try
+      {
+        futureExecution.get()
+      }
+      catch(ExecutionException e)
+      {
+        e.cause
+      }
+    }
+    else
+      return null
+  }
+
+  /**
+   * Completion value either return the result of the call if succeeded or the exception
+   * if an exception was thrown. Throws only the <code>TimeoutException</code> if cannot get
+   * a result in the timeout provided
+   */
+  def getCompletionValue(timeout) throws TimeoutException
+  {
+    try
+    {
+      futureExecution.get(timeout)
+    }
+    catch(ExecutionException e)
+    {
+      e.cause
     }
   }
 

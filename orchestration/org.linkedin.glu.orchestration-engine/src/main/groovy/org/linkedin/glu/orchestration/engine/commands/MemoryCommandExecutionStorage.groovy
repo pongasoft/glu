@@ -82,13 +82,32 @@ public class MemoryCommandExecutionStorage implements CommandExecutionStorage
   }
 
   @Override
+  DbCommandExecution endExecution(String commandId,
+                                  long endTime,
+                                  byte[] stdoutFirstBytes,
+                                  Long stdoutTotalBytesCount,
+                                  byte[] stderrFirstBytes,
+                                  Long stderrTotalBytesCount,
+                                  String exitValue)
+  {
+    endExecution(commandId,
+                 endTime,
+                 stdoutFirstBytes,
+                 stdoutTotalBytesCount,
+                 stderrFirstBytes,
+                 stderrTotalBytesCount,
+                 exitValue,
+                 false)
+  }
+
   synchronized DbCommandExecution endExecution(String commandId,
                                                long endTime,
                                                byte[] stdoutFirstBytes,
                                                Long stdoutTotalBytesCount,
                                                byte[] stderrFirstBytes,
                                                Long stderrTotalBytesCount,
-                                               String exitValue)
+                                               String exitValue,
+                                               boolean isException)
   {
     DbCommandExecution execution = memory[commandId]
     if(!execution)
@@ -103,9 +122,33 @@ public class MemoryCommandExecutionStorage implements CommandExecutionStorage
       execution.stderrFirstBytes = stderrFirstBytes
       execution.stderrTotalBytesCount = stderrTotalBytesCount
       execution.exitValue = exitValue
+      execution.isException = isException
     }
 
     return execution
+  }
+
+  @Override
+  DbCommandExecution endExecution(String commandId,
+                                  long endTime,
+                                  byte[] stdoutFirstBytes,
+                                  Long stdoutTotalBytesCount,
+                                  byte[] stderrFirstBytes,
+                                  Long stderrTotalBytesCount,
+                                  Throwable exception)
+  {
+    def baos = new ByteArrayOutputStream()
+
+    new PrintStream(baos).withStream { exception.printStackTrace(it) }
+
+    endExecution(commandId,
+                 endTime,
+                 stdoutFirstBytes,
+                 stdoutTotalBytesCount,
+                 stderrFirstBytes,
+                 stderrTotalBytesCount,
+                 new String(baos.toByteArray()),
+                 true)
   }
 
   @Override

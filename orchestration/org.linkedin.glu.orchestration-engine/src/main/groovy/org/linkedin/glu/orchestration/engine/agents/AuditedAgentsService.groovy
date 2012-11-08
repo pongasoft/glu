@@ -115,4 +115,11 @@ public class AuditedAgentsService implements AgentsService
                             res?.id?.toString())
     }
   }
+
+  @Override
+  boolean interruptCommand(Fabric fabric, String agentName, def args)
+  {
+    auditLogService.audit('agent.interruptCommand', "${agentName} / ${fabric.name} / ${args.id}")
+    agentsService.interruptCommand(fabric, agentName, args)
+  }
 }

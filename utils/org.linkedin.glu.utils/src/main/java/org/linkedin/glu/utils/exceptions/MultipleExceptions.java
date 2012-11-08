@@ -30,25 +30,15 @@ public class MultipleExceptions extends RuntimeException
   {
     private static final long serialVersionUID = 1L;
 
-    private final Throwable _throwable;
-    private final int _exceptionIndex;
+    public More(String message)
+    {
+      super(message);
+    }
 
     public More(int exceptionIndex, Throwable throwable)
     {
       super(computeMessage(exceptionIndex, _causes.size(), throwable));
-      _throwable = throwable;
-      _exceptionIndex = exceptionIndex;
       setStackTrace(throwable.getStackTrace());
-    }
-
-    public Throwable getThrowable()
-    {
-      return _throwable;
-    }
-
-    public int getExceptionIndex()
-    {
-      return _exceptionIndex;
     }
   }
 
@@ -104,7 +94,7 @@ public class MultipleExceptions extends RuntimeException
    */
   public static void throwIfExceptions(Collection<? extends Throwable> causes) throws Throwable
   {
-    throwIfExceptions(null, causes);
+    throwIfExceptions((String) null, causes);
   }
 
   /**
@@ -119,11 +109,25 @@ public class MultipleExceptions extends RuntimeException
   }
 
   /**
+   * Convenient call to throw a multiple exception or not depending on the collection
+   *
+   * @param rootCause the exception that will be thrown in the end (if causes) and
+   *                  attach the multi exception as the cause
+   */
+  public static void throwIfExceptions(Throwable rootCause,
+                                       Collection<? extends Throwable> causes) throws Throwable
+  {
+    Throwable throwable = createIfExceptions(rootCause, causes);
+    if(throwable != null)
+      throw throwable;
+  }
+
+  /**
    * Convenient call to create a multiple exception or not depending on the collection
    */
   public static Throwable createIfExceptions(Collection<? extends Throwable> causes)
   {
-    return createIfExceptions(null, causes);
+    return createIfExceptions((String) null, causes);
   }
 
   /**
@@ -142,5 +146,24 @@ public class MultipleExceptions extends RuntimeException
       return causes.iterator().next();
 
     return new MultipleExceptions(message, causes);
+  }
+
+  /**
+   * Convenient call to create a multiple exception or not depending on the collection
+   *
+   * @param rootCause the exception that will be returned in the end (if causes) and
+   *                  attach the multi exception as the cause
+   */
+  public static <T extends Throwable> T createIfExceptions(T rootCause,
+                                                           Collection<? extends Throwable> causes)
+  {
+    Throwable throwable = createIfExceptions(rootCause.getMessage(), causes);
+    if(throwable != null)
+    {
+      rootCause.initCause(throwable);
+      return rootCause;
+    }
+    else
+      return null;
   }
 }

@@ -248,6 +248,14 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
     }
   }
 
+  @Override
+  boolean interruptCommand(Fabric fabric, String agentName, def args)
+  {
+    withRemoteAgent(fabric, agentName) { Agent agent ->
+      agent.interruptCommand(args)
+    } as boolean
+  }
+
   /**
    * Create the system entry for the given agent and mountpoint.
    */

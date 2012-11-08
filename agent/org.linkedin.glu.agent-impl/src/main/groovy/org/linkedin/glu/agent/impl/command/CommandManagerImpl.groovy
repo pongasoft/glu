@@ -139,7 +139,7 @@ public class CommandManagerImpl implements CommandManager
 
     try
     {
-      def res = commandExecution.waitForCompletion(args.timeout)
+      def res = commandExecution.getExitValue(args.timeout)
       commandExecution.log.info("waitForCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])}): ${res}")
       return res
     }
@@ -173,7 +173,7 @@ public class CommandManagerImpl implements CommandManager
     if(commandExecution)
     {
       res = commandExecution.interruptExecution()
-      commandExecution.log.info("interruptCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])})")
+      commandExecution.log.info("interruptCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])}): ${res}")
     }
     else
     {

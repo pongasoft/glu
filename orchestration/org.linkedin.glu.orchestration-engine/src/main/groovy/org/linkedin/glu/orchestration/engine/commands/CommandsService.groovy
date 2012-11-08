@@ -59,4 +59,15 @@ public interface CommandsService
   DbCommandExecution findCommandExecution(Fabric fabric, String commandId)
 
   Map findCommandExecutions(Fabric fabric, String agentName, def params)
+
+  /**
+   * Interrupts the command.
+   *
+   * @param args.id the id of the command to interrupt
+   * @return <code>true</code> if the command was interrupted properly or <code>false</code> if
+   * there was no such command or already completed
+   */
+  boolean interruptCommand(Fabric fabric,
+                           String agentName,
+                           String commandId)
 }

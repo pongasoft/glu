@@ -92,4 +92,14 @@ interface AgentsService
                            args,
                            Closure commandResultProcessor)
 
+  /**
+   * Interrupts the command.
+   *
+   * @param args.id the id of the command to interrupt
+   * @return <code>true</code> if the command was interrupted properly or <code>false</code> if
+   * there was no such command or already completed
+   */
+  boolean interruptCommand(Fabric fabric,
+                           String agentName,
+                           args)
 }

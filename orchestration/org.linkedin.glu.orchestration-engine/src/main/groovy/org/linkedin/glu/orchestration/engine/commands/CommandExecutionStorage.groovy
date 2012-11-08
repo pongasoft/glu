@@ -41,6 +41,14 @@ public interface CommandExecutionStorage
                                   Long stderrTotalBytesCount,
                                   String exitValue)
 
+  DbCommandExecution endExecution(String commandId,
+                                  long endTime,
+                                  byte[] stdoutFirstBytes,
+                                  Long stdoutTotalBytesCount,
+                                  byte[] stderrFirstBytes,
+                                  Long stderrTotalBytesCount,
+                                  Throwable exception)
+
   DbCommandExecution findCommandExecution(String fabric, String commandId)
 
   Map findCommandExecutions(String fabric, String agent, def params)

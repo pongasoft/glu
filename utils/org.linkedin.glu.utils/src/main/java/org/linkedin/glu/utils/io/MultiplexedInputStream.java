@@ -322,19 +322,10 @@ public class MultiplexedInputStream extends InputStream
       if(_closed)
         throw new IOException("closed");
 
-      // some exceptions were generated...
-      Throwable th =
-        MultipleExceptions.createIfExceptions("Exceptions while processing some input streams",
-                                              _exceptions);
-      if(th != null)
-      {
-        if(th instanceof IOException)
-          throw (IOException) th;
-        else
-        {
-          throw new IOException(th);
-        }
-      }
+      // if some exceptions were generated...
+      if(!_exceptions.isEmpty())
+        throw MultipleExceptions.createIfExceptions(new IOException("Exceptions while reading input streams"),
+                                                    _exceptions);
 
       // nothing else to read... reach end of all streams!
       if(_multiplexedBuffer.position() == 0)
@@ -390,15 +381,15 @@ public class MultiplexedInputStream extends InputStream
   {
     synchronized(_multiplexedBuffer)
     {
+      if(_closed)
+        return;
+
       _closed = true;
       // notify everybody that this stream is closed
       _multiplexedBuffer.notifyAll();
     }
 
-    // this is a very "verbose" piece of code that simply calls close on each channel
-    // while ensuring it gets called for all of them even if an exception is thrown and if
-    // one is thrown, then the first one gets propagated
-    Throwable throwable = null;
+    Collection<Throwable> exceptions = new ArrayList<Throwable>();
 
     for(ChannelReaderCallable channelReader : _channelReaders)
     {
@@ -408,35 +399,13 @@ public class MultiplexedInputStream extends InputStream
       }
       catch(Throwable e)
       {
-        if(throwable != null)
-          throwable = e;
-        else
-        {
-          if(log.isDebugEnabled())
-            log.debug("ignored exception", e);
-        }
+        exceptions.add(e);
       }
     }
 
-    if(throwable != null)
-    {
-      try
-      {
-        throw throwable;
-      }
-      catch(IOException e)
-      {
-        throw e;
-      }
-      catch(RuntimeException e)
-      {
-        throw e;
-      }
-      catch(Throwable e)
-      {
-        throw new IOException(e);
-      }
-    }
+    if(!exceptions.isEmpty())
+      throw MultipleExceptions.createIfExceptions(new IOException("Issue while closing the channels"),
+                                                  exceptions);
   }
 
   /**
@@ -470,7 +439,14 @@ public class MultiplexedInputStream extends InputStream
 
     private void close() throws IOException
     {
-      _channel.close();
+      try
+      {
+        _channel.close();
+      }
+      catch(IOException e)
+      {
+        throw new IOException("Error while closing stream: [" + _name + "]", e);
+      }
     }
 
     /**
@@ -534,7 +510,7 @@ public class MultiplexedInputStream extends InputStream
         synchronized(_multiplexedBuffer)
         {
           // no need to call notifyAll: the finally block will take care of it...
-          _exceptions.add(th);
+          _exceptions.add(new IOException("Exception detected while reading stream: [" + _name + "]", th));
         }
       }
       finally
