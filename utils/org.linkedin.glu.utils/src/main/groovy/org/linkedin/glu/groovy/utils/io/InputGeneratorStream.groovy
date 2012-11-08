@@ -23,13 +23,13 @@ import org.linkedin.glu.utils.core.Sizeable
  * @author yan@pongasoft.com */
 public class InputGeneratorStream extends InputStream implements Sizeable
 {
-  private final Closure _inputStreamFactory
+  private final def _inputStreamFactory
 
   private InputStream _inputStream = null
   private volatile boolean _isClosed = false
   private volatile long _size = -1
 
-  InputGeneratorStream(Closure inputStreamFactory)
+  InputGeneratorStream(def inputStreamFactory)
   {
     _inputStreamFactory = inputStreamFactory
   }
@@ -99,7 +99,7 @@ public class InputGeneratorStream extends InputStream implements Sizeable
     {
       try
       {
-        def input = _inputStreamFactory()
+        def input = _inputStreamFactory instanceof Closure ? _inputStreamFactory() : _inputStreamFactory
 
         if(input == null)
         {

@@ -20,6 +20,7 @@ import org.linkedin.glu.console.domain.AuditLog
 import org.linkedin.util.codec.Codec
 import org.linkedin.util.codec.Base64Codec
 import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.util.lang.LangUtils
 
 /**
  * Base class for controllers
@@ -69,11 +70,7 @@ class ControllerBase
   protected def flashException(message, throwable)
   {
     flash.error = message
-    def sw = new StringWriter()
-    sw.withPrintWriter {
-      throwable.printStackTrace(it)
-    }
-    flash.stackTrace = sw.toString()
+    flash.stackTrace = LangUtils.getStackTrace(throwable)
   }
 
   protected def flashException(throwable)

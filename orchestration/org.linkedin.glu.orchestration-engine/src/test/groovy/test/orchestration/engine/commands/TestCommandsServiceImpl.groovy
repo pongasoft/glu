@@ -39,6 +39,7 @@ import org.linkedin.glu.commands.impl.CommandExecution
 import org.linkedin.util.lang.MemorySize
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 import java.util.concurrent.CancellationException
+import org.linkedin.glu.utils.io.NullOutputStream
 
 /**
  * @author yan@pongasoft.com */
@@ -182,6 +183,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
       assertNull(dbCommandExecution.stderrFirstBytes)
       assertNull(dbCommandExecution.stderrTotalBytesCount)
       assertTrue(dbCommandExecution.isExecuting)
+      assertFalse(dbCommandExecution.isException)
 
       // test bulk methods
       def ces = service.findCommandExecutions(f1, null, null)
@@ -233,6 +235,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
       assertEquals(10, dbCommandExecution.stderrTotalBytesCount)
       assertEquals("14", dbCommandExecution.exitValue)
       assertFalse(dbCommandExecution.isExecuting)
+      assertFalse(dbCommandExecution.isException)
     }
   }
 
@@ -456,6 +459,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
       assertNull(dbCommandExecution.stderrFirstBytes)
       assertNull(dbCommandExecution.stderrTotalBytesCount)
       assertTrue(dbCommandExecution.isExecuting)
+      assertFalse(dbCommandExecution.isException)
 
       // test bulk methods
       def ces = service.findCommandExecutions(f1, null, null)
@@ -509,8 +513,9 @@ public class TestCommandsServiceImpl extends GroovyTestCase
       assertNull(dbCommandExecution.stdoutTotalBytesCount)
       assertNull(dbCommandExecution.stderrFirstBytes)
       assertNull(dbCommandExecution.stderrTotalBytesCount)
-      assertNull(dbCommandExecution.exitValue)
+      assertEquals(GluGroovyLangUtils.getStackTrace(exception), dbCommandExecution.exitValue)
       assertFalse(dbCommandExecution.isExecuting)
+      assertTrue(dbCommandExecution.isException)
     }
   }
 
@@ -569,8 +574,6 @@ public class TestCommandsServiceImpl extends GroovyTestCase
 
       long completionTime = clock.currentTimeMillis()
 
-      assertTrue(service.interruptCommand(f1, "a1", cid))
-
       // get the results
       service.withCommandExecutionAndWithOrWithoutStreams(f1,
                                                           cid,
@@ -579,12 +582,12 @@ public class TestCommandsServiceImpl extends GroovyTestCase
                                                             exitValueStreamTimeout: 0
                                                           ]) { args ->
 
+        // at this stage the exit value stream is blocking: reading the stream will block
+        // and throw an exception => interrupting the process
+        assertTrue(service.interruptCommand(f1, "a1", cid))
+
         shouldFailWithCause(CancellationException) {
-          MultiplexedInputStream.demultiplexToString(args.stream,
-                                                     [
-                                                       StreamType.EXIT_VALUE.multiplexName,
-                                                     ] as Set,
-                                                     null)
+          NullOutputStream.INSTANCE << args.stream
         }
       }
 
@@ -592,8 +595,6 @@ public class TestCommandsServiceImpl extends GroovyTestCase
 
       CommandExecution ce = ioStorage.findCommandExecution(cid)
       assertTrue(ce.isCompleted())
-      def baos = new ByteArrayOutputStream()
-      new PrintStream(baos).withStream { ce.completionValue.printStackTrace(it) }
 
       assertNull("command is completed", service._currentCommandExecutions[cid])
       DbCommandExecution dbCommandExecution = service.findCommandExecution(f1, cid)
@@ -611,7 +612,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
       assertNull(dbCommandExecution.stdoutTotalBytesCount)
       assertNull(dbCommandExecution.stderrFirstBytes)
       assertNull(dbCommandExecution.stderrTotalBytesCount)
-      assertEquals(new String(baos.toByteArray()), dbCommandExecution.exitValue)
+      assertEquals(GluGroovyLangUtils.getStackTrace(ce.completionValue), dbCommandExecution.exitValue)
       assertTrue(dbCommandExecution.isException)
       assertFalse(dbCommandExecution.isExecuting)
 
@@ -619,19 +620,23 @@ public class TestCommandsServiceImpl extends GroovyTestCase
       service.withCommandExecutionAndWithOrWithoutStreams(f1,
                                                           cid,
                                                           [
-                                                            exitValueStream: true,
-                                                            exitValueStreamTimeout: 0
+                                                            exitValueStream: true
                                                           ]) { args ->
         dbCommandExecution = args.commandExecution
         assertTrue(dbCommandExecution.isException)
 
-        shouldFailWithCause(CancellationException) {
-          MultiplexedInputStream.demultiplexToString(args.stream,
-                                                     [
-                                                       StreamType.EXIT_VALUE.multiplexName,
-                                                     ] as Set,
-                                                     null)
-        }
+        // now that the execution is complete... there is no exit value so it should not fail
+        assertEquals("", args.stream.text)
+      }
+
+      // now that the command is complete...
+      service.withCommandExecutionAndWithOrWithoutStreams(f1,
+                                                          cid,
+                                                          [
+                                                            exitErrorStream: true
+                                                          ]) { args ->
+        // now that the execution is complete... we should get the error stream
+        assertEquals(GluGroovyLangUtils.getStackTrace(ce.completionValue), args.stream.text)
       }
     }
   }

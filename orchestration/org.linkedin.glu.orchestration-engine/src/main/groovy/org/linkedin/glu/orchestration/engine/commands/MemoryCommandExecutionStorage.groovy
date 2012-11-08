@@ -22,6 +22,7 @@ import org.linkedin.util.annotations.Initializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.linkedin.util.lang.LangUtils
 
 /**
  * Mostly used for testing purposes...
@@ -137,17 +138,13 @@ public class MemoryCommandExecutionStorage implements CommandExecutionStorage
                                   Long stderrTotalBytesCount,
                                   Throwable exception)
   {
-    def baos = new ByteArrayOutputStream()
-
-    new PrintStream(baos).withStream { exception.printStackTrace(it) }
-
     endExecution(commandId,
                  endTime,
                  stdoutFirstBytes,
                  stdoutTotalBytesCount,
                  stderrFirstBytes,
                  stderrTotalBytesCount,
-                 new String(baos.toByteArray()),
+                 LangUtils.getStackTrace(exception),
                  true)
   }
 

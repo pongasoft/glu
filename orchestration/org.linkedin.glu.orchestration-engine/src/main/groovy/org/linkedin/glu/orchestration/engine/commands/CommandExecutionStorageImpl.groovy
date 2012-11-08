@@ -23,6 +23,7 @@ import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 import org.linkedin.util.lang.MemorySize
 import org.linkedin.glu.utils.io.LimitedOutputStream
+import org.linkedin.util.lang.LangUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -130,17 +131,13 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
                                   Long stderrTotalBytesCount,
                                   Throwable exception)
   {
-    def baos = new ByteArrayOutputStream()
-
-    def os = new PrintStream(new LimitedOutputStream(baos, stackTraceMaxSize))
-    os.withStream { exception.printStackTrace(it) }
     endExecution(commandId,
                  endTime,
                  stdoutFirstBytes,
                  stdoutTotalBytesCount,
                  stderrFirstBytes,
                  stderrTotalBytesCount,
-                 new String(baos.toByteArray()),
+                 LangUtils.getStackTrace(exception),
                  true)
   }
 

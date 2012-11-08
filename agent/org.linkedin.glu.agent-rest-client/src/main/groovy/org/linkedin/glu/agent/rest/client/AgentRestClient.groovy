@@ -317,18 +317,19 @@ class AgentRestClient implements Agent
   }
 
   private def streamCommandResultsInputArgs = [
-          'id',
-          'exitValueStream',
-          'exitValueStreamTimeout',
-          'stdinStream',
-          'stdinOffset',
-          'stdinLen',
-          'stdoutStream',
-          'stdoutOffset',
-          'stdoutLen',
-          'stderrStream',
-          'stderrOffset',
-          'stderrLen',
+    'id',
+    'exitErrorStream',
+    'exitValueStream',
+    'exitValueStreamTimeout',
+    'stdinStream',
+    'stdinOffset',
+    'stdinLen',
+    'stdoutStream',
+    'stdoutOffset',
+    'stdoutLen',
+    'stderrStream',
+    'stderrOffset',
+    'stderrLen',
   ]
 
   @Override

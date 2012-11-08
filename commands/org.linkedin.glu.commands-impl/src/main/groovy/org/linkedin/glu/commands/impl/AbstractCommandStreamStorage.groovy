@@ -27,6 +27,7 @@ import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 import java.util.concurrent.ExecutorService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.linkedin.glu.utils.io.EmptyInputStream
 
 /**
  * @author yan@pongasoft.com */
@@ -64,6 +65,7 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
   {
     args = GluGroovyCollectionUtils.subMap(args,
                                           [
+                                            'exitErrorStream',
                                             'exitValueStream',
                                             'exitValueStreamTimeout',
                                             'stdinStream',
@@ -84,33 +86,65 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
     Map<String, InputStream> streams = [:]
 
     def exitValueStream = Config.getOptionalBoolean(args, 'exitValueStream', false)
+    def exitErrorStream = Config.getOptionalBoolean(args, 'exitErrorStream', false)
+
+    if(exitErrorStream)
+    {
+      numberOfStreams++
+      streams[StreamType.EXIT_ERROR.multiplexName] = EmptyInputStream.INSTANCE
+
+      // command completed => check for error
+      if(commandExecution.isCompleted())
+      {
+        def completionValue = commandExecution.completionValue
+        if(completionValue instanceof Throwable)
+        {
+          streams[StreamType.EXIT_ERROR.multiplexName] =
+            new InputGeneratorStream(GluGroovyLangUtils.getStackTrace(completionValue))
+        }
+      }
+    }
 
     // Factory to compute the exit value
     def exitValueFactory = { null }
 
-    if(exitValueStream)
-      numberOfStreams++
-
     def timeout = args.exitValueStreamTimeout
 
-    if(exitValueStream && (timeout != null || commandExecution.isCompleted()))
+    if(exitValueStream)
     {
-      exitValueFactory = {
-        try
+      numberOfStreams++
+      streams[StreamType.EXIT_VALUE.multiplexName] = EmptyInputStream.INSTANCE
+
+      // command completed => exit value only when no error
+      if(commandExecution.isCompleted())
+      {
+        def completionValue = commandExecution.completionValue
+        if(completionValue && !(completionValue instanceof Throwable))
         {
-          return commandExecution.getExitValue(timeout).toString()
-        }
-        catch(TimeoutException e)
-        {
-          if(log.isDebugEnabled())
-            log.debug("timeout reached", e)
-          // ok: ignored...
-          return null
+          streams[StreamType.EXIT_VALUE.multiplexName] = new InputGeneratorStream(completionValue)
         }
       }
-
-      InputStream exitValueInputStream = new InputGeneratorStream(exitValueFactory)
-      streams[StreamType.EXIT_VALUE.multiplexName] = exitValueInputStream
+      else
+      {
+        if(timeout != null)
+        {
+          exitValueFactory = {
+            try
+            {
+              return commandExecution.getExitValue(timeout).toString()
+            }
+            catch(TimeoutException e)
+            {
+              if(log.isDebugEnabled())
+                log.debug("timeout reached", e)
+              // ok: ignored...
+              return null
+            }
+          }
+          InputStream exitValueInputStream = new InputGeneratorStream(exitValueFactory)
+          streams[StreamType.EXIT_VALUE.multiplexName] = exitValueInputStream
+        }
+      }
     }
 
     def m = [:]

@@ -24,6 +24,7 @@ public enum StreamType
   STDOUT("O"),
   STDERR("E"),
   EXIT_VALUE("V"),
+  EXIT_ERROR("X"), // when exit value cannot exit
   MULTIPLEXED(null);
 
   String multiplexName;
