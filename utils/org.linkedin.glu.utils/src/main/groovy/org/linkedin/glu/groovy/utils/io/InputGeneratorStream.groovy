@@ -90,38 +90,52 @@ public class InputGeneratorStream extends InputStream implements Sizeable
   /**
    * Blocking call until the factory generates the proper input stream
    */
-  private synchronized InputStream getInputStream()
+  private synchronized InputStream getInputStream() throws IOException
   {
     if(_isClosed)
       throw new IOException("closed")
 
     if(_inputStream == null)
     {
-      def input = _inputStreamFactory()
+      try
+      {
+        def input = _inputStreamFactory()
 
-      if(input == null)
-      {
-        _inputStream = EmptyInputStream.INSTANCE
-        _size = 0
-      }
-      else
-      {
-        if(input instanceof InputStream)
+        if(input == null)
         {
-          _inputStream = input
-          if(input instanceof Sizeable)
-            _size = input.size
+          _inputStream = EmptyInputStream.INSTANCE
+          _size = 0
         }
         else
         {
-          if(!(input instanceof byte[]))
-            input = input.toString().getBytes("UTF-8")
+          if(input instanceof InputStream)
+          {
+            _inputStream = input
+            if(input instanceof Sizeable)
+              _size = input.size
+          }
+          else
+          {
+            if(!(input instanceof byte[]))
+              input = input.toString().getBytes("UTF-8")
 
-          _inputStream = new ByteArrayInputStream(input)
-          _size = input.size()
+            _inputStream = new ByteArrayInputStream(input)
+            _size = input.size()
+          }
         }
       }
-
+      catch(IOException e)
+      {
+        throw e
+      }
+      catch(RuntimeException e)
+      {
+        throw e
+      }
+      catch(Throwable th)
+      {
+        throw new IOException("issue while generating the input stream", th)
+      }
     }
 
     return _inputStream

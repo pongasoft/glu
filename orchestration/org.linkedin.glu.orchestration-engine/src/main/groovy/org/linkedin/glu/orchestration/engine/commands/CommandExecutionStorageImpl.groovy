@@ -80,7 +80,7 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
       }
       else
       {
-        execution.endTime = endTime
+        execution.completionTime = endTime
         execution.stdoutFirstBytes = stdoutFirstBytes
         execution.stdoutTotalBytesCount = stdoutTotalBytesCount
         execution.stderrFirstBytes = stderrFirstBytes
@@ -105,10 +105,9 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
   @Override
   Map findCommandExecutions(String fabric, String agent, def params)
   {
-    params = GluGroovyCollectionUtils.subMap(params, ['offset', 'max', 'sort', 'order'])
+    params = GluGroovyCollectionUtils.subMap(params ?: [:], ['offset', 'max', 'sort', 'order'])
 
-    if(params.offset == null)
-      params.offset = 0
+    params.offset = params.offset?.toInteger() ?: 0
     params.max = Math.min(params.max ? params.max.toInteger() : maxResults, maxResults)
     params.sort = params.sort ?: 'startTime'
     params.order = params.order ?: 'desc'

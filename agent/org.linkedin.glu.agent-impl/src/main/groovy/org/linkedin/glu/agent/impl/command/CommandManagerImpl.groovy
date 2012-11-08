@@ -75,17 +75,17 @@ public class CommandManagerImpl implements CommandManager
       def actionArgs = [*:command.args]
 
       // handle stdin...
-      storage.withStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
         if(stdin)
           actionArgs.stdin = stdin
 
         // handle stdout...
-        storage.withStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
           if(stdout)
             actionArgs.stdout = stdout
 
           // handle stderr
-          storage.withStorageOutput(StreamType.STDERR) { stderr ->
+          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr ->
             if(stderr)
               actionArgs.stderr = stderr
 

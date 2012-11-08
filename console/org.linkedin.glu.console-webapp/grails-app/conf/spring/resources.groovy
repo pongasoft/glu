@@ -28,6 +28,7 @@ import org.linkedin.glu.utils.core.DisabledFeatureProxy
 import org.linkedin.glu.orchestration.engine.commands.CommandsService
 import org.linkedin.glu.orchestration.engine.commands.CommandExecutionStorageImpl
 import org.linkedin.glu.commands.impl.FileSystemCommandExecutionIOStorage
+import org.linkedin.glu.commands.impl.MemoryCommandExecutionIOStorage
 
 // Place your Spring DSL code here
 beans = {
@@ -70,18 +71,19 @@ beans = {
     {
       case Environment.DEVELOPMENT:
       case Environment.TEST:
+        commandExecutionIOStorage(MemoryCommandExecutionIOStorage)
+        break
+
+      default:
         commandExecutionFileSystem(FileSystemImpl) { bean ->
           bean.factoryMethod = "createTempFileSystem"
           bean.destroyMethod = "destroy"
         }
+
+        commandExecutionIOStorage(FileSystemCommandExecutionIOStorage) {
+          commandExecutionFileSystem = ref("commandExecutionFileSystem")
+        }
         break
-
-      default:
-        throw new RuntimeException("TODO")
-    }
-
-    commandExecutionIOStorage(FileSystemCommandExecutionIOStorage) {
-      commandExecutionFileSystem = ref("commandExecutionFileSystem")
     }
 
     commandsService(CommandsServiceImpl) {

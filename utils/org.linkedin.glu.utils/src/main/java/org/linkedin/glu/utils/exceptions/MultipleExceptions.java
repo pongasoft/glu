@@ -113,15 +113,34 @@ public class MultipleExceptions extends RuntimeException
   public static void throwIfExceptions(String message,
                                        Collection<? extends Throwable> causes) throws Throwable
   {
+    Throwable throwable = createIfExceptions(message, causes);
+    if(throwable != null)
+      throw throwable;
+  }
+
+  /**
+   * Convenient call to create a multiple exception or not depending on the collection
+   */
+  public static Throwable createIfExceptions(Collection<? extends Throwable> causes)
+  {
+    return createIfExceptions(null, causes);
+  }
+
+  /**
+   * Convenient call to create a multiple exception or not depending on the collection
+   */
+  public static Throwable createIfExceptions(String message,
+                                             Collection<? extends Throwable> causes)
+  {
     if(causes == null)
-      return;
+      return null;
 
     if(causes.isEmpty())
-      return;
+      return null;
 
     if(causes.size() == 1)
-      throw causes.iterator().next();
+      return causes.iterator().next();
 
-    throw new MultipleExceptions(message, causes);
+    return new MultipleExceptions(message, causes);
   }
 }

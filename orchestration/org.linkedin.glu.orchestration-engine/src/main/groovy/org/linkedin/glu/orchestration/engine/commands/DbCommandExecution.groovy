@@ -39,7 +39,7 @@ public class DbCommandExecution
     commandId(unique: true, nullable: false, blank: false)
     command(nullable: false, blank: false)
     commandType(nullable: false)
-    endTime(nullable: true)
+    completionTime(nullable: true)
     fabric(nullable: false, blank: false)
     agent(nullable: false, blank: false)
     username(nullable: false, blank: false)
@@ -80,15 +80,15 @@ public class DbCommandExecution
   /**
    * time the command ended
    */
-  Long endTime
+  Long completionTime
 
   /**
    * @return the duration
    */
   Timespan getDuration()
   {
-    if(endTime)
-      return new Timespan(endTime - startTime)
+    if(completionTime)
+      return new Timespan(completionTime - startTime)
     else
       return null
   }

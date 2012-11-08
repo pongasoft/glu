@@ -16,6 +16,7 @@
 
 package org.linkedin.glu.utils.io;
 
+import org.linkedin.glu.utils.exceptions.MultipleExceptions;
 import org.linkedin.util.io.IOUtils;
 import org.linkedin.util.lang.MemorySize;
 import org.slf4j.Logger;
@@ -322,18 +323,19 @@ public class MultiplexedInputStream extends InputStream
         throw new IOException("closed");
 
       // some exceptions were generated...
-      if(!_exceptions.isEmpty())
+      Throwable th =
+        MultipleExceptions.createIfExceptions("Exceptions while processing some input streams",
+                                              _exceptions);
+      if(th != null)
       {
-        Throwable exceptionToThrow = null;
-        for(Throwable throwable : _exceptions)
+        if(th instanceof IOException)
+          throw (IOException) th;
+        else
         {
-          if(exceptionToThrow == null)
-            exceptionToThrow = throwable;
-          else
-            log.warn("Multiple exception detected. This one is ignored", throwable);
+          throw new IOException(th);
         }
-        throw new IOException(exceptionToThrow);
       }
+
       // nothing else to read... reach end of all streams!
       if(_multiplexedBuffer.position() == 0)
         return -1;

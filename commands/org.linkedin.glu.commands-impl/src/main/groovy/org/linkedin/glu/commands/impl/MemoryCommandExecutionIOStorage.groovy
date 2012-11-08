@@ -18,7 +18,6 @@ package org.linkedin.glu.commands.impl
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.utils.collections.EvictingWithLRUPolicyMap
 import org.linkedin.util.annotations.Initializer
 
@@ -31,14 +30,13 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
   public static final String MODULE = MemoryCommandExecutionIOStorage.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
-  @Initializable
-  int maxNumberOfElements = 25
+  private int _maxNumberOfElements = 25
 
   /**
    * Completed commands: keeps a maximum number of elements.
    */
   Map<String, CommandExecution> completedCommands =
-    new EvictingWithLRUPolicyMap<String, CommandExecution>(maxNumberOfElements)
+    new EvictingWithLRUPolicyMap<String, CommandExecution>(_maxNumberOfElements)
 
   /**
    * The commands that are currently executing */
@@ -48,10 +46,15 @@ public class MemoryCommandExecutionIOStorage extends AbstractCommandExecutionIOS
    * For the compile to stop bugging me with commands being non final... */
   private final Object _lock = new Object()
 
+  int getMaxNumberOfElements()
+  {
+    return _maxNumberOfElements
+  }
+
   @Initializer
   void setMaxNumberOfElements(int maxNumberOfElements)
   {
-    this.maxNumberOfElements = maxNumberOfElements
+    _maxNumberOfElements = maxNumberOfElements
     completedCommands = new EvictingWithLRUPolicyMap<String, CommandExecution>(maxNumberOfElements)
   }
 

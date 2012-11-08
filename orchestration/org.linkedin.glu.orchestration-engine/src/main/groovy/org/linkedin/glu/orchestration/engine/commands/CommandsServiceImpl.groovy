@@ -25,7 +25,6 @@ import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
 import org.linkedin.glu.orchestration.engine.commands.DbCommandExecution.CommandType
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.utils.io.DemultiplexedOutputStream
-import org.linkedin.glu.utils.io.LimitedOutputStream
 import org.linkedin.glu.utils.io.NullOutputStream
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.util.clock.Clock
@@ -43,7 +42,7 @@ import org.linkedin.glu.commands.impl.CommandExecution
 import org.linkedin.glu.commands.impl.CommandExecutionIOStorage
 import org.linkedin.glu.commands.impl.CommandStreamStorage
 import org.linkedin.glu.commands.impl.GluCommandFactory
-import org.apache.tools.ant.util.TeeOutputStream
+import org.linkedin.groovy.util.lang.GroovyLangUtils
 
 /**
  * @author yan@pongasoft.com  */
@@ -93,54 +92,6 @@ public class CommandsServiceImpl implements CommandsService
    */
   @Initializable
   Timespan defaultSynchronousWaitTimeout = Timespan.parse('1s')
-
-  /**
-   * Helper class to manage stream capture
-   */
-  private class CommandExecutionStream
-  {
-    StreamType streamType
-    boolean captureStream
-    CommandStreamStorage storage
-    def streams
-
-    private ByteArrayOutputStream _firstBytesOutputStream
-    private LimitedOutputStream _limitedOutputStream
-    private OutputStream _stream
-
-    def capture(Closure c)
-    {
-      if(captureStream)
-      {
-        _firstBytesOutputStream =
-          new ByteArrayOutputStream((int) commandExecutionFirstBytesSize.sizeInBytes)
-        _limitedOutputStream =
-          new LimitedOutputStream(_firstBytesOutputStream, commandExecutionFirstBytesSize)
-
-        storage.withStorageOutput(streamType) { OutputStream stream ->
-
-          if(stream)
-            _stream = new TeeOutputStream(stream, _limitedOutputStream)
-          else
-            _stream = _limitedOutputStream
-
-          streams[streamType.multiplexName] = _stream
-        }
-      }
-
-      c(this)
-    }
-
-    byte[] getBytes()
-    {
-      _firstBytesOutputStream?.toByteArray()
-    }
-
-    Long getTotalNumberOfBytes()
-    {
-      _limitedOutputStream?.totalNumberOfBytes
-    }
-  }
 
   /**
    * The commands that are currently executing  */
@@ -202,14 +153,17 @@ public class CommandsServiceImpl implements CommandsService
       NullOutputStream.INSTANCE << res.stream
     }
 
-    try
+    if(defaultSynchronousWaitTimeout)
     {
-      // we are willing to wait a little bit for the command to complete before returning
-      command.getExitValue(defaultSynchronousWaitTimeout)
-    }
-    catch (TimeoutException e)
-    {
-      // it is ok... we did not get any result during this amount of time
+      try
+      {
+        // we are willing to wait a little bit for the command to complete before returning
+        command.getExitValue(defaultSynchronousWaitTimeout)
+      }
+      catch (TimeoutException e)
+      {
+        // it is ok... we did not get any result during this amount of time
+      }
     }
 
     return command.id
@@ -240,70 +194,91 @@ public class CommandsServiceImpl implements CommandsService
     // define what will do asynchronously
     def asyncProcessing = { CommandStreamStorage storage ->
 
-      def agentArgs = [*:command.args]
+      try
+      {
+        def agentArgs = [*:command.args]
 
-      // we execute the command on the proper agent (this is an asynchronous call which return
-      // right away)
-      storage.withStorageInput(StreamType.STDIN) { stdin ->
-        if(stdin)
-          agentArgs.stdin = stdin
+        // we execute the command on the proper agent (this is an asynchronous call which return
+        // right away)
+        storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
+          if(stdin)
+            agentArgs.stdin = stdin
 
-        agentsService.executeShellCommand(fabric, agentName, agentArgs)
-      }
+          agentsService.executeShellCommand(fabric, agentName, agentArgs)
+        }
 
-      def streamResultArgs = [
-        id: command.id,
-        exitValueStream: true,
-        exitValueStreamTimeout: 0, // we block until the command completes
-        stdoutStream: true,
-        username: args.username
-      ]
+        def streamResultArgs = [
+          id: command.id,
+          exitValueStream: true,
+          exitValueStreamTimeout: 0, // we block until the command completes
+          stdoutStream: true,
+          username: args.username
+        ]
 
-      if(!command.redirectStderr)
-        streamResultArgs.stderrStream = true
+        if(!command.redirectStderr)
+          streamResultArgs.stderrStream = true
 
-      // this is a blocking call
-      agentsService.streamCommandResults(fabric, agentName, streamResultArgs) { res ->
+        // this is a blocking call
+        agentsService.streamCommandResults(fabric, agentName, streamResultArgs) { res ->
 
-        def streams = [:]
+          def streams = [:]
 
-        // stdout
-        new CommandExecutionStream(streamType: StreamType.STDOUT,
-                                   captureStream: true,
-                                   storage: storage,
-                                   streams: streams).capture { stdout ->
-
-          // stderr
-          new CommandExecutionStream(streamType: StreamType.STDERR,
-                                     captureStream: !command.redirectStderr,
+          // stdout
+          new CommandExecutionStream(streamType: StreamType.STDOUT,
+                                     commandExecutionFirstBytesSize: commandExecutionFirstBytesSize,
+                                     captureStream: true,
                                      storage: storage,
-                                     streams: streams).capture { stderr ->
+                                     streams: streams).capture { stdout ->
 
-            // exitValue
-            ByteArrayOutputStream exitValueStream = new ByteArrayOutputStream()
-            streams[StreamType.EXIT_VALUE.multiplexName] = exitValueStream
+            // stderr
+            new CommandExecutionStream(streamType: StreamType.STDERR,
+                                       commandExecutionFirstBytesSize: commandExecutionFirstBytesSize,
+                                       captureStream: !command.redirectStderr,
+                                       storage: storage,
+                                       streams: streams).capture { stderr ->
 
-            // this will demultiplex the result
-            DemultiplexedOutputStream dos = new DemultiplexedOutputStream(streams)
+              // exitValue
+              ByteArrayOutputStream exitValueStream = new ByteArrayOutputStream()
+              streams[StreamType.EXIT_VALUE.multiplexName] = exitValueStream
 
-            dos.withStream { OutputStream os ->
-              onResultStreamAvailable(id: command.id, stream: new TeeInputStream(res.stream, os))
+              // this will demultiplex the result
+              DemultiplexedOutputStream dos = new DemultiplexedOutputStream(streams)
+
+              dos.withStream { OutputStream os ->
+                onResultStreamAvailable(id: command.id, stream: new TeeInputStream(res.stream, os))
+              }
+
+              long completionTime = clock.currentTimeMillis()
+
+              // we now update the storage with the various results
+              def exitValue = commandExecutionStorage.endExecution(command.id,
+                                                                   completionTime,
+                                                                   stdout.bytes,
+                                                                   stdout.totalNumberOfBytes,
+                                                                   stderr.bytes,
+                                                                   stderr.totalNumberOfBytes,
+                                                                   toString(exitValueStream)).exitValue
+
+              return [exitValue: exitValue, completionTime: completionTime]
             }
-
-            long completionTime = clock.currentTimeMillis()
-
-            // we now update the storage with the various results
-            def exitValue = commandExecutionStorage.endExecution(command.id,
-                                                                 completionTime,
-                                                                 stdout.bytes,
-                                                                 stdout.totalNumberOfBytes,
-                                                                 stderr.bytes,
-                                                                 stderr.totalNumberOfBytes,
-                                                                 toString(exitValueStream)).exitValue
-
-            return [exitValue: exitValue, completionTime: completionTime]
           }
         }
+      }
+      catch(Throwable th)
+      {
+        long completionTime = clock.currentTimeMillis()
+
+        GroovyLangUtils.noException {
+          commandExecutionStorage.endExecution(command.id,
+                                               completionTime,
+                                               null,
+                                               null,
+                                               null,
+                                               null,
+                                               null)
+        }
+
+        return [completionTime: completionTime, exception: th]
       }
     }
 

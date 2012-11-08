@@ -40,7 +40,7 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
   T ioStorage
 
   @Override
-  def withStorageOutput(StreamType streamType, Closure c)
+  def withOrWithoutStorageOutput(StreamType streamType, Closure c)
   {
     def output = findStorageOutput(streamType)
     if(output)
@@ -50,7 +50,7 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
   }
 
   @Override
-  def withStorageInput(StreamType streamType, Closure c)
+  def withOrWithoutStorageInput(StreamType streamType, Closure c)
   {
     def input = findStorageInput(streamType)
     if(input)

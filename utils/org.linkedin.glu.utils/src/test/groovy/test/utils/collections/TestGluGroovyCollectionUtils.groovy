@@ -32,4 +32,17 @@ public class TestGluGroovyCollectionUtils extends GroovyTestCase
     assertEquals([:], GluGroovyCollectionUtils.subMap([a: 1, b: 2, c: 3], []))
     assertEquals([:], GluGroovyCollectionUtils.subMap([a: 1, b: 2, c: 3], null))
   }
+
+  public void testPaginate()
+  {
+    assertNull(GluGroovyCollectionUtils.paginate(null, 2))
+    assertEquals([], GluGroovyCollectionUtils.paginate([], 2))
+    assertEquals([1], GluGroovyCollectionUtils.paginate([1], 2))
+    assertEquals([1, 2], GluGroovyCollectionUtils.paginate([1, 2], 2))
+    assertEquals([1, 2], GluGroovyCollectionUtils.paginate([1, 2, 3], 2))
+    assertEquals([3], GluGroovyCollectionUtils.paginate([1, 2, 3], 2, 1))
+    assertEquals([2], GluGroovyCollectionUtils.paginate([1, 2, 3], 1, 1))
+    assertEquals([3], GluGroovyCollectionUtils.paginate([1, 2, 3], 1, 2))
+    assertEquals([], GluGroovyCollectionUtils.paginate([1, 2, 3], 1, 3))
+  }
 }

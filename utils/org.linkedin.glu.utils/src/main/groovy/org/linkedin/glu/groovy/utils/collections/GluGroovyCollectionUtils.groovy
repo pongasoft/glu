@@ -65,4 +65,23 @@ public class GluGroovyCollectionUtils extends GroovyCollectionsUtils
 
     subMap(map, newKeys)
   }
+
+  /**
+   * Paginates a collection: return how many elements you want (which also represent the number of
+   * elements per "page" and an optional offset representing at which "page" to start
+   *
+   * @return the paginated collection
+   */
+  static Collection paginate(Collection c, int max, int offset = 0)
+  {
+    if(c == null)
+      return null
+
+    int firstIndex = max * offset
+    if(firstIndex >= c.size())
+      return []
+    int lastIndex = Math.min(firstIndex + max, c.size())
+
+    return c[firstIndex..<lastIndex]
+  }
 }

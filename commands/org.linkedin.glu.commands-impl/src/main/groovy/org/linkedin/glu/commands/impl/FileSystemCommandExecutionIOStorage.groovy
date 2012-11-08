@@ -144,7 +144,7 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
 
     // save stdin if there is any
     if(stdin)
-      storage.withStorageOutput(StreamType.STDIN) { it << stdin }
+      storage.withOrWithoutStorageOutput(StreamType.STDIN) { it << stdin }
 
     return storage
   }

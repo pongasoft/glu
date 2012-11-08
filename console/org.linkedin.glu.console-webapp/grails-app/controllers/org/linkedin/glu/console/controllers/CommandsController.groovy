@@ -69,7 +69,7 @@ public class CommandsController extends ControllerBase
   /**
    * Writes the stream requested
    *
-   * curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/command/2d044e0b-a1f5-4cbd-9210-cf42c77f6e94/stdout"
+   * curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/command/2d044e0b-a1f5-4cbd-9210-cf42c77f6e94/streams?stdoutStream=true"
    */
   def rest_show_command_execution_streams = {
     try

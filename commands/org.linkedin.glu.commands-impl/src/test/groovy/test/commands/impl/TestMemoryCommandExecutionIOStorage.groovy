@@ -87,12 +87,12 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
       assertEquals(1, ioStorage.executingCommands.size())
       assertTrue(ioStorage.executingCommands[ce.id].is(ce))
 
-      storage.withStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
         assertNull("no stdin", stdin)
 
-        storage.withStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
 
-          storage.withStorageOutput(StreamType.STDERR) { stderr->
+          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
             stdout << "out0"
             stderr << "err0"
 
@@ -200,12 +200,12 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
       assertEquals(1, ioStorage.executingCommands.size())
       assertTrue(ioStorage.executingCommands[ce.id].is(ce))
 
-      storage.withStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
         assertEquals("in0", stdin.text)
 
-        storage.withStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
 
-          storage.withStorageOutput(StreamType.STDERR) { stderr->
+          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
             stdout << "out0"
             stderr << "err0"
 
@@ -308,12 +308,12 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
       assertEquals(1, ioStorage.executingCommands.size())
       assertTrue(ioStorage.executingCommands[ce.id].is(ce))
 
-      storage.withStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
         assertNull("no stdin", stdin)
 
-        storage.withStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
 
-          storage.withStorageOutput(StreamType.STDERR) { stderr->
+          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
             assertNull("stderr redirected", stderr)
 
             stdout << "out0"
@@ -402,11 +402,11 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
     long startTime = clock.currentTimeMillis()
 
     def processing = { CommandStreamStorage storage ->
-      storage.withStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
 
-        storage.withStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
 
-          storage.withStorageOutput(StreamType.STDERR) { stderr->
+          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
 
             stdout.write("o0".bytes)
             stderr.write("e0".bytes)

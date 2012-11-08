@@ -25,11 +25,11 @@ public interface CommandStreamStorage
 {
   // output
   OutputStream findStorageOutput(StreamType streamType)
-  def withStorageOutput(StreamType streamType, Closure c)
+  def withOrWithoutStorageOutput(StreamType streamType, Closure c)
 
   // input
   InputStream findStorageInput(StreamType streamType)
-  def withStorageInput(StreamType streamType, Closure c)
+  def withOrWithoutStorageInput(StreamType streamType, Closure c)
 
   /**
    * @return map with <code>stream</code> and <code>size</code> or <code>null</code>
