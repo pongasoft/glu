@@ -21,6 +21,7 @@ import org.linkedin.util.lang.MemorySize
 import java.util.concurrent.FutureTask
 import java.util.concurrent.TimeUnit
 import org.linkedin.glu.utils.io.DemultiplexedOutputStream
+import org.linkedin.glu.utils.io.EmptyInputStream
 
 /**
  * @author yan@pongasoft.com */
@@ -83,7 +84,28 @@ public class TestMultiplexedInputStream extends GroovyTestCase
       assertEquals(s1, new String(baos1.toByteArray()))
       assertEquals(s2, new String(baos2.toByteArray()))
       assertEquals(text.size(), dmos.numberOfBytesWritten)
+
+      baos1 = new ByteArrayOutputStream()
+      baos2 = new ByteArrayOutputStream()
+
+      // test when empty stream (demultiplex)
+      numberOfBytesRead = MultiplexedInputStream.demultiplex(EmptyInputStream.INSTANCE,
+                                                             [I0: baos1, I1: baos2],
+                                                             MemorySize.parse(idx as String))
+
+      assertEquals("", new String(baos1.toByteArray()))
+      assertEquals("", new String(baos2.toByteArray()))
+      assertEquals(0, numberOfBytesRead)
     }
+  }
+
+  /**
+   * This is to make sure that no matter how the stream terminates, the threads that were spawned
+   * will terminate properly.
+   */
+  public void testThreadsAreClosedOnTermination()
+  {
+    // TODO HIGH YP:  throw new RuntimeException("implement!")
   }
 
   /**

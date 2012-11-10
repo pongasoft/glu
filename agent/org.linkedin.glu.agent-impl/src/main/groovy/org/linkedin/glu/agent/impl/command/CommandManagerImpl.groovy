@@ -33,6 +33,7 @@ import org.linkedin.glu.commands.impl.CommandExecutionIOStorage
 import org.linkedin.glu.commands.impl.CommandExecution
 import org.linkedin.glu.commands.impl.GluCommandFactory
 import org.linkedin.glu.commands.impl.StreamType
+import org.linkedin.util.clock.Timespan
 
 /**
  * @author yan@pongasoft.com */
@@ -49,6 +50,9 @@ public class CommandManagerImpl implements CommandManager
 
   @Initializable(required = true)
   CommandExecutionIOStorage storage
+
+  @Initializable(required = true)
+  Timespan interruptCommandGracePeriod = Timespan.parse("1s")
 
   private final Map<String, CommandExecution> _commands = [:]
 
@@ -172,7 +176,28 @@ public class CommandManagerImpl implements CommandManager
     def commandExecution = findCommand(args.id)
     if(commandExecution)
     {
-      res = commandExecution.interruptExecution()
+      res = !commandExecution.isCompleted()
+
+      if(res)
+      {
+        // first we "destroy" the command itself which should end the subprocess
+        commandExecution.command.destroy()
+
+        // second, we give a bit of time for the operation to complete
+        res = commandExecution.waitForCompletionNoException(interruptCommandGracePeriod)
+
+        if(!res)
+        {
+          log.warn("Command did not terminate after ${interruptCommandGracePeriod} grace period")
+
+          // then we interrupt the execution (no effect if completed...)
+          commandExecution.interruptExecution()
+
+          // lastly we wait again, we give a bit of time for the operation to complete
+          res = commandExecution.waitForCompletionNoException(interruptCommandGracePeriod)
+        }
+      }
+
       commandExecution.log.info("interruptCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])}): ${res}")
     }
     else

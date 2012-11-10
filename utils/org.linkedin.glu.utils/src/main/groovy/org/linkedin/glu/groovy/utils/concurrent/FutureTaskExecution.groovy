@@ -38,6 +38,11 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
   private String _id
 
   /**
+   * An (optional) description for the task
+   */
+  String description
+
+  /**
    * when the execution should start (0 means start now) */
   synchronized long futureExecutionTime = 0L
 

@@ -37,8 +37,16 @@ public class MultipleExceptions extends RuntimeException
 
     public More(int exceptionIndex, Throwable throwable)
     {
-      super(computeMessage(exceptionIndex, _causes.size(), throwable));
-      setStackTrace(throwable.getStackTrace());
+      super(computeMessage(exceptionIndex, _causes.size(), throwable), throwable);
+      setStackTrace(new StackTraceElement[0]);
+    }
+
+    Throwable findRootCause()
+    {
+      Throwable rootCause = getCause();
+      while(rootCause.getCause() != null)
+        rootCause = rootCause.getCause();
+      return rootCause;
     }
   }
 
@@ -65,6 +73,15 @@ public class MultipleExceptions extends RuntimeException
   }
 
   /**
+   * So that it can be rebuilt...
+   */
+  public MultipleExceptions(String message)
+  {
+    super(message);
+    _causes = null;
+  }
+
+  /**
    * Constructor
    */
   private MultipleExceptions(String message, Collection<? extends Throwable> causes)
@@ -80,7 +97,7 @@ public class MultipleExceptions extends RuntimeException
     {
       More more = new More(exceptionIndex++, cause);
       th.initCause(more);
-      th = more;
+      th = more.findRootCause();
     }
   }
 

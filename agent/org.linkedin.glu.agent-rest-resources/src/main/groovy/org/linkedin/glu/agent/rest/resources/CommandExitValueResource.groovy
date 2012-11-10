@@ -39,9 +39,16 @@ public class CommandExitValueResource extends CommandBaseResource
     return true
   }
 
+  @Override
+  boolean allowDelete()
+  {
+    return true
+  }
+
   /**
    * GET: return the exit value of the command (blocking call with optional timeout)
    */
+  @Override
   public Representation represent(Variant variant)
   {
     return noException {
@@ -49,4 +56,14 @@ public class CommandExitValueResource extends CommandBaseResource
     }
   }
 
+  /**
+   * DELETE: interrupt the action if still running
+   */
+  @Override
+  void removeRepresentations()
+  {
+    noException {
+      response.setEntity(toRepresentation(res: agent.interruptCommand(requestArgs)))
+    }
+  }
 }

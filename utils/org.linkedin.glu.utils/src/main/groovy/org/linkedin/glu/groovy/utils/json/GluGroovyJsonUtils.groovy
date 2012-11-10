@@ -24,17 +24,6 @@ import org.linkedin.util.reflect.ReflectUtils
 public class GluGroovyJsonUtils extends JsonUtils
 {
   /**
-   * Extracts the exception stack trace and all causes. Each element in the returned collection
-   * is a map with <code>name</code>, <code>message</code> and <code>stackTrace</code>.
-   * <code>stackTrace</code> is a collection of map: <code>dc</code> (class name),
-   * <code>mn</code> method name, <code>fn</code> field name and <code>ln</code> line number
-   */
-  public static Collection extractFullStackTrace(Throwable exception)
-  {
-    extractFullStackTrace(exception, [])
-  }
-
-  /**
    * This method is the opposite of {@link #extractFullStackTrace(Throwable)} and will attempt
    * to "deserialize" the full stack trace into the original exception including all the chain
    * of causes. Note that if (due mostly to class loader issues), one of the exception cannot
@@ -42,9 +31,20 @@ public class GluGroovyJsonUtils extends JsonUtils
    */
   public static Throwable rebuildException(def fullStackTrace)
   {
+    if(fullStackTrace == null)
+      return null
+
+    if(fullStackTrace instanceof String || fullStackTrace instanceof GString)
+    {
+      fullStackTrace = fullStackTrace.trim()
+      if(fullStackTrace.isEmpty())
+        return null
+      fullStackTrace = fromJSON(fullStackTrace)
+    }
+
     def res = null
     def parent = null
-    fullStackTrace?.each { cause ->
+    fullStackTrace.each { cause ->
       Throwable ex
       try
       {
@@ -67,11 +67,14 @@ public class GluGroovyJsonUtils extends JsonUtils
   }
 
   /**
-   * Same as {@link #extractFullStackTrace(Throwable)} but use out for the output
+   * Extracts the exception stack trace and all causes. Each element in the returned collection
+   * is a map with <code>name</code>, <code>message</code> and <code>stackTrace</code>.
+   * <code>stackTrace</code> is a collection of map: <code>dc</code> (class name),
+   * <code>mn</code> method name, <code>fn</code> field name and <code>ln</code> line number
    *
    * @return <code>out</code>
    */
-  public static <T> T extractFullStackTrace(exception, T out)
+  public static <T> T extractFullStackTrace(exception, T out = [])
   {
     if(exception)
     {
@@ -84,6 +87,22 @@ public class GluGroovyJsonUtils extends JsonUtils
     }
 
     return out
+  }
+
+  /**
+   * Extracts the exception stack trace and all causes and returns it as a json string
+   *
+   * @see #extractFullStackTrace
+   * @param prettyPrintJson if you want to pretty print the output... otherwise compact print
+   * @return the json string
+   */
+  public static String exceptionToJSON(exception, boolean prettyPrintJson = false)
+  {
+    def fst = extractFullStackTrace(exception)
+    if(prettyPrintJson)
+      return prettyPrint(fst)
+    else
+      return compactPrint(fst)
   }
 
   /**

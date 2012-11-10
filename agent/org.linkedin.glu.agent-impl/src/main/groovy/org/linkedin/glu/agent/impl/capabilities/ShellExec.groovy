@@ -18,20 +18,21 @@ package org.linkedin.glu.agent.impl.capabilities
 
 import org.apache.tools.ant.taskdefs.Execute
 import org.linkedin.glu.agent.api.ShellExecException
+import org.linkedin.glu.commands.impl.StreamType
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
+import org.linkedin.glu.groovy.utils.io.InputGeneratorStream
+import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
+import org.linkedin.glu.utils.io.MultiplexedInputStream
 import org.linkedin.glu.utils.io.NullOutputStream
-import org.linkedin.util.io.IOUtils
+
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.linkedin.glu.utils.io.MultiplexedInputStream
-import java.util.concurrent.FutureTask
 
-import org.linkedin.groovy.util.rest.RestException
-import org.linkedin.groovy.util.json.JsonUtils
-import org.linkedin.groovy.util.lang.GroovyLangUtils
 import java.util.concurrent.ExecutionException
-import org.linkedin.glu.groovy.utils.concurrent.GluGroovyConcurrentUtils
-import org.linkedin.glu.groovy.utils.io.InputGeneratorStream
+import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
+import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
+
+import org.linkedin.glu.groovy.utils.io.DestroyProcessInputStream
 
 /**
  * Because the logic of exec is quite complicated, it requires its own class
@@ -48,50 +49,41 @@ private class ShellExec
   // the args passed to shell.exec
   Map args
 
-  private String commandLine
-  private InputStream stdin
-  private boolean redirectStderr
-  private boolean failOnError
-  private def requiredRes
+  private String _commandLine
+  private InputStream _stdin
+  private boolean _redirectStderr
+  private boolean _failOnError
+  private def _requiredRes
 
-  // stdout
-  private def stdout = NullOutputStream.INSTANCE
-  private ByteArrayOutputStream stdoutAsStreamOfBytes = null
-
-  // stderr
-  private def stderr = NullOutputStream.INSTANCE
-  private ByteArrayOutputStream stderrAsStreamOfBytes = null
+  // second map contains: stream, streamOfBytes
+  private Map<StreamType, Map> _processIO = [:]
 
   // process
-  private boolean destroyProcessInFinally = true
-  private Process process
-
-  // threads to read output (asynchronously)
-  private Thread stdoutThreadReader = null
-  private Thread stderrThreadReader = null
+  private boolean _destroyProcessInFinally = true
+  private Process _process
 
   def exec()
   {
     initCommandLine()
 
-    stdin = shell.toInputStream(args.stdin)
+    _stdin = shell.toInputStream(args.stdin)
 
-    redirectStderr = GluGroovyLangUtils.getOptionalBoolean(args.redirectStderr, false)
-    failOnError = GluGroovyLangUtils.getOptionalBoolean(args.failOnError, true)
-    requiredRes = args.res ?: 'stdout'
+    _redirectStderr = GluGroovyLangUtils.getOptionalBoolean(args.redirectStderr, false)
+    _failOnError = GluGroovyLangUtils.getOptionalBoolean(args.failOnError, true)
+    _requiredRes = args.res ?: 'stdout'
 
     // stdout
-    initOutput("stdout")
+    initOutput(StreamType.STDOUT)
 
     // stderr
-    if(!redirectStderr)
-      initOutput("stderr")
+    if(!_redirectStderr)
+      initOutput(StreamType.STDERR)
 
     // builds the process
-    def pb = new ProcessBuilder(['bash', '-c', commandLine])
-    pb.redirectErrorStream(redirectStderr)
+    def pb = new ProcessBuilder(['bash', '-c', _commandLine])
+    pb.redirectErrorStream(_redirectStderr)
 
-    process = pb.start()
+    _process = pb.start()
 
     try
     {
@@ -99,104 +91,100 @@ private class ShellExec
     }
     finally
     {
-      if(destroyProcessInFinally)
-        process.destroy()
+      if(_destroyProcessInFinally)
+        _process.destroy()
     }
   }
 
   private def afterProcessStarted()
   {
     // stdout
-    startOutputThread("stdout") { process.inputStream }
+    startOutputThread(StreamType.STDOUT) { _process.inputStream }
 
     // when redirecting stderr, there is nothing on stderr... no need to create a thread!
-    if(!redirectStderr)
+    if(!_redirectStderr)
     {
-      startOutputThread("stderr") { process.errorStream }
+      startOutputThread(StreamType.STDERR) { _process.errorStream }
     }
 
-    switch(requiredRes)
-    {
-      case "stdoutStream":
-      case "stderrStream":
-        return createRequiredInputStream()
-
-      case "stream":
-        return createMultiplexedInputStream()
-
-      default:
-        return executeBlockingCall()
-    }
+    if(_requiredRes.toLowerCase().endsWith("stream"))
+      return createRequiredInputStream()
+    else
+      return executeBlockingCall()
   }
 
   /**
-   * If asked for stdoutStream or stderrStream, we need to return only that stream
-   * but make sure we still destroy the process when the stream closes
+   * Creates the appropriate stream but make sure we still destroy the process when the
+   * stream closes
    */
   private InputStream createRequiredInputStream()
   {
+    // execute the block call asynchronously
+    FutureTaskExecution future = new FutureTaskExecution(executeBlockingCall)
+    future.description = _commandLine
+
     InputStream inputStream
 
-    if(requiredRes == "stdoutStream")
-      inputStream = process.inputStream
-    else
-      inputStream = process.errorStream
+    switch(_requiredRes)
+    {
+      case "stdoutStream":
+        inputStream = _process.inputStream
+        break
 
-    // execute the block call asynchronously
-    FutureTask future = new FutureTask(GluGroovyConcurrentUtils.asCallable(executeBlockingCall))
+      case "stderrStream":
+        inputStream = _process.errorStream
+        break
+
+      case "exitValueStream":
+        inputStream = new InputGeneratorStream({
+          try
+          {
+            future.get().toString()
+          }
+          catch(ExecutionException e)
+          {
+            throw e.cause
+          }
+        })
+        break
+
+      case "stream":
+        inputStream = createMultiplexedInputStream(future)
+        break
+
+      default:
+        throw new RuntimeException("should not be here with ${_requiredRes}")
+    }
+
+    inputStream = new DestroyProcessInputStream(_process, inputStream)
 
     // we can no longer destroy the process in the finally, it will be destroyed when the
     // input stream is closed
-    destroyProcessInFinally = false
+    _destroyProcessInFinally = false
 
-    new Thread(future, commandLine).start()
+    future.runAsync(shell.executorService)
 
-    return new FilterInputStream(inputStream) {
-      @Override
-      void close()
-      {
-        try
-        {
-          super.close()
-        }
-        finally
-        {
-          GroovyLangUtils.noException {
-            try
-            {
-              future.get()
-            }
-            finally
-            {
-              process.destroy()
-            }
-          }
-        }
-      }
-    }
+    return inputStream
   }
 
   /**
-   * Create one input stream which multiples stdout, stderr and exitValue and properly destroys
-   * the process when the stream gets closed
+   * Create one input stream which multiples stdout, stderr, exitValue and exitError
    */
-  private InputStream createMultiplexedInputStream()
+  private InputStream createMultiplexedInputStream(FutureTaskExecution future)
   {
     // execute the block call asynchronously
-    FutureTask future = new FutureTask(GluGroovyConcurrentUtils.asCallable(executeBlockingCall))
-
     def streams = [:]
 
     // stdout
-    if(stdout == null)
+    if(_processIO[StreamType.STDOUT]?.stream == null)
     {
-      streams['O'] = process.inputStream
+      streams[StreamType.STDOUT.multiplexName] = _process.inputStream
     }
 
     // stderr
-    if(stderr == null)
+    if(_processIO[StreamType.STDERR]?.stream == null)
     {
-      streams['E'] = process.errorStream
+      streams[StreamType.STDERR.multiplexName] = _process.errorStream
     }
 
     // exit value (as a stream)
@@ -205,112 +193,110 @@ private class ShellExec
       {
         future.get().toString()
       }
+      catch(Throwable th)
+      {
+        // ok to ignore... will be part of the exit error stream...
+      }
+    })
+    streams[StreamType.EXIT_VALUE.multiplexName] = exitValueInputStream
+
+    // exit error (as a stream)
+    InputStream exitErrorInputStream = new InputGeneratorStream({
+      try
+      {
+        future.get().toString()
+        // no error
+        return null
+      }
       catch(ExecutionException e)
       {
-        JsonUtils.prettyPrint(RestException.toJSON(e.cause))
+        GluGroovyJsonUtils.exceptionToJSON(e.cause)
       }
       catch(Throwable th)
       {
-        JsonUtils.prettyPrint(RestException.toJSON(th))
+        GluGroovyJsonUtils.exceptionToJSON(th)
       }
     })
-    streams['V'] = exitValueInputStream
+    streams[StreamType.EXIT_ERROR.multiplexName] = exitErrorInputStream
 
-    // we can no longer destroy the process in the finally, it will be destroyed when the
-    // input stream is closed
-    destroyProcessInFinally = false
-
-    new Thread(future, commandLine).start()
-
-    return new FilterInputStream(new MultiplexedInputStream(streams)) {
-      @Override
-      void close()
-      {
-        try
-        {
-          super.close()
-        }
-        finally
-        {
-          GroovyLangUtils.noException {
-            process.destroy()
-          }
-        }
-      }
-    }
+    return new MultiplexedInputStream(streams)
   }
 
   private def executeBlockingCall = {
 
     // if stdin then provide it to subprocess
-    stdin?.withStream { InputStream sis ->
-      new BufferedOutputStream(process.outputStream).withStream { os ->
+    _stdin?.withStream { InputStream sis ->
+      new BufferedOutputStream(_process.outputStream).withStream { os ->
         os << new BufferedInputStream(sis)
       }
     }
 
     // make sure that the thread complete properly
-    stdoutThreadReader?.join()
-    stderrThreadReader?.join()
+    [StreamType.STDOUT, StreamType.STDERR].each {
+      _processIO[it]?.future?.get()
+    }
 
     // we wait for the process to be done
-    int exitValue = process.waitFor()
+    int exitValue = _process.waitFor()
 
-    byte[] stdoutAsBytes = stdoutAsStreamOfBytes?.toByteArray() ?: new byte[0]
-    byte[] stderrAsBytes = stderrAsStreamOfBytes?.toByteArray() ?: new byte[0]
+    Map<StreamType, byte[]> bytes =
+      GroovyCollectionsUtils.toMapKey([StreamType.STDOUT, StreamType.STDERR]) {
+        _processIO[it]?.streamOfBytes?.toByteArray() ?: new byte[0]
+      }
 
     // handling failOnError flag
-    if(failOnError && Execute.isFailure(exitValue))
+    if(_failOnError && Execute.isFailure(exitValue))
     {
       if(log.isDebugEnabled())
       {
-        log.debug("Error while executing command ${commandLine}: ${exitValue}")
-        log.debug("output=${shell.toStringOutput(stdoutAsBytes)}")
-        log.debug("error=${shell.toStringOutput(stderrAsBytes)}")
+        log.debug("Error while executing command ${_commandLine}: ${exitValue}")
+        log.debug("output=${shell.toStringOutput(bytes[StreamType.STDOUT])}")
+        log.debug("error=${shell.toStringOutput(bytes[StreamType.STDERR])}")
       }
 
       ShellExecException exception =
-      new ShellExecException("Error while executing command ${commandLine}: res=${exitValue} - output=${shell.toLimitedStringOutput(stdoutAsBytes, 512)} - error=${shell.toLimitedStringOutput(stderrAsBytes, 512)}".toString())
+      new ShellExecException("Error while executing command ${_commandLine}: res=${exitValue} - output=${shell.toLimitedStringOutput(bytes[StreamType.STDOUT], 512)} - error=${shell.toLimitedStringOutput(bytes[StreamType.STDERR], 512)}".toString())
       exception.res = exitValue
-      exception.output = stdoutAsBytes
-      exception.error = stderrAsBytes
+      exception.output = bytes[StreamType.STDOUT]
+      exception.error = bytes[StreamType.STDERR]
 
       throw exception
     }
 
     // handling final output
-    switch(requiredRes)
+    switch(_requiredRes)
     {
       case 'stdout':
-        return shell.toStringOutput(stdoutAsBytes)
+        return shell.toStringOutput(bytes[StreamType.STDOUT])
 
       case 'stdoutBytes':
-        return stdoutAsBytes
+        return bytes[StreamType.STDOUT]
 
       case 'stderr':
-        return shell.toStringOutput(stderrAsBytes)
+        return shell.toStringOutput(bytes[StreamType.STDERR])
 
       case 'stderrBytes':
-        return stderrAsBytes
+        return bytes[StreamType.STDERR]
 
       case 'exitValue':
       case "stdoutStream":
       case "stderrStream":
+      case "exitValueStream":
       case 'stream':
         return exitValue
 
       case 'all':
         return [
           exitValue: exitValue,
-          stdout: shell.toStringOutput(stdoutAsBytes),
-          stderr: shell.toStringOutput(stderrAsBytes)
+          stdout: shell.toStringOutput(bytes[StreamType.STDOUT]),
+          stderr: shell.toStringOutput(bytes[StreamType.STDERR])
         ]
 
       case 'allBytes':
         return [
           exitValue: exitValue,
-          stdout: stdoutAsBytes,
-          stderr: stderrAsBytes
+          stdout: bytes[StreamType.STDOUT],
+          stderr: bytes[StreamType.STDERR]
         ]
 
       default:
@@ -320,63 +306,75 @@ private class ShellExec
 
   private void initCommandLine()
   {
-    commandLine = shell.toStringCommandLine(args.command)
+    _commandLine = shell.toStringCommandLine(args.command)
 
-    if(commandLine.startsWith('file:'))
+    if(_commandLine.startsWith('file:'))
     {
-      commandLine -= 'file:'
+      _commandLine -= 'file:'
     }
   }
 
-  private void initOutput(String outputName)
+  private void initOutput(StreamType streamType, String argName = streamType.name().toLowerCase())
   {
-    def output = args."${outputName}"
+    def output = args."${argName}"
 
-    if(output instanceof OutputStream || output instanceof Closure)
+    def map = [stream: NullOutputStream.INSTANCE]
+
+    _processIO[streamType] = map
+
+    if(output != null)
     {
-      if(requiredRes == "stream" || requiredRes == "${outputName}Stream")
-        throw new IllegalArgumentException("args.${outputName}=[${output}] incompatible with arg.res=[${requiredRes}]")
+      if(_requiredRes == "stream" || _requiredRes == "${argName}Stream")
+        throw new IllegalArgumentException("args.${argName}=[${output}] incompatible with arg.res=[${_requiredRes}]")
 
-      this."${outputName}" = output
+      map.stream = output
     }
     else
     {
-      if(requiredRes == "stream" || requiredRes == "${outputName}Stream")
-        this."${outputName}" = null
+      if(_requiredRes == "stream" || _requiredRes == "${argName}Stream")
+        map.stream = null
       else
       {
-        if(requiredRes == outputName ||
-           requiredRes == "${outputName}Bytes" ||
-           requiredRes == 'all' ||
-           requiredRes == 'allBytes')
+        if(_requiredRes == argName ||
+           _requiredRes == "${argName}Bytes" ||
+           _requiredRes == 'all' ||
+           _requiredRes == 'allBytes')
         {
-          this."${outputName}AsStreamOfBytes" = new ByteArrayOutputStream()
-          this."${outputName}" = this."${outputName}AsStreamOfBytes"
+          map.stream = new ByteArrayOutputStream()
+          map.streamOfBytes = map.stream
         }
       }
     }
   }
 
-  private void startOutputThread(String outputName, Closure inputStreamProvider)
+  private void startOutputThread(StreamType streamType, Closure inputStreamProvider)
   {
-    if(this."${outputName}" != null)
+    def stream = _processIO[streamType]?.stream
+
+    if(stream != null)
     {
-      // need to read output (in a separate thread!)
-      this."${outputName}ThreadReader" = Thread.start("${commandLine} > ${outputName}") {
-
-        InputStream inputStream = inputStreamProvider()
-
-        // if it is a closure, invoke the closure
-        if(this."${outputName}" instanceof Closure)
-        {
-          args."${outputName}"(inputStream)
-        }
-        else
-        {
-          // read stdout
-          IOUtils.copy(new BufferedInputStream(inputStream), this."${outputName}")
+      def consumeStream = {
+        inputStreamProvider().withStream { InputStream inputStream ->
+          // if it is a closure, invoke the closure
+          if(stream instanceof Closure)
+          {
+            stream(inputStream)
+          }
+          else
+          {
+            // read stdout
+            new BufferedInputStream(inputStream).withStream {
+              stream << it
+            }
+          }
         }
       }
+
+      // need to consume output (in a separate thread!)
+      def future = new FutureTaskExecution(consumeStream)
+      future.description = "${_commandLine} > ${streamType.name().toLowerCase()}"
+      _processIO[streamType].future = future
+      future.runAsync(shell.executorService)
     }
   }
 }

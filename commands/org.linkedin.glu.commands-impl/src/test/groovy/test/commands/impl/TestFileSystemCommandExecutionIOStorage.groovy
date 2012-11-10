@@ -30,6 +30,7 @@ import org.linkedin.util.clock.Timespan
 import org.linkedin.util.io.resource.Resource
 import org.linkedin.glu.commands.impl.CommandExecution
 import org.linkedin.glu.utils.io.MultiplexedInputStream
+import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -198,7 +199,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     // no stdin...
     ioStorage.withOrWithoutCommandExecutionAndStreams(commandId, [stdinStream: true]) { m ->
       checkCommand(m.commandExecution)
-      assertNull(m.stream)
+      assertEquals("", m.stream.text)
     }
 
     // stdout
@@ -503,7 +504,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     // no stdin...
     ioStorage.withOrWithoutCommandExecutionAndStreams(commandId, [stdinStream: true]) { m ->
       checkCommand(m.commandExecution)
-      assertNull(m.stream)
+      assertEquals("", m.stream.text)
     }
 
     // stdout
@@ -515,7 +516,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     // stderr
     ioStorage.withOrWithoutCommandExecutionAndStreams(commandId, [stderrStream: true]) { m ->
       checkCommand(m.commandExecution)
-      assertNull(m.stream)
+      assertEquals("", m.stream.text)
     }
   }
 
@@ -604,6 +605,165 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     assertEquals("in0", fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").file.text)
     assertEquals("o0o1", fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").file.text)
     assertEquals("e0e1", fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").file.text)
+  }
+
+  /**
+   * Test exception case
+   */
+  public void testException()
+  {
+    FileSystemCommandExecutionIOStorage ioStorage =
+      new FileSystemCommandExecutionIOStorage(clock: clock,
+                                              commandExecutionFileSystem: fs,
+                                              gluCommandFactory: factory)
+
+    def ce = ioStorage.createStorageForCommandExecution([command: 'c0',
+                                                          xtra0: "x0"])
+
+    // commandId should start with the current time
+    def commandId = ce.id
+
+    assertTrue(commandId.startsWith("${Long.toHexString(clock.currentTimeMillis())}-"))
+
+    // check the file stored on the file system
+    def path = new SimpleDateFormat('yyyy/MM/dd/HH/z').format(clock.currentDate())
+    def commandResource = fs.toResource("${path}/${commandId}/${ioStorage.commandFileName}")
+    assertTrue(commandResource.exists())
+
+    long startTime = clock.currentTimeMillis()
+
+    // make sure that the glu command factory is actually called with the right set of arguments
+    assertEqualsIgnoreType([
+                             fromCommandFactory: [
+                               id: commandId,
+                               args: [
+                                 id: commandId,
+                                 redirectStderr: false,
+                                 command: 'c0',
+                                 xtra0: 'x0'],
+                             ]],
+                             ce.command)
+
+    // make sure that the information is properly stored
+    assertEqualsIgnoreType([
+                             id: commandId,
+                             redirectStderr: false,
+                             command: 'c0',
+                             xtra0: 'x0',
+                             startTime: startTime],
+                           commandResource)
+
+    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").exists())
+    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").exists())
+    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").exists())
+
+    Exception exception = null
+
+    def processing = { CommandStreamStorage storage ->
+      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
+
+        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
+
+          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
+            stdout << "out0"
+            stderr << "err0"
+
+            // simulate delay
+            clock.addDuration(Timespan.parse("1s"))
+
+            // force an exception
+            exception = new Exception("e1")
+
+            throw exception
+          }
+        }
+      }
+    }
+
+    def checkExceptionFailure = { Closure c ->
+      assertEquals("e1", shouldFail(Exception, c))
+    }
+
+    checkExceptionFailure { ce.syncCaptureIO(processing) }
+
+    long completionTime = clock.currentTimeMillis()
+    assertEquals(completionTime, startTime + Timespan.parse("1s").durationInMilliseconds)
+
+    assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stdinStreamFileName}").exists())
+    assertEquals("out0", fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").file.text)
+    assertEquals("err0", fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").file.text)
+
+    assertEqualsIgnoreType([
+                             id: commandId,
+                             redirectStderr: false,
+                             command: 'c0',
+                             xtra0: 'x0',
+                             startTime: startTime,
+                             completionTime: completionTime,
+                             exception: GluGroovyJsonUtils.exceptionToJSON(exception),
+                           ],
+                           commandResource)
+
+    checkExceptionFailure { ce.exitValue }
+    assertEquals(startTime, ce.startTime)
+    assertEquals(completionTime, ce.completionTime)
+    assertTrue(ce.isCompleted())
+    assertFalse(ce.isRedirectStderr())
+    assertFalse(ce.hasStdin())
+
+    // after the call there is no more command in the map!
+    assertTrue(ioStorage.commands.isEmpty())
+
+    def checkCommand = { CommandExecution command ->
+      // all values should have been "restored"
+      checkExceptionFailure { ce.exitValue }
+      assertEquals(startTime, command.startTime)
+      assertEquals(completionTime, command.completionTime)
+      assertTrue(command.isCompleted())
+      assertFalse(command.isRedirectStderr())
+      assertFalse(command.hasStdin())
+
+      // command factory should have been called
+      assertEqualsIgnoreType([
+                               fromCommandFactory: [
+                                 id: commandId,
+                                 args: [
+                                   id: commandId,
+                                   redirectStderr: false,
+                                   command: 'c0',
+                                   xtra0: 'x0',
+                                 ],
+                               ]],
+                             command.command)
+    }
+
+    // now that the command has completed, we should be able to rebuild it exactly from the
+    // filesystem
+    checkCommand(ioStorage.findCommandExecution(commandId))
+
+    // not requesting any stream
+    ioStorage.withOrWithoutCommandExecutionAndStreams(commandId, [:]) { m ->
+      checkCommand(m.commandExecution)
+      assertNull(m.stream)
+    }
+
+    // no stdin...
+    ioStorage.withOrWithoutCommandExecutionAndStreams(commandId, [stdinStream: true]) { m ->
+      checkCommand(m.commandExecution)
+      assertEquals("", m.stream.text)
+    }
+
+    // stdout
+    ioStorage.withOrWithoutCommandExecutionAndStreams(commandId, [stdoutStream: true]) { m ->
+      checkCommand(m.commandExecution)
+      assertEquals("out0", m.stream.text)
+    }
+
+    // stderr
+    ioStorage.withOrWithoutCommandExecutionAndStreams(commandId, [stderrStream: true]) { m ->
+      checkCommand(m.commandExecution)
+      assertEquals("err0", m.stream.text)
+    }
   }
 
   /**

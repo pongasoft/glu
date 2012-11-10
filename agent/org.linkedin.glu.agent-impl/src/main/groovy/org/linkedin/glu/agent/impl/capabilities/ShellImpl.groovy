@@ -44,6 +44,9 @@ import org.linkedin.util.url.QueryBuilder
 import org.linkedin.groovy.util.rest.RestException
 import org.linkedin.util.reflect.ReflectUtils
 import org.linkedin.glu.agent.rest.common.AgentRestUtils
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecutionThreadFactory
 
 /**
  * contains the utility methods for the shell
@@ -74,12 +77,30 @@ def class ShellImpl implements Shell
    * The charset to use for reading/writing files */
   def charset = 'UTF-8'
 
+  /**
+   * Used whe threads are needed
+   */
+  private ExecutorService _executorService
+
+  synchronized ExecutorService getExecutorService()
+  {
+    if(_executorService == null)
+      _executorService = Executors.newCachedThreadPool(new FutureTaskExecutionThreadFactory())
+    return _executorService
+  }
+
+  void setExecutorService(ExecutorService executorService)
+  {
+    _executorService = executorService
+  }
+
   Shell newShell(fileSystem)
   {
     return new ShellImpl(fileSystem: fileSystem,
                          agentProperties: agentProperties,
                          charset: charset,
-                         clock: clock)
+                         clock: clock,
+                         executorService: _executorService)
   }
 
   Map<String, String> getEnv()

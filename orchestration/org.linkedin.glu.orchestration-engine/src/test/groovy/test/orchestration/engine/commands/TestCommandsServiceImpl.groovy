@@ -40,6 +40,7 @@ import org.linkedin.util.lang.MemorySize
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 import java.util.concurrent.CancellationException
 import org.linkedin.glu.utils.io.NullOutputStream
+import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -636,7 +637,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
                                                             exitErrorStream: true
                                                           ]) { args ->
         // now that the execution is complete... we should get the error stream
-        assertEquals(GluGroovyLangUtils.getStackTrace(ce.completionValue), args.stream.text)
+        assertEquals(GluGroovyJsonUtils.exceptionToJSON(ce.completionValue), args.stream.text)
       }
     }
   }

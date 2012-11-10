@@ -25,6 +25,8 @@ import org.linkedin.glu.utils.io.MultiplexedInputStream
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.glu.groovy.utils.rest.GluGroovyRestUtils
+import org.linkedin.glu.commands.impl.StreamType
+import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -88,24 +90,29 @@ public class AgentRestUtils
                                           OutputStream stderr)
   {
     def exitValueStream = new ByteArrayOutputStream()
+    def exitErrorStream = new ByteArrayOutputStream()
 
-    def streams = [
-      "O": stdout ?: NullOutputStream.INSTANCE,
-      "E": stderr ?: NullOutputStream.INSTANCE,
-      "V": exitValueStream
-    ]
+    def streams = [:]
+
+    streams[StreamType.STDOUT.multiplexName] = stdout ?: NullOutputStream.INSTANCE
+    streams[StreamType.STDERR.multiplexName] = stderr ?: NullOutputStream.INSTANCE
+    streams[StreamType.EXIT_VALUE.multiplexName] = exitValueStream
+    streams[StreamType.EXIT_ERROR.multiplexName] = exitErrorStream
 
     // we demultiplex the stream
     MultiplexedInputStream.demultiplex(execStream, streams)
 
-    String exitValueAsString = new String(exitValueStream.toByteArray(), "UTF-8")
     // it means we got an exception, we throw it back
-    if(exitValueAsString.startsWith("{"))
+    if(exitErrorStream.size() > 0)
     {
-      throw rebuildAgentException(RestException.fromJSON(JsonUtils.fromJSON(exitValueAsString)))
+      throw GluGroovyJsonUtils.rebuildException(new String(exitErrorStream.toByteArray(), "UTF-8"))
     }
     else
     {
+      if(exitValueStream.size() == 0)
+        return null
+
+      String exitValueAsString = new String(exitValueStream.toByteArray(), "UTF-8")
       try
       {
         return Integer.valueOf(exitValueAsString)

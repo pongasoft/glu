@@ -373,7 +373,17 @@ class AgentRestClient implements Agent
   @Override
   boolean interruptCommand(def args)
   {
-    throw new RuntimeException("TBD")
+    args = GluGroovyCollectionUtils.subMap(args, ['id'])
+
+    def ref = _references.command.targetRef
+
+    ref = addPath(ref, args.remove('id').toString(), "exitValue")
+
+    def response = handleResponse(ref) { ClientResource client ->
+      client.delete()
+    }
+
+    getRes(response) as boolean
   }
 
   @Override

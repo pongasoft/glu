@@ -14,18 +14,30 @@
  * the License.
  */
 
-apply plugin: 'groovy'
-apply plugin: 'org.linkedin.release'
+package org.linkedin.glu.groovy.utils.io
 
-dependencies {
-  compile project(':agent:org.linkedin.glu.agent-api')
-  compile project(':commands:org.linkedin.glu.commands-impl')
-  compile project(':utils:org.linkedin.glu.utils')
-  compile spec.external.linkedinUtilsGroovy
-  compile spec.external.restlet
-  compile spec.external.restletExtJson
+/**
+ * @author yan@pongasoft.com */
+public class DestroyedProcessException extends IOException
+{
+  private static final long serialVersionUID = 1L;
 
-  groovy spec.external.groovy
+  DestroyedProcessException()
+  {
+  }
 
-  testCompile spec.external.junit
+  DestroyedProcessException(String s)
+  {
+    super(s)
+  }
+
+  DestroyedProcessException(String s, Throwable throwable)
+  {
+    super(s, throwable)
+  }
+
+  DestroyedProcessException(Throwable throwable)
+  {
+    super(throwable)
+  }
 }

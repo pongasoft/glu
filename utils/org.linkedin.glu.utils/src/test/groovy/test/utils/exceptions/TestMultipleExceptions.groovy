@@ -56,10 +56,14 @@ public class TestMultipleExceptions extends GroovyTestCase
     catch(MultipleExceptions e)
     {
       assertEquals("myMessage - Multi[2]...", e.message)
-      assertEquals("...[1/2] e1m", e.cause.message)
-      assertEquals(e.cause.stackTrace.toList(), e.causes[0].stackTrace.toList())
-      assertEquals("...[2/2] e2m.e1m", e.cause.cause.message)
-      assertEquals(e.cause.cause.stackTrace.toList(), e.causes[1].stackTrace.toList())
+      def more1 = e.cause
+      def e1 = more1.cause
+      def more2 = e1.cause
+      def e2 = more2.cause
+      assertEquals("...[1/2] e1m", more1.message)
+      assertTrue("e1", e.causes[0].is(e1))
+      assertEquals("...[2/2] e2m.e1m", more2.message)
+      assertTrue("e2", e.causes[1].is(e2))
     }
   }
 

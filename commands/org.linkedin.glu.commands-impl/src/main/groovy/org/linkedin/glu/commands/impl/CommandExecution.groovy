@@ -24,6 +24,7 @@ import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 import org.slf4j.Logger
 import org.linkedin.groovy.util.config.Config
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.CancellationException
 
 /**
  * @author yan@pongasoft.com */
@@ -91,7 +92,41 @@ public class CommandExecution<T>
       {
         // ok we just want to wait until the command completes but no more than the timeout
       }
+      catch(CancellationException e)
+      {
+        // ok the command was cancelled
+      }
     }
+  }
+
+  /**
+   * @param timeout
+   * @return <code>true</code> if the command is completed or completes within the timeout...
+   *         <code>false</code> otherwise
+   */
+  boolean waitForCompletionNoException(def timeout)
+  {
+    if(!isCompleted())
+    {
+      try
+      {
+        futureExecution.get(timeout)
+      }
+      catch(ExecutionException e)
+      {
+        // ok we just want to wait until the command completes but no more than the timeout
+      }
+      catch(TimeoutException e)
+      {
+        // ok we just want to wait until the command completes but no more than the timeout
+      }
+      catch(CancellationException e)
+      {
+        // ok the command was cancelled
+      }
+    }
+
+    return isCompleted()
   }
 
   boolean interruptExecution()
@@ -102,18 +137,9 @@ public class CommandExecution<T>
   def getExitValue()
   {
     if(isCompleted())
-    {
-      try
-      {
-        futureExecution.get()
-      }
-      catch(ExecutionException e)
-      {
-        throw e.cause
-      }
-    }
+      getExitValue(0)
     else
-      return null
+      null
   }
 
   def getExitValue(timeout)
@@ -126,6 +152,11 @@ public class CommandExecution<T>
     {
       throw e.cause
     }
+    catch(CancellationException e)
+    {
+      // ok the command was cancelled
+      return null
+    }
   }
 
   /**
@@ -135,16 +166,7 @@ public class CommandExecution<T>
   def getCompletionValue()
   {
     if(isCompleted())
-    {
-      try
-      {
-        futureExecution.get()
-      }
-      catch(ExecutionException e)
-      {
-        e.cause
-      }
-    }
+      getCompletionValue(0)
     else
       return null
   }
@@ -163,6 +185,11 @@ public class CommandExecution<T>
     catch(ExecutionException e)
     {
       e.cause
+    }
+    catch(CancellationException e)
+    {
+      // ok the command was cancelled
+      return null
     }
   }
 

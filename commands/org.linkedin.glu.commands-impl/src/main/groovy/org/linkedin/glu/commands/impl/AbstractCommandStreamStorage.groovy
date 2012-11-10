@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutorService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.glu.utils.io.EmptyInputStream
+import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -79,8 +80,6 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
                                             'stderrLen',
                                           ])
 
-    int numberOfStreams = 0
-
     InputStream res = null
 
     Map<String, InputStream> streams = [:]
@@ -90,7 +89,6 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
 
     if(exitErrorStream)
     {
-      numberOfStreams++
       streams[StreamType.EXIT_ERROR.multiplexName] = EmptyInputStream.INSTANCE
 
       // command completed => check for error
@@ -100,26 +98,25 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
         if(completionValue instanceof Throwable)
         {
           streams[StreamType.EXIT_ERROR.multiplexName] =
-            new InputGeneratorStream(GluGroovyLangUtils.getStackTrace(completionValue))
+            new InputGeneratorStream(GluGroovyJsonUtils.exceptionToJSON(completionValue))
         }
       }
     }
 
-    // Factory to compute the exit value
-    def exitValueFactory = { null }
+    // Wait for command completion
+    def waitForCommandCompletion = { null }
 
     def timeout = args.exitValueStreamTimeout
 
     if(exitValueStream)
     {
-      numberOfStreams++
       streams[StreamType.EXIT_VALUE.multiplexName] = EmptyInputStream.INSTANCE
 
       // command completed => exit value only when no error
       if(commandExecution.isCompleted())
       {
         def completionValue = commandExecution.completionValue
-        if(completionValue && !(completionValue instanceof Throwable))
+        if(completionValue != null && !(completionValue instanceof Throwable))
         {
           streams[StreamType.EXIT_VALUE.multiplexName] = new InputGeneratorStream(completionValue)
         }
@@ -128,10 +125,10 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
       {
         if(timeout != null)
         {
-          exitValueFactory = {
+          def exitValueFactory = {
             try
             {
-              return commandExecution.getExitValue(timeout).toString()
+              return commandExecution.getExitValue(timeout)?.toString()
             }
             catch(TimeoutException e)
             {
@@ -143,6 +140,12 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
           }
           InputStream exitValueInputStream = new InputGeneratorStream(exitValueFactory)
           streams[StreamType.EXIT_VALUE.multiplexName] = exitValueInputStream
+
+          // in the case that the caller is willing to wait until timeout to get the exit value
+          // then we delay stdout and stderr as well
+          waitForCommandCompletion = {
+            commandExecution.waitForCompletionNoException(timeout)
+          }
         }
       }
     }
@@ -159,14 +162,14 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
       // is the stream requested?
       if(Config.getOptionalBoolean(args, "${name}Stream", false))
       {
-        numberOfStreams++
+        streams[streamType.multiplexName] = EmptyInputStream.INSTANCE
 
         if(include)
         {
           def inputStreamFactory = {
 
             // either wait or not
-            exitValueFactory()
+            waitForCommandCompletion()
 
             def streamAndSize = findStorageInputWithSize(streamType,
                                                          [
@@ -191,7 +194,7 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
     if(streams.size() > 0)
     {
       // case when requesting only 1 stream
-      if(numberOfStreams == 1)
+      if(streams.size() == 1)
       {
         // we return the only stream
         res = streams.values().iterator().next()
@@ -199,7 +202,11 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
       else
       {
         // we multiplex the result
-        res = new MultiplexedInputStream(streams)
+        streams = streams.findAll { t, s -> !(s instanceof EmptyInputStream) }
+        if(streams.isEmpty())
+          res = EmptyInputStream.INSTANCE
+        else
+          res = new MultiplexedInputStream(streams)
       }
     }
 
@@ -277,12 +284,19 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
                           Closure closure)
   {
     def processing = {
-      def res = ioStorage.captureIO(commandExecution, closure)
-      commandExecution.completionTime = res.completionTime ?: ioStorage.clock.currentTimeMillis()
-      if(res.exception)
-        throw res.exception
-      else
-        return res.exitValue
+      def res = null
+      try
+      {
+        res = ioStorage.captureIO(commandExecution, closure)
+        if(res.exception)
+          throw res.exception
+        else
+          return res.exitValue
+      }
+      finally
+      {
+        commandExecution.completionTime = res?.completionTime ?: ioStorage.clock.currentTimeMillis()
+      }
     }
     def futureExecution = new FutureTaskExecution(processing)
     futureExecution.clock = ioStorage.clock

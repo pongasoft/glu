@@ -305,6 +305,8 @@ class TestCapabilities extends GroovyTestCase
     if(cl) cl()
     assertEquals(exitValue, shell.exec(*:commands, res: "exitValue"))
     if(cl) cl()
+    assertEquals(exitValue.toString(), shell.exec(*:commands, res: "exitValueStream").text)
+    if(cl) cl()
     assertEquals(stdout.trim(), shell.exec(*:commands, res: "stdout"))
     if(cl) cl()
     assertEquals(stdout.getBytes("UTF-8"), shell.exec(*:commands, res: "stdoutBytes"))

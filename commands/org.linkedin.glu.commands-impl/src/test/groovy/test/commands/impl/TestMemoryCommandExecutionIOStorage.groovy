@@ -141,7 +141,7 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
     // no stdin...
     ioStorage.withOrWithoutCommandExecutionAndStreams(commandId, [stdinStream: true]) { m ->
       checkCommand(m.commandExecution)
-      assertNull(m.stream)
+      assertEquals("", m.stream.text)
     }
 
     // stdout
@@ -361,7 +361,7 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
     // no stdin...
     ioStorage.withOrWithoutCommandExecutionAndStreams(commandId, [stdinStream: true]) { m ->
       checkCommand(m.commandExecution)
-      assertNull(m.stream)
+      assertEquals("", m.stream.text)
     }
 
     // stdout
@@ -373,7 +373,7 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
     // stderr
     ioStorage.withOrWithoutCommandExecutionAndStreams(commandId, [stderrStream: true]) { m ->
       checkCommand(m.commandExecution)
-      assertNull(m.stream)
+      assertEquals("", m.stream.text)
     }
   }
 

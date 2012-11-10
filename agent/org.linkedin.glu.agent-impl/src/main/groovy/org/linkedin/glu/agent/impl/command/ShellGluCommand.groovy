@@ -16,11 +16,53 @@
 
 package org.linkedin.glu.agent.impl.command
 
+import org.linkedin.glu.groovy.utils.io.DestroyedProcessException
+
 /**
  * @author yan@pongasoft.com */
 public class ShellGluCommand
 {
+  private volatile InputStream exitValueStream
+  private volatile boolean _destroyed = false
+
   def run = { args ->
-    shell.exec(*: args, failOnError: false, res: "exitValue")
+
+    if(_destroyed)
+      return null
+
+    def stream = shell.exec(*: args, failOnError: false, res: "exitValueStream")
+
+    synchronized(this)
+    {
+      if(!_destroyed)
+        exitValueStream = stream
+      else
+      {
+        stream.destroy()
+        return null
+      }
+    }
+
+    try
+    {
+      exitValueStream.text as int
+    }
+    catch(DestroyedProcessException e)
+    {
+      // ok it was destroyed...
+      return null
+    }
+    finally
+    {
+      exitValueStream = null
+    }
+  }
+
+  def destroy = {
+    synchronized(this)
+    {
+      _destroyed = true
+      exitValueStream?.destroy()
+    }
   }
 }

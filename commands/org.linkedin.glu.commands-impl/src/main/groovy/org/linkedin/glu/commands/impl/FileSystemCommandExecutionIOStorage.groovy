@@ -180,7 +180,7 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
       // now we update the command with the exit value
       def args = [*:commandExecution.args]
       if(exception != null)
-        args.exception = GluGroovyJsonUtils.extractFullStackTrace(exception)
+        args.exception = GluGroovyJsonUtils.exceptionToJSON(exception)
       else
         args.exitValue = res?.exitValue
       args.startTime = commandExecution.startTime

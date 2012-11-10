@@ -46,6 +46,7 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import org.linkedin.glu.groovy.utils.concurrent.GluGroovyConcurrentUtils
 import org.linkedin.glu.agent.api.Shell
+import org.linkedin.util.clock.Chronos
 
 /**
  * Test for AgentImpl
@@ -837,40 +838,111 @@ gc: 1000
 
       // reading from stdin
       checkShellExec(shell, [command: [shellScript, "-1", "-c"], stdin: "abc\ndef\n"], 0, "this goes to stdout\nabc\ndef\n", "")
+
+      Chronos c = new Chronos()
+
+      // testing interrupt 1 (interrupting before reading)
+      checkShellExec(shell, [command: ["sleep 10"]], null, "", "", { execResult ->
+
+        // we wait until the command is actually started...
+        shell.waitFor(timeout: '2s', heartbeat: '10') {
+          agent._commandManager.findCommand(execResult.id).command.exitValueStream != null
+        }
+        assertTrue(agent.interruptCommand([id: execResult.id]))
+        return execResult
+      }, null)
+
+      // we make sure that the command got interrupted properly and that it did not last the
+      // full 10s. We use 2s as a buffer...
+      assertTrue(c.tick() < Timespan.parse("2s").durationInMilliseconds)
+
+      // testing interrupt 2 (interrupting after reading)
+      checkShellExec(shell, [command: ["sleep 10"]], null, "", "", null, { execResult, streamResults ->
+
+        // we wait until the command is actually started...
+        shell.waitFor(timeout: '2s', heartbeat: '10') {
+          agent._commandManager.findCommand(execResult.id).command.exitValueStream != null
+        }
+
+        assertTrue(agent.interruptCommand([id: execResult.id]))
+        return streamResults
+      })
+
+      // we make sure that the command got interrupted properly and that it did not last the
+      // full 10s. We use 2s as a buffer...
+      assertTrue(c.tick() < Timespan.parse("2s").durationInMilliseconds)
     }
   }
 
-  private void checkShellExec(Shell shell, commands, exitValue, stdout, stderr)
+  private void checkShellExec(Shell shell,
+                              commands,
+                              exitValue,
+                              stdout,
+                              stderr,
+                              Closure afterExecuteShellCommand = null,
+                              Closure afterStreamCommandResults = null)
   {
     commands.command = commands.command.collect { it.toString() }.join(" ")
     if(commands.stdin)
       commands.stdin = new ByteArrayInputStream(commands.stdin.getBytes("UTF-8"))
 
-    def commandId = agent.executeShellCommand(*: commands).id
+    def execResult = agent.executeShellCommand(*: commands)
 
-    def results = agent.streamCommandResults(id: commandId,
-                                             exitValueStream: true,
-                                             exitValueStreamTimeout: 0,
-                                             stdoutStream: true,
-                                             stderrStream: true)
+    if(afterExecuteShellCommand)
+      execResult = afterExecuteShellCommand(execResult)
 
-    def stream = results.stream
+    def commandId = execResult.id
 
-    OutputStream stdoutStream = new ByteArrayOutputStream()
+    def streamResults = agent.streamCommandResults(id: commandId,
+                                                   exitValueStream: true,
+                                                   exitValueStreamTimeout: 0,
+                                                   exitErrorStream: true,
+                                                   stdoutStream: true,
+                                                   stderrStream: true)
 
-    OutputStream stderrStream = new ByteArrayOutputStream()
+    if(afterStreamCommandResults)
+      streamResults = afterStreamCommandResults(execResult, streamResults)
 
-    try
+    def stream = streamResults.stream
+
+    if(!stream)
     {
-      assertEquals(exitValue, shell.demultiplexExecStream(stream, stdoutStream, stderrStream))
+      shouldFail { agent.waitForCommand(id: commandId) }
+      agent.waitForCommand(id: commandId)
     }
-    finally
+    else
     {
-      assertEquals(stdout, new String(stdoutStream.toByteArray(), "UTF-8"))
-      assertEquals(stderr, new String(stderrStream.toByteArray(), "UTF-8"))
-    }
+      String text = stream.text
 
-    assertEquals(exitValue, agent.waitForCommand(id: commandId))
+      stream = new ByteArrayInputStream(text.getBytes("UTF-8"))
+
+      OutputStream stdoutStream = new ByteArrayOutputStream()
+
+      OutputStream stderrStream = new ByteArrayOutputStream()
+
+      try
+      {
+        try
+        {
+          assertEquals(exitValue, shell.demultiplexExecStream(stream, stdoutStream, stderrStream))
+        }
+        finally
+        {
+          assertEquals(stdout, new String(stdoutStream.toByteArray(), "UTF-8"))
+          assertEquals(stderr, new String(stderrStream.toByteArray(), "UTF-8"))
+        }
+
+        assertEquals(exitValue, agent.waitForCommand(id: commandId))
+      }
+      catch(Throwable th)
+      {
+        System.err.println("Issue with stream?")
+        System.err.println("<=================")
+        System.err.println(text)
+        System.err.println("=================>")
+        throw th
+      }
+    }
   }
 }
 
