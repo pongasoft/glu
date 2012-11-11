@@ -206,7 +206,10 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
         if(streams.isEmpty())
           res = EmptyInputStream.INSTANCE
         else
+        {
           res = new MultiplexedInputStream(streams)
+          res.submitter = ioStorage.submitter
+        }
       }
     }
 

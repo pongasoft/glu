@@ -19,7 +19,6 @@ package org.linkedin.glu.agent.rest.common
 import org.linkedin.groovy.util.rest.RestException
 import org.restlet.data.Status
 import org.linkedin.glu.agent.api.AgentException
-import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.utils.io.NullOutputStream
 import org.linkedin.glu.utils.io.MultiplexedInputStream
 import org.slf4j.Logger

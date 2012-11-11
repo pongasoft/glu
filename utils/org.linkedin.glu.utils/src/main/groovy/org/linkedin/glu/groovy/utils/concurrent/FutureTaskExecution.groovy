@@ -23,8 +23,6 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeoutException
 import org.linkedin.util.clock.Timespan
 
-import java.util.concurrent.ExecutorService
-
 import java.util.concurrent.FutureTask
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.util.clock.SystemClock
@@ -112,20 +110,10 @@ public class FutureTaskExecution<T> implements FutureExecution<T>, RunnableFutur
   }
 
   /**
-   * Runs asynchronously. Uses the executor service to run asynchronously. Returns right away.
-   * @return <code>this</code> for convenience
-   */
-  FutureTaskExecution<T> runAsync(ExecutorService executorService)
-  {
-    executorService.submit(_future)
-    return this
-  }
-
-  /**
    * Runs asynchronously. Uses the submitter to run asynchronously. Returns right away.
    * @return <code>this</code> for convenience
    */
-  FutureTaskExecution<T> runAsync(Submitter submitter)
+  FutureTaskExecution<T> runAsync(Submitter submitter = DEFAULT_SUBMITTER)
   {
     submitter.submitFuture(this)
   }

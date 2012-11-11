@@ -219,7 +219,9 @@ private class ShellExec
     })
     streams[StreamType.EXIT_ERROR.multiplexName] = exitErrorInputStream
 
-    return new MultiplexedInputStream(streams)
+    def stream = new MultiplexedInputStream(streams)
+    stream.submitter = shell.submitter
+    return stream
   }
 
   private def executeBlockingCall = {

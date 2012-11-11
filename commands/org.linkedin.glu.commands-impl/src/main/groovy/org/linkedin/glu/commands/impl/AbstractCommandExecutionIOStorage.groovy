@@ -21,6 +21,8 @@ import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.linkedin.glu.utils.concurrent.Submitter
+import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 
 /**
  * @author yan@pongasoft.com */
@@ -34,6 +36,9 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
 
   @Initializable(required = true)
   GluCommandFactory gluCommandFactory
+
+  @Initializable
+  Submitter submitter = FutureTaskExecution.DEFAULT_SUBMITTER
 
   @Override
   CommandExecution createStorageForCommandExecution(def args)

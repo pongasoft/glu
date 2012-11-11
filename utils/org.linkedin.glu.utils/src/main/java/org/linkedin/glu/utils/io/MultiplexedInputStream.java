@@ -16,9 +16,12 @@
 
 package org.linkedin.glu.utils.io;
 
+import org.linkedin.glu.utils.concurrent.Submitter;
 import org.linkedin.glu.utils.exceptions.MultipleExceptions;
+import org.linkedin.util.annotations.Initializer;
 import org.linkedin.util.io.IOUtils;
 import org.linkedin.util.lang.MemorySize;
+import org.linkedin.util.lifecycle.Startable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +63,7 @@ import java.util.concurrent.FutureTask;
  *
  * @author yan@pongasoft.com
  */
-public class MultiplexedInputStream extends InputStream
+public class MultiplexedInputStream extends InputStream implements Startable
 {
   public static final String MODULE = MultiplexedInputStream.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
@@ -88,12 +91,17 @@ public class MultiplexedInputStream extends InputStream
 
   private Collection<ChannelReaderCallable> _channelReaders;
   private Collection<FutureTask<Long>> _futureTasks;
+  private boolean _started = false;
 
   private final ByteBuffer _multiplexedBuffer;
 
   private boolean _closed = false;
   private int _endOfStream = 0;
   private Collection<Throwable> _exceptions = new ArrayList<Throwable>();
+
+  /**
+   * Each input stream runs into its own thread...  */
+  private Submitter _submitter = Submitter.DEFAULT;
 
   /**
    * Constructor
@@ -279,13 +287,17 @@ public class MultiplexedInputStream extends InputStream
     {
       throw new RuntimeException(e);
     }
+  }
 
-    // now that everything has been set up and initialized, we can start all the threads
-    for(FutureTask<Long> futureTask : _futureTasks)
-    {
-      if(futureTask != null)
-        new Thread(futureTask).start();
-    }
+  public Submitter getSubmitter()
+  {
+    return _submitter;
+  }
+
+  @Initializer
+  public void setSubmitter(Submitter submitter)
+  {
+    _submitter = submitter;
   }
 
   /**
@@ -304,11 +316,29 @@ public class MultiplexedInputStream extends InputStream
     return _futureTasks;
   }
 
+  public void start()
+  {
+    synchronized(_multiplexedBuffer)
+    {
+      if(!_started)
+      {
+        // start all the threads...
+        for(FutureTask<Long> futureTask : _futureTasks)
+        {
+          _submitter.submitFuture(futureTask);
+        }
+        _started = true;
+      }
+    }
+  }
+
   @Override
   public int read(byte[] b, int off, int len) throws IOException
   {
     synchronized(_multiplexedBuffer)
     {
+      start();
+
       try
       {
         while(_multiplexedBuffer.position() == 0 && _endOfStream != 0 && !_closed && _exceptions.isEmpty())
@@ -364,6 +394,8 @@ public class MultiplexedInputStream extends InputStream
   {
     synchronized(_multiplexedBuffer)
     {
+      start();
+
       int available = 0;
 
       for(ChannelReaderCallable channelReader : _channelReaders)
@@ -385,6 +417,7 @@ public class MultiplexedInputStream extends InputStream
         return;
 
       _closed = true;
+
       // notify everybody that this stream is closed
       _multiplexedBuffer.notifyAll();
     }
@@ -401,6 +434,12 @@ public class MultiplexedInputStream extends InputStream
       {
         exceptions.add(e);
       }
+    }
+
+    // we make sure that all threads are done
+    for(FutureTask<Long> futureTask : _futureTasks)
+    {
+      futureTask.cancel(true);
     }
 
     if(!exceptions.isEmpty())

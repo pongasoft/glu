@@ -22,6 +22,9 @@ import java.util.concurrent.FutureTask
 import java.util.concurrent.TimeUnit
 import org.linkedin.glu.utils.io.DemultiplexedOutputStream
 import org.linkedin.glu.utils.io.EmptyInputStream
+import org.linkedin.util.concurrent.ThreadControl
+import org.linkedin.util.clock.Timespan
+import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 
 /**
  * @author yan@pongasoft.com */
@@ -96,6 +99,8 @@ public class TestMultiplexedInputStream extends GroovyTestCase
       assertEquals("", new String(baos1.toByteArray()))
       assertEquals("", new String(baos2.toByteArray()))
       assertEquals(0, numberOfBytesRead)
+
+      assertTrue("all futures should be done", mis.futureTasks.findAll { !it.isDone() }.isEmpty())
     }
   }
 
@@ -103,9 +108,84 @@ public class TestMultiplexedInputStream extends GroovyTestCase
    * This is to make sure that no matter how the stream terminates, the threads that were spawned
    * will terminate properly.
    */
-  public void testThreadsAreClosedOnTermination()
+  public void testThreadsAreClosedOnNormalTermination()
   {
-    // TODO HIGH YP:  throw new RuntimeException("implement!")
+    ThreadControl tc = new ThreadControl(Timespan.parse("30s"))
+
+    def threadControlInputStream = new InputStream() {
+
+      boolean eof = false
+
+      @Override
+      int read()
+      {
+        if(eof) return -1
+
+        int c = tc.blockWithException("bytes") as int
+        if(c == -1)
+          eof = true
+
+        return c
+      }
+    }
+
+    def mis = new MultiplexedInputStream([threadControlInputStream])
+
+    def readStream = new FutureTaskExecution({ mis.text })
+    readStream.runAsync()
+
+    tc.unblock("bytes", "a".toCharArray()[0])
+
+    tc.unblock("bytes", -1)
+
+    def expected = """MISV1.0=I0
+
+I0=1
+a
+
+"""
+    assertEquals(expected, readStream.get())
+
+    assertTrue("all futures should be done", mis.futureTasks.findAll { !it.isDone() }.isEmpty())
+  }
+
+  /**
+   * This is to make sure that no matter how the stream terminates, the threads that were spawned
+   * will terminate properly.
+   */
+  public void testThreadsAreClosedOnAbnormalTermination()
+  {
+    ThreadControl tc = new ThreadControl(Timespan.parse("30s"))
+
+    def threadControlInputStream = new InputStream() {
+
+      boolean eof = false
+
+      @Override
+      int read()
+      {
+        if(eof) return -1
+
+        int c = tc.blockWithException("bytes") as int
+        if(c == -1)
+          eof = true
+
+        return c
+      }
+    }
+
+    def mis = new MultiplexedInputStream([threadControlInputStream])
+
+    def readStream = new FutureTaskExecution({ mis.text })
+    readStream.runAsync()
+
+    tc.unblock("bytes", "a".toCharArray()[0])
+
+    mis.close()
+
+    assertEquals("closed", shouldFailWithCause(IOException) { readStream.get("1s") })
+
+    assertTrue("all futures should be done", mis.futureTasks.findAll { !it.isDone() }.isEmpty())
   }
 
   /**
