@@ -89,7 +89,7 @@ beans = {
     commandsService(CommandsServiceImpl) {
       agentsService = ref("agentsService")
       authorizationService = ref("authorizationService")
-      executorService = ref("executor")
+      submitter = ref("submitter")
       commandExecutionStorage = ref("commandExecutionStorage")
       commandExecutionIOStorage = ref("commandExecutionIOStorage")
     }

@@ -162,7 +162,7 @@ private class ShellExec
     // input stream is closed
     _destroyProcessInFinally = false
 
-    future.runAsync(shell.executorService)
+    future.runAsync(shell.submitter)
 
     return inputStream
   }
@@ -374,7 +374,7 @@ private class ShellExec
       def future = new FutureTaskExecution(consumeStream)
       future.description = "${_commandLine} > ${streamType.name().toLowerCase()}"
       _processIO[streamType].future = future
-      future.runAsync(shell.executorService)
+      future.runAsync(shell.submitter)
     }
   }
 }

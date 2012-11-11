@@ -24,7 +24,7 @@ public class FutureExecutionAdapter<K> implements
   org.linkedin.glu.groovy.utils.concurrent.FutureExecution<K>,
   org.linkedin.glu.agent.api.FutureExecution<K>
 {
-  // YP Implementation note: using FutureExecution does not work with the compile (don't ask
+  // YP Implementation note: using FutureExecution does not work with the compiler (don't ask
   // me why!)
   @Delegate org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution<K> futureExecution
 }

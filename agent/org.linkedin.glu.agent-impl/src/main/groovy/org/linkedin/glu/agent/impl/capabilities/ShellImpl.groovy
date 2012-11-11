@@ -44,9 +44,9 @@ import org.linkedin.util.url.QueryBuilder
 import org.linkedin.groovy.util.rest.RestException
 import org.linkedin.util.reflect.ReflectUtils
 import org.linkedin.glu.agent.rest.common.AgentRestUtils
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecutionThreadFactory
+import org.linkedin.glu.utils.concurrent.Submitter
+import org.linkedin.glu.utils.concurrent.OneThreadPerTaskSubmitter
 
 /**
  * contains the utility methods for the shell
@@ -80,18 +80,18 @@ def class ShellImpl implements Shell
   /**
    * Used whe threads are needed
    */
-  private ExecutorService _executorService
+  private Submitter _submitter
 
-  synchronized ExecutorService getExecutorService()
+  synchronized Submitter getSubmitter()
   {
-    if(_executorService == null)
-      _executorService = Executors.newCachedThreadPool(new FutureTaskExecutionThreadFactory())
-    return _executorService
+    if(_submitter == null)
+      _submitter = new OneThreadPerTaskSubmitter(new FutureTaskExecutionThreadFactory())
+    return _submitter
   }
 
-  void setExecutorService(ExecutorService executorService)
+  void setSubmitter(Submitter submitter)
   {
-    _executorService = executorService
+    _submitter = submitter
   }
 
   Shell newShell(fileSystem)
@@ -100,7 +100,7 @@ def class ShellImpl implements Shell
                          agentProperties: agentProperties,
                          charset: charset,
                          clock: clock,
-                         executorService: _executorService)
+                         submitter: _submitter)
   }
 
   Map<String, String> getEnv()

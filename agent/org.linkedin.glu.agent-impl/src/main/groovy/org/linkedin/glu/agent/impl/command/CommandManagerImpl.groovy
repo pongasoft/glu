@@ -34,6 +34,8 @@ import org.linkedin.glu.commands.impl.CommandExecution
 import org.linkedin.glu.commands.impl.GluCommandFactory
 import org.linkedin.glu.commands.impl.StreamType
 import org.linkedin.util.clock.Timespan
+import org.linkedin.glu.utils.concurrent.Submitter
+import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 
 /**
  * @author yan@pongasoft.com */
@@ -46,7 +48,7 @@ public class CommandManagerImpl implements CommandManager
   AgentContext agentContext
 
   @Initializable(required = true)
-  ExecutorService executorService = Executors.newCachedThreadPool()
+  Submitter submitter = FutureTaskExecution.DEFAULT_SUBMITTER
 
   @Initializable(required = true)
   CommandExecutionIOStorage storage
@@ -118,7 +120,7 @@ public class CommandManagerImpl implements CommandManager
       _commands[command.id] = command
       try
       {
-        def future = command.asyncCaptureIO(executorService, asyncProcessing)
+        def future = command.asyncCaptureIO(submitter, asyncProcessing)
         future.onCompletionCallback = endExecution
       }
       catch(Throwable th)
@@ -158,11 +160,17 @@ public class CommandManagerImpl implements CommandManager
   def findCommandExecutionAndStreams(def args)
   {
     CommandExecution commandExecution = findCommand(args.id)
+    println "${args.id} => ${commandExecution}"
     if(commandExecution)
+    {
       commandExecution.log.info("findCommandExecutionAndStreams(${GluGroovyCollectionUtils.xorMap(args, ['id'])})")
+      return [commandExecution: commandExecution, stream: commandExecution.storage.findStorageInput(args)]
+    }
     else
+    {
       log.info("findCommandExecutionAndStreams(${args})): not found")
-    return storage.findCommandExecutionAndStreams(args.id, args)
+      return null
+    }
   }
 
   /**

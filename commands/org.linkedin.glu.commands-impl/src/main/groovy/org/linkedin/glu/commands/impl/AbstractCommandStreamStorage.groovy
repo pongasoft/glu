@@ -24,11 +24,11 @@ import org.linkedin.glu.utils.io.LimitedInputStream
 import org.linkedin.glu.utils.io.MultiplexedInputStream
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
-import java.util.concurrent.ExecutorService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.glu.utils.io.EmptyInputStream
 import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
+import org.linkedin.glu.utils.concurrent.Submitter
 
 /**
  * @author yan@pongasoft.com */
@@ -275,12 +275,12 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
   }
 
   @Override
-  FutureTaskExecution asyncCaptureIO(ExecutorService executorService, Closure closure)
+  FutureTaskExecution asyncCaptureIO(Submitter submitter, Closure closure)
   {
-    doCaptureIO(executorService, closure) as FutureTaskExecution
+    doCaptureIO(submitter, closure) as FutureTaskExecution
   }
 
-  private def doCaptureIO(ExecutorService executorService,
+  private def doCaptureIO(Submitter submitter,
                           Closure closure)
   {
     def processing = {
@@ -302,8 +302,8 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
     futureExecution.clock = ioStorage.clock
     commandExecution.futureExecution = futureExecution
 
-    if(executorService)
-      futureExecution.runAsync(executorService)
+    if(submitter)
+      futureExecution.runAsync(submitter)
     else
       futureExecution.runSync()
   }

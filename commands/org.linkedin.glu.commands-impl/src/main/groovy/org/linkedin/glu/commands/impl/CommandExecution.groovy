@@ -19,12 +19,12 @@
 package org.linkedin.glu.commands.impl
 
 import java.util.concurrent.ExecutionException
-import java.util.concurrent.ExecutorService
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 import org.slf4j.Logger
 import org.linkedin.groovy.util.config.Config
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.CancellationException
+import org.linkedin.glu.utils.concurrent.Submitter
 
 /**
  * @author yan@pongasoft.com */
@@ -205,9 +205,9 @@ public class CommandExecution<T>
   /**
    * Asynchronously executes the command. Returns right away
    */
-  FutureTaskExecution asyncCaptureIO(ExecutorService executorService,
+  FutureTaskExecution asyncCaptureIO(Submitter submitter,
                                      Closure closure)
   {
-    storage.asyncCaptureIO(executorService, closure)
+    storage.asyncCaptureIO(submitter, closure)
   }
 }

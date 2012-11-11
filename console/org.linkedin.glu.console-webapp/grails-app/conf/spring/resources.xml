@@ -74,6 +74,11 @@
         factory-method="newCachedThreadPool"
         destroy-method="shutdown"/>
 
+  <bean id="submitter"
+        class="org.linkedin.glu.utils.concurrent.ExecutorServiceSubmitter">
+    <constructor-arg ref="executor"/>
+  </bean>
+
   <bean id="leafExecutor"
         class="org.linkedin.glu.orchestration.engine.action.execution.ActionDescriptorStepExecutor">
     <property name="actionExecutionFactory" ref="actionExecutionFactory"/>

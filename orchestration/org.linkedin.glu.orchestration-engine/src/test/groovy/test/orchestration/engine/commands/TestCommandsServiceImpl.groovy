@@ -29,7 +29,6 @@ import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.utils.io.MultiplexedInputStream
 import org.linkedin.util.clock.SettableClock
 
-import java.util.concurrent.Executors
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.util.concurrent.ThreadControl
@@ -59,27 +58,11 @@ public class TestCommandsServiceImpl extends GroovyTestCase
                             commandExecutionFirstBytesSize: MemorySize.parse("5"),
                             defaultSynchronousWaitTimeout: null)
 
-  def shutdownSequence = []
-
   @Override
   protected void setUp()
   {
     super.setUp()
-    shutdownSequence << { super.tearDown() }
-
     clock.setCurrentTimeMillis(100000000)
-
-    def executorService = Executors.newCachedThreadPool()
-    shutdownSequence << { executorService.shutdownNow() }
-    service.executorService = executorService
-
-
-  }
-
-  @Override
-  protected void tearDown()
-  {
-    GluGroovyLangUtils.onlyOneException(shutdownSequence.reverse())
   }
 
   /**

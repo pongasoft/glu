@@ -16,8 +16,6 @@
 
 package org.linkedin.glu.orchestration.engine.commands
 
-import java.util.concurrent.ExecutorService
-
 import org.apache.commons.io.input.TeeInputStream
 
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
@@ -44,6 +42,8 @@ import org.linkedin.glu.commands.impl.CommandStreamStorage
 import org.linkedin.glu.commands.impl.GluCommandFactory
 import org.linkedin.groovy.util.lang.GroovyLangUtils
 import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
+import org.linkedin.glu.utils.concurrent.Submitter
+import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 
 /**
  * @author yan@pongasoft.com  */
@@ -59,8 +59,8 @@ public class CommandsServiceImpl implements CommandsService
   @Initializable
   Clock clock = SystemClock.INSTANCE
 
-  @Initializable(required = true)
-  ExecutorService executorService
+  @Initializable
+  Submitter submitter = FutureTaskExecution.DEFAULT_SUBMITTER
 
   @Initializable(required = true)
   CommandExecutionStorage commandExecutionStorage
@@ -366,7 +366,7 @@ public class CommandsServiceImpl implements CommandsService
       _currentCommandExecutions[command.id] = command
       try
       {
-        def future = command.asyncCaptureIO(executorService, asyncProcessing)
+        def future = command.asyncCaptureIO(submitter, asyncProcessing)
         future.onCompletionCallback = endCommandExecution
       }
       catch(Throwable th)

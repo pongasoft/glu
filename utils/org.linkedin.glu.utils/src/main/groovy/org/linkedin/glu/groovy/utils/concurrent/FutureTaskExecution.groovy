@@ -28,11 +28,17 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.FutureTask
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.util.clock.SystemClock
+import java.util.concurrent.RunnableFuture
+import org.linkedin.glu.utils.concurrent.Submitter
+import org.linkedin.glu.utils.concurrent.OneThreadPerTaskSubmitter
 
 /**
  * @author yan@pongasoft.com */
-public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
+public class FutureTaskExecution<T> implements FutureExecution<T>, RunnableFuture<T>
 {
+  public static final Submitter DEFAULT_SUBMITTER =
+    new OneThreadPerTaskSubmitter(new FutureTaskExecutionThreadFactory())
+
   /**
    * Unique id of the execution */
   private String _id
@@ -63,7 +69,7 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
    * The actual future task on which all the calls will be delegated to implement the
    * <code>Future</code> interface
    */
-  protected final FutureTask<T> _future = new FutureTask<T>(this)
+  protected final FutureTask<T> _future
 
   /**
    * The callable assigned in the constructor (if any)
@@ -73,19 +79,19 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
   /**
    * Callback to be called once the future ends
    */
-  volatile Closure _onCompletionCallback
+  protected volatile Closure _onCompletionCallback
 
   /**
    * set when the completion callback has been called
    */
-  private boolean _onCompletionCallbackCalled = false
+  protected boolean _onCompletionCallbackCalled = false
 
   /**
    * In this case, the {@link #execute} method will be called
    */
   FutureTaskExecution()
   {
-    _callable = null
+    this((Callable) null)
   }
 
   /**
@@ -94,6 +100,7 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
   FutureTaskExecution(Callable<T> callable)
   {
     _callable = callable
+    _future = new FutureTask<T>(GluGroovyConcurrentUtils.asCallable(doCall))
   }
 
   /**
@@ -112,6 +119,15 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
   {
     executorService.submit(_future)
     return this
+  }
+
+  /**
+   * Runs asynchronously. Uses the submitter to run asynchronously. Returns right away.
+   * @return <code>this</code> for convenience
+   */
+  FutureTaskExecution<T> runAsync(Submitter submitter)
+  {
+    submitter.submitFuture(this)
   }
 
   @Override
@@ -178,9 +194,7 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
     }
   }
 
-  @Override
-  final T call()
-  {
+  private def doCall = {
     startTime = clock.currentTimeMillis()
 
     try
@@ -225,7 +239,7 @@ public class FutureTaskExecution<T> implements FutureExecution, Callable<T>
     return null
   }
 
-  Object get(timeout) throws InterruptedException, ExecutionException, TimeoutException
+  T get(timeout) throws InterruptedException, ExecutionException, TimeoutException
   {
     timeout = Timespan.parse(timeout?.toString())
     if(!timeout?.durationInMilliseconds)

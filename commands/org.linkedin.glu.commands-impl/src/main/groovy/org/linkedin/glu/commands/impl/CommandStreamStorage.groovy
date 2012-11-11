@@ -17,7 +17,7 @@
 package org.linkedin.glu.commands.impl
 
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
-import java.util.concurrent.ExecutorService
+import org.linkedin.glu.utils.concurrent.Submitter
 
 /**
  * @author yan@pongasoft.com */
@@ -124,6 +124,6 @@ public interface CommandStreamStorage
   /**
    * Asynchronously executes the command. Returns right away
    */
-  FutureTaskExecution asyncCaptureIO(ExecutorService executorService,
+  FutureTaskExecution asyncCaptureIO(Submitter submitter,
                                      Closure closure)
 }
