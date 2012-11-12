@@ -18,10 +18,10 @@ function renderCommandStream(commandId, streamType, success)
 {
 %{--YP Implementation note: this is obviously hacky, but there does not seem to be a way to use g.remoteFunction + javascript variables in all places!
 
-  ${g.remoteFunction(controller: 'commands', id: <javascript commandId>, action: 'stream', params: [streamType: <javascript streamType>], update:[success: '<javascript variable>'])}
+  ${g.remoteFunction(controller: 'commands', id: <javascript commandId>, action: 'streams', params: [streamType: <javascript streamType>], update:[success: '<javascript variable>'])}
 
 --}%
-  jQuery.ajax({type:'GET',data:{'streamType': streamType}, url:'/console/commands/' + commandId + '/stream',success:function(data,textStatus){jQuery('#' + success).html(data);},error:function(XMLHttpRequest,textStatus,errorThrown){}});
+  jQuery.ajax({type:'GET',data:{'streamType': streamType}, url:'/console/commands/' + commandId + '/streams',success:function(data,textStatus){jQuery('#' + success).html(data);},error:function(XMLHttpRequest,textStatus,errorThrown){}});
 }
 function renderCommand(commandId, success) {
   if(!isHidden('#' + success))

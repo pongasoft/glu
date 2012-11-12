@@ -372,8 +372,7 @@ class AgentsController extends ControllerBase
     }
     catch (Exception e)
     {
-      e.printStackTrace()
-      flash.error = "Error while interrupting action ${params}"
+      flashException("Error while interrupting action ${params}", e)
     }
     redirect(action: 'view', id: params.id)
   }
@@ -447,6 +446,27 @@ class AgentsController extends ControllerBase
     if(!redirectStderr)
       args.redirectStderr = false
     redirect(action: 'commands', id: params.id, params: args)
+  }
+
+  /**
+   * interrupt the command
+   */
+  def interruptCommand = {
+    try
+    {
+      boolean interrupted = commandsService.interruptCommand(request.fabric,
+                                                             params.id,
+                                                             params.commandId)
+      if(interrupted)
+        flash.message = "Command [${params.commandId}] interrupted."
+      else
+        flash.message = "Command [${params.commandId}] already completed."
+    }
+    catch (Exception e)
+    {
+      flashException("Error while interrupting command ${params}", e)
+    }
+    redirect(action: 'commands', id: params.id, params: [commandId: params.commandId])
   }
 
   /**

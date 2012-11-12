@@ -30,6 +30,12 @@
   .shortcut {
     float: right;
   }
+  .progress {
+    margin-top: 2px;
+    width: 150px;
+    border: solid black 1px;
+    display: inline-block;
+  }
   </style>
 <g:set var="offset" value="${params.offset ?: '0'}"/>
 <g:set var="max" value="${params.max ?: '25'}"/>

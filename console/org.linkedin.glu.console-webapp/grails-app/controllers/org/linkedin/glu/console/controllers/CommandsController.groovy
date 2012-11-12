@@ -40,6 +40,7 @@ public class CommandsController extends ControllerBase
    * Render the stream(s) for the given command
    */
   def streams = {
+    params["${params.streamType}Stream"] = true
     rest_show_command_execution_streams()
   }
 
@@ -91,7 +92,7 @@ public class CommandsController extends ControllerBase
         }
         else
         {
-          response.sendError(HttpServletResponse.SC_NO_CONTENT, "no content for ${streamType}")
+          response.sendError(HttpServletResponse.SC_NO_CONTENT, "no content for ${params}")
           render ''
           return null
         }

@@ -54,6 +54,11 @@ public interface CommandsService
   /**
    * @return a map with all currently running commands
    */
+  Map<String, DbCommandExecution> findCurrentCommandExecutions()
+
+  /**
+   * @return a map with all currently running commands (filtered by the commandIds)
+   */
   Map<String, DbCommandExecution> findCurrentCommandExecutions(Collection<String> commandIds)
 
   DbCommandExecution findCommandExecution(Fabric fabric, String commandId)

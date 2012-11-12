@@ -237,6 +237,10 @@ class UrlMappings
       __nvbe = 'Agents'
       __role = UrlMappings.role('/agents/executeCommand/$id')
     }
+    "/agents/interruptCommand/$id"(controller: 'agents', action: 'interruptCommand') {
+      __nvbe = 'Dashboard'
+      __role = UrlMappings.role('/agents/interruptCommand/$id')
+    }
 
     // commands
     "/commands/$id/streams"(controller: 'commands', action: 'streams') {

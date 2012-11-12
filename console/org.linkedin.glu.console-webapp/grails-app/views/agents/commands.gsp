@@ -16,7 +16,7 @@
 
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
-<g:set var="filters" value="[streamsFilter: 'Streams', exitValueFilter: 'Exit', usernameFilter: 'Username', startTimeFilter: 'Start Time', endTimeFilter: 'End Time', durationFilter: 'Duration', actionsFilter: 'Actions']"></g:set>
+<g:set var="filters" value="[streamsFilter: 'Streams', exitValueFilter: 'Exit', usernameFilter: 'Username', startTimeFilter: 'Start Time', completionTimeFilter: 'End Time', durationFilter: 'Duration', actionsFilter: 'Actions']"></g:set>
 <head>
   <title>Commands - Agent [${params.id}]</title>
   <meta name="layout" content="main"/>
@@ -24,6 +24,12 @@
   .paginateButtons {
     padding-top: 0.5em;
     padding-bottom: 0.5em;
+  }
+  .progress {
+    margin-top: 2px;
+    width: 150px;
+    border: solid black 1px;
+    display: inline-block;
   }
   </style>
 <g:render template="/commands/command_js"/>
