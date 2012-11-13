@@ -113,12 +113,12 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     long completionTime = 0L
 
     def processing = { CommandStreamStorage storage ->
-      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.stdin) { stdin ->
         assertNull("no stdin", stdin)
 
-        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.stdout) { stdout ->
 
-          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
+          storage.withOrWithoutStorageOutput(StreamType.stderr) { stderr->
             stdout << "out0"
             stderr << "err0"
 
@@ -269,12 +269,12 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").exists())
 
     def processing = { CommandStreamStorage storage ->
-      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.stdin) { stdin ->
         assertEquals("in0", stdin.text)
 
-        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.stdout) { stdout ->
 
-          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
+          storage.withOrWithoutStorageOutput(StreamType.stderr) { stderr->
             stdout << "out0"
             stderr << "err0"
 
@@ -421,12 +421,12 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").exists())
 
     def processing = { CommandStreamStorage storage ->
-      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.stdin) { stdin ->
         assertNull("no stdin", stdin)
 
-        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.stdout) { stdout ->
 
-          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
+          storage.withOrWithoutStorageOutput(StreamType.stderr) { stderr->
             assertNull("stderr redirected", stderr)
 
             stdout << "out0"
@@ -551,11 +551,11 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     assertFalse(fs.toResource("${path}/${commandId}/${ioStorage.stderrStreamFileName}").exists())
 
     def processing = { CommandStreamStorage storage ->
-      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.stdin) { stdin ->
 
-        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.stdout) { stdout ->
 
-          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
+          storage.withOrWithoutStorageOutput(StreamType.stderr) { stderr->
 
             stdout.write("o0".bytes)
             stderr.write("e0".bytes)
@@ -571,12 +571,12 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                                                                 stderrStream: true]) { m ->
               def res =
                 MultiplexedInputStream.demultiplexToString(m.stream,
-                   [StreamType.STDIN, StreamType.STDOUT, StreamType.STDERR].collect { it.multiplexName } as Set,
+                   [StreamType.stdin, StreamType.stdout, StreamType.stderr].collect { it.multiplexName } as Set,
                    null)
 
-              assertEquals("in0", res[StreamType.STDIN.multiplexName])
-              assertEquals("o0", res[StreamType.STDOUT.multiplexName])
-              assertEquals("e0", res[StreamType.STDERR.multiplexName])
+              assertEquals("in0", res[StreamType.stdin.multiplexName])
+              assertEquals("o0", res[StreamType.stdout.multiplexName])
+              assertEquals("e0", res[StreamType.stderr.multiplexName])
             }
 
             assertEquals("o0", fs.toResource("${path}/${commandId}/${ioStorage.stdoutStreamFileName}").file.text)
@@ -660,11 +660,11 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
     Exception exception = null
 
     def processing = { CommandStreamStorage storage ->
-      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.stdin) { stdin ->
 
-        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.stdout) { stdout ->
 
-          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
+          storage.withOrWithoutStorageOutput(StreamType.stderr) { stderr->
             stdout << "out0"
             stderr << "err0"
 

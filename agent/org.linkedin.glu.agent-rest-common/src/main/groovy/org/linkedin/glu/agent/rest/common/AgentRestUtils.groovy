@@ -93,10 +93,10 @@ public class AgentRestUtils
 
     def streams = [:]
 
-    streams[StreamType.STDOUT.multiplexName] = stdout ?: NullOutputStream.INSTANCE
-    streams[StreamType.STDERR.multiplexName] = stderr ?: NullOutputStream.INSTANCE
-    streams[StreamType.EXIT_VALUE.multiplexName] = exitValueStream
-    streams[StreamType.EXIT_ERROR.multiplexName] = exitErrorStream
+    streams[StreamType.stdout.multiplexName] = stdout ?: NullOutputStream.INSTANCE
+    streams[StreamType.stderr.multiplexName] = stderr ?: NullOutputStream.INSTANCE
+    streams[StreamType.exitValue.multiplexName] = exitValueStream
+    streams[StreamType.exitError.multiplexName] = exitErrorStream
 
     // we demultiplex the stream
     MultiplexedInputStream.demultiplex(execStream, streams)

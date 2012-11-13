@@ -89,7 +89,7 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
 
     if(exitErrorStream)
     {
-      streams[StreamType.EXIT_ERROR.multiplexName] = EmptyInputStream.INSTANCE
+      streams[StreamType.exitError.multiplexName] = EmptyInputStream.INSTANCE
 
       // command completed => check for error
       if(commandExecution.isCompleted())
@@ -97,7 +97,7 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
         def completionValue = commandExecution.completionValue
         if(completionValue instanceof Throwable)
         {
-          streams[StreamType.EXIT_ERROR.multiplexName] =
+          streams[StreamType.exitError.multiplexName] =
             new InputGeneratorStream(GluGroovyJsonUtils.exceptionToJSON(completionValue))
         }
       }
@@ -110,7 +110,7 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
 
     if(exitValueStream)
     {
-      streams[StreamType.EXIT_VALUE.multiplexName] = EmptyInputStream.INSTANCE
+      streams[StreamType.exitValue.multiplexName] = EmptyInputStream.INSTANCE
 
       // command completed => exit value only when no error
       if(commandExecution.isCompleted())
@@ -118,7 +118,7 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
         def completionValue = commandExecution.completionValue
         if(completionValue != null && !(completionValue instanceof Throwable))
         {
-          streams[StreamType.EXIT_VALUE.multiplexName] = new InputGeneratorStream(completionValue)
+          streams[StreamType.exitValue.multiplexName] = new InputGeneratorStream(completionValue)
         }
       }
       else
@@ -139,7 +139,7 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
             }
           }
           InputStream exitValueInputStream = new InputGeneratorStream(exitValueFactory)
-          streams[StreamType.EXIT_VALUE.multiplexName] = exitValueInputStream
+          streams[StreamType.exitValue.multiplexName] = exitValueInputStream
 
           // in the case that the caller is willing to wait until timeout to get the exit value
           // then we delay stdout and stderr as well
@@ -151,13 +151,13 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
     }
 
     def m = [:]
-    m[StreamType.STDIN] = commandExecution.hasStdin()
-    m[StreamType.STDOUT] = true
-    m[StreamType.STDERR] = !commandExecution.redirectStderr
+    m[StreamType.stdin] = commandExecution.hasStdin()
+    m[StreamType.stdout] = true
+    m[StreamType.stderr] = !commandExecution.redirectStderr
 
     m.each { StreamType streamType, boolean include ->
 
-      def name = streamType.toString().toLowerCase()
+      def name = streamType.name()
 
       // is the stream requested?
       if(Config.getOptionalBoolean(args, "${name}Stream", false))

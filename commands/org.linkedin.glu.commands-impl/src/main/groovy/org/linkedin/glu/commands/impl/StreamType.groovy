@@ -20,12 +20,12 @@ package org.linkedin.glu.commands.impl
  * @author yan@pongasoft.com */
 public enum StreamType
 {
-  STDIN("I"),
-  STDOUT("O"),
-  STDERR("E"),
-  EXIT_VALUE("V"),
-  EXIT_ERROR("X"), // when exit value cannot exit
-  MULTIPLEXED(null);
+  stdin("I"),
+  stdout("O"),
+  stderr("E"),
+  exitValue("V"),
+  exitError("X"), // when exit value cannot exit
+  multiplexed(null);
 
   String multiplexName;
 

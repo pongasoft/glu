@@ -73,11 +73,11 @@ private class ShellExec
     _requiredRes = args.res ?: 'stdout'
 
     // stdout
-    initOutput(StreamType.STDOUT)
+    initOutput(StreamType.stdout)
 
     // stderr
     if(!_redirectStderr)
-      initOutput(StreamType.STDERR)
+      initOutput(StreamType.stderr)
 
     // builds the process
     def pb = new ProcessBuilder(['bash', '-c', _commandLine])
@@ -99,12 +99,12 @@ private class ShellExec
   private def afterProcessStarted()
   {
     // stdout
-    startOutputThread(StreamType.STDOUT) { _process.inputStream }
+    startOutputThread(StreamType.stdout) { _process.inputStream }
 
     // when redirecting stderr, there is nothing on stderr... no need to create a thread!
     if(!_redirectStderr)
     {
-      startOutputThread(StreamType.STDERR) { _process.errorStream }
+      startOutputThread(StreamType.stderr) { _process.errorStream }
     }
 
     if(_requiredRes.toLowerCase().endsWith("stream"))
@@ -176,15 +176,15 @@ private class ShellExec
     def streams = [:]
 
     // stdout
-    if(_processIO[StreamType.STDOUT]?.stream == null)
+    if(_processIO[StreamType.stdout]?.stream == null)
     {
-      streams[StreamType.STDOUT.multiplexName] = _process.inputStream
+      streams[StreamType.stdout.multiplexName] = _process.inputStream
     }
 
     // stderr
-    if(_processIO[StreamType.STDERR]?.stream == null)
+    if(_processIO[StreamType.stderr]?.stream == null)
     {
-      streams[StreamType.STDERR.multiplexName] = _process.errorStream
+      streams[StreamType.stderr.multiplexName] = _process.errorStream
     }
 
     // exit value (as a stream)
@@ -198,7 +198,7 @@ private class ShellExec
         // ok to ignore... will be part of the exit error stream...
       }
     })
-    streams[StreamType.EXIT_VALUE.multiplexName] = exitValueInputStream
+    streams[StreamType.exitValue.multiplexName] = exitValueInputStream
 
     // exit error (as a stream)
     InputStream exitErrorInputStream = new InputGeneratorStream({
@@ -217,7 +217,7 @@ private class ShellExec
         GluGroovyJsonUtils.exceptionToJSON(th)
       }
     })
-    streams[StreamType.EXIT_ERROR.multiplexName] = exitErrorInputStream
+    streams[StreamType.exitError.multiplexName] = exitErrorInputStream
 
     def stream = new MultiplexedInputStream(streams)
     stream.submitter = shell.submitter
@@ -234,7 +234,7 @@ private class ShellExec
     }
 
     // make sure that the thread complete properly
-    [StreamType.STDOUT, StreamType.STDERR].each {
+    [StreamType.stdout, StreamType.stderr].each {
       _processIO[it]?.future?.get()
     }
 
@@ -242,7 +242,7 @@ private class ShellExec
     int exitValue = _process.waitFor()
 
     Map<StreamType, byte[]> bytes =
-      GroovyCollectionsUtils.toMapKey([StreamType.STDOUT, StreamType.STDERR]) {
+      GroovyCollectionsUtils.toMapKey([StreamType.stdout, StreamType.stderr]) {
         _processIO[it]?.streamOfBytes?.toByteArray() ?: new byte[0]
       }
 
@@ -252,15 +252,15 @@ private class ShellExec
       if(log.isDebugEnabled())
       {
         log.debug("Error while executing command ${_commandLine}: ${exitValue}")
-        log.debug("output=${shell.toStringOutput(bytes[StreamType.STDOUT])}")
-        log.debug("error=${shell.toStringOutput(bytes[StreamType.STDERR])}")
+        log.debug("output=${shell.toStringOutput(bytes[StreamType.stdout])}")
+        log.debug("error=${shell.toStringOutput(bytes[StreamType.stderr])}")
       }
 
       ShellExecException exception =
-      new ShellExecException("Error while executing command ${_commandLine}: res=${exitValue} - output=${shell.toLimitedStringOutput(bytes[StreamType.STDOUT], 512)} - error=${shell.toLimitedStringOutput(bytes[StreamType.STDERR], 512)}".toString())
+      new ShellExecException("Error while executing command ${_commandLine}: res=${exitValue} - output=${shell.toLimitedStringOutput(bytes[StreamType.stdout], 512)} - error=${shell.toLimitedStringOutput(bytes[StreamType.stderr], 512)}".toString())
       exception.res = exitValue
-      exception.output = bytes[StreamType.STDOUT]
-      exception.error = bytes[StreamType.STDERR]
+      exception.output = bytes[StreamType.stdout]
+      exception.error = bytes[StreamType.stderr]
 
       throw exception
     }
@@ -269,16 +269,16 @@ private class ShellExec
     switch(_requiredRes)
     {
       case 'stdout':
-        return shell.toStringOutput(bytes[StreamType.STDOUT])
+        return shell.toStringOutput(bytes[StreamType.stdout])
 
       case 'stdoutBytes':
-        return bytes[StreamType.STDOUT]
+        return bytes[StreamType.stdout]
 
       case 'stderr':
-        return shell.toStringOutput(bytes[StreamType.STDERR])
+        return shell.toStringOutput(bytes[StreamType.stderr])
 
       case 'stderrBytes':
-        return bytes[StreamType.STDERR]
+        return bytes[StreamType.stderr]
 
       case 'exitValue':
       case "stdoutStream":
@@ -290,15 +290,15 @@ private class ShellExec
       case 'all':
         return [
           exitValue: exitValue,
-          stdout: shell.toStringOutput(bytes[StreamType.STDOUT]),
-          stderr: shell.toStringOutput(bytes[StreamType.STDERR])
+          stdout: shell.toStringOutput(bytes[StreamType.stdout]),
+          stderr: shell.toStringOutput(bytes[StreamType.stderr])
         ]
 
       case 'allBytes':
         return [
           exitValue: exitValue,
-          stdout: bytes[StreamType.STDOUT],
-          stderr: bytes[StreamType.STDERR]
+          stdout: bytes[StreamType.stdout],
+          stderr: bytes[StreamType.stderr]
         ]
 
       default:
@@ -316,7 +316,7 @@ private class ShellExec
     }
   }
 
-  private void initOutput(StreamType streamType, String argName = streamType.name().toLowerCase())
+  private void initOutput(StreamType streamType, String argName = streamType.name())
   {
     def output = args."${argName}"
 
@@ -374,7 +374,7 @@ private class ShellExec
 
       // need to consume output (in a separate thread!)
       def future = new FutureTaskExecution(consumeStream)
-      future.description = "${_commandLine} > ${streamType.name().toLowerCase()}"
+      future.description = "${_commandLine} > ${streamType.name()}"
       _processIO[streamType].future = future
       future.runAsync(shell.submitter)
     }

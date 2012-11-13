@@ -39,14 +39,14 @@ class FileSystemStreamStorage extends AbstractCommandStreamStorage<FileSystemCom
   {
     if(!_streams)
     {
-      def keys = [StreamType.STDOUT]
+      def keys = [StreamType.stdout]
       if(commandExecution.hasStdin())
-        keys << StreamType.STDIN
+        keys << StreamType.stdin
       if(!commandExecution.redirectStderr)
-        keys << StreamType.STDERR
+        keys << StreamType.stderr
       _streams =
         GroovyCollectionsUtils.toMapKey(keys) {
-          [resource: baseDir.createRelative(ioStorage."${it.toString().toLowerCase()}StreamFileName")]
+          [resource: baseDir.createRelative(ioStorage."${it.name()}StreamFileName")]
         }
     }
 

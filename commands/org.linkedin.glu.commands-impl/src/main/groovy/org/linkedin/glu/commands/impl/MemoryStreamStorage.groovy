@@ -51,6 +51,6 @@ class MemoryStreamStorage extends AbstractCommandStreamStorage<MemoryCommandExec
 
   ByteArrayOutputStream findByteArrayOutputStream(StreamType type)
   {
-    return this."${type.name().toLowerCase()}"
+    return this."${type.name()}"
   }
 }

@@ -124,10 +124,10 @@ public class TestCommandsServiceImpl extends GroovyTestCase
         def streams = [:]
 
         InputStream exitValueInputStream = new InputGeneratorStream({ 14 })
-        streams[StreamType.EXIT_VALUE.multiplexName] = exitValueInputStream
+        streams[StreamType.exitValue.multiplexName] = exitValueInputStream
 
-        streams[StreamType.STDOUT.multiplexName] = new ByteArrayInputStream("O123456789".bytes)
-        streams[StreamType.STDERR.multiplexName] = new ByteArrayInputStream("E123456789".bytes)
+        streams[StreamType.stdout.multiplexName] = new ByteArrayInputStream("O123456789".bytes)
+        streams[StreamType.stderr.multiplexName] = new ByteArrayInputStream("E123456789".bytes)
 
         commandResultProcessor([stream: new MultiplexedInputStream(streams)])
       }
@@ -190,13 +190,13 @@ public class TestCommandsServiceImpl extends GroovyTestCase
         def streams =
           MultiplexedInputStream.demultiplexToString(args.stream,
                                                      [
-                                                       StreamType.EXIT_VALUE.multiplexName,
-                                                       StreamType.STDOUT.multiplexName
+                                                       StreamType.exitValue.multiplexName,
+                                                       StreamType.stdout.multiplexName
                                                      ] as Set,
                                                      null)
 
-        assertEquals("14", streams[StreamType.EXIT_VALUE.multiplexName])
-        assertEquals("O123456789", streams[StreamType.STDOUT.multiplexName])
+        assertEquals("14", streams[StreamType.exitValue.multiplexName])
+        assertEquals("O123456789", streams[StreamType.stdout.multiplexName])
       }
 
       agentsServiceMock.verify(agentsService)
@@ -283,9 +283,9 @@ public class TestCommandsServiceImpl extends GroovyTestCase
         def streams = [:]
 
         InputStream exitValueInputStream = new InputGeneratorStream({ 14 })
-        streams[StreamType.EXIT_VALUE.multiplexName] = exitValueInputStream
+        streams[StreamType.exitValue.multiplexName] = exitValueInputStream
 
-        streams[StreamType.STDOUT.multiplexName] = new ByteArrayInputStream("O123456789".bytes)
+        streams[StreamType.stdout.multiplexName] = new ByteArrayInputStream("O123456789".bytes)
 
         commandResultProcessor([stream: new MultiplexedInputStream(streams)])
       }
@@ -353,13 +353,13 @@ public class TestCommandsServiceImpl extends GroovyTestCase
         def streams =
           MultiplexedInputStream.demultiplexToString(args.stream,
                                                      [
-                                                       StreamType.EXIT_VALUE.multiplexName,
-                                                       StreamType.STDOUT.multiplexName
+                                                       StreamType.exitValue.multiplexName,
+                                                       StreamType.stdout.multiplexName
                                                      ] as Set,
                                                      null)
 
-        assertEquals("14", streams[StreamType.EXIT_VALUE.multiplexName])
-        assertEquals("O123456789", streams[StreamType.STDOUT.multiplexName])
+        assertEquals("14", streams[StreamType.exitValue.multiplexName])
+        assertEquals("O123456789", streams[StreamType.stdout.multiplexName])
       }
 
       agentsServiceMock.verify(agentsService)
@@ -468,7 +468,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
         {
           MultiplexedInputStream.demultiplexToString(args.stream,
                                                      [
-                                                       StreamType.EXIT_VALUE.multiplexName,
+                                                       StreamType.exitValue.multiplexName,
                                                      ] as Set,
                                                      null)
           fail("should have failed!")

@@ -245,7 +245,7 @@ public class CommandsServiceImpl implements CommandsService
 
         // we execute the command on the proper agent (this is an asynchronous call which return
         // right away)
-        storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
+        storage.withOrWithoutStorageInput(StreamType.stdin) { stdin ->
           if(stdin)
             agentArgs.stdin = stdin
 
@@ -269,14 +269,14 @@ public class CommandsServiceImpl implements CommandsService
           def streams = [:]
 
           // stdout
-          new CommandExecutionStream(streamType: StreamType.STDOUT,
+          new CommandExecutionStream(streamType: StreamType.stdout,
                                      commandExecutionFirstBytesSize: commandExecutionFirstBytesSize,
                                      captureStream: true,
                                      storage: storage,
                                      streams: streams).capture { stdout ->
 
             // stderr
-            new CommandExecutionStream(streamType: StreamType.STDERR,
+            new CommandExecutionStream(streamType: StreamType.stderr,
                                        commandExecutionFirstBytesSize: commandExecutionFirstBytesSize,
                                        captureStream: !command.redirectStderr,
                                        storage: storage,
@@ -284,10 +284,10 @@ public class CommandsServiceImpl implements CommandsService
 
               // exitValue
               ByteArrayOutputStream exitValueStream = new ByteArrayOutputStream()
-              streams[StreamType.EXIT_VALUE.multiplexName] = exitValueStream
+              streams[StreamType.exitValue.multiplexName] = exitValueStream
 
               ByteArrayOutputStream exitErrorStream = new ByteArrayOutputStream()
-              streams[StreamType.EXIT_ERROR.multiplexName] = exitErrorStream
+              streams[StreamType.exitError.multiplexName] = exitErrorStream
 
               // this will demultiplex the result
               DemultiplexedOutputStream dos = new DemultiplexedOutputStream(streams)
@@ -402,7 +402,7 @@ public class CommandsServiceImpl implements CommandsService
       ByteArrayOutputStream stdinFirstBytes = null
 
       Long stdinSize =
-        command.storage.withStorageInputWithSize(StreamType.STDIN,
+        command.storage.withStorageInputWithSize(StreamType.stdin,
                                                  [ len: commandExecutionFirstBytesSize.sizeInBytes ]) { m ->
           stdinFirstBytes = new ByteArrayOutputStream()
           stdinFirstBytes << m.stream

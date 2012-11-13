@@ -22,8 +22,6 @@ import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.agent.api.NoSuchCommandException
 import org.linkedin.glu.agent.api.AgentException
@@ -81,17 +79,17 @@ public class CommandManagerImpl implements CommandManager
       def actionArgs = [*:command.args]
 
       // handle stdin...
-      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.stdin) { stdin ->
         if(stdin)
           actionArgs.stdin = stdin
 
         // handle stdout...
-        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.stdout) { stdout ->
           if(stdout)
             actionArgs.stdout = stdout
 
           // handle stderr
-          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr ->
+          storage.withOrWithoutStorageOutput(StreamType.stderr) { stderr ->
             if(stderr)
               actionArgs.stderr = stderr
 

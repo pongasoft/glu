@@ -150,12 +150,12 @@ public class DbCommandExecution
 
   byte[] getFirstBytes(def streamType)
   {
-    this."${streamType.toString().toLowerCase()}FirstBytes"
+    this."${streamType.name()}FirstBytes"
   }
 
   Long getTotalBytesCount(def streamType)
   {
-    this."${streamType.toString().toLowerCase()}TotalBytesCount"
+    this."${streamType.name()}TotalBytesCount"
   }
 
   boolean hasMoreBytes(def streamType)

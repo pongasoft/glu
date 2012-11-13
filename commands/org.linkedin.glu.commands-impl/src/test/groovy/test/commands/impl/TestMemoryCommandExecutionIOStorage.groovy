@@ -87,12 +87,12 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
       assertEquals(1, ioStorage.executingCommands.size())
       assertTrue(ioStorage.executingCommands[ce.id].is(ce))
 
-      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.stdin) { stdin ->
         assertNull("no stdin", stdin)
 
-        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.stdout) { stdout ->
 
-          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
+          storage.withOrWithoutStorageOutput(StreamType.stderr) { stderr->
             stdout << "out0"
             stderr << "err0"
 
@@ -200,12 +200,12 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
       assertEquals(1, ioStorage.executingCommands.size())
       assertTrue(ioStorage.executingCommands[ce.id].is(ce))
 
-      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.stdin) { stdin ->
         assertEquals("in0", stdin.text)
 
-        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.stdout) { stdout ->
 
-          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
+          storage.withOrWithoutStorageOutput(StreamType.stderr) { stderr->
             stdout << "out0"
             stderr << "err0"
 
@@ -308,12 +308,12 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
       assertEquals(1, ioStorage.executingCommands.size())
       assertTrue(ioStorage.executingCommands[ce.id].is(ce))
 
-      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.stdin) { stdin ->
         assertNull("no stdin", stdin)
 
-        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.stdout) { stdout ->
 
-          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
+          storage.withOrWithoutStorageOutput(StreamType.stderr) { stderr->
             assertNull("stderr redirected", stderr)
 
             stdout << "out0"
@@ -402,11 +402,11 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
     long startTime = clock.currentTimeMillis()
 
     def processing = { CommandStreamStorage storage ->
-      storage.withOrWithoutStorageInput(StreamType.STDIN) { stdin ->
+      storage.withOrWithoutStorageInput(StreamType.stdin) { stdin ->
 
-        storage.withOrWithoutStorageOutput(StreamType.STDOUT) { stdout ->
+        storage.withOrWithoutStorageOutput(StreamType.stdout) { stdout ->
 
-          storage.withOrWithoutStorageOutput(StreamType.STDERR) { stderr->
+          storage.withOrWithoutStorageOutput(StreamType.stderr) { stderr->
 
             stdout.write("o0".bytes)
             stderr.write("e0".bytes)
@@ -418,12 +418,12 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
                                                                 stderrStream: true]) { m ->
               def res =
                 MultiplexedInputStream.demultiplexToString(m.stream,
-                   [StreamType.STDIN, StreamType.STDOUT, StreamType.STDERR].collect { it.multiplexName } as Set,
+                   [StreamType.stdin, StreamType.stdout, StreamType.stderr].collect { it.multiplexName } as Set,
                    null)
 
-              assertEquals("in0", res[StreamType.STDIN.multiplexName])
-              assertEquals("o0", res[StreamType.STDOUT.multiplexName])
-              assertEquals("e0", res[StreamType.STDERR.multiplexName])
+              assertEquals("in0", res[StreamType.stdin.multiplexName])
+              assertEquals("o0", res[StreamType.stdout.multiplexName])
+              assertEquals("e0", res[StreamType.stderr.multiplexName])
             }
 
             stdout << "o1"
@@ -452,12 +452,12 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
                                                         stderrStream: true]) { m ->
       def res =
         MultiplexedInputStream.demultiplexToString(m.stream,
-                   [StreamType.STDIN, StreamType.STDOUT, StreamType.STDERR].collect { it.multiplexName } as Set,
+                   [StreamType.stdin, StreamType.stdout, StreamType.stderr].collect { it.multiplexName } as Set,
                    null)
 
-      assertEquals("in0", res[StreamType.STDIN.multiplexName])
-      assertEquals("o0o1", res[StreamType.STDOUT.multiplexName])
-      assertEquals("e0e1", res[StreamType.STDERR.multiplexName])
+      assertEquals("in0", res[StreamType.stdin.multiplexName])
+      assertEquals("o0o1", res[StreamType.stdout.multiplexName])
+      assertEquals("e0e1", res[StreamType.stderr.multiplexName])
     }
   }
 
