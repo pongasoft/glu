@@ -227,6 +227,12 @@ public abstract class AbstractCommandStreamStorage<T extends AbstractCommandExec
   }
 
   @Override
+  InputStream findStorageInput(StreamType streamType)
+  {
+    findStorageInputWithSize(streamType)?.stream
+  }
+
+  @Override
   def findStorageInputWithSize(StreamType streamType, def args)
   {
     def m = findStorageInputWithSize(streamType)

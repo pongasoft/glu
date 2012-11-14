@@ -28,11 +28,11 @@
       <g:else>
         <p>${flash[ft].encodeAsHTML()}</p>
       </g:else>
-      <g:if test="${flash.stackTrace}">
+      <g:if test="${flash.exception}">
         <div class="alert-actions">
-          <a href="#" class="btn" onclick="toggleShowHide('#flash-stackTrace');return false;">View Full Stack Trace</a>
-          <div id="flash-stackTrace" class="hidden">
-            <pre>${flash.stackTrace}</pre>
+          <a href="#" class="btn" onclick="toggleShowHide('#flash-exception');return false;">View Full Stack Trace</a>
+          <div id="flash-exception" class="hidden">
+            <cl:renderJsonException exception="${flash.exception}"/>
           </div>
         </div>
       </g:if>

@@ -19,6 +19,7 @@ package org.linkedin.glu.utils.io;
 import org.linkedin.glu.utils.concurrent.Submitter;
 import org.linkedin.glu.utils.exceptions.MultipleExceptions;
 import org.linkedin.util.annotations.Initializer;
+import org.linkedin.util.clock.Timespan;
 import org.linkedin.util.io.IOUtils;
 import org.linkedin.util.lang.MemorySize;
 import org.linkedin.util.lifecycle.Startable;
@@ -41,6 +42,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * A multiplexed input stream merges any number of streams (with a given name) into one stream.
@@ -69,6 +72,9 @@ public class MultiplexedInputStream extends InputStream implements Startable
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   public static final MemorySize DEFAULT_BUFFER_SIZE = MemorySize.parse("4k");
+
+  public static final Timespan DEFAULT_GRACE_PERIOD_ON_CLOSE = Timespan.parse("1s");
+
 
   public static final String CURRENT_VERSION = "MISV1.0";
 
@@ -102,6 +108,10 @@ public class MultiplexedInputStream extends InputStream implements Startable
   /**
    * Each input stream runs into its own thread...  */
   private Submitter _submitter = Submitter.DEFAULT;
+
+  /**
+   * A grace period for when the stream is closed to wait for all other future to complete */
+  private Timespan _gracePeriodOnClose = DEFAULT_GRACE_PERIOD_ON_CLOSE;
 
   /**
    * Constructor
@@ -300,6 +310,17 @@ public class MultiplexedInputStream extends InputStream implements Startable
     _submitter = submitter;
   }
 
+  public Timespan getGracePeriodOnClose()
+  {
+    return _gracePeriodOnClose;
+  }
+
+  @Initializer
+  public void setGracePeriodOnClose(Timespan gracePeriodOnClose)
+  {
+    _gracePeriodOnClose = gracePeriodOnClose;
+  }
+
   /**
    * Simple getter to get a hold of the streams (for testing mostly)
    */
@@ -439,7 +460,21 @@ public class MultiplexedInputStream extends InputStream implements Startable
     // we make sure that all threads are done
     for(FutureTask<Long> futureTask : _futureTasks)
     {
-      futureTask.cancel(true);
+      try
+      {
+        futureTask.get(_gracePeriodOnClose.getDurationInMilliseconds(), TimeUnit.MILLISECONDS);
+      }
+      catch(TimeoutException e)
+      {
+        // did not end during the grace period... cancelling...
+        futureTask.cancel(true);
+      }
+      catch(Throwable e)
+      {
+        // ok ignored
+        if(log.isDebugEnabled())
+          log.debug("ignored exception", e);
+      }
     }
 
     if(!exceptions.isEmpty())

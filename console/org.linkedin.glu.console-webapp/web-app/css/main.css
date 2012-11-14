@@ -117,13 +117,24 @@ select,
   margin-top: 1em;
 }
 
-#flash-stackTrace pre {
+.errorStackTrace {
   background: #ffdddd;
   color: black;
   font-family: monospace;
   overflow-y: auto;
+  overflow-x: auto;
   max-height: 30em;
-  text-shadow: none;
+  width: auto;
+}
+
+dt.stackTraceHeader {
+  color: #880000;
+  font-weight: bold;
+  white-space: pre;
+}
+
+dd.stackTraceBody {
+  margin-left: 1.5em;
 }
 
 .example {

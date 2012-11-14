@@ -70,7 +70,7 @@ class ControllerBase
   protected def flashException(message, throwable)
   {
     flash.error = message
-    flash.stackTrace = LangUtils.getStackTrace(throwable)
+    flash.exception = throwable
   }
 
   protected def flashException(throwable)

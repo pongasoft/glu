@@ -22,13 +22,12 @@ import org.linkedin.util.annotations.Initializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
-import org.linkedin.util.lang.LangUtils
 
 /**
  * Mostly used for testing purposes...
  *
  * @author yan@pongasoft.com */
-public class MemoryCommandExecutionStorage implements CommandExecutionStorage
+public class MemoryCommandExecutionStorage extends AbstractCommandExecutionStorage
 {
   public static final String MODULE = MemoryCommandExecutionStorage.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
@@ -83,69 +82,29 @@ public class MemoryCommandExecutionStorage implements CommandExecutionStorage
   }
 
   @Override
-  DbCommandExecution endExecution(String commandId,
-                                  long endTime,
-                                  byte[] stdoutFirstBytes,
-                                  Long stdoutTotalBytesCount,
-                                  byte[] stderrFirstBytes,
-                                  Long stderrTotalBytesCount,
-                                  String exitValue)
+  protected synchronized DbCommandExecution doFindByCommandId(String commandId)
   {
-    endExecution(commandId,
-                 endTime,
-                 stdoutFirstBytes,
-                 stdoutTotalBytesCount,
-                 stderrFirstBytes,
-                 stderrTotalBytesCount,
-                 exitValue,
-                 false)
-  }
-
-  synchronized DbCommandExecution endExecution(String commandId,
-                                               long endTime,
-                                               byte[] stdoutFirstBytes,
-                                               Long stdoutTotalBytesCount,
-                                               byte[] stderrFirstBytes,
-                                               Long stderrTotalBytesCount,
-                                               String exitValue,
-                                               boolean isException)
-  {
-    DbCommandExecution execution = memory[commandId]
-    if(!execution)
-    {
-      log.warn("could not find command execution ${commandId}")
-    }
-    else
-    {
-      execution.completionTime = endTime
-      execution.stdoutFirstBytes = stdoutFirstBytes
-      execution.stdoutTotalBytesCount = stdoutTotalBytesCount
-      execution.stderrFirstBytes = stderrFirstBytes
-      execution.stderrTotalBytesCount = stderrTotalBytesCount
-      execution.exitValue = exitValue
-      execution.isException = isException
-    }
-
-    return execution
+    return memory[commandId]
   }
 
   @Override
-  DbCommandExecution endExecution(String commandId,
-                                  long endTime,
-                                  byte[] stdoutFirstBytes,
-                                  Long stdoutTotalBytesCount,
-                                  byte[] stderrFirstBytes,
-                                  Long stderrTotalBytesCount,
-                                  Throwable exception)
+  protected synchronized DbCommandExecution doEndExecution(String commandId,
+                                                           long endTime,
+                                                           byte[] stdoutFirstBytes,
+                                                           Long stdoutTotalBytesCount,
+                                                           byte[] stderrFirstBytes,
+                                                           Long stderrTotalBytesCount,
+                                                           String exitValue,
+                                                           String exitError)
   {
-    endExecution(commandId,
-                 endTime,
-                 stdoutFirstBytes,
-                 stdoutTotalBytesCount,
-                 stderrFirstBytes,
-                 stderrTotalBytesCount,
-                 LangUtils.getStackTrace(exception),
-                 true)
+    return doUpdate(commandId,
+                    endTime,
+                    stdoutFirstBytes,
+                    stdoutTotalBytesCount,
+                    stderrFirstBytes,
+                    stderrTotalBytesCount,
+                    exitValue,
+                    exitError)
   }
 
   @Override

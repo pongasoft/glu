@@ -118,7 +118,7 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
     assertTrue(ioStorage.completedCommands[ce.id].is(ce))
     assertTrue(ioStorage.executingCommands.isEmpty())
 
-    assertEquals(14, ce.exitValue)
+    assertEquals(14, ce.exitValueIfCompleted)
     assertEquals(startTime, ce.startTime)
     assertEquals(completionTime, ce.completionTime)
     assertTrue(ce.isCompleted())
@@ -227,7 +227,7 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
     assertTrue(ioStorage.completedCommands[ce.id].is(ce))
     assertTrue(ioStorage.executingCommands.isEmpty())
 
-    assertEquals(14, ce.exitValue)
+    assertEquals(14, ce.exitValueIfCompleted)
     assertEquals(startTime, ce.startTime)
     assertEquals(completionTime, ce.completionTime)
     assertTrue(ce.isCompleted())
@@ -336,7 +336,7 @@ public class TestMemoryCommandExecutionIOStorage extends GroovyTestCase
     assertTrue(ioStorage.completedCommands[ce.id].is(ce))
     assertTrue(ioStorage.executingCommands.isEmpty())
 
-    assertEquals(14, ce.exitValue)
+    assertEquals(14, ce.exitValueIfCompleted)
     assertEquals(startTime, ce.startTime)
     assertEquals(completionTime, ce.completionTime)
     assertTrue(ce.isCompleted())

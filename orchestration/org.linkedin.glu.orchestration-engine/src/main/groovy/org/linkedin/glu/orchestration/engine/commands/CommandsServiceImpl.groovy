@@ -41,7 +41,6 @@ import org.linkedin.glu.commands.impl.CommandExecutionIOStorage
 import org.linkedin.glu.commands.impl.CommandStreamStorage
 import org.linkedin.glu.commands.impl.GluCommandFactory
 import org.linkedin.groovy.util.lang.GroovyLangUtils
-import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
 import org.linkedin.glu.utils.concurrent.Submitter
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 
@@ -127,8 +126,8 @@ public class CommandsServiceImpl implements CommandsService
     synchronized(_currentCommandExecutions)
     {
       commandExecution = _currentCommandExecutions[commandId]?.command
-      if(commandExecution?.fabric != fabric.name)
-        commandExecution = null
+      if(commandExecution != null && commandExecution.fabric != fabric.name)
+        return null
     }
 
     if(!commandExecution)
@@ -292,7 +291,14 @@ public class CommandsServiceImpl implements CommandsService
               // this will demultiplex the result
               DemultiplexedOutputStream dos = new DemultiplexedOutputStream(streams)
 
-              def handleException = { Throwable th ->
+              try
+              {
+                dos.withStream { OutputStream os ->
+                  onResultStreamAvailable(id: command.id, stream: new TeeInputStream(res.stream, os))
+                }
+              }
+              catch(Throwable th)
+              {
                 long completionTime = clock.currentTimeMillis()
 
                 GroovyLangUtils.noException {
@@ -308,23 +314,25 @@ public class CommandsServiceImpl implements CommandsService
                 return [completionTime: completionTime, exception: th]
               }
 
-              try
-              {
-                dos.withStream { OutputStream os ->
-                  onResultStreamAvailable(id: command.id, stream: new TeeInputStream(res.stream, os))
-                }
-              }
-              catch(Throwable th)
-              {
-                return handleException(th)
-              }
-
               long completionTime = clock.currentTimeMillis()
 
-              Throwable exception = GluGroovyJsonUtils.rebuildException(toString(exitErrorStream))
+              String exitError = toString(exitErrorStream)
 
-              if(exception)
-                return handleException(exception)
+              if(exitError)
+              {
+                GroovyLangUtils.noException {
+                  commandExecutionStorage.endExecution(command.id,
+                                                       completionTime,
+                                                       stdout.bytes,
+                                                       stdout.totalNumberOfBytes,
+                                                       stderr.bytes,
+                                                       stderr.totalNumberOfBytes,
+                                                       exitError,
+                                                       true)
+                }
+
+                return [completionTime: completionTime, exception: exitError]
+              }
 
               // we now update the storage with the various results
               def exitValue = commandExecutionStorage.endExecution(command.id,
@@ -333,7 +341,8 @@ public class CommandsServiceImpl implements CommandsService
                                                                    stdout.totalNumberOfBytes,
                                                                    stderr.bytes,
                                                                    stderr.totalNumberOfBytes,
-                                                                   toString(exitValueStream)).exitValue
+                                                                   toString(exitValueStream),
+                                                                   false).exitValue
 
               return [exitValue: exitValue, completionTime: completionTime]
             }

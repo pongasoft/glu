@@ -167,7 +167,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
       assertNull(dbCommandExecution.stderrFirstBytes)
       assertNull(dbCommandExecution.stderrTotalBytesCount)
       assertTrue(dbCommandExecution.isExecuting)
-      assertFalse(dbCommandExecution.isException)
+      assertNull(dbCommandExecution.exitError)
 
       // test bulk methods
       def ces = service.findCommandExecutions(f1, null, null)
@@ -219,7 +219,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
       assertEquals(10, dbCommandExecution.stderrTotalBytesCount)
       assertEquals("14", dbCommandExecution.exitValue)
       assertFalse(dbCommandExecution.isExecuting)
-      assertFalse(dbCommandExecution.isException)
+      assertNull(dbCommandExecution.exitError)
     }
   }
 
@@ -443,7 +443,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
       assertNull(dbCommandExecution.stderrFirstBytes)
       assertNull(dbCommandExecution.stderrTotalBytesCount)
       assertTrue(dbCommandExecution.isExecuting)
-      assertFalse(dbCommandExecution.isException)
+      assertNull(dbCommandExecution.exitError)
 
       // test bulk methods
       def ces = service.findCommandExecutions(f1, null, null)
@@ -497,9 +497,9 @@ public class TestCommandsServiceImpl extends GroovyTestCase
       assertNull(dbCommandExecution.stdoutTotalBytesCount)
       assertNull(dbCommandExecution.stderrFirstBytes)
       assertNull(dbCommandExecution.stderrTotalBytesCount)
-      assertEquals(GluGroovyLangUtils.getStackTrace(exception), dbCommandExecution.exitValue)
+      assertNull(dbCommandExecution.exitValue)
       assertFalse(dbCommandExecution.isExecuting)
-      assertTrue(dbCommandExecution.isException)
+      assertEquals(GluGroovyJsonUtils.exceptionToJSON(exception), dbCommandExecution.exitError)
     }
   }
 
@@ -596,8 +596,8 @@ public class TestCommandsServiceImpl extends GroovyTestCase
       assertNull(dbCommandExecution.stdoutTotalBytesCount)
       assertNull(dbCommandExecution.stderrFirstBytes)
       assertNull(dbCommandExecution.stderrTotalBytesCount)
-      assertEquals(GluGroovyLangUtils.getStackTrace(ce.completionValue), dbCommandExecution.exitValue)
-      assertTrue(dbCommandExecution.isException)
+      assertNull(dbCommandExecution.exitValue)
+      assertEquals(GluGroovyJsonUtils.exceptionToJSON(ce.completionValue), dbCommandExecution.exitError)
       assertFalse(dbCommandExecution.isExecuting)
 
       // now that the command is complete...
@@ -607,7 +607,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
                                                             exitValueStream: true
                                                           ]) { args ->
         dbCommandExecution = args.commandExecution
-        assertTrue(dbCommandExecution.isException)
+        assertEquals(GluGroovyJsonUtils.exceptionToJSON(ce.completionValue), dbCommandExecution.exitError)
 
         // now that the execution is complete... there is no exit value so it should not fail
         assertEquals("", args.stream.text)

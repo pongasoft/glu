@@ -27,12 +27,6 @@ public class NoCommandStreamStorage extends AbstractCommandStreamStorage
   }
 
   @Override
-  InputStream findStorageInput(StreamType streamType)
-  {
-    return null
-  }
-
-  @Override
   def findStorageInputWithSize(StreamType streamType)
   {
     return null

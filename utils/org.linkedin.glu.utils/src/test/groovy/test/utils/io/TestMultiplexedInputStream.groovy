@@ -25,6 +25,8 @@ import org.linkedin.glu.utils.io.EmptyInputStream
 import org.linkedin.util.concurrent.ThreadControl
 import org.linkedin.util.clock.Timespan
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
+import org.linkedin.util.clock.Chronos
+import java.util.concurrent.CancellationException
 
 /**
  * @author yan@pongasoft.com */
@@ -127,6 +129,12 @@ public class TestMultiplexedInputStream extends GroovyTestCase
 
         return c
       }
+
+      @Override
+      void close()
+      {
+        tc.block("close")
+      }
     }
 
     def mis = new MultiplexedInputStream([threadControlInputStream])
@@ -137,6 +145,8 @@ public class TestMultiplexedInputStream extends GroovyTestCase
     tc.unblock("bytes", "a".toCharArray()[0])
 
     tc.unblock("bytes", -1)
+
+    tc.unblock("close") // make sure that close is called
 
     def expected = """MISV1.0=I0
 
@@ -172,6 +182,12 @@ a
 
         return c
       }
+
+      @Override
+      void close()
+      {
+        tc.unblock("bytes", -1)
+      }
     }
 
     def mis = new MultiplexedInputStream([threadControlInputStream])
@@ -186,6 +202,80 @@ a
     assertEquals("closed", shouldFailWithCause(IOException) { readStream.get("1s") })
 
     assertTrue("all futures should be done", mis.futureTasks.findAll { !it.isDone() }.isEmpty())
+
+    mis.futureTasks.each {
+      // we make sure that all futures completed properly with no error
+      it.get()
+    }
+  }
+
+  /**
+   * This is to make sure that no matter how the stream terminates, the threads that were spawned
+   * will terminate properly. When the read is blocking, the future should be cancelled after the
+   * grace period
+   */
+  public void testThreadsFutureGetsCancelledWhenBlocking()
+  {
+    ThreadControl tc = new ThreadControl(Timespan.parse("30s"))
+
+    def threadControlInputStream = new InputStream() {
+
+      boolean eof = false
+      Throwable throwable
+
+      @Override
+      int read()
+      {
+        if(eof) return -1
+
+        try
+        {
+          int c = tc.blockWithException("bytes") as int
+          if(c == -1)
+            eof = true
+          return c
+        }
+        catch(Throwable th)
+        {
+          throwable = th
+          throw th
+        }
+      }
+
+      @Override
+      void close()
+      {
+        // ignore => read will block until unblocked...
+      }
+    }
+
+    def mis = new MultiplexedInputStream([threadControlInputStream])
+    mis.gracePeriodOnClose = Timespan.parse('200')
+
+    def readStream = new FutureTaskExecution({ mis.text })
+    readStream.runAsync()
+
+    tc.unblock("bytes", "a".toCharArray()[0])
+
+    Chronos c = new Chronos()
+
+    mis.close()
+
+    // closing the stream will wait at least the grace period because read is blocking and
+    // threadControlInputStream.close is doing nothing
+    assertTrue(c.tick() >= 200)
+
+    assertEquals("closed", shouldFailWithCause(IOException) { readStream.get("1s") })
+
+    assertTrue("all futures should be done", mis.futureTasks.findAll { !it.isDone() }.isEmpty())
+
+    mis.futureTasks.each { future ->
+      // we make sure that the future has been cancelled
+      shouldFail(CancellationException) { future.get() }
+    }
+
+    // we make sure that the thread was properly interrupted
+    shouldFailWithCause(InterruptedException) { throw threadControlInputStream.throwable }
   }
 
   /**

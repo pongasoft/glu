@@ -21,22 +21,16 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
-import org.linkedin.util.lang.MemorySize
-import org.linkedin.glu.utils.io.LimitedOutputStream
-import org.linkedin.util.lang.LangUtils
 
 /**
  * @author yan@pongasoft.com */
-public class CommandExecutionStorageImpl implements CommandExecutionStorage
+public class CommandExecutionStorageImpl extends AbstractCommandExecutionStorage
 {
   public static final String MODULE = CommandExecutionStorageImpl.class.getName ();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   @Initializable
   int maxResults = 25
-
-  @Initializable
-  MemorySize stackTraceMaxSize = MemorySize.parse('255')
 
   @Override
   DbCommandExecution startExecution(String fabric,
@@ -70,75 +64,37 @@ public class CommandExecutionStorageImpl implements CommandExecutionStorage
   }
 
   @Override
-  DbCommandExecution endExecution(String commandId,
-                                  long endTime,
-                                  byte[] stdoutFirstBytes,
-                                  Long stdoutTotalBytesCount,
-                                  byte[] stderrFirstBytes,
-                                  Long stderrTotalBytesCount,
-                                  String exitValue)
+  protected DbCommandExecution doFindByCommandId(String commandId)
   {
-    endExecution(commandId,
-                 endTime,
-                 stdoutFirstBytes,
-                 stdoutTotalBytesCount,
-                 stderrFirstBytes,
-                 stderrTotalBytesCount,
-                 exitValue,
-                 false)
-  }
-
-  DbCommandExecution endExecution(String commandId,
-                                  long endTime,
-                                  byte[] stdoutFirstBytes,
-                                  Long stdoutTotalBytesCount,
-                                  byte[] stderrFirstBytes,
-                                  Long stderrTotalBytesCount,
-                                  String exitValue,
-                                  boolean isException)
-  {
-    DbCommandExecution.withTransaction {
-      DbCommandExecution execution = DbCommandExecution.findByCommandId(commandId)
-      if(!execution)
-      {
-        log.warn("could not find command execution ${commandId}")
-      }
-      else
-      {
-        execution.completionTime = endTime
-        execution.stdoutFirstBytes = stdoutFirstBytes
-        execution.stdoutTotalBytesCount = stdoutTotalBytesCount
-        execution.stderrFirstBytes = stderrFirstBytes
-        execution.stderrTotalBytesCount = stderrTotalBytesCount
-        execution.exitValue = exitValue
-        execution.isException = isException
-
-        if(!execution.save())
-        {
-          log.warn("could not save command execution ${commandId}")
-        }
-      }
-      return execution
-    }
+    DbCommandExecution.findByCommandId(commandId)
   }
 
   @Override
-  DbCommandExecution endExecution(String commandId,
-                                  long endTime,
-                                  byte[] stdoutFirstBytes,
-                                  Long stdoutTotalBytesCount,
-                                  byte[] stderrFirstBytes,
-                                  Long stderrTotalBytesCount,
-                                  Throwable exception)
+  protected DbCommandExecution doEndExecution(String commandId,
+                                              long endTime,
+                                              byte[] stdoutFirstBytes,
+                                              Long stdoutTotalBytesCount,
+                                              byte[] stderrFirstBytes,
+                                              Long stderrTotalBytesCount,
+                                              String exitValue,
+                                              String exitError)
   {
-    endExecution(commandId,
-                 endTime,
-                 stdoutFirstBytes,
-                 stdoutTotalBytesCount,
-                 stderrFirstBytes,
-                 stderrTotalBytesCount,
-                 LangUtils.getStackTrace(exception),
-                 true)
+    DbCommandExecution.withTransaction {
+
+      DbCommandExecution execution = doUpdate(commandId,
+                                              endTime,
+                                              stdoutFirstBytes,
+                                              stdoutTotalBytesCount,
+                                              stderrFirstBytes,
+                                              stderrTotalBytesCount,
+                                              exitValue,
+                                              exitError)
+
+      if(execution && !execution.save())
+        log.warn("could not save command execution ${commandId}")
+
+      return execution
+    }
   }
 
   @Override

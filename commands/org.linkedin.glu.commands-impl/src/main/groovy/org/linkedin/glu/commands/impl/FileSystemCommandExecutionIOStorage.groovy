@@ -163,7 +163,7 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
     try
     {
       def res = null
-      Throwable exception
+      def exception
       try
       {
         res = closure(commandExecution.storage)
@@ -180,7 +180,15 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
       // now we update the command with the exit value
       def args = [*:commandExecution.args]
       if(exception != null)
-        args.exception = GluGroovyJsonUtils.exceptionToJSON(exception)
+      {
+        if(exception instanceof Throwable)
+          args.exception = GluGroovyJsonUtils.exceptionToJSON(exception)
+        else
+        {
+          args.exception = exception.toString()
+          exception = GluGroovyJsonUtils.rebuildException(args.exception)
+        }
+      }
       else
         args.exitValue = res?.exitValue
       args.startTime = commandExecution.startTime

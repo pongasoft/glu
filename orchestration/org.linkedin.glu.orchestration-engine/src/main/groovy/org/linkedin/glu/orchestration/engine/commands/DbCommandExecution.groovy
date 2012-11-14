@@ -50,6 +50,13 @@ public class DbCommandExecution
     stderrFirstBytes(nullable: true, maxSize: 255)
     stderrTotalBytesCount(nullable: true)
     exitValue(nullable: true)
+    exitError(nullable: true)
+  }
+
+  static mapping = {
+    columns {
+      content exitError: 'text'
+    }
   }
 
   /**
@@ -144,18 +151,18 @@ public class DbCommandExecution
   String exitValue
 
   /**
-   * When an exception is generated, then the exit value contains the exception
+   * The exit error (if any)
    */
-  boolean isException
+  String exitError
 
   byte[] getFirstBytes(def streamType)
   {
-    this."${streamType.name()}FirstBytes"
+    this."${streamType.toString()}FirstBytes"
   }
 
   Long getTotalBytesCount(def streamType)
   {
-    this."${streamType.name()}TotalBytesCount"
+    this."${streamType.toString()}TotalBytesCount"
   }
 
   boolean hasMoreBytes(def streamType)

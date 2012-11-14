@@ -154,7 +154,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                              completionTime: completionTime],
                            commandResource)
 
-    assertEquals(14, ce.exitValue)
+    assertEquals(14, ce.exitValueIfCompleted)
     assertEquals(startTime, ce.startTime)
     assertEquals(completionTime, ce.completionTime)
     assertTrue(ce.isCompleted())
@@ -166,7 +166,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
 
     def checkCommand = { CommandExecution command ->
       // all values should have been "restored"
-      assertEquals(14, command.exitValue)
+      assertEquals(14, command.exitValueIfCompleted)
       assertEquals(startTime, command.startTime)
       assertEquals(completionTime, command.completionTime)
       assertTrue(command.isCompleted())
@@ -308,7 +308,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                            ],
                            commandResource)
 
-    assertEquals(14, ce.exitValue)
+    assertEquals(14, ce.exitValueIfCompleted)
     assertEquals(startTime, ce.startTime)
     assertEquals(completionTime, ce.completionTime)
     assertTrue(ce.isCompleted())
@@ -320,7 +320,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
 
     def checkCommand = { CommandExecution command ->
       // all values should have been "restored"
-      assertEquals(14, command.exitValue)
+      assertEquals(14, command.exitValueIfCompleted)
       assertEquals(startTime, command.startTime)
       assertEquals(completionTime, command.completionTime)
       assertTrue(command.isCompleted())
@@ -459,7 +459,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                              completionTime: completionTime],
                            commandResource)
 
-    assertEquals(14, ce.exitValue)
+    assertEquals(14, ce.exitValueIfCompleted)
     assertEquals(startTime, ce.startTime)
     assertEquals(completionTime, ce.completionTime)
     assertTrue(ce.isCompleted())
@@ -471,7 +471,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
 
     def checkCommand = { CommandExecution command ->
       // all values should have been "restored"
-      assertEquals(14, command.exitValue)
+      assertEquals(14, command.exitValueIfCompleted)
       assertEquals(startTime, command.startTime)
       assertEquals(completionTime, command.completionTime)
       assertTrue(command.isCompleted())
@@ -704,7 +704,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                            ],
                            commandResource)
 
-    checkExceptionFailure { ce.exitValue }
+    checkExceptionFailure { ce.exitValueIfCompleted }
     assertEquals(startTime, ce.startTime)
     assertEquals(completionTime, ce.completionTime)
     assertTrue(ce.isCompleted())
@@ -716,7 +716,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
 
     def checkCommand = { CommandExecution command ->
       // all values should have been "restored"
-      checkExceptionFailure { ce.exitValue }
+      checkExceptionFailure { ce.exitValueIfCompleted }
       assertEquals(startTime, command.startTime)
       assertEquals(completionTime, command.completionTime)
       assertTrue(command.isCompleted())

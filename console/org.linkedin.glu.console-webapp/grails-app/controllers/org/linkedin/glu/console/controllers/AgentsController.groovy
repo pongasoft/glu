@@ -429,23 +429,25 @@ class AgentsController extends ControllerBase
    * Executing a command
    */
   def executeCommand = {
-    def args = [:]
-    boolean redirectStderr = Config.getOptionalBoolean(params, 'redirectStderr', false)
-    if(params.command)
-    {
-      args.commandId = commandsService.executeShellCommand(request.fabric,
-                                                           params.id,
-                                                           [ command: params.command,
-                                                           redirectStderr: redirectStderr
-                                                           ])
+    handleNoAgent {
+      def args = [:]
+      boolean redirectStderr = Config.getOptionalBoolean(params, 'redirectStderr', false)
+      if(params.command)
+      {
+        args.commandId = commandsService.executeShellCommand(request.fabric,
+                                                             params.id,
+                                                             [ command: params.command,
+                                                               redirectStderr: redirectStderr
+                                                             ])
+      }
+      else
+      {
+        flash.error = "Please enter a command to execute"
+      }
+      if(!redirectStderr)
+        args.redirectStderr = false
+      redirect(action: 'commands', id: params.id, params: args)
     }
-    else
-    {
-      flash.error = "Please enter a command to execute"
-    }
-    if(!redirectStderr)
-      args.redirectStderr = false
-    redirect(action: 'commands', id: params.id, params: args)
   }
 
   /**

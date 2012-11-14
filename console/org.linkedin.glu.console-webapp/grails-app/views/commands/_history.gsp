@@ -18,8 +18,6 @@
     <h3>Active commands [${currentCommandExecutions.size()}]</h3>
     <g:render template="executingCommands" model="[commandExecutions: currentCommandExecutions]"/>
   </g:if>
-  <g:if test="${commandExecutions}">
-    <h3>Commands [${commandExecutions.size()}/${count}]</h3>
-    <g:render template="completedCommands" model="[commandExecutions: commandExecutions, count: count]"/>
-  </g:if>
+  <h3>Commands [${commandExecutions.size()}/${count}]</h3>
+  <g:render template="completedCommands" model="[commandExecutions: commandExecutions, count: count]"/>
 </div>

@@ -68,22 +68,6 @@ class FileSystemStreamStorage extends AbstractCommandStreamStorage<FileSystemCom
     return stream
   }
 
-  synchronized InputStream findStorageInput(StreamType type)
-  {
-    def m = streams[type]
-    if(m == null)
-      return null
-
-    // make sure to flush output first...
-    m.out?.flush()
-
-    Resource resource = m.resource
-    if(resource.exists())
-      return new BufferedInputStream(resource.inputStream)
-    else
-      return null
-  }
-
   synchronized def findStorageInputWithSize(StreamType type)
   {
     def m = streams[type]

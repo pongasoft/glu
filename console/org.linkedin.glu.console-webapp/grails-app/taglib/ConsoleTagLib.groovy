@@ -43,6 +43,8 @@ import org.linkedin.glu.provisioner.core.model.FlattenSystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemFilterHelper
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.groovy.util.state.DefaultStateMachine
+import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
+import org.linkedin.util.lang.LangUtils
 
 /**
  * Tag library for the console.
@@ -1188,6 +1190,52 @@ public class ConsoleTagLib
           out << "[...]"
       }
     }
+  }
+
+  def renderJsonException = { args ->
+    def exception = args.exception
+
+    if(exception == null)
+      return
+
+    def exceptionAsJson = exception
+
+    if(exception instanceof Throwable)
+      exceptionAsJson = GluGroovyJsonUtils.extractFullStackTrace(exception)
+    else
+    {
+      if(!(exception instanceof Collection))
+        exceptionAsJson = GluGroovyJsonUtils.fromJSON(exception.toString())
+    }
+
+    if(exceptionAsJson)
+    {
+      def gid = "json-exception-${System.identityHashCode(exceptionAsJson)}"
+      out << "<div id=\"${gid}\" class=\"errorStackTrace\">"
+      exceptionAsJson?.eachWithIndex { e, idx ->
+        def id = "${gid}-${idx}"
+        out << "<dt class=\"stackTraceHeader\">"
+        out << "* ${e.name.encodeAsHTML()}: ${e.message.encodeAsHTML()}"
+        out << " [<a href=\"#\" onclick=\"toggleShowHide('#${id}')\">+</a>]"
+        out << "</dt>"
+        out << "<div id=\"${id}\" class=\"hidden\">"
+        e.stackTrace.each { ste ->
+          def file = ste.ln as int
+          if(file >= 0)
+            file = "${ste.fn}:${file}"
+          else
+            file = "Native Method"
+          def line = "at ${ste.dc}.${ste.mn}(${file})"
+          out << "<dd class=\"stackTraceBody\">${line.encodeAsHTML()}</dd>"
+        }
+        out << "</div>"
+      }
+      out << "</div>"
+    }
+
+    if(exception instanceof Throwable)
+      out << "<div class=\"hidden\">${LangUtils.getStackTrace(exception).encodeAsHTML()}</div>"
+
   }
 
   def whenFeatureEnabled = { args, body ->

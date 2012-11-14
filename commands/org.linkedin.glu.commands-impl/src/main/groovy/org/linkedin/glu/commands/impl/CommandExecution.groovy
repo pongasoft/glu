@@ -134,7 +134,7 @@ public class CommandExecution<T>
     return futureExecution.cancel(true)
   }
 
-  def getExitValue()
+  def getExitValueIfCompleted()
   {
     if(isCompleted())
       getExitValue(0)

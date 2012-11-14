@@ -31,15 +31,6 @@ class MemoryStreamStorage extends AbstractCommandStreamStorage<MemoryCommandExec
   }
 
   @Override
-  InputStream findStorageInput(StreamType type)
-  {
-    ByteArrayOutputStream stream = findByteArrayOutputStream(type)
-    if(stream == null)
-      return null
-    return new ByteArrayInputStream(stream.toByteArray())
-  }
-
-  @Override
   def findStorageInputWithSize(StreamType type)
   {
     ByteArrayOutputStream stream = findByteArrayOutputStream(type)

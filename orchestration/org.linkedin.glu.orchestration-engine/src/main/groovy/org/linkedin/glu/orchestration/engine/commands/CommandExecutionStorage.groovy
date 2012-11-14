@@ -39,7 +39,8 @@ public interface CommandExecutionStorage
                                   Long stdoutTotalBytesCount,
                                   byte[] stderrFirstBytes,
                                   Long stderrTotalBytesCount,
-                                  String exitValue)
+                                  String exitValueOrError,
+                                  boolean isError)
 
   DbCommandExecution endExecution(String commandId,
                                   long endTime,

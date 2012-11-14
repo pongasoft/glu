@@ -98,6 +98,7 @@
   <ul class="tabs">
     <li><g:link controller="agents" action="list">List</g:link></li>
     <li class="active"><a href="#">agent [${params.id}]</a></li>
+    <cl:whenFeatureEnabled feature="commands"><li><g:link action="commands" id="${params.id}">Commands</g:link></li></cl:whenFeatureEnabled>
   </ul>
   <h2>No such agent ${params.id} [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h2>
 </g:else>

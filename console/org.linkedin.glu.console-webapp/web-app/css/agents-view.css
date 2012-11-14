@@ -53,23 +53,6 @@ input.hostStepCheckBox {
   display: none;
 }
 
-.errorStackTrace {
-  background: #ffdddd;
-  font-family: monospace;
-  overflow-y: auto;
-  max-height: 30em;
-}
-
-dt.stackTraceHeader {
-  color: #880000;
-  font-weight: bold;
-  white-space: pre;
-}
-
-dd.stackTraceBody {
-  margin-left: 1.5em;
-}
-
 li.error {
   color: #880000;
   font-weight: bold;
