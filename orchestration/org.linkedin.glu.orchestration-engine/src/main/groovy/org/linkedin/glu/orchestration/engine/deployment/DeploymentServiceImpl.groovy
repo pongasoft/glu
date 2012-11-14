@@ -31,7 +31,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.groovy.util.clock.ClosureTimerTask
 import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
-import org.linkedin.glu.orchestration.engine.plugins.PluginService
+import org.linkedin.glu.groovy.utils.plugins.PluginService
 
 /**
  * System service.

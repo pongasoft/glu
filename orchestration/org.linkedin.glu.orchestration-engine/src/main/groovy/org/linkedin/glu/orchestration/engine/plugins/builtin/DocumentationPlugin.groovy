@@ -444,4 +444,83 @@ public class DocumentationPlugin
     log.info("DeploymentService_post_executeDeploymentPlan")
     return null
   }
+
+  /////////////////////////////////////////////////////////////////////////////////////////////
+  // Commands
+  /////////////////////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Called when a command is about to be executed. This closure allows you for example to
+   * add tighter control to who can execute what or to add some parameters to the command
+   *
+   * @param args.fabric the fabric the agent belongs to
+   * @param args.agent the agent on which the command will be executed
+   * @param args.args the arguments for the command (see <code>Agent.executeShellCommand</code> for
+   *                  details
+   * @param args.onResultStreamAvailable the closure that will be called when the results are available
+   * @return <code>null</code> (the result is unused... you can tweak args instead)
+   */
+  def CommandsService_pre_executeCommand = { args ->
+
+    // example: prevent some users to execute some commands
+
+    log.info("CommandsService_pre_executeCommand")
+    return null
+  }
+
+  /**
+   * Called after the command has been started. Note that when this closure is called it is very
+   * unlikely that the command will have completed. This closure allows you for example to
+   * log more information about command execution, or wait on command completion entirely!
+   *
+   * @param args.fabric the fabric the agent belongs to
+   * @param args.agent the agent on which the command will be executed
+   * @param args.args the arguments for the command (see <code>Agent.executeShellCommand</code> for
+   *                  details
+   * @param args.onResultStreamAvailable the closure that will be called when the results are available
+   * @param args.serviceResult the <code>CommandExecution</code> object with all the details about the
+   *        execution
+   * @return if you want to override the result, you can return a different
+   *         <code>CommandExecution</code> otherwise <code>null</code>
+   */
+  def CommandsService_post_executeCommand = { args ->
+
+    // example: wait for the command longer
+    // args.serviceResult.waitForCompletionNoException("10s")
+
+    log.info("CommandsService_post_executeCommand")
+    return null
+  }
+
+  /**
+   * Called to create an input stream to read a command IO from the filesystem. This closure allows
+   * you to decrypt a previously encrypted file.
+   *
+   * @param args.resource the resource (<code>org.linkedin.util.io.resource.Resource</code>) from
+   * which to create an input stream.
+   * @return <code>null</code> if you don't want to do anything, otherwise an <code>InputStream</code>
+   */
+  def FileSystemCommandExecutionIOStorage_createInputStream = { args ->
+
+    // example: decrypt a previously encrypted stream
+
+    log.info("FileSystemCommandExecutionIOStorage_createInputStream")
+    return null
+  }
+
+  /**
+   * Called to create an output stream to write a command IO from the filesystem. This closure allows
+   * you to encrypt the stream for example.
+   *
+   * @param args.resource the resource (<code>org.linkedin.util.io.resource.Resource</code>) from
+   * which to create an output stream.
+   * @return <code>null</code> if you don't want to do anything, otherwise an <code>OutputStream</code>
+   */
+  def FileSystemCommandExecutionIOStorage_createOutputStream = { args ->
+
+    // example: encrypt the stream
+
+    log.info("FileSystemCommandExecutionIOStorage_createOutputStream")
+    return null
+  }
 }

@@ -23,6 +23,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.glu.utils.concurrent.Submitter
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
+import org.linkedin.glu.groovy.utils.plugins.PluginService
+import org.linkedin.glu.groovy.utils.plugins.NoPluginsPluginService
 
 /**
  * @author yan@pongasoft.com */
@@ -39,6 +41,9 @@ public abstract class AbstractCommandExecutionIOStorage implements CommandExecut
 
   @Initializable
   Submitter submitter = FutureTaskExecution.DEFAULT_SUBMITTER
+
+  @Initializable
+  PluginService pluginService = NoPluginsPluginService.INSTANCE
 
   @Override
   CommandExecution createStorageForCommandExecution(def args)

@@ -32,7 +32,7 @@ import org.linkedin.util.annotations.Initializable
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.glu.orchestration.engine.action.descriptor.AgentURIProvider
-import org.linkedin.glu.orchestration.engine.plugins.PluginService
+import org.linkedin.glu.groovy.utils.plugins.PluginService
 import org.linkedin.util.url.URLBuilder
 import org.linkedin.glu.groovy.util.state.DefaultStateMachine
 

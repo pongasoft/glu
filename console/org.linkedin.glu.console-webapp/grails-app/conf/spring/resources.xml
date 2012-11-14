@@ -273,5 +273,5 @@
   <!-- *********************** -->
   <!-- pluginService           -->
   <!-- *********************** -->
-  <bean id="pluginService" class="org.linkedin.glu.orchestration.engine.plugins.PluginServiceImpl"/>
+  <bean id="pluginService" class="org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl"/>
 </beans>

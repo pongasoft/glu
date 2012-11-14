@@ -16,7 +16,7 @@
 
 package test.orchestration.engine.agents
 
-import org.linkedin.glu.orchestration.engine.plugins.PluginServiceImpl
+import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
 import org.linkedin.glu.orchestration.engine.agents.AgentsServiceImpl
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.agent.tracker.AgentInfo

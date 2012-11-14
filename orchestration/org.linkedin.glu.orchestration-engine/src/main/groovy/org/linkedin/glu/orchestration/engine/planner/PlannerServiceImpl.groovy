@@ -31,7 +31,7 @@ import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.orchestration.engine.delta.DeltaSystemModelFilter
 import org.linkedin.glu.orchestration.engine.delta.impl.BounceDeltaSystemModelFilter
 import org.linkedin.glu.orchestration.engine.delta.impl.RedeployDeltaSystemModelFilter
-import org.linkedin.glu.orchestration.engine.plugins.PluginService
+import org.linkedin.glu.groovy.utils.plugins.PluginService
 
 /**
  * System service.

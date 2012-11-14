@@ -23,7 +23,7 @@ import org.linkedin.glu.agent.tracker.AgentInfo
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.orchestration.engine.tracker.TrackerService
 import org.linkedin.glu.agent.rest.client.AgentFactory
-import org.linkedin.glu.orchestration.engine.plugins.PluginServiceImpl
+import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
 import org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin
 import java.security.Permission
 import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService

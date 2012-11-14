@@ -16,7 +16,7 @@
 
 package test.orchestration.engine.system
 
-import org.linkedin.glu.orchestration.engine.plugins.PluginServiceImpl
+import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
 import org.linkedin.glu.orchestration.engine.system.SystemServiceImpl
 import org.linkedin.glu.provisioner.core.model.SystemModel
 

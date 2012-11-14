@@ -29,7 +29,7 @@ import org.linkedin.glu.console.domain.DbUserCredentials
 import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.orchestration.engine.delta.DeltaService
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
-import org.linkedin.glu.orchestration.engine.plugins.PluginServiceImpl
+import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
 import org.codehaus.groovy.grails.commons.ApplicationHolder
 
 class BootStrap {

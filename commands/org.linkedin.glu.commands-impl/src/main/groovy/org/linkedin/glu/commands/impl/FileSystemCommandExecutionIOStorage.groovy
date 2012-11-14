@@ -76,8 +76,9 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
     def commandFile = baseDir.createRelative(commandFileName)
     if(commandFile.exists())
     {
-      def args = commandFile.withInputStream { InputStream is ->
-        JsonUtils.fromJSON(new BufferedInputStream(is).text)
+      def inputStream = createInputStream(commandFile)
+      def args = new BufferedInputStream(inputStream).withStream { InputStream is ->
+        JsonUtils.fromJSON(is.text)
       }
 
       // if we read from the file system there should be an exit value already
@@ -138,7 +139,7 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
     args.startTime = commandExecution.startTime
 
     // save the command to the file system
-    new BufferedOutputStream(new FileOutputStream(commandFile.file)).withStream { out ->
+    new BufferedOutputStream(createOutputStream(commandFile)).withStream { out ->
       out << JsonUtils.compactPrint(args)
     }
 
@@ -195,7 +196,7 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
       args.completionTime = res?.completionTime ?: clock.currentTimeMillis()
 
       // save the command to the file system
-      def fos = new FileOutputStream(commandExecution.storage.commandResource.file)
+      def fos = createOutputStream(commandExecution.storage.commandResource)
       new BufferedOutputStream(fos).withStream { out ->
         out << JsonUtils.compactPrint(args)
       }
@@ -257,5 +258,34 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
   private Resource computeDir(String commandId)
   {
     commandExecutionFileSystem.toResource(computePath(commandId))
+  }
+
+  /**
+   * Creates the input stream but let a plugin customize it
+   */
+  InputStream createInputStream(Resource resource)
+  {
+    InputStream res = pluginService.executeMethod(FileSystemCommandExecutionIOStorage,
+                                                  "createInputStream",
+                                                  [resource: resource]) as InputStream
+    if(!res)
+      res = resource.inputStream
+
+    return res
+  }
+
+  /**
+   * Creates the output stream but let a plugin customize it
+   */
+  OutputStream createOutputStream(Resource resource)
+  {
+    OutputStream res = pluginService.executeMethod(FileSystemCommandExecutionIOStorage,
+                                                   "createOutputStream",
+                                                   [resource: resource]) as OutputStream
+
+    if(!res)
+      res = new FileOutputStream(resource.file)
+
+    return res
   }
 }

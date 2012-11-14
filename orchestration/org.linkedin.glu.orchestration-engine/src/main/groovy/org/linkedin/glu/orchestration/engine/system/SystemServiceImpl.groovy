@@ -22,7 +22,7 @@ import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.util.annotations.Initializable
-import org.linkedin.glu.orchestration.engine.plugins.PluginService
+import org.linkedin.glu.groovy.utils.plugins.PluginService
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 import org.linkedin.glu.provisioner.core.model.SystemModelRenderer

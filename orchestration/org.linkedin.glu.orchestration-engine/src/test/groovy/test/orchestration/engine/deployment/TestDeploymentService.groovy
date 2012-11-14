@@ -34,7 +34,7 @@ import org.linkedin.util.clock.Timespan
 import org.linkedin.util.concurrent.ThreadControl
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
 import org.linkedin.util.clock.SystemClock
-import org.linkedin.glu.orchestration.engine.plugins.PluginServiceImpl
+import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
 
 /**
  * @author yan@pongasoft.com */

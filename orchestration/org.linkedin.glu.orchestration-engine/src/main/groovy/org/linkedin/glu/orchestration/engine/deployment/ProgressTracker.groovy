@@ -21,7 +21,7 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.plan.api.FilteredPlanExecutionProgressTracker
 import org.linkedin.glu.provisioner.plan.api.IPlanExecution
 import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus
-import org.linkedin.glu.orchestration.engine.plugins.PluginService
+import org.linkedin.glu.groovy.utils.plugins.PluginService
 
 /**
  * @author yan@pongasoft.com */

@@ -30,7 +30,7 @@ import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.glu.orchestration.engine.planner.PlannerServiceImpl
 import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
-import org.linkedin.glu.orchestration.engine.plugins.PluginServiceImpl
+import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
 
 /**
  * @author yan@pongasoft.com */

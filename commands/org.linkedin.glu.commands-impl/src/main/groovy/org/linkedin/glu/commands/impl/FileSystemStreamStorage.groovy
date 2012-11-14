@@ -62,7 +62,7 @@ class FileSystemStreamStorage extends AbstractCommandStreamStorage<FileSystemCom
     OutputStream stream = m.out
     if(stream == null)
     {
-      stream = new BufferedOutputStream(new FileOutputStream(streams[type].resource.file))
+      stream = new BufferedOutputStream(createOutputStream(streams[type].resource))
       streams[type].out = stream
     }
     return stream
@@ -79,7 +79,7 @@ class FileSystemStreamStorage extends AbstractCommandStreamStorage<FileSystemCom
 
     Resource resource = m.resource
     if(resource.exists())
-      return [stream: new BufferedInputStream(resource.inputStream), size: resource.length()]
+      return [stream: new BufferedInputStream(createInputStream(resource)), size: resource.length()]
     else
       return null
   }
@@ -87,5 +87,21 @@ class FileSystemStreamStorage extends AbstractCommandStreamStorage<FileSystemCom
   Resource getCommandResource()
   {
     baseDir.createRelative(ioStorage.commandFileName)
+  }
+
+  /**
+   * Creates the input stream but let a plugin customize it
+   */
+  InputStream createInputStream(Resource resource)
+  {
+    ioStorage.createInputStream(resource)
+  }
+
+  /**
+   * Creates the output stream but let a plugin customize it
+   */
+  OutputStream createOutputStream(Resource resource)
+  {
+    ioStorage.createOutputStream(resource)
   }
 }

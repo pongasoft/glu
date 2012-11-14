@@ -14,15 +14,15 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.plugins
+package org.linkedin.glu.groovy.utils.plugins
 
 /**
  * @author yan@pongasoft.com */
 public interface PluginService
 {
-  void initializePlugin(String pluginClassname, Map initParameters)
+  void initializePlugin(String pluginClassName, Map initParameters)
 
-  void initializePlugin(Collection<String> pluginClassnames, Map initParameters)
+  void initializePlugin(Collection<String> pluginClassNames, Map initParameters)
 
   void initializePlugin(Map plugin, Map initParameters)
 

@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.linkedin.glu.orchestration.engine.plugins
+package org.linkedin.glu.groovy.utils.plugins
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -30,45 +30,45 @@ public class PluginServiceImpl implements PluginService
   def plugin
 
   @Override
-  void initializePlugin(String pluginClassname, Map initParameters)
+  void initializePlugin(String pluginClassName, Map initParameters)
   {
-    plugin = createPluginFromClassname(pluginClassname, initParameters)
+    plugin = createPluginFromClassName(pluginClassName, initParameters)
     executeMethod(PluginService, 'initialize', initParameters)
   }
 
   /**
    * @return the plugin given its class name
    */
-  def findPlugin(String pluginCassname)
+  def findPlugin(String pluginClassName)
   {
     if(plugin instanceof Collection)
     {
-      plugin.find { it.class.name == pluginCassname}
+      plugin.find { it.class.name == pluginClassName}
     }
     else
     {
-      if(plugin.class.name == pluginCassname)
+      if(plugin.class.name == pluginClassName)
         return plugin
       else
         return null
     }
   }
 
-  private static def createPluginFromClassname(String pluginClassname, Map initParameters)
+  private static def createPluginFromClassName(String pluginClassName, Map initParameters)
   {
-    if(pluginClassname)
+    if(pluginClassName)
     {
-      log.info("Initializing plugin [${pluginClassname}]")
-      return ReflectUtils.forName(pluginClassname).newInstance()
+      log.info("Initializing plugin [${pluginClassName}]")
+      return ReflectUtils.forName(pluginClassName).newInstance()
     }
     else
       return null
   }
 
   @Override
-  void initializePlugin(Collection<String> pluginClassnames, Map initParameters)
+  void initializePlugin(Collection<String> pluginClassNames, Map initParameters)
   {
-    plugin = pluginClassnames?.collect { createPluginFromClassname(it, initParameters) }
+    plugin = pluginClassNames?.collect { createPluginFromClassName(it, initParameters) }
     executeMethod(PluginService, 'initialize', initParameters)
   }
 

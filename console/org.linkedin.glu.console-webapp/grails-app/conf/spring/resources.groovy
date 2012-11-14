@@ -71,7 +71,9 @@ beans = {
     {
       case Environment.DEVELOPMENT:
       case Environment.TEST:
-        commandExecutionIOStorage(MemoryCommandExecutionIOStorage)
+        commandExecutionIOStorage(MemoryCommandExecutionIOStorage) {
+          pluginService = ref('pluginService')
+        }
         break
 
       default:
@@ -82,6 +84,7 @@ beans = {
 
         commandExecutionIOStorage(FileSystemCommandExecutionIOStorage) {
           commandExecutionFileSystem = ref("commandExecutionFileSystem")
+          pluginService = ref('pluginService')
         }
         break
     }

@@ -23,7 +23,7 @@ import org.apache.shiro.authc.UsernamePasswordToken
 import org.linkedin.glu.console.domain.RoleName
 import org.slf4j.LoggerFactory
 import org.slf4j.Logger
-import org.linkedin.glu.orchestration.engine.plugins.PluginService
+import org.linkedin.glu.groovy.utils.plugins.PluginService
 import org.linkedin.glu.orchestration.engine.user.UserService
 
 /**

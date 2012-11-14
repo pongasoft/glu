@@ -30,7 +30,7 @@ import org.linkedin.glu.console.domain.User
 import org.linkedin.glu.console.domain.RoleName
 import org.linkedin.glu.console.domain.AuditLog
 import org.linkedin.glu.console.domain.DbUserCredentials
-import org.linkedin.glu.orchestration.engine.plugins.PluginService
+import org.linkedin.glu.groovy.utils.plugins.PluginService
 import org.linkedin.glu.orchestration.engine.user.UserService
 
 /**

@@ -16,7 +16,7 @@
 
 package test.orchestration.engine.plugins
 
-import org.linkedin.glu.orchestration.engine.plugins.PluginServiceImpl
+import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
 
 /**
  * @author yan@pongasoft.com */
