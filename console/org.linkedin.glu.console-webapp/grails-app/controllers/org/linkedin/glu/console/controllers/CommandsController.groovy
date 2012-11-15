@@ -79,6 +79,9 @@ public class CommandsController extends ControllerBase
                                                                   params.id,
                                                                   params) { args ->
         response.addHeader('X-glu-command-id', params.id)
+        response.addHeader('X-glu-command-startTime', args.commandExecution.startTime.toString())
+        if(args.commandExecution.completionTime)
+          response.addHeader('X-glu-command-completionTime', args.commandExecution.completionTime.toString())
         if(args.stream)
         {
           response.contentType = "application/octet-stream"

@@ -199,6 +199,7 @@ console.security.roles = [
   '/agents/tailLog/$id': 'USER',
   '/agents/fileContent/$id': 'USER',
   '/agents/plans/$id': 'USER',
+  '/agents/commands/$id': 'USER',
 
   // plan
   '/plan/view/$id': 'USER',
@@ -208,6 +209,13 @@ console.security.roles = [
   '/plan/renderDeployments': 'USER',
   '/plan/archived/$id?': 'USER',
   '/plan/create': 'USER',
+
+  // commands
+  '/commands/$id/streams': 'USER',
+  '/commands/renderHistory': 'USER',
+  '/commands/renderCommand/$id': 'USER',
+  '/commands/list': 'USER',
+
 
   // fabric
   '/fabric/select/$id?': 'USER',
@@ -240,6 +248,8 @@ console.security.roles = [
   '/agents/uninstallScript/$id': 'RELEASE',
   '/agents/createPlan/$id': 'RELEASE',
   '/agents/interruptAction/$id': 'RELEASE',
+  '/agents/executeCommand/$id': 'RELEASE',
+  '/agents/interruptCommand/$id': 'RELEASE',
 
   // plan
   '/plan/execute/$id': 'RELEASE',
@@ -378,6 +388,7 @@ console.security.roles = [
   /**
    * Commands
    */
+  'GET:/rest/v1/$fabric/command/$id/streams': 'USER',
   'POST:/rest/v1/$fabric/agent/$id/commands': 'RELEASE',
 
   'GET:/rest/v1/-/agents': 'USER',

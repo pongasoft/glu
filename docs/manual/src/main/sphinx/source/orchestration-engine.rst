@@ -521,8 +521,13 @@ Main URI: ``/console/rest/v1/<fabric>`` (all the URIs in the following table sta
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
 |``GET``    |``/model/delta``                           |Retrieves the delta between static|:ref:`view                                |
 |           |                                           |model and live model              |<goe-rest-api-get-model-delta>`           |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``POST``   |``/agent/<agentName>/commands``            |Executes a shell command          |:ref:`view                                |
+|           |                                           |                                  |<goe-rest-api-post-command-execute>`      |
 |           |                                           |                                  |                                          |
-|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/command/<commandId>/streams``           |Retrieves the streams (=result)   |:ref:`view                                |
+|           |                                           |of the command execution          |<goe-rest-api-get-command-streams>`       |
 |           |                                           |                                  |                                          |
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
 
@@ -1538,6 +1543,126 @@ List all the agents fabrics
 
 .. warning:: This api (``/rest/v1/-/agents``) which returns a map of association agent -> fabric should not be mistaken with the api ``/rest/v1/<fabric>/agents`` which specifies the fabric and list all agents in a given fabric!
 
+.. _goe-rest-api-post-command-execute:
+
+Execute a shell command
+"""""""""""""""""""""""
+
+* Description: Execute a shell command on the agent. Note that this call is non blocking and return right away. In order to wait for the command to complete and read the result of the command, you need to use the :ref:`other api <goe-rest-api-get-command-streams>`
+
+* Request: ``POST /agent/<agentName>/commands``
+
+  required request parameters:
+
+  * ``command=...``: the command to execute (ex: ``uptime``)
+
+  optional request parameters:
+
+  * ``type=shell`` the type of command to run (at this moment only ``shell`` is supported)
+  * ``redirectStderr=true`` whether stderr should be redirected to stdout (default to ``false``)
+
+  optional input stream: if you want to provide ``stdin`` to your command, simply put it in the body of the post
+
+* Response: 
+
+  * ``201`` (``Created``) with:
+
+    * headers: ``X-glu-command-id`` the id of the command created
+    * body: json map containing the same id
+
+  * ``404`` (``Not found``) if no such agent
+
+* Example::
+
+      curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/agent/agent-1/commands?command=cat%20-" -H "Content-Type: application/octet-stream" --data-binary 'abcdef'
+      > POST /console/rest/v1/glu-dev-1/agent/agent-1/commands?command=cat%20- HTTP/1.1
+      > ...
+      > Content-Type: application/octet-stream
+      > Content-Length: 6
+      > 
+      * upload completely sent off: 6 out of 6 bytes
+      < HTTP/1.1 201 Created
+      < ...
+      < X-glu-command-id: 13b05a27b80-d527ccf3-166a-4986-90b2-41be8c2ba536
+      < Content-Type: text/json
+      < Content-Length: 57
+      < 
+      {"id":"13b05a27b80-d527ccf3-166a-4986-90b2-41be8c2ba536"}
+
+.. _goe-rest-api-get-command-streams:
+
+Read/Wait for command result
+""""""""""""""""""""""""""""
+
+* Once a command has been started, this api will retrieve the result(s) and optionally wait. If you request more than one stream, then you will get a muliplexed stream of results (the format is fairly simple and you can take a look at the java code on how to demultiplex it. TODO: add python code for demultiplexing/example).
+
+* Request: ``GET /commands/<commandId>/streams``
+
+  optional request parameters:
+
+  * ``stdoutStream=true`` include stdout stream (default: ``false``)
+  * ``stdoutOffset=...`` where to start in stdout stream in number of bytes (negative number counts backward) (default: ``0``)
+  * ``stdoutLen=...`` how many bytes max to read for stdout (default: ``-1`` => read all)
+  * ``stderrStream=true`` include stderr stream (default: ``false``)
+  * ``stderrOffset=...`` where to start in stderr stream in number of bytes (negative number counts backward) (default: ``0``)
+  * ``stderrLen=...`` how many bytes max to read for stderr (default: ``-1`` => read all)
+  * ``stdinStream=true`` include stdin stream (default: ``false``)
+  * ``stdinOffset=...`` where to start in stdin stream in number of bytes (negative number counts backward) (default: ``0``)
+  * ``stdinLen=...`` how many bytes max to read for stdin (default: ``-1`` => read all)
+  * ``exitValueStream=true`` include the exit value (which is what the shell command returned: ``$?``) (default: ``false``)
+  * ``exitValueStreamTimeout=...`` if the command is not completed yet, how long to wait (meaning block) until the result is returned (0 means wait until completed). Can be any timespan (ex: ``5s``, ``10m``, ``50`` for 50 milliseconds) (default: don't wait!)
+  * ``exitErrorStream=true`` include the error stream (when an exception is generated for any reason, usually communication) (default: ``false``)
+
+* Response: 
+
+  * ``200`` (``OK``) with:
+
+    * headers: 
+
+      * ``X-glu-command-id`` the id of the command 
+      * ``X-glu-command-startTime`` the time when the command was started 
+      * ``X-glu-command-completionTime`` the time when the command was completed (if completed) 
+
+    * body: the stream(s) requested
+
+  * ``404`` (``Not found``) if no such command
+
+* Example::
+
+      curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/command/13b05a27b80-d527ccf3-166a-4986-90b2-41be8c2ba536/streams?stdoutStream=true"
+      > GET /console/rest/v1/glu-dev-1/command/13b05a27b80-d527ccf3-166a-4986-90b2-41be8c2ba536/streams?stdoutStream=true HTTP/1.1
+      > ...
+      > 
+      < HTTP/1.1 200 OK
+      < X-glu-command-id: 13b05a27b80-d527ccf3-166a-4986-90b2-41be8c2ba536
+      < X-glu-command-startTime: 1353009232768
+      < X-glu-command-completionTime: 1353009232917
+      < Content-Type: application/octet-stream
+      < ...
+      < 
+      abcdef
+
+      curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/command/13b05a27b80-d527ccf3-166a-4986-90b2-41be8c2ba536/streams?stdoutStream=true&exitValueStream=true"
+      > GET /console/rest/v1/glu-dev-1/command/13b05a27b80-d527ccf3-166a-4986-90b2-41be8c2ba536/streams?stdoutStream=true&exitValueStream=true HTTP/1.1
+      > ...
+      > 
+      < HTTP/1.1 200 OK
+      < X-glu-command-id: 13b05a27b80-d527ccf3-166a-4986-90b2-41be8c2ba536
+      < X-glu-command-startTime: 1353009232768
+      < X-glu-command-completionTime: 1353009232917
+      < Content-Type: application/octet-stream
+      < ...
+      < 
+      MISV1.0=V=O
+
+      V=1
+      0
+
+      O=6
+      abcdef
+
+
+
 API Examples
 ^^^^^^^^^^^^
 * Sending the model to glu in `java <https://gist.github.com/756465>`_
@@ -1663,6 +1788,12 @@ List of hooks available
   * ``DeploymentService_onStart_executeDeploymentPlan``: called when the deployment plan starts executing
   * ``DeploymentService_post_executeDeploymentPlan``: called after executing a deployment plan  
 
+* Commands
+
+  * ``CommandsService_pre_executeCommand``: called before executing a command
+  * ``CommandsService_post_executeCommand``: called when the command is complete
+  * ``FileSystemCommandExecutionIOStorage_createInputStream``: called to create the input stream to read the IO of the command from the filesystem
+  * ``FileSystemCommandExecutionIOStorage_createOutputStream``:called to create the output stream to write the IO of the command from the filesystem
 
 Future hooks
 ^^^^^^^^^^^^

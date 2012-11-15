@@ -26,6 +26,9 @@ Glossary
   Closure
      In a glu script, a closure is a `groovy closure <http://groovy.codehaus.org/Closures>`_ which is essentially a piece of groovy/java code (between curly braces) assigned to an attribute.
 
+  command
+     Any kind of (unix) shell command (ex: ``uptime``, ``echo foo > /tmp/file.txt``, etc...)
+
   Console
     The webapp/REST api built on top of ZooKeeper which is the orchestrator of the system.
 

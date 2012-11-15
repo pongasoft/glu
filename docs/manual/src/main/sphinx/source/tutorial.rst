@@ -517,6 +517,20 @@ Using the console cli
 
    which will undeploy all apps.
 
+Executing an arbitrary shell command
+------------------------------------
+1. In the console, click on the ``'Agents'`` tab, then click ``'agent-1'`` and then the ``'Commands'`` subtab.
+
+2. Enter ``uptime`` in the text field and press ``return`` on your keyboard or click on ``Execute``
+
+   .. image:: /images/tutorial/tutorial-agent-command-600.png
+      :align: center
+      :alt: Running the uptime command
+
+3. What happens here is (like the ``ps`` section previously), the command you enter in the text field will be executed on the (remote) agent and the result will be displayed in the console. 
+
+   .. note:: It can be any shell command supported on your agent, including pipes, redirects, etc... Simply try another command like ``env|sort`` (you will need to click the ``[...]`` to see the full output).
+
 Viewing the audit log
 ---------------------
 1. Go back to the console and click the ``'Admin'`` tab and then select ``'View Audit Logs'``.

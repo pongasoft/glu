@@ -646,11 +646,19 @@ class AgentsController extends ControllerBase
     if(request.contentLength != 0)
       args.stdin = request.inputStream
     
-    def id = commandsService.executeShellCommand(request.fabric, params.id, args)
+    try
+    {
+      def id = commandsService.executeShellCommand(request.fabric, params.id, args)
 
-    response.setContentType('text/json')
-    response.addHeader('X-glu-command-id', id)
-    render prettyPrintJsonWhenRequested([id: id])
+      response.setStatus(HttpServletResponse.SC_CREATED)
+      response.setContentType('text/json')
+      response.addHeader('X-glu-command-id', id)
+      render prettyPrintJsonWhenRequested([id: id])
+    }
+    catch(NoSuchAgentException e)
+    {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND)
+    }
   }
 
   private def handleNoAgent(Closure closure)

@@ -546,6 +546,47 @@ The *standard* plan types are: ``deploy``, ``redeploy``, ``undeploy``, ``bounce`
 
 .. _console-dashboard:
 
+Features
+""""""""
+
+This section allows you to enable/disable certain features::
+
+    features:
+    [
+      commands: true
+    ],
+
+* ``commands`` is the feature which allows you to run any kind of (unix/shell) command on an agent. You can disable this feature entirely in which case it will not be present in the UI at all.
+
+    .. note:: This feature also has an agent side to it and it needs to be properly configured as well. Check the :ref:`agent configuration <agent-configuration>` section.
+
+Commands
+--------
+
+If the ``commands`` feature is enabled, then you can configure what happens with the result (IO) of the command execution::
+
+      def commandsDir =
+        System.properties['org.linkedin.glu.console.commands.dir'] ?: "${System.properties['user.dir']}/commands"
+
+      // storage type supported right now are 'filesystem' and 'memory'
+      console.commandsService.storageType = 'filesystem'
+
+      // when storage is filesystem => where the commands are stored
+      console.commandsService.commandExecutionIOStorage.filesystem.rootDir = commandsDir
+
+      // when storage is memory => how many elements maximum to store (then start evicting...)
+      console.commandsService.commandExecutionIOStorage.memory.maxNumberOfElements = 25
+
+.. note:: By default, the IO of a command is stored on the filesystem in a path structure that is like 
+          this. This allows for easy maintenance!::
+
+              .../commands/<yyyy>/<mm>/<dd>/<HH>/<z>/<commandId>/*
+
+              Example:
+              .../commands/2012/11/15/07/PST/13b0533729f-18c3a1e8-2a19-4291-a161-77155d9472ae/command.json
+              .../commands/2012/11/15/07/PST/13b0533c29c-be265ce6-2d61-4502-acf8-978e18580cbe/command.json
+              .../commands/2012/11/15/07/PST/13b0533f383-0f61f819-6a0f-4639-9695-8060a13799c4/command.json
+
 Dashboard
 ---------
 
