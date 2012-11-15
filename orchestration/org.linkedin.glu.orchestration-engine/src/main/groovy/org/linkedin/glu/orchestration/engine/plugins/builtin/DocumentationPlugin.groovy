@@ -469,24 +469,16 @@ public class DocumentationPlugin
   }
 
   /**
-   * Called after the command has been started. Note that when this closure is called it is very
-   * unlikely that the command will have completed. This closure allows you for example to
-   * log more information about command execution, or wait on command completion entirely!
+   * Called after the command completes (typical use case would be some sort of notification
+   * (email, sms, etc...)
    *
-   * @param args.fabric the fabric the agent belongs to
-   * @param args.agent the agent on which the command will be executed
-   * @param args.args the arguments for the command (see <code>Agent.executeShellCommand</code> for
-   *                  details
-   * @param args.onResultStreamAvailable the closure that will be called when the results are available
    * @param args.serviceResult the <code>CommandExecution</code> object with all the details about the
    *        execution
-   * @return if you want to override the result, you can return a different
-   *         <code>CommandExecution</code> otherwise <code>null</code>
+   * @return <code>null</code> (the result is unused since executing a command is asynchronous)
    */
   def CommandsService_post_executeCommand = { args ->
 
-    // example: wait for the command longer
-    // args.serviceResult.waitForCompletionNoException("10s")
+    // typical use case is to send some sort of notification
 
     log.info("CommandsService_post_executeCommand")
     return null

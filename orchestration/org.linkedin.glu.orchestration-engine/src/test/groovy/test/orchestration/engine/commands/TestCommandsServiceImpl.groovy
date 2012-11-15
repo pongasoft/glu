@@ -44,6 +44,8 @@ import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
 import org.linkedin.glu.commands.impl.AbstractCommandExecutionIOStorage
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.glu.commands.impl.FileSystemCommandExecutionIOStorage
+import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -218,7 +220,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
                                                             [
                                                               stdoutStream: true,
                                                               exitValueStream: true,
-                                                              exitValueStreamTimeout: 0
+                                                              exitValueStreamTimeout: "2s"
                                                             ]) { args ->
 
           def streams =
@@ -383,7 +385,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
                                                             [
                                                               stdoutStream: true,
                                                               exitValueStream: true,
-                                                              exitValueStreamTimeout: 0
+                                                              exitValueStreamTimeout: "2s"
                                                             ]) { args ->
 
           def streams =
@@ -499,7 +501,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
                                                             cid,
                                                             [
                                                               exitValueStream: true,
-                                                              exitValueStreamTimeout: 0
+                                                              exitValueStreamTimeout: "2s"
                                                             ]) { args ->
 
           try
@@ -603,7 +605,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
                                                             cid,
                                                             [
                                                               exitValueStream: true,
-                                                              exitValueStreamTimeout: 0
+                                                              exitValueStreamTimeout: "2s"
                                                             ]) { args ->
 
           // at this stage the exit value stream is blocking: reading the stream will block
@@ -662,6 +664,149 @@ public class TestCommandsServiceImpl extends GroovyTestCase
           // now that the execution is complete... we should get the error stream
           assertEquals(GluGroovyJsonUtils.exceptionToJSON(ce.completionValue), args.stream.text)
         }
+      }
+    }
+  }
+
+  /**
+   * Test with a plugin
+   */
+  public void testPlugin()
+  {
+    withStorage {
+      def tc = new ThreadControl(Timespan.parse('30s'))
+
+      def f1 = new Fabric(name: "f1")
+
+      withAuthorizationService {
+
+        def preArgs = null
+        def postArgs = null
+
+        def plugin = [
+          CommandsService_pre_executeCommand: { args ->
+            preArgs = [*:args]
+            def originalOnResultStreamAvailable = args.onResultStreamAvailable
+            args.onResultStreamAvailable = { res ->
+              tc.block("plugin.pre")
+              originalOnResultStreamAvailable(res)
+            }
+            null
+          },
+
+          CommandsService_post_executeCommand: { args ->
+            postArgs = [*:args]
+            tc.block("plugin.post")
+            null
+          }
+        ]
+
+        service.pluginService = new PluginServiceImpl()
+        service.pluginService.initializePlugin(plugin, [:])
+
+        def agentsServiceMock = new MockFor(AgentsService)
+
+        def commandId = null
+
+        // executeShellCommand
+        agentsServiceMock.demand.executeShellCommand { fabric, agentName, args ->
+          commandId = args.id
+          clock.addDuration(Timespan.parse("10s"))
+          tc.block("executeShellCommand.end")
+        }
+
+        // stream result (this will be called asynchronously!)
+        agentsServiceMock.demand.streamCommandResults { Fabric fabric,
+                                                        String agentName,
+                                                        args,
+                                                        Closure commandResultProcessor ->
+          def streams = [:]
+
+          InputStream exitValueInputStream = new InputGeneratorStream({ 14 })
+          streams[StreamType.exitValue.multiplexName] = exitValueInputStream
+          streams[StreamType.stdout.multiplexName] = new ByteArrayInputStream("O123456789".bytes)
+          streams[StreamType.stderr.multiplexName] = new ByteArrayInputStream("E123456789".bytes)
+
+          commandResultProcessor([stream: new MultiplexedInputStream(streams)])
+        }
+
+        AgentsService agentsService = agentsServiceMock.proxyInstance()
+        service.agentsService = agentsService
+
+        long startTime = clock.currentTimeMillis()
+
+        // execute the shell command
+        String cid = service.executeShellCommand(f1, "a1", [command: "uptime"])
+
+        // we wait until the shell command is "executing"
+        tc.waitForBlock("executeShellCommand.end")
+
+        long completionTime = clock.currentTimeMillis()
+
+        // we make sure that we got the same commandId
+        assertEquals(cid, commandId)
+
+        // we can now unblock the call
+        tc.unblock("executeShellCommand.end")
+
+        // we make sure the plugin is called
+        tc.waitForBlock("plugin.pre")
+
+        assertEqualsIgnoreType([
+                                 fabric: f1,
+                                 agent: "a1",
+                                 args: [command: "uptime"]
+                               ],
+                               GluGroovyCollectionUtils.xorMap(preArgs, ['onResultStreamAvailable']))
+
+        tc.unblock("plugin.pre")
+
+        // we make sure the plugin is called
+        tc.waitForBlock("plugin.post")
+        DbCommandExecution dbCommandExecution = postArgs.serviceResult.command
+        tc.unblock("plugin.post")
+
+        // get the results
+        service.withCommandExecutionAndWithOrWithoutStreams(f1,
+                                                            cid,
+                                                            [
+                                                              stdoutStream: true,
+                                                              exitValueStream: true,
+                                                              exitValueStreamTimeout: "2s"
+                                                            ]) { args ->
+
+          def streams =
+            MultiplexedInputStream.demultiplexToString(args.stream,
+                                                       [
+                                                         StreamType.exitValue.multiplexName,
+                                                         StreamType.stdout.multiplexName
+                                                       ] as Set,
+                                                       null)
+
+          assertEquals("14", streams[StreamType.exitValue.multiplexName])
+          assertEquals("O123456789", streams[StreamType.stdout.multiplexName])
+        }
+
+
+        agentsServiceMock.verify(agentsService)
+
+        assertEquals(cid, dbCommandExecution.commandId)
+        assertEquals("uptime", dbCommandExecution.command)
+        assertFalse(dbCommandExecution.redirectStderr)
+        assertEquals(DbCommandExecution.CommandType.SHELL, dbCommandExecution.commandType)
+        assertEquals(startTime, dbCommandExecution.startTime)
+        assertEquals(completionTime, dbCommandExecution.completionTime)
+        assertEquals(f1.name, dbCommandExecution.fabric)
+        assertEquals("a1", dbCommandExecution.agent)
+        assertNull(dbCommandExecution.stdinFirstBytes)
+        assertNull(dbCommandExecution.stdinTotalBytesCount)
+        assertEquals("O1234", new String(dbCommandExecution.stdoutFirstBytes))
+        assertEquals(10, dbCommandExecution.stdoutTotalBytesCount)
+        assertEquals("E1234", new String(dbCommandExecution.stderrFirstBytes))
+        assertEquals(10, dbCommandExecution.stderrTotalBytesCount)
+        assertEquals("14", dbCommandExecution.exitValue)
+        assertFalse(dbCommandExecution.isExecuting)
+        assertNull(dbCommandExecution.exitError)
       }
     }
   }

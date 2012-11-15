@@ -167,7 +167,7 @@ public class CommandsServiceImpl implements CommandsService
   @Override
   String executeShellCommand(Fabric fabric, String agentName, args)
   {
-    CommandExecution command = doExecuteShellCommandWithPlugin(fabric, agentName, args) { res ->
+    CommandExecution command = doExecuteShellCommand(fabric, agentName, args) { res ->
       // we do not care about the stream in this version, it will be properly stored in storage
       NullOutputStream.INSTANCE << res.stream
     }
@@ -223,31 +223,6 @@ public class CommandsServiceImpl implements CommandsService
   }
 
   /**
-   * Wraps the execution with a plugin call
-   */
-  CommandExecution doExecuteShellCommandWithPlugin(Fabric fabric,
-                                                   String agentName,
-                                                   args,
-                                                   Closure onResultStreamAvailable)
-  {
-    args = GluGroovyCollectionUtils.subMap(args, ['command', 'redirectStderr', 'stdin'])
-
-    pluginService.executePrePostMethods(CommandsService,
-                                        "executeCommand",
-                                        [
-                                          fabric: fabric,
-                                          agentName: agentName,
-                                          args: args,
-                                          onResultStreamAvailable: onResultStreamAvailable
-                                        ]) { pluginArgs ->
-      doExecuteShellCommand(pluginArgs.fabric,
-                            pluginArgs.agentName,
-                            pluginArgs.args,
-                            pluginArgs.onResultStreamAvailable)
-    } as CommandExecution
-  }
-
-  /**
    * Executes the command asynchronously
    */
   CommandExecution doExecuteShellCommand(Fabric fabric,
@@ -255,6 +230,22 @@ public class CommandsServiceImpl implements CommandsService
                                          args,
                                          Closure onResultStreamAvailable)
   {
+    args = GluGroovyCollectionUtils.subMap(args, ['command', 'redirectStderr', 'stdin'])
+
+    def pluginArgs = [
+      fabric: fabric,
+      agent: agentName,
+      args: args,
+      onResultStreamAvailable: onResultStreamAvailable
+    ]
+
+    pluginService.executeMethod(CommandsService,
+                                "pre_executeCommand",
+                                pluginArgs)
+
+    (args, onResultStreamAvailable) = [[*:pluginArgs.args], pluginArgs.onResultStreamAvailable]
+
+
     // it is a shell command
     args.type = 'shell'
 
@@ -406,6 +397,10 @@ public class CommandsServiceImpl implements CommandsService
         command.command.isExecuting = false
         _currentCommandExecutions.remove(command.id)
       }
+
+      pluginService.executeMethod(CommandsService,
+                                  "post_executeCommand",
+                                  [serviceResult: command])
     }
 
     synchronized(_currentCommandExecutions)
