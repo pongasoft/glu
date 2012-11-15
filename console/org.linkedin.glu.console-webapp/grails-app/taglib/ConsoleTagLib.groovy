@@ -1243,6 +1243,18 @@ public class ConsoleTagLib
       out << body()
   }
 
+  def withSynchronized = { args, body ->
+    def o = args.object
+    def var = args.var ?: 'object'
+    if(o != null)
+    {
+      synchronized(o)
+      {
+        out << body((var): o)
+      }
+    }
+  }
+
   def extractArtifact(uri)
   {
     if(uri instanceof String)

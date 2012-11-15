@@ -112,4 +112,22 @@ public class GluGroovyLangUtils extends GroovyLangUtils
     return value as long
   }
 
+  /**
+   * Copy the properties from source to target and copy only the properties that exist in target
+   * @return <code>target</code>
+   */
+  static <T> T copyProperties(def source, T target)
+  {
+    if(source != null && target != null)
+    {
+      target.metaClass.properties.each { p ->
+        if(source.metaClass.hasProperty(source, p.name)
+          && p.name != 'metaClass'
+          && p.name != 'class'
+          && p.setter) // read only?
+          p.setProperty(target, source.metaClass.getProperty(source, p.name))
+      }
+    }
+    return target
+  }
 }

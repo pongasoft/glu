@@ -20,6 +20,7 @@ import grails.persistence.Entity
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.util.clock.Timespan
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -57,6 +58,13 @@ public class DbCommandExecution
     columns {
       content exitError: 'text'
     }
+  }
+
+  DbCommandExecution copy()
+  {
+    def res = GluGroovyLangUtils.copyProperties(this, new DbCommandExecution())
+    res.id = -1 // indicate it is a copy!
+    return res
   }
 
   /**
@@ -170,7 +178,7 @@ public class DbCommandExecution
     return getFirstBytes(streamType)?.size() < getTotalBytesCount(streamType)
   }
 
-  boolean isExecuting = false
+  volatile boolean isExecuting = false
 
   /**
    * Means it never completed for some reason (currently not running and exit value was never set!)

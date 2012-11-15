@@ -46,6 +46,7 @@ import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.glu.commands.impl.FileSystemCommandExecutionIOStorage
 import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException
 
 /**
  * @author yan@pongasoft.com */
@@ -115,6 +116,13 @@ public class TestCommandsServiceImpl extends GroovyTestCase
         def agentsServiceMock = new MockFor(AgentsService)
 
         def commandId = null
+
+        // check for agent
+        agentsServiceMock.demand.getAgentInfo { fabric, agentName ->
+          assertEquals(f1, fabric)
+          assertEquals("a1", agentName)
+          return true
+        }
 
         // executeShellCommand
         agentsServiceMock.demand.executeShellCommand { fabric, agentName, args ->
@@ -275,6 +283,13 @@ public class TestCommandsServiceImpl extends GroovyTestCase
         def agentsServiceMock = new MockFor(AgentsService)
 
         def commandId = null
+
+        // check for agent
+        agentsServiceMock.demand.getAgentInfo { fabric, agentName ->
+          assertEquals(f1, fabric)
+          assertEquals("a1", agentName)
+          return true
+        }
 
         // executeShellCommand
         agentsServiceMock.demand.executeShellCommand { fabric, agentName, args ->
@@ -439,6 +454,13 @@ public class TestCommandsServiceImpl extends GroovyTestCase
 
         def agentsServiceMock = new MockFor(AgentsService)
 
+        // check for agent
+        agentsServiceMock.demand.getAgentInfo { fabric, agentName ->
+          assertEquals(f1, fabric)
+          assertEquals("a1", agentName)
+          return true
+        }
+
         // executeShellCommand
         agentsServiceMock.demand.executeShellCommand { fabric, agentName, args ->
           clock.addDuration(Timespan.parse("10s"))
@@ -570,6 +592,13 @@ public class TestCommandsServiceImpl extends GroovyTestCase
 
         def future = new FutureTaskExecution(simulateBlockingCommand)
         future.clock = clock
+
+        // check for agent
+        agentsServiceMock.demand.getAgentInfo { fabric, agentName ->
+          assertEquals(f1, fabric)
+          assertEquals("a1", agentName)
+          return true
+        }
 
         // executeShellCommand
         agentsServiceMock.demand.executeShellCommand { fabric, agentName, args ->
@@ -708,6 +737,13 @@ public class TestCommandsServiceImpl extends GroovyTestCase
 
         def commandId = null
 
+        // check for agent
+        agentsServiceMock.demand.getAgentInfo { fabric, agentName ->
+          assertEquals(f1, fabric)
+          assertEquals("a1", agentName)
+          return true
+        }
+
         // executeShellCommand
         agentsServiceMock.demand.executeShellCommand { fabric, agentName, args ->
           commandId = args.id
@@ -808,6 +844,37 @@ public class TestCommandsServiceImpl extends GroovyTestCase
         assertFalse(dbCommandExecution.isExecuting)
         assertNull(dbCommandExecution.exitError)
       }
+    }
+  }
+
+  /**
+   * Test with no agent
+   */
+  public void testNoAgent()
+  {
+    withStorage {
+
+      def f1 = new Fabric(name: "f1")
+
+      def agentsServiceMock = new MockFor(AgentsService)
+
+      // check for agent
+      agentsServiceMock.demand.getAgentInfo { fabric, agentName ->
+        assertEquals(f1, fabric)
+        assertEquals("a1", agentName)
+        return false
+      }
+
+
+      AgentsService agentsService = agentsServiceMock.proxyInstance()
+      service.agentsService = agentsService
+
+      // execute the shell command
+      assertEquals("a1",
+                   shouldFail(NoSuchAgentException) {
+                     service.executeShellCommand(f1, "a1", [command: "uptime"]) })
+
+      agentsServiceMock.verify(agentsService)
     }
   }
 

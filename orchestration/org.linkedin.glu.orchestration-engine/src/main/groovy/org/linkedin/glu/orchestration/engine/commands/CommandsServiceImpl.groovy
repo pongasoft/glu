@@ -45,6 +45,7 @@ import org.linkedin.glu.utils.concurrent.Submitter
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 import org.linkedin.glu.groovy.utils.plugins.PluginService
 import org.linkedin.glu.groovy.utils.plugins.NoPluginsPluginService
+import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException
 
 /**
  * @author yan@pongasoft.com  */
@@ -119,7 +120,7 @@ public class CommandsServiceImpl implements CommandsService
           _currentCommandExecutions :
           GluGroovyCollectionUtils.subMap(_currentCommandExecutions, commandIds)
 
-      GluGroovyCollectionUtils.collectKey(map, [:]) { k, v -> v.command }
+      GluGroovyCollectionUtils.collectKey(map, [:]) { k, v -> v.command.copy() }
     }
   }
 
@@ -131,8 +132,13 @@ public class CommandsServiceImpl implements CommandsService
     synchronized(_currentCommandExecutions)
     {
       commandExecution = _currentCommandExecutions[commandId]?.command
-      if(commandExecution != null && commandExecution.fabric != fabric.name)
-        return null
+      if(commandExecution != null)
+      {
+        if(commandExecution.fabric != fabric.name)
+          return null
+        else
+          commandExecution = commandExecution.copy()
+      }
     }
 
     if(!commandExecution)
@@ -155,7 +161,7 @@ public class CommandsServiceImpl implements CommandsService
       map.commandExecutions = map.commandExecutions?.collect { DbCommandExecution ce ->
         def current = _currentCommandExecutions[ce.commandId]?.command
         if(current)
-          return current
+          return current.copy()
         else
           return ce
       }
@@ -230,6 +236,10 @@ public class CommandsServiceImpl implements CommandsService
                                          args,
                                          Closure onResultStreamAvailable)
   {
+    // sanity check before executing the command
+    if(!agentsService.getAgentInfo(fabric, agentName))
+      throw new NoSuchAgentException(agentName)
+
     args = GluGroovyCollectionUtils.subMap(args, ['command', 'redirectStderr', 'stdin'])
 
     def pluginArgs = [
