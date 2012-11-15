@@ -183,10 +183,10 @@ public class FileSystemCommandExecutionIOStorage extends AbstractCommandExecutio
       if(exception != null)
       {
         if(exception instanceof Throwable)
-          args.exception = GluGroovyJsonUtils.exceptionToJSON(exception)
+          args.exception = GluGroovyJsonUtils.extractFullStackTrace(exception)
         else
         {
-          args.exception = exception.toString()
+          args.exception = GluGroovyJsonUtils.fromJSON(exception.toString())
           exception = GluGroovyJsonUtils.rebuildException(args.exception)
         }
       }

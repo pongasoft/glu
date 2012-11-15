@@ -58,7 +58,17 @@ class ConsoleConfig
   {
     return org.linkedin.groovy.util.config.Config.getOptionalBoolean(getDefault('features'),
                                                                      feature,
-                                                                     true)
+                                                                     false)
   }
 
+  void disableFeature(feature)
+  {
+    def features = defaults.features
+    if(!features)
+    {
+      features = [:]
+      defaults.features = features
+    }
+    features[feature] = false
+  }
 }

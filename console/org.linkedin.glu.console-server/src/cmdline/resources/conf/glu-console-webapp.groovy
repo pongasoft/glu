@@ -50,6 +50,19 @@ orchestration.engine.plugins = [
   'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin'
 ]
 
+// commands
+def commandsDir =
+  System.properties['org.linkedin.glu.console.commands.dir'] ?: "${System.properties['user.dir']}/commands"
+
+// storage type supported right now are 'filesystem' and 'memory'
+console.commandsService.storageType = 'filesystem'
+
+// when storage is filesystem => where the commands are stored
+console.commandsService.commandExecutionIOStorage.filesystem.rootDir = commandsDir
+
+// when storage is memory => how many elements maximum to store (then start evicting...)
+console.commandsService.commandExecutionIOStorage.memory.maxNumberOfElements = 25
+
 // The following property limits how many (leaf) steps get executed in parallel during a deployment
 // By default (undefined), it is unlimited
 // console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 100
@@ -201,4 +214,10 @@ console.defaults =
       [planType: "transition", displayName: "Stop", state: "stopped"],
     ],
 */
+    // features that can be turned on and off
+    features:
+    [
+      commands: true
+    ],
+
   ]

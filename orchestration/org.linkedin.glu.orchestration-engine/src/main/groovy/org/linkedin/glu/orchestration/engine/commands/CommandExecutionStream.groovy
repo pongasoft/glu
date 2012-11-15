@@ -55,10 +55,12 @@ public class CommandExecutionStream
           _stream = _limitedOutputStream
 
         streams[streamType.multiplexName] = _stream
+
+        c(this)
       }
     }
-
-    c(this)
+    else
+      c(this)
   }
 
   byte[] getBytes()

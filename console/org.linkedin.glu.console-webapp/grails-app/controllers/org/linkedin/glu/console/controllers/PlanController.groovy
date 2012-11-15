@@ -713,7 +713,6 @@ public class PlanController extends ControllerBase
     else
     {
       response.sendError HttpServletResponse.SC_NOT_FOUND
-      render ''
     }
   }
 

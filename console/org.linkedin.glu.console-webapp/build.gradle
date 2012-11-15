@@ -106,6 +106,7 @@ task lib(dependsOn: jar) << {
 console.keystorePath="${new File(keysDir, 'console.keystore').canonicalPath}"
 console.secretkeystorePath="${new File(secretKeyStoreDir, 'console.secretkeystore').canonicalPath}"
 console.truststorePath="${new File(keysDir, 'agent.truststore').canonicalPath}"
+console.commandsService.commandExecutionIOStorage.filesystem.rootDir="${buildDir}/commands"
 """
 
   // generate a hello world system for dev

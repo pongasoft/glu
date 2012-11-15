@@ -183,6 +183,10 @@ public class CommandsServiceImpl implements CommandsService
       {
         // it is ok... we did not get any result during this amount of time
       }
+      catch(Throwable th)
+      {
+        log.warn("command execution generated an unknown exception [ignored]", th)
+      }
     }
 
     return command.id

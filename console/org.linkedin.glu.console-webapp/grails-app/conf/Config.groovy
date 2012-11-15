@@ -420,6 +420,9 @@ environments {
       'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin'
     ]
 
+    // storage type supported right now are 'filesystem' and 'memory'
+    console.commandsService.storageType = 'filesystem'
+
     // log4j configuration
     log4j = {
 
@@ -474,6 +477,9 @@ environments {
     orchestration.engine.plugins = [
       'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin'
     ]
+
+    // storage type supported right now are 'filesystem' and 'memory'
+    console.commandsService.storageType = 'filesystem'
 
     // log4j configuration
     log4j = {

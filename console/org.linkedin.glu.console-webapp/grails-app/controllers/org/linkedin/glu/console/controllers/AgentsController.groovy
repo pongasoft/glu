@@ -536,7 +536,6 @@ class AgentsController extends ControllerBase
     {
       response.sendError(HttpServletResponse.SC_NOT_FOUND,
                          'no such agent')
-      render ''
     }
   }
 

@@ -23,7 +23,6 @@ import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.glu.commands.impl.GluCommandFactory
 import java.text.SimpleDateFormat
 import org.linkedin.groovy.util.json.JsonUtils
-import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.glu.commands.impl.CommandStreamStorage
 import org.linkedin.glu.commands.impl.StreamType
 import org.linkedin.util.clock.Timespan
@@ -33,6 +32,8 @@ import org.linkedin.glu.utils.io.MultiplexedInputStream
 import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
 import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
 import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
+import org.linkedin.groovy.util.collections.IgnoreTypeComparator
+import org.linkedin.glu.groovy.utils.test.GluGroovyTestUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -702,7 +703,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
                              xtra0: 'x0',
                              startTime: startTime,
                              completionTime: completionTime,
-                             exception: GluGroovyJsonUtils.exceptionToJSON(exception),
+                             exception: GluGroovyJsonUtils.fromJSON(GluGroovyJsonUtils.exceptionToJSON(exception)),
                            ],
                            commandResource)
 
@@ -963,8 +964,7 @@ public class TestFileSystemCommandExecutionIOStorage extends GroovyTestCase
    */
   void assertEqualsIgnoreType(o1, o2)
   {
-    assertEquals(JsonUtils.prettyPrint(o1), JsonUtils.prettyPrint(o2))
-    assertTrue("expected <${o1}> but was <${o2}>", GroovyCollectionsUtils.compareIgnoreType(o1, o2))
+    GluGroovyTestUtils.assertEqualsIgnoreType(this, "expected <${o1}> but was <${o2}>", o1, o2)
   }
 
   /**

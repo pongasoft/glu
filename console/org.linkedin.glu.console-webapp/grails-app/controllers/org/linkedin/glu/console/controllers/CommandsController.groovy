@@ -101,7 +101,6 @@ public class CommandsController extends ControllerBase
     catch (NoSuchCommandExecutionException e)
     {
       response.sendError(HttpServletResponse.SC_NOT_FOUND)
-      render ''
     }
   }
 }

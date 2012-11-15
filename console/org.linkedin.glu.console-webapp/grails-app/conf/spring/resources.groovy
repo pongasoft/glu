@@ -67,26 +67,27 @@ beans = {
     commandExecutionStorage(CommandExecutionStorageImpl)
 
     // IO Storage (command)
-    switch(Environment.current)
+    switch(consoleConfig.console.commandsService.storageType)
     {
-      case Environment.DEVELOPMENT:
-      case Environment.TEST:
-        commandExecutionIOStorage(MemoryCommandExecutionIOStorage) {
-          pluginService = ref('pluginService')
-        }
-        break
-
-      default:
-        commandExecutionFileSystem(FileSystemImpl) { bean ->
-          bean.factoryMethod = "createTempFileSystem"
-          bean.destroyMethod = "destroy"
-        }
+      case 'filesystem':
+        def rootDir = new File(consoleConfig.console.commandsService.commandExecutionIOStorage.filesystem.rootDir)
+        commandExecutionFileSystem(FileSystemImpl, rootDir)
 
         commandExecutionIOStorage(FileSystemCommandExecutionIOStorage) {
           commandExecutionFileSystem = ref("commandExecutionFileSystem")
           pluginService = ref('pluginService')
         }
         break
+
+      case 'memory':
+        commandExecutionIOStorage(MemoryCommandExecutionIOStorage) {
+          pluginService = ref('pluginService')
+          maxNumberOfElements = consoleConfig.console.commandsService.commandExecutionIOStorage.memory.maxNumberOfElements ?: 25
+        }
+        break
+
+      default:
+        throw new IllegalArgumentException("unsupported storageType [${consoleConfig.console.commandsService.storageType}]")
     }
 
     commandsService(CommandsServiceImpl) {

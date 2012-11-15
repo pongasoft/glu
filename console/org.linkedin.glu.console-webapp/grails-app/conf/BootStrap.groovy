@@ -137,7 +137,7 @@ class BootStrap {
       log.info "Successfully created (original) admin user. MAKE SURE YOU LOG IN AND CHANGE THE PASSWORD!"
     }
 
-    // initialzing default custom delta definition
+    // initializing default custom delta definition
     CustomDeltaDefinition defaultCustomDeltaDefinition =
       CustomDeltaDefinition.fromDashboard(consoleConfig.defaults.dashboard)
     if(defaultCustomDeltaDefinition)
