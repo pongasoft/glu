@@ -641,16 +641,16 @@ class AgentsController extends ControllerBase
    * curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/agent/agent-2/commands?command=/tmp/shellScriptTestShellExec.sh%20-1%20-2%20-c%20-e" -H "Content-Type: application/octet-stream" --data-binary 'abcdef'
    */
   def rest_execute_shell_command = {
-    def args = GluGroovyCollectionUtils.subMap(params, ['command', 'redirectStderr'])
+    def args = GluGroovyCollectionUtils.subMap(params, ['command', 'redirectStderr', 'type'])
 
     if(request.contentLength != 0)
       args.stdin = request.inputStream
     
-    commandsService.executeShellCommand(request.fabric, params.id, args) {
-      response.addHeader('X-glu-command-id', it.id)
-      response.contentType = "application/octet-stream"
-      response.outputStream << it.stream
-    }
+    def id = commandsService.executeShellCommand(request.fabric, params.id, args)
+
+    response.setContentType('text/json')
+    response.addHeader('X-glu-command-id', id)
+    render prettyPrintJsonWhenRequested([id: id])
   }
 
   private def handleNoAgent(Closure closure)

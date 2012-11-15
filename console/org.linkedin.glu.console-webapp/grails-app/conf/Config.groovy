@@ -375,6 +375,9 @@ console.security.roles = [
   'PUT:/rest/v1/$fabric': 'ADMIN',
   'DELETE:/rest/v1/$fabric': 'ADMIN',
 
+  /**
+   * Commands
+   */
   'POST:/rest/v1/$fabric/agent/$id/commands': 'RELEASE',
 
   'GET:/rest/v1/-/agents': 'USER',

@@ -32,15 +32,6 @@ public interface CommandsService
   String executeShellCommand(Fabric fabric, String agentName, args)
 
   /**
-   * Executes the shell command. Note that this is a blocking call and the
-   * <code>commandResultProcessor</code> will be called with a map (<code>command</code>,
-   * <code>stream</code>). The <code>stream</code> should be properly read and closed!
-   *
-   * @return the exit value of the shell command
-   */
-  def executeShellCommand(Fabric fabric, String agentName, args, Closure commandResultProcessor)
-
-  /**
    * @param closure will be called back with a map with <code>commandExecution</code>
    *        and <code>stream</code> (if any)
    * @throws NoSuchCommandExecutionException if there is no such command

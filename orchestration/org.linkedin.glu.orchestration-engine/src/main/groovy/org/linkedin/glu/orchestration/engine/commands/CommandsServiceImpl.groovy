@@ -466,15 +466,6 @@ public class CommandsServiceImpl implements CommandsService
   }
 
   @Override
-  def executeShellCommand(Fabric fabric, String agentName, args, Closure commandResultProcessor)
-  {
-    doExecuteShellCommandWithPlugin(fabric,
-                                    agentName,
-                                    args,
-                                    commandResultProcessor)
-  }
-
-  @Override
   def withCommandExecutionAndWithOrWithoutStreams(Fabric fabric,
                                                   String commandId,
                                                   def args,
