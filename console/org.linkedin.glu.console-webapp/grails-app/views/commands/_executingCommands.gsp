@@ -37,7 +37,7 @@
           <td class="usernameFilter">${ce.username.encodeAsHTML()}</td>
           <td class="startTimeFilter"><cl:formatDate time="${ce.startTime}"/></td>
           <td class="durationFilter"><cl:formatDuration time="${ce.startTime}"/></td>
-          <td><div class="progress"><img src="${g.resource(dir: 'images', file: 'progress_1x12.png')}" alt="executing..." width="100%" height="12"></div></td>
+          <td><div class="progress">&nbsp;</div></td>
           <td><g:link controller="agents" action="interruptCommand" id="${ce.agent}" params="[commandId: ce.commandId]">Interrupt</g:link></td>
         </tr>
       </g:each>

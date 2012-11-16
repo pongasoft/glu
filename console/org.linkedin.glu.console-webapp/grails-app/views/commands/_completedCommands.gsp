@@ -43,7 +43,7 @@
       <td class="exitValueFilter">${ce.exitValue?.encodeAsHTML()}</td>
       <td class="usernameFilter">${ce.username.encodeAsHTML()}</td>
       <td class="startTimeFilter"><cl:formatDate time="${ce.startTime}"/></td>
-      <td class="completionTimeFilter"><g:if test="${ce.isExecuting}"><div class="progress"><img src="${g.resource(dir: 'images', file: 'progress_1x12.png')}" alt="executing..." width="100%" height="12"></div></g:if><g:else><cl:formatDate time="${ce.completionTime}"/></g:else></td>
+      <td class="completionTimeFilter"><g:if test="${ce.isExecuting}"><div class="progress">&nbsp;</div></g:if><g:else><cl:formatDate time="${ce.completionTime}"/></g:else></td>
       <td class="durationFilter"><cl:formatDuration duration="${ce.duration}"/></td>
     </tr>
   </g:each>

@@ -26,10 +26,13 @@
     padding-bottom: 0.5em;
   }
   .progress {
-    margin-top: 2px;
-    width: 150px;
-    border: solid black 1px;
+    height: 14px;
+    margin: 0;
+    padding: 0;
+    width: 100%;
     display: inline-block;
+    background-image: url('${g.resource(dir: 'images', file: 'progress_24x12.gif')}');
+    background-repeat: repeat;
   }
   </style>
 <g:render template="/commands/command_js"/>

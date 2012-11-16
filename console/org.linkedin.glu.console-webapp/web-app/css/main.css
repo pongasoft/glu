@@ -269,6 +269,14 @@ li.filter-LogicSystemFilterChain {
   padding: 2px;
 }
 
+.shell a {
+  color: #00fff7;
+}
+
+.shell .errorStackTrace a {
+  color: #000000;
+}
+
 .shell .cli {
   font-size: 120%;
 }
@@ -286,5 +294,6 @@ li.filter-LogicSystemFilterChain {
 }
 
 .shell .close {
+  opacity: 0.8;
   color: #ffff00;
 }
