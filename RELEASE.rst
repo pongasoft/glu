@@ -1,6 +1,18 @@
 Latest changes
 ==============
 
+4.6.0 (2012/11/18)
+------------------
+
+This release contains the new feature ``commands`` which extends glu capabilities in order to execute an arbitrary (unix/shell) command on any node. One way to think about it is executing a remote command using a REST api rather than ssh. It provides the added benefit that all commands executed this way are following the `standard` authentication and auditing path followed by deployments. The ``All commands`` view shows you instantly what is (or has been) executing on various agents, thus allowing you to immediately get a sense of what other `actions` (besides deployments) have been performed on an agent for tracking and/or diagnosing purposes.
+
+.. note:: This feature may be disabled entirely. If you are using your own configuration file it will have to be enabled explicitely. If you use the configuration files coming with the distribution, it is enabled by default.
+
+* Implemented `glu-166 <https://github.com/linkedin/glu/issues/166>`_: `Allow agent to run any kind of command`
+* Implemented `glu-169 <https://github.com/linkedin/glu/issues/169>`_: `Add a shell.exec api to also expose stderr`
+* Implemented `glu-170 <https://github.com/linkedin/glu/issues/170>`_: `Add "start" in the plans subtab`
+
+
 4.5.2 (2012/10/31)
 ------------------
 
