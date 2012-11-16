@@ -17,6 +17,8 @@
 
 package org.linkedin.glu.groovy.utils.concurrent
 
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
+
 /**
  * @author ypujante@linkedin.com */
 
@@ -29,7 +31,12 @@ class FutureExecutionImpl<T> extends FutureTaskExecution<T> implements Comparabl
   /**
    * The callback to call on cancel
    */
-  Closure cancelCallback
+  Closure onCancelPreCallback
+
+  /**
+   * The callback to call on cancel
+   */
+  Closure onCancelPostCallback
 
   FutureExecutionImpl()
   {
@@ -38,9 +45,15 @@ class FutureExecutionImpl<T> extends FutureTaskExecution<T> implements Comparabl
 
   boolean cancel(boolean mayInterruptIfRunning)
   {
-    def res = super.cancel(mayInterruptIfRunning)
-    if(cancelCallback)
-      cancelCallback(this)
+    def res = false
+    def cancelSequence = []
+
+    cancelSequence << { if(onCancelPreCallback) onCancelPreCallback(this) }
+    cancelSequence << { res = super.cancel(mayInterruptIfRunning) }
+    cancelSequence << { if(onCancelPostCallback) onCancelPostCallback(this) }
+
+    GluGroovyLangUtils.onlyOneException(cancelSequence)
+
     return res
   }
 

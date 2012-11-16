@@ -217,7 +217,7 @@ public class GluScriptBaseTest extends GroovyTestCase
 
   /**
    * If you want to use a location (uri) instead, then override this method and return
-   * [scriptLocation: ...]. In general it is uncessary since the test is testing a script which
+   * [scriptLocation: ...]. In general it is unnecessary since the test is testing a script which
    * should be in the classpath already so it can be instantiated
    */
   protected Map getScriptDefinition()

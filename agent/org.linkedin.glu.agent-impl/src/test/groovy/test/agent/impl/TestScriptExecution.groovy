@@ -49,8 +49,7 @@ class TestScriptExecution extends GroovyTestCase
 
       // execute action1 with v1
       def fe1 = se.executeAction('action1',
-                                 [p1: 'v1'],
-                                 null)
+                                 [p1: 'v1'])
       tc.waitForBlock('action1.v1')
       // the timeline should be empty
       assertEquals(0, se.timeline.size())
@@ -83,8 +82,7 @@ class TestScriptExecution extends GroovyTestCase
       // a new action is 'inserted' before the timer gets a chance to fire and it should execute
       // first
       def fe2 = se.executeAction('action1',
-                                 [p1: 'v2'],
-                                 null)
+                                 [p1: 'v2'])
       tc.waitForBlock('action1.v2')
       // the timeline should have the timer only
       assertEquals(1, se.timeline.size())
@@ -130,18 +128,18 @@ class TestScriptExecution extends GroovyTestCase
       timerFiringTime = Timespan.parse('1m').futureTimeMillis(timerFiringTime)
 
       def fe3 = se.executeAction('action1',
-                                 [p1: 'v3'],
-                                 null)
+                                 [p1: 'v3'])
       tc.waitForBlock('action1.v3')
 
       def fe4 = se.executeAction('action2',
-                                 [p1: 'v4']) {
+                                 [p1: 'v4'],
+                                 null,
+                                 null) {
         tc.block('action2.cancel')
       }
 
       def fe5 = se.executeAction('action1',
-                                 [p1: 'v5'],
-                                 null)
+                                 [p1: 'v5'])
 
       // there should be 3 entries in the timeline: fe4, fe5 and timer
       waitForScriptExecution(se) { se.timeline.size() == 3 }

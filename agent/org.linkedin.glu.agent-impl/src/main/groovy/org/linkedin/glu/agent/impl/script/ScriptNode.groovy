@@ -282,7 +282,11 @@ def class ScriptNode implements Shutdownable, Startable, GluScript
    */
   FutureExecution executeAction(args)
   {
-    doExecute(args.action, args.actionArgs)
+    doExecute(args.action,
+              args.actionArgs,
+              args.onCompletionCallback,
+              args.onCancelPreCallback,
+              args.onCancelPostCallback)
   }
 
   /**
@@ -436,9 +440,17 @@ def class ScriptNode implements Shutdownable, Startable, GluScript
       throw new NoSuchActionException("action=${args.action} / actionId=${args.actionId}")
   }
 
-  private FutureExecution doExecute(method, methodArgs)
+  private FutureExecution doExecute(method,
+                                    methodArgs,
+                                    Closure onCompletionCallback,
+                                    Closure onCancelPreCallback,
+                                    Closure onCancelPostCallback)
   {
-    _scriptExecution.executeAction(method, methodArgs, null)
+    _scriptExecution.executeAction(method,
+                                   methodArgs,
+                                   onCompletionCallback,
+                                   onCancelPreCallback,
+                                   onCancelPostCallback)
   }
 
   /**

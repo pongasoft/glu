@@ -259,7 +259,11 @@ class ScriptExecution implements Startable, Shutdownable
    *
    * @return a future execution
    */
-  FutureExecution executeAction(String action, actionArgs, Closure cancelCallback)
+  FutureExecution executeAction(String action,
+                                actionArgs,
+                                Closure onCompletionCallback = null,
+                                Closure onCancelPreCallback = null,
+                                Closure onCancelPostCallback = null)
   {
     synchronized(lock)
     {
@@ -274,7 +278,9 @@ class ScriptExecution implements Startable, Shutdownable
       enqueueExecution(new ActionExecution(source: _source,
                                            action: action,
                                            actionArgs: actionArgs,
-                                           cancelCallback: adjustCancelCallback(cancelCallback)))
+                                           onCompletionCallback: onCompletionCallback,
+                                           onCancelPreCallback: onCancelPreCallback,
+                                           onCancelPostCallback: adjustCancelCallback(onCancelPostCallback)))
 
 
     }
@@ -293,7 +299,7 @@ class ScriptExecution implements Startable, Shutdownable
       enqueueExecution(new CallExecution(source: _source,
                                          action: call,
                                          actionArgs: callArgs,
-                                         cancelCallback: adjustCancelCallback(cancelCallback)))
+                                         onCancelPostCallback: adjustCancelCallback(cancelCallback)))
 
 
     }
@@ -317,7 +323,7 @@ class ScriptExecution implements Startable, Shutdownable
       def execution = new TimerExecution(source: _source,
                                          timer: timer,
                                          frequency: repeatFrequency,
-                                         cancelCallback: adjustCancelCallback(cancelCallback))
+                                         onCancelPostCallback: adjustCancelCallback(cancelCallback))
 
       initialFrequency = Timespan.parse(initialFrequency?.toString()) ?: repeatFrequency
 
@@ -598,7 +604,7 @@ class ScriptExecution implements Startable, Shutdownable
               scheduleTimer(_current.timer,
                             null,
                             _current.frequency,
-                            _current.cancelCallback)
+                            _current.onCancelPostCallback)
             }
           }
           _current = null

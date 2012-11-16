@@ -16,24 +16,23 @@
 
 package org.linkedin.glu.agent.impl.command
 
+import org.linkedin.glu.agent.api.AgentException
+import org.linkedin.glu.agent.api.MountPoint
+import org.linkedin.glu.agent.api.NoSuchCommandException
 import org.linkedin.glu.agent.impl.script.AgentContext
-import org.linkedin.glu.groovy.utils.concurrent.CallExecution
+import org.linkedin.glu.agent.impl.script.ScriptManager
+import org.linkedin.glu.commands.impl.CommandExecution
+import org.linkedin.glu.commands.impl.CommandExecutionIOStorage
+import org.linkedin.glu.commands.impl.GluCommandFactory
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.linkedin.util.annotations.Initializable
+import org.linkedin.util.clock.Timespan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import org.linkedin.util.annotations.Initializable
-import org.linkedin.glu.agent.api.NoSuchCommandException
-import org.linkedin.glu.agent.api.AgentException
 import java.util.concurrent.TimeoutException
-import org.linkedin.glu.commands.impl.CommandStreamStorage
-import org.linkedin.glu.commands.impl.CommandExecutionIOStorage
-import org.linkedin.glu.commands.impl.CommandExecution
-import org.linkedin.glu.commands.impl.GluCommandFactory
-import org.linkedin.glu.commands.impl.StreamType
-import org.linkedin.util.clock.Timespan
-import org.linkedin.glu.utils.concurrent.Submitter
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
+import org.linkedin.glu.utils.concurrent.Submitter
 
 /**
  * @author yan@pongasoft.com */
@@ -49,17 +48,31 @@ public class CommandManagerImpl implements CommandManager
   Submitter submitter = FutureTaskExecution.DEFAULT_SUBMITTER
 
   @Initializable(required = true)
-  CommandExecutionIOStorage storage
+  CommandExecutionIOStorage ioStorage
 
   @Initializable(required = true)
   Timespan interruptCommandGracePeriod = Timespan.parse("1s")
 
-  private final Map<String, CommandExecution> _commands = [:]
+  @Initializable(required = true)
+  ScriptManager scriptManager
 
-  void setStorage(CommandExecutionIOStorage storage)
+  void setIoStorage(CommandExecutionIOStorage storage)
   {
     storage.gluCommandFactory = createGluCommand as GluCommandFactory
-    this.storage = storage
+    this.ioStorage = storage
+  }
+
+  MountPoint toMountPoint(CommandExecution commandExecution)
+  {
+    toMountPoint(commandExecution?.id)
+  }
+
+  MountPoint toMountPoint(String commandId)
+  {
+    if(commandId)
+      MountPoint.create("/command/${commandId}")
+    else
+      null
   }
 
   /**
@@ -70,72 +83,58 @@ public class CommandManagerImpl implements CommandManager
   {
     args = GluGroovyCollectionUtils.subMap(args, ['id', 'command', 'redirectStderr', 'stdin', 'type'])
 
-    CommandExecution command = storage.createStorageForCommandExecution([*:args, type: 'shell'])
+    CommandExecution command = ioStorage.createStorageForCommandExecution([*:args, type: 'shell'])
 
-    def asyncProcessing = { CommandStreamStorage storage ->
+    def mountPoint = toMountPoint(command)
 
-      def actionArgs = [*:command.args]
+    def scriptNode = scriptManager.installScript([
+                                                   mountPoint: mountPoint,
+                                                   commandGluScriptFactory: command.id
+                                                 ])
 
-      // handle stdin...
-      storage.withOrWithoutStorageInput(StreamType.stdin) { stdin ->
-        if(stdin)
-          actionArgs.stdin = stdin
-
-        // handle stdout...
-        storage.withOrWithoutStorageOutput(StreamType.stdout) { stdout ->
-          if(stdout)
-            actionArgs.stdout = stdout
-
-          // handle stderr
-          storage.withOrWithoutStorageOutput(StreamType.stderr) { stderr ->
-            if(stderr)
-              actionArgs.stderr = stderr
-
-            // finally run the command
-            def callExecution = new CallExecution(action: 'run',
-                                                  actionArgs: actionArgs,
-                                                  clock: agentContext.clock,
-                                                  source: [invocable: command.command])
-
-            return [exitValue: callExecution.runSync()]
-          }
-        }
-      }
+    ["install", "configure"].each { action ->
+      scriptNode.executeAction([
+                                 mountPoint: mountPoint,
+                                 action: action,
+                                 actionArgs: [commandExecution: command]
+                               ]).get()
     }
 
-    // what to do when the command ends
-    def endExecution = {
-      synchronized(_commands)
-      {
-        _commands.remove(command.id)
-      }
+    def onCompletionCallback = {
+      new FutureTaskExecution( { scriptManager.uninstallScript(mountPoint, true) }).runAsync(submitter)
     }
 
-    synchronized(_commands)
+    ["stop", "unconfigure", "uninstall"].reverse().each { action ->
+
+      def actionOnCompletionCallback = onCompletionCallback
+
+      def callback = {
+        scriptNode.executeAction([
+                                   mountPoint: mountPoint,
+                                   action: action,
+                                   onCompletionCallback: actionOnCompletionCallback
+                                 ])
+      }
+
+      onCompletionCallback = callback
+    }
+
+    scriptNode.executeAction([
+                               mountPoint: mountPoint,
+                               action: "start",
+                               onCompletionCallback: onCompletionCallback
+                             ])
+
+    if(args.id)
     {
-      _commands[command.id] = command
-      try
-      {
-        def future = command.asyncCaptureIO(submitter, asyncProcessing)
-        future.onCompletionCallback = endExecution
-      }
-      catch(Throwable th)
-      {
-        // this is to avoid the case when the command is added to the map but we cannot
-        // run the asynchronous execution which will remove it from the map when complete
-        endExecution()
-        throw th
-      }
-      if(args.id)
-      {
-        command.log.info("execute(${GluGroovyCollectionUtils.xorMap(args, ['stdin', 'id'])}${args.stdin ? ', stdin:<...>': ''})")
-      }
-      else
-      {
-        log.info("execute(${GluGroovyCollectionUtils.xorMap(args, ['stdin'])}${args.stdin ? ', stdin:<...>': ''}): ${command.id}")
-      }
-      return command
+      command.log.info("execute(${GluGroovyCollectionUtils.xorMap(args, ['stdin', 'id'])}${args.stdin ? ', stdin:<...>': ''})")
     }
+    else
+    {
+      log.info("execute(${GluGroovyCollectionUtils.xorMap(args, ['stdin'])}${args.stdin ? ', stdin:<...>': ''}): ${command.id}")
+    }
+
+    return command
   }
 
   /**
@@ -220,17 +219,15 @@ public class CommandManagerImpl implements CommandManager
 
   CommandExecution findCommand(String id)
   {
-    CommandExecution commandExecution
 
     // first we look to see if the command is still currently running
-    synchronized(_commands)
-    {
-      commandExecution = _commands[id]
-    }
+    def scriptNode = scriptManager.findScript(toMountPoint(id))
+
+    CommandExecution commandExecution = scriptNode?.commandExecution
 
     // not found... should be completed => look in storage
     if(!commandExecution)
-      commandExecution = storage.findCommandExecution(id)
+      commandExecution = ioStorage.findCommandExecution(id)
 
     return commandExecution
   }

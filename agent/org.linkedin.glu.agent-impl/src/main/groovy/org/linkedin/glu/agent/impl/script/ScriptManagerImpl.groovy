@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeoutException
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
 
-import org.linkedin.util.url.QueryBuilder
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.groovy.utils.concurrent.FutureExecution
 
@@ -56,6 +55,9 @@ def class ScriptManagerImpl implements ScriptManager
 
   @Initializable(required = true)
   AgentContext agentContext
+
+  @Initializable
+  ScriptFactoryFactory scriptFactoryFactory = new ScriptFactoryFactoryImpl()
 
   private volatile boolean _shutdown = false
   Timespan scriptGracePeriod1 = Timespan.parse('1s')
@@ -129,7 +131,7 @@ def class ScriptManagerImpl implements ScriptManager
 
     ScriptDefinition sd = new ScriptDefinition(mountPoint,
                                                parentNode.mountPoint,
-                                               getScriptFactory(args),
+                                               scriptFactoryFactory.createScriptFactory(args),
                                                initParameters)
 
     // each script will have its shell pointing to a different tmp root relative to the mount point
@@ -516,35 +518,5 @@ def class ScriptManagerImpl implements ScriptManager
   synchronized void removeScriptNode(MountPoint mountPoint)
   {
     _scripts.remove(mountPoint)
-  }
-
-  private def getScriptFactory(args)
-  {
-    if(args.scriptFactory)
-    {
-      return args.scriptFactory
-    }
-
-    if(args.scriptClassName)
-    {
-      return new FromClassNameScriptFactory(args.scriptClassName, args.scriptClassPath)
-    }
-
-    if(args.scriptLocation)
-    {
-      // add support for class:/<fqcn>?cp=<cp1>&cp=<cp2>...
-      if(args.scriptLocation.toString().startsWith("class:/"))
-      {
-        URI uri = new URI(args.scriptLocation.toString())
-        QueryBuilder query = new QueryBuilder()
-        query.addQuery(uri)
-        return new FromClassNameScriptFactory(uri.path - '/',
-                                              query.getParameterValues("cp")?.collect { it })
-      }
-      else
-        return new FromLocationScriptFactory(args.scriptLocation)
-    }
-
-    throw new IllegalArgumentException("cannot determine script factory: ${args}")
   }
 }

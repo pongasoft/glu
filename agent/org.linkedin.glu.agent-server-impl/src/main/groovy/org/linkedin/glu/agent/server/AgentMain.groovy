@@ -70,6 +70,9 @@ import org.linkedin.glu.agent.impl.command.CommandManager
 import org.linkedin.glu.utils.core.DisabledFeatureProxy
 import org.linkedin.glu.agent.impl.command.CommandManagerImpl
 import org.linkedin.glu.commands.impl.FileSystemCommandExecutionIOStorage
+import org.linkedin.glu.agent.impl.script.ScriptManagerImpl
+
+import org.linkedin.glu.agent.impl.command.CommandGluScriptFactoryFactory
 
 /**
  * This is the main class to start the agent.
@@ -428,6 +431,7 @@ class AgentMain implements LifecycleListener, Configurable
     _agent = new AgentImpl()
     _agentTempDir = GroovyIOUtils.toFile(Config.getRequiredString(_config, "${prefix}.agent.tempDir"))
     _storage = createStorage()
+    def scriptManager = new ScriptManagerImpl(agentContext: _agent)
 
     _zkClient?.registerListener(this)
 
@@ -439,7 +443,8 @@ class AgentMain implements LifecycleListener, Configurable
     [
       rootShell: rootShell,
       shellForScripts: createShell(rootShell, "${prefix}.agent.scriptRootDir"),
-      commandManager: createCommandsManager(rootShell),
+      scriptManager: scriptManager,
+      commandManager: createCommandsManager(rootShell, scriptManager),
       agentLogDir: rootShell.toResource(Config.getRequiredString(_config, "${prefix}.agent.logDir")),
       storage: _storage,
       sigar: _sigar,
@@ -617,7 +622,8 @@ class AgentMain implements LifecycleListener, Configurable
                          agentProperties: _agentProperties)
   }
 
-  protected CommandManager createCommandsManager(ShellImpl rootShell)
+  protected CommandManager createCommandsManager(ShellImpl rootShell,
+                                                 ScriptManagerImpl scriptManager)
   {
     if(Config.getOptionalBoolean(_config, "${prefix}.agent.features.commands.enabled", false))
     {
@@ -627,7 +633,7 @@ class AgentMain implements LifecycleListener, Configurable
                                                  "${prefix}.agent.commands.storageType",
                                                  "filesystem")
 
-      def storage
+      def ioStorage
 
       switch(storageType)
       {
@@ -635,17 +641,21 @@ class AgentMain implements LifecycleListener, Configurable
           def commandsDir = Config.getRequiredString(_config,
                                                      "${prefix}.agent.commands.filesystem.dir")
           def filesystem =  rootShell.fileSystem.newFileSystem(commandsDir)
-          storage = new FileSystemCommandExecutionIOStorage(commandExecutionFileSystem: filesystem)
+          ioStorage = new FileSystemCommandExecutionIOStorage(commandExecutionFileSystem: filesystem)
           break
 
         default:
           throw new IllegalArgumentException("unsupported storageType [${storageType}]")
       }
 
-      storage.clock = _agent.clock
+      ioStorage.clock = _agent.clock
+
+      def f = new CommandGluScriptFactoryFactory(ioStorage: ioStorage)
+      scriptManager.scriptFactoryFactory.chain(f)
 
       new CommandManagerImpl(agentContext: _agent,
-                             storage: storage)
+                             ioStorage: ioStorage,
+                             scriptManager: scriptManager)
     }
     else
     {

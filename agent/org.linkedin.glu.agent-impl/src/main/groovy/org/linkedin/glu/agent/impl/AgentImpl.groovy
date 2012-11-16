@@ -45,6 +45,7 @@ import org.linkedin.glu.agent.impl.command.CommandManagerImpl
 import org.linkedin.glu.agent.api.NoSuchCommandException
 import org.linkedin.glu.commands.impl.MemoryCommandExecutionIOStorage
 import org.linkedin.glu.commands.impl.CommandExecution
+import org.linkedin.glu.agent.impl.command.CommandGluScriptFactoryFactory
 
 /**
  * The main implementation of the agent
@@ -89,9 +90,24 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
     _sigar = args.sigar
     _mop = args.mop ?: new MOPImpl()
     _scriptManager = args.scriptManager ?: new ScriptManagerImpl(agentContext: this)
+    if(args.commandManager)
+      _commandManager = args.commandManager
+    else
+    {
+      _commandManager = new CommandManagerImpl(agentContext: this,
+                                               ioStorage: new MemoryCommandExecutionIOStorage(clock: clock),
+                                               scriptManager: _scriptManager)
+      if(!args.scriptManager)
+      {
+        def f = new CommandGluScriptFactoryFactory(ioStorage: _commandManager.ioStorage)
+        _scriptManager.scriptFactoryFactory.chain(f)
+      }
+    }
+
     _commandManager = args.commandManager ?:
       new CommandManagerImpl(agentContext: this,
-                             storage: new MemoryCommandExecutionIOStorage(clock: clock))
+                             ioStorage: new MemoryCommandExecutionIOStorage(clock: clock),
+                             scriptManager: _scriptManager)
     def storage = args.storage
     if(storage != null)
       _scriptManager = new StateKeeperScriptManager(scriptManager: _scriptManager,
