@@ -36,6 +36,10 @@ import org.linkedin.glu.groovy.utils.plugins.PluginService
 import org.linkedin.util.url.URLBuilder
 import org.linkedin.glu.groovy.util.state.DefaultStateMachine
 
+import org.linkedin.util.reflect.ObjectProxyBuilder
+import org.linkedin.util.clock.Timespan
+import org.linkedin.glu.agent.api.TimeOutException
+
 /**
  * @author ypujante
  */
@@ -55,6 +59,18 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
 
   @Initializable(required = true)
   PluginService pluginService
+
+  /**
+   * when a communication exception is detected with the agent, it will sleep for this time
+   * before trying again */
+  @Initializable(required = false)
+  Timespan agentRecoveryTimeout = Timespan.parse('5s')
+
+  /**
+   * when a communication exception is detected with the agent, it will retry a certain number of
+   * times */
+  @Initializable(required = false)
+  int agentRecoveryNumRetries = 10
 
   @Override
   URI getAgentURI(String fabric, String agent) throws NoSuchAgentException
@@ -241,9 +257,31 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
   }
 
   @Override
+  def waitForCommand(Fabric fabric, String agentName, def args)
+  {
+    withRecoverableRemoteAgent(fabric, agentName) { Agent agent ->
+      agent.waitForCommand(args)
+    }
+  }
+
+  @Override
+  boolean waitForCommandNoTimeOutException(Fabric fabric, String agentName, def args)
+  {
+    try
+    {
+      waitForCommand(fabric, agentName, args)
+      return true
+    }
+    catch(TimeOutException e)
+    {
+      return false
+    }
+  }
+
+  @Override
   def streamCommandResults(Fabric fabric, String agentName, def args, Closure commandResultProcessor)
   {
-    withRemoteAgent(fabric, agentName) { Agent agent ->
+    withRecoverableRemoteAgent(fabric, agentName) { Agent agent ->
       commandResultProcessor(agent.streamCommandResults(args))
     }
   }
@@ -346,5 +384,18 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
       closure(agent)
     }
   }
+
+  /**
+   * Compute the agent URI and call the closure with the {@link Agent}.
+   */
+  private def withRecoverableRemoteAgent(Fabric fabric, String agentName, Closure closure)
+  {
+    withRemoteAgent(fabric, agentName) { Agent agent ->
+      def agentProxy = new RecoverableAgent(agent, agentRecoveryNumRetries, agentRecoveryTimeout)
+      agent = ObjectProxyBuilder.createProxy(agentProxy, Agent.class)
+      closure(agent)
+    }
+  }
+
 
 }

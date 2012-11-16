@@ -21,6 +21,7 @@ import org.linkedin.glu.agent.tracker.AgentInfo
 import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
+import org.linkedin.glu.agent.api.TimeOutException
 
 /**
  * @author ypujante
@@ -78,6 +79,33 @@ interface AgentsService
   def executeShellCommand(Fabric fabric,
                           String agentName,
                           args)
+
+  /**
+   * Wait (no longer than the timeout provided) for the command to complete and return the exit
+   * value
+   *
+   * @param args.id the id of the command (as returned by {@lin #executeShellCommand})
+   * @param args.timeout if not <code>null</code>, the amount of time to wait maximum. If
+   *                     <code>null</code>, wait until the command completes.
+   * @return the exit value
+   */
+  def waitForCommand(Fabric fabric,
+                     String agentName,
+                     args) throws TimeOutException
+
+  /**
+   * Wait (no longer than the timeout provided) for the command to complete and return the exit
+   * value
+   *
+   * @param args.id the id of the command (as returned by {@lin #executeShellCommand})
+   * @param args.timeout if not <code>null</code>, the amount of time to wait maximum. If
+   *                     <code>null</code>, wait until the command completes.
+   * @return <code>true</code> if the command completed within the timeout or <code>false</code>
+   *         otherwise
+   */
+  boolean waitForCommandNoTimeOutException(Fabric fabric,
+                                           String agentName,
+                                           args) throws TimeOutException
 
   /**
    * Streams the results from the command.

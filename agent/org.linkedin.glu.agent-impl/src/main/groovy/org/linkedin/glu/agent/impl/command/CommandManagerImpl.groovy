@@ -68,11 +68,9 @@ public class CommandManagerImpl implements CommandManager
   @Override
   CommandExecution executeShellCommand(def args)
   {
-    args = GluGroovyCollectionUtils.subMap(args, ['id', 'command', 'redirectStderr', 'stdin'])
+    args = GluGroovyCollectionUtils.subMap(args, ['id', 'command', 'redirectStderr', 'stdin', 'type'])
 
-    args.type = 'shell'
-
-    CommandExecution command = storage.createStorageForCommandExecution(args)
+    CommandExecution command = storage.createStorageForCommandExecution([*:args, type: 'shell'])
 
     def asyncProcessing = { CommandStreamStorage storage ->
 
@@ -128,7 +126,14 @@ public class CommandManagerImpl implements CommandManager
         endExecution()
         throw th
       }
-      command.log.info("execute(${GluGroovyCollectionUtils.xorMap(args, ['stdin'])}${args.stdin ? ', stdin:<...>': ''})")
+      if(args.id)
+      {
+        command.log.info("execute(${GluGroovyCollectionUtils.xorMap(args, ['stdin', 'id'])}${args.stdin ? ', stdin:<...>': ''})")
+      }
+      else
+      {
+        log.info("execute(${GluGroovyCollectionUtils.xorMap(args, ['stdin'])}${args.stdin ? ', stdin:<...>': ''}): ${command.id}")
+      }
       return command
     }
   }
@@ -158,7 +163,6 @@ public class CommandManagerImpl implements CommandManager
   def findCommandExecutionAndStreams(def args)
   {
     CommandExecution commandExecution = findCommand(args.id)
-    println "${args.id} => ${commandExecution}"
     if(commandExecution)
     {
       commandExecution.log.info("findCommandExecutionAndStreams(${GluGroovyCollectionUtils.xorMap(args, ['id'])})")
@@ -253,7 +257,7 @@ public class CommandManagerImpl implements CommandManager
 
     def commandProperties = [:]
 
-    def log = LoggerFactory.getLogger("org.linkedin.glu.agent.command.${commandId}")
+    def log = LoggerFactory.getLogger("org.linkedin.glu.agent.command./command/${commandId}")
 
     commandProperties.putAll(
     [

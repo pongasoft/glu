@@ -30,6 +30,9 @@ import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.utils.tags.TagsSerializer
 import org.linkedin.glu.groovy.util.state.DefaultStateMachine
 import org.linkedin.glu.agent.rest.common.AgentRestUtils
+import org.linkedin.glu.agent.api.TimeOutException
+import org.linkedin.util.clock.Timespan
+import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 
 /**
  * Command line to talk to the agent
@@ -42,6 +45,8 @@ class ClientMain implements Startable
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
   public static final TagsSerializer TAGS_SERIALIZER = TagsSerializer.INSTANCE
+
+  public static final Timespan waitCommandTimeout = Timespan.parse("10s")
 
   protected def config
   protected CliBuilder cli
@@ -58,7 +63,18 @@ class ClientMain implements Startable
   def withAgent(Closure closure)
   {
     factory.withRemoteAgent(new URI(Config.getRequiredString(config, 'url'))) { agent ->
-      closure(agent)
+
+      def async = {
+        closure(agent)
+      }
+
+      def future = new FutureTaskExecution(async)
+
+      addShutdownHook {
+        future.cancel(true)
+      }
+
+      future.runAsync().get()
     }
   }
 
@@ -128,11 +144,23 @@ class ClientMain implements Startable
 
     def id = agent.executeShellCommand(args).id
 
+    boolean completed = false
+
+    // this will block until the command completes but will loop "regularly"
+    while(!completed)
+    {
+      completed = waitForCommandNoTimeOutException(agent,
+                                                   [
+                                                     id: id,
+                                                     timeout: waitCommandTimeout
+                                                   ])
+    }
+
     args = [
-            id: id,
-            exitValueStream: true,
-            exitValueStreamTimeout: 0,
-            stdoutStream: true,
+      id: id,
+      exitValueStream: true,
+      exitErrorStream: true,
+      stdoutStream: true,
     ]
 
     if(!redirectStderr)
@@ -141,6 +169,19 @@ class ClientMain implements Startable
     InputStream mis  = agent.streamCommandResults(args).stream
 
     exitValue = AgentRestUtils.demultiplexExecStream(mis, System.out, System.err) as int
+  }
+
+  boolean waitForCommandNoTimeOutException(Agent agent, def args)
+  {
+    try
+    {
+      agent.waitForCommand(args)
+      return true
+    }
+    catch(TimeOutException e)
+    {
+      return false
+    }
   }
 
   /******************************

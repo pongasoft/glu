@@ -33,7 +33,7 @@ import org.linkedin.util.clock.Timespan
 import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptLifecycleInstallActionDescriptor
 import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptLifecycleUninstallActionDescriptor
 import org.linkedin.util.reflect.ObjectProxyBuilder
-import org.linkedin.glu.orchestration.engine.action.execution.RecoverableAgent
+import org.linkedin.glu.orchestration.engine.agents.RecoverableAgent
 
 /**
  * This implementation uses a convention:

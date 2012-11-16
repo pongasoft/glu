@@ -74,6 +74,11 @@ public class CommandsServiceImpl implements CommandsService
   PluginService pluginService = NoPluginsPluginService.INSTANCE
 
   /**
+   * the timeout for waiting for command to complete */
+  @Initializable(required = false)
+  Timespan timeout = Timespan.parse('10s')
+
+  /**
    * This is somewhat hacky but cannot do it in spring due to circular reference...
    */
   void setCommandExecutionIOStorage(CommandExecutionIOStorage storage)
@@ -284,10 +289,25 @@ public class CommandsServiceImpl implements CommandsService
           agentsService.executeShellCommand(fabric, agentName, agentArgs)
         }
 
+        boolean completed = false
+
+        // this will block until the command completes but will loop "regularly"
+        while(!completed)
+        {
+          completed = agentsService.waitForCommandNoTimeOutException(fabric,
+                                                                     agentName,
+                                                                     [
+                                                                       id: command.id,
+                                                                       username: args.username,
+                                                                       timeout: timeout
+                                                                     ])
+        }
+
+
         def streamResultArgs = [
           id: command.id,
+          exitErrorStream: true,
           exitValueStream: true,
-          exitValueStreamTimeout: 0, // we block until the command completes
           stdoutStream: true,
           username: args.username
         ]

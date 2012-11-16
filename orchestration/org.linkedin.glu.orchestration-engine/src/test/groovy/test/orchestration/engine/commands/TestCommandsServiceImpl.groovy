@@ -147,6 +147,36 @@ public class TestCommandsServiceImpl extends GroovyTestCase
           tc.block("executeShellCommand.end")
         }
 
+        // wait for command to complete (1st loop)
+        agentsServiceMock.demand.waitForCommandNoTimeOutException { fabric, agentName, args ->
+          assertEquals(f1, fabric)
+          assertEquals("a1", agentName)
+
+          assertEqualsIgnoreType([
+                                   id: commandId,
+                                   username: 'u1',
+                                   timeout: service.timeout
+                                 ],
+                                 args)
+
+          return false
+        }
+
+        // wait for command to complete (2nd loop)
+        agentsServiceMock.demand.waitForCommandNoTimeOutException { fabric, agentName, args ->
+          assertEquals(f1, fabric)
+          assertEquals("a1", agentName)
+
+          assertEqualsIgnoreType([
+                                   id: commandId,
+                                   username: 'u1',
+                                   timeout: service.timeout
+                                 ],
+                                 args)
+
+          return true
+        }
+
         // stream result (this will be called asynchronously!)
         agentsServiceMock.demand.streamCommandResults { Fabric fabric,
                                                         String agentName,
@@ -158,7 +188,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
           assertEqualsIgnoreType([
                                    id: commandId,
                                    exitValueStream: true,
-                                   exitValueStreamTimeout: 0,
+                                   exitErrorStream: true,
                                    stdoutStream:true,
                                    username: 'u1',
                                    stderrStream:true
@@ -316,6 +346,11 @@ public class TestCommandsServiceImpl extends GroovyTestCase
           tc.block("executeShellCommand.end")
         }
 
+        // wait for command to complete (1st loop)
+        agentsServiceMock.demand.waitForCommandNoTimeOutException { fabric, agentName, args ->
+          return true
+        }
+
         // stream result (this will be called asynchronously!)
         agentsServiceMock.demand.streamCommandResults { Fabric fabric,
                                                         String agentName,
@@ -327,7 +362,7 @@ public class TestCommandsServiceImpl extends GroovyTestCase
           assertEqualsIgnoreType([
                                    id: commandId,
                                    exitValueStream: true,
-                                   exitValueStreamTimeout: 0,
+                                   exitErrorStream: true,
                                    stdoutStream:true,
                                    username: 'u1',
                                  ],
@@ -749,6 +784,11 @@ public class TestCommandsServiceImpl extends GroovyTestCase
           commandId = args.id
           clock.addDuration(Timespan.parse("10s"))
           tc.block("executeShellCommand.end")
+        }
+
+        // wait for command to complete (1st loop)
+        agentsServiceMock.demand.waitForCommandNoTimeOutException { fabric, agentName, args ->
+          return true
         }
 
         // stream result (this will be called asynchronously!)
