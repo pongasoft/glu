@@ -29,6 +29,7 @@ import org.linkedin.util.clock.Timespan
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.zookeeper.client.ZKData
+import org.linkedin.glu.groovy.utils.test.GluGroovyTestUtils
 
 /**
  * This test will start a zookeeper server and shuts it down, so it is not relying on one currently
@@ -180,5 +181,29 @@ class TestZookeeperStorage extends GroovyTestCase
 
     // on the other end the agent.properties are gone because it is an ephemeral node
     shouldFail(KeeperException.NoNodeException) { p.getZKStringData('/') }
+  }
+
+  public void testWeirdCharactersInMountPoint()
+  {
+    IZKClient c = client.chroot('storage')
+    IZKClient p = client.chroot('agent.properties')
+
+    ZooKeeperStorage storage = new ZooKeeperStorage(c, p)
+
+    def state = [scriptState: [stateMachine: [currentState: 'installed']]]
+
+    def mp = MountPoint.create('/a_b/c*d/e#f')
+
+    storage.storeState(mp, state)
+
+    GluGroovyTestUtils.assertEqualsIgnoreType(this,
+                                              "state differ",
+                                              state,
+                                              JsonUtils.fromJSON(c.getStringData("_a%5Fb_c*d_e%23f")))
+
+    GluGroovyTestUtils.assertEqualsIgnoreType(this,
+                                              "mountpoints",
+                                              [mp],
+                                              storage.mountPoints)
   }
 }

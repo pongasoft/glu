@@ -51,7 +51,7 @@ class FileSystemStorage implements Storage
 
   public synchronized void clearState(MountPoint mountPoint)
   {
-    def state = _fileSystem.toResource(toPath(mountPoint))
+    def state = _fileSystem.toResource(mountPoint.toPathWithNoSlash())
     _fileSystem.rm(state)
   }
 
@@ -64,9 +64,11 @@ class FileSystemStorage implements Storage
 
   public synchronized getMountPoints()
   {
-    def pontentialMountpoints = _fileSystem.ls().collect { resource -> fromPath(resource.filename) }
+    def potentialMountPoints = _fileSystem.ls().collect { resource ->
+      MountPoint.fromPathWithNoSlash(resource.filename)
+    }
 
-    pontentialMountpoints.findAll { MountPoint mp ->
+    potentialMountPoints.findAll { MountPoint mp ->
       GroovyLangUtils.noException(mp, null) { loadState(mp) }
     }
   }
@@ -77,7 +79,7 @@ class FileSystemStorage implements Storage
       GroovyLangUtils.noExceptionWithValueOnException(false) {
         
         def state = GroovyLangUtils.noException(resource, null) {
-          loadState(fromPath(resource.filename))
+          loadState(MountPoint.fromPathWithNoSlash(resource.filename))
         }
 
         if(state == null)
@@ -97,7 +99,7 @@ class FileSystemStorage implements Storage
     def state = GroovyLangUtils.noException(mountPoint, null) {
       try
       {
-        _fileSystem.deserializeFromFile(toPath(mountPoint))
+        _fileSystem.deserializeFromFile(mountPoint.toPathWithNoSlash())
       }
       catch (FileNotFoundException e)
       {
@@ -120,7 +122,7 @@ class FileSystemStorage implements Storage
     if(extractMountPointFromState(state) != mountPoint)
       throw new IllegalArgumentException("mismatch mountPoint: ${mountPoint} != ${extractMountPointFromState(state)}")
 
-    _fileSystem.serializeToFile(toPath(mountPoint), state)
+    _fileSystem.serializeToFile(mountPoint.toPathWithNoSlash(), state)
   }
 
   private MountPoint extractMountPointFromState(state)
@@ -162,22 +164,5 @@ class FileSystemStorage implements Storage
     AgentProperties agentProperties = loadAgentProperties()
     agentProperties.setAgentProperty(name, value)
     saveAgentProperties(agentProperties)
-  }
-
-  private String toPath(MountPoint mp)
-  {
-    // YP Note: _ => %5F is to fix glu-151
-    def path = mp.path
-    path = path.replace('%', '%25')
-    path = path.replace('_', '%5F')
-    path = path.replace('/', '_')
-    return path
-  }
-
-  private MountPoint fromPath(String path)
-  {
-    path = path.replace('_', '/')
-    path = URLDecoder.decode(path, "UTF-8")
-    return MountPoint.create(path)
   }
 }

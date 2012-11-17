@@ -583,7 +583,7 @@ class AgentsTrackerInstance
         // handling only the leaves
         if(event.depth == 2)
         {
-          MountPoint mountPoint = fromPath(event.name)
+          MountPoint mountPoint = MountPoint.fromPathWithNoSlash(event.name)
           // not tracking root.. no real value
           if(mountPoint == MountPoint.ROOT)
             return
@@ -623,11 +623,6 @@ class AgentsTrackerInstance
         }
       }
     }
-  }
-
-  private MountPoint fromPath(String path)
-  {
-    return MountPoint.create(path.replace('_', '/'))
   }
 
   private String eventsLogString(events, boolean summary)

@@ -70,7 +70,7 @@ public class CommandManagerImpl implements CommandManager
   MountPoint toMountPoint(String commandId)
   {
     if(commandId)
-      MountPoint.create("/command/${commandId}")
+      MountPoint.create("/_/command/${commandId}")
     else
       null
   }

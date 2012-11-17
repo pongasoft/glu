@@ -472,6 +472,9 @@ class AgentRestClient implements Agent
     if(!mountPoint)
       throw new NoSuchMountPointException('null mount point')
 
+    // need to properly escape all weird characters
+    mountPoint = mountPoint.split('/').collect { URLEncoder.encode(it) }.join('/')
+
     return addPath(_references.mountPoint, mountPoint)
   }
 

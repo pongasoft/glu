@@ -58,6 +58,7 @@ import org.linkedin.glu.agent.rest.resources.CommandStreamsResource
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 import org.linkedin.util.clock.Timespan
 import org.linkedin.util.clock.Chronos
+import org.linkedin.glu.groovy.utils.test.GluGroovyTestUtils
 
 /**
  * The code which is in {@link AgentRestClient} is essentially the code to use for calling the rest
@@ -635,6 +636,8 @@ gc: 1000
     router.context.getAttributes().put(CommandStreamsResource.class.name, "/command")
     router.attach("/command/{id}/exitValue", CommandExitValueResource)
     router.context.getAttributes().put(CommandExitValueResource.class.name, "/command")
+    router.attach("/mountPoint/", MountPointResource).matchingMode = Template.MODE_STARTS_WITH
+    router.context.getAttributes().put(MountPointResource.class.name, "/mountPoint")
 
     AgentFactoryImpl.create(commandsPath: "/commands",
                             sslEnabled: false).withRemoteAgent(serverURI) { Agent arc ->
@@ -687,8 +690,36 @@ gc: 1000
           def async = {
             // the issue is that reading the stream is blocking (issue with restlet!)... so we do
             // it in a separate thread (the sleep is to make sure that we are "reading" when we
-            // interrupt
+            // interrupt)
             Thread.sleep(Timespan.parse("1s").durationInMilliseconds)
+
+            def expectedState = [
+              scriptDefinition: [
+                mountPoint: "/_/command/${execResult.id}",
+                parent: '/',
+                scriptFactory: [
+                  scriptFactoryClass: 'CommandGluScriptFactory'
+                ],
+                initParameters: [:],
+              ],
+              scriptState: [
+                script: [:],
+                stateMachine: [
+                  currentState: 'stopped',
+                  transitionAction: 'start',
+                  transitionState: 'stopped->running'
+                ]
+              ]
+            ]
+            // we check that a glu script is running
+            def fullState = arc.getFullState(mountPoint: "/_/command/${execResult.id}")
+
+            GluGroovyTestUtils.assertEqualsIgnoreType(this,
+                                                      "command glu script running not running",
+                                                      expectedState,
+                                                      fullState)
+
+            // we interrupt it
             arc.interruptCommand([id: execResult.id])
           }
           future = new FutureTaskExecution(async)

@@ -93,7 +93,7 @@ class ZooKeeperStorage implements WriteOnlyStorage
     zkSafe(_zkState) { IZKClient zk ->
       try
       {
-        zk.delete(toPath(mountPoint))
+        zk.delete(mountPoint.toPathWithNoSlash())
       }
       catch (KeeperException.NoNodeException e)
       {
@@ -113,7 +113,7 @@ class ZooKeeperStorage implements WriteOnlyStorage
       if(zk.exists('/'))
       {
         zk.getChildren('/').each { child ->
-          mountPoints << fromPath(child)
+          mountPoints << MountPoint.fromPathWithNoSlash(child)
         }
       }
 
@@ -149,7 +149,7 @@ class ZooKeeperStorage implements WriteOnlyStorage
 
       state = JsonUtils.compactPrint(state)
 
-      zk.createOrSetWithParents(toPath(mountPoint),
+      zk.createOrSetWithParents(mountPoint.toPathWithNoSlash(),
                                 state,
                                 ACLs,
                                 CreateMode.PERSISTENT)
@@ -194,15 +194,5 @@ class ZooKeeperStorage implements WriteOnlyStorage
     }
 
     return out
-  }
-
-  private String toPath(MountPoint mp)
-  {
-    return mp.path.replace('/', '_')
-  }
-
-  private MountPoint fromPath(String path)
-  {
-    return MountPoint.create(path.replace('_', '/'))
   }
 }

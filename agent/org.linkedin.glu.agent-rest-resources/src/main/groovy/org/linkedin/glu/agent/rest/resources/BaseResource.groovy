@@ -152,7 +152,7 @@ class BaseResource extends Resource
   protected String getPath()
   {
     Reference ref = request.originalRef
-    return ref.path - resourceMountPoint
+    return ref.getPath(true) - resourceMountPoint
   }
 
   protected void addResponseHeader(String name, def value)

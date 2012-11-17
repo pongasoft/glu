@@ -903,7 +903,7 @@ gc: 1000
           agent._commandManager.findCommand(execResult.id).command.exitValueStream != null
         }
 
-        def mountPoint = MountPoint.create("/command/${execResult.id}")
+        def mountPoint = MountPoint.create("/_/command/${execResult.id}")
 
         def state = [
           scriptDefinition: [
