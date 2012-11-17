@@ -25,6 +25,8 @@ import org.linkedin.groovy.util.config.Config
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.CancellationException
 import org.linkedin.glu.utils.concurrent.Submitter
+import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
+import org.linkedin.util.clock.SystemClock
 
 /**
  * @author yan@pongasoft.com */
@@ -37,8 +39,10 @@ public class CommandExecution<T>
   synchronized long startTime = 0L
   synchronized long completionTime = 0L
 
-  FutureTaskExecution futureExecution
+  FutureTaskExecution _futureExecution
   CommandStreamStorage storage
+
+  private final Object _lock = new Object()
 
   CommandExecution(String commandId, args)
   {
@@ -80,13 +84,88 @@ public class CommandExecution<T>
     completionTime > 0
   }
 
+  void setFutureExecution(FutureTaskExecution futureExecution)
+  {
+    synchronized(_lock)
+    {
+      _futureExecution = futureExecution
+      _lock.notifyAll()
+    }
+  }
+
+  void waitForStart(def timeout = null)
+  {
+    waitForFutureExecution(timeout)
+  }
+
+  /**
+   * This method waits for 1. the future to be set, 2. the future to have started
+   * no longer than the timeout (overall). If another condition is provided then also await
+   * for that condition
+   *
+   * @param timeout
+   * @param condition
+   * @return whatever <code>condition</code> returns or <code>null</code> if non
+   */
+  def waitForFutureExecution(def timeout = null, Closure condition = null)
+  {
+    // already completed => no need to wait
+    if(isCompleted())
+    {
+      if(condition)
+        return condition(timeout)
+      else
+        return null
+    }
+
+    def conditions = []
+
+    def clock = SystemClock.INSTANCE
+
+    // 1. wait for future to be set
+    if(_futureExecution == null)
+      conditions << { t ->
+        GroovyConcurrentUtils.awaitFor(clock, t, _lock) {
+          _futureExecution != null
+        }
+      }
+    else
+      clock = _futureExecution.clock
+
+    // 2. wait for future to be started
+    if(!_futureExecution?.isStarted())
+      conditions << { t ->
+        _futureExecution.waitForStart(t)
+      }
+
+    // no other conditions?
+    if(conditions.isEmpty())
+    {
+      if(condition)
+        return condition(timeout)
+      else
+        return null
+    }
+    else
+    {
+      // add the condition if provided
+      if(condition)
+        conditions << condition
+
+      // wait for everything to complete
+      GroovyConcurrentUtils.waitMultiple(clock, timeout, conditions)
+    }
+  }
+
   void waitForCompletion(def timeout)
   {
     if(!isCompleted())
     {
       try
       {
-        futureExecution.get(timeout)
+        waitForFutureExecution(timeout) { t ->
+          _futureExecution.get(t)
+        }
       }
       catch(ExecutionException e)
       {
@@ -110,7 +189,9 @@ public class CommandExecution<T>
     {
       try
       {
-        futureExecution.get(timeout)
+        waitForFutureExecution(timeout) { t ->
+          _futureExecution.get(t)
+        }
       }
       catch(ExecutionException e)
       {
@@ -131,7 +212,10 @@ public class CommandExecution<T>
 
   boolean interruptExecution()
   {
-    return futureExecution.cancel(true)
+    if(_futureExecution)
+      return _futureExecution.cancel(true)
+    else
+      return false
   }
 
   def getExitValueIfCompleted()
@@ -146,7 +230,9 @@ public class CommandExecution<T>
   {
     try
     {
-      futureExecution.get(timeout)
+      waitForFutureExecution(timeout) { t ->
+        _futureExecution.get(t)
+      }
     }
     catch(ExecutionException e)
     {
@@ -180,7 +266,9 @@ public class CommandExecution<T>
   {
     try
     {
-      futureExecution.get(timeout)
+      waitForFutureExecution(timeout) { t ->
+        _futureExecution.get(t)
+      }
     }
     catch(ExecutionException e)
     {

@@ -38,6 +38,9 @@ public abstract class AbstractScriptFactoryFactory implements ScriptFactoryFacto
   @Override
   final ScriptFactory createScriptFactory(def args)
   {
+    if(args instanceof ScriptDefinition)
+      args = args.scriptFactoryArgs
+
     def scriptFactory = doCreateScriptFactory(args)
 
     if(scriptFactory == null)

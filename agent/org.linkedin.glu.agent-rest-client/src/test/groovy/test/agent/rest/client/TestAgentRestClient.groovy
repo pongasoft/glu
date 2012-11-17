@@ -192,15 +192,14 @@ class TestAgentRestClient extends GroovyTestCase
       def fullState = arc.getFullState(mountPoint: '/a/b')
 
       def expectedFullState = [
-          scriptDefinition:[
-              mountPoint: '/a/b',
-              parent: '/',
-              scriptFactory: [
-                  'class': 'org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory',
-                  className: 'test.agent.rest.client.MyScriptTestScriptResource'],
-              initParameters: [p1: 'v1']
-          ],
-          scriptState:[stateMachine:[currentState:'NONE'], script:[:]]
+        scriptDefinition:[
+          mountPoint: '/a/b',
+          parent: '/',
+          scriptFactory: [
+            scriptClassName: 'test.agent.rest.client.MyScriptTestScriptResource'],
+          initParameters: [p1: 'v1']
+        ],
+        scriptState:[stateMachine:[currentState:'NONE'], script:[:]]
       ]
 
       assertEquals(expectedFullState, fullState)

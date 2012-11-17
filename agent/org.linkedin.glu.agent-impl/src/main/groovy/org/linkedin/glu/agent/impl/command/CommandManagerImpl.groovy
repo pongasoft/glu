@@ -87,11 +87,13 @@ public class CommandManagerImpl implements CommandManager
 
     def mountPoint = toMountPoint(command)
 
+    // install the CommandGluScript
     def scriptNode = scriptManager.installScript([
                                                    mountPoint: mountPoint,
-                                                   commandGluScriptFactory: command.id
+                                                   scriptFactoryClass: 'CommandGluScriptFactory'
                                                  ])
 
+    // run through install and configure phases
     ["install", "configure"].each { action ->
       scriptNode.executeAction([
                                  mountPoint: mountPoint,
@@ -100,6 +102,9 @@ public class CommandManagerImpl implements CommandManager
                                ]).get()
     }
 
+    // prepare completion callback (reverse) which will automatically run
+    // through all the phases until the script is uninstalled as soon as the
+    // command completes
     def onCompletionCallback = {
       new FutureTaskExecution( { scriptManager.uninstallScript(mountPoint, true) }).runAsync(submitter)
     }
@@ -119,6 +124,7 @@ public class CommandManagerImpl implements CommandManager
       onCompletionCallback = callback
     }
 
+    // execute the start phase (asynchronous)
     scriptNode.executeAction([
                                mountPoint: mountPoint,
                                action: "start",

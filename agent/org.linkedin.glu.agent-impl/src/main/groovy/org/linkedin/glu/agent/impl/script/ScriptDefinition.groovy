@@ -18,13 +18,14 @@
 package org.linkedin.glu.agent.impl.script
 
 import org.linkedin.glu.agent.api.MountPoint
+import org.linkedin.glu.utils.core.Externable
 
 /**
  * Represents the script definition (does not change over the life of the script)
  *
  * @author ypujante@linkedin.com
  */
-class ScriptDefinition implements Serializable
+class ScriptDefinition implements Serializable, Externable
 {
   private static final long serialVersionUID = 1L;
 
@@ -32,6 +33,7 @@ class ScriptDefinition implements Serializable
   final MountPoint parent
   final ScriptFactory scriptFactory
   final def initParameters
+  final def _scriptFactoryArgs
 
   ScriptDefinition(MountPoint mountPoint,
                    MountPoint parent,
@@ -43,20 +45,38 @@ class ScriptDefinition implements Serializable
 
     this.mountPoint = mountPoint
     this.parent = parent
-    this.scriptFactory = scriptFactory
+    this.scriptFactory = null
     this.initParameters = initParameters ?: [:]
+    this._scriptFactoryArgs = scriptFactory.toExternalRepresentation()
+  }
+
+  def getScriptFactoryArgs()
+  {
+    if(_scriptFactoryArgs == null)
+      return scriptFactory.toExternalRepresentation()
+    else
+      _scriptFactoryArgs
+  }
+
+  ScriptFactory getScriptFactory(ScriptFactoryFactory scriptFactoryFactory)
+  {
+    // for backward compatibility
+    if(_scriptFactoryArgs == null)
+      return scriptFactory
+    else
+      return scriptFactoryFactory.createScriptFactory(_scriptFactoryArgs)
   }
 
   public String toString()
   {
-    return "[mountPoint: ${mountPoint}, parent: ${parent}, scriptFactory: ${scriptFactory}, initParameters: ${initParameters}]";
+    return "[mountPoint: ${mountPoint}, parent: ${parent}, scriptFactory: ${scriptFactory}, scriptFactoryArgs: ${_scriptFactoryArgs}, initParameters: ${initParameters}]";
   }
 
   def toExternalRepresentation()
   {
     return [mountPoint: mountPoint,
             parent: parent,
-            scriptFactory: scriptFactory.toExternalRepresentation(),
+            scriptFactory: scriptFactory?.toExternalRepresentation() ?: _scriptFactoryArgs,
             initParameters: initParameters]
   }
 
@@ -71,6 +91,7 @@ class ScriptDefinition implements Serializable
     if(that.mountPoint != this.mountPoint) return false;
     if(that.parent != this.parent) return false;
     if(that.scriptFactory != this.scriptFactory) return false;
+    if(that._scriptFactoryArgs != this._scriptFactoryArgs) return false;
     if(that.initParameters != this.initParameters) return false;
 
     return true;
@@ -83,6 +104,7 @@ class ScriptDefinition implements Serializable
     result = (mountPoint ? mountPoint.hashCode() : 0);
     result = 31 * result + (parent ? parent.hashCode() : 0);
     result = 31 * result + (scriptFactory ? scriptFactory.hashCode() : 0);
+    result = 31 * result + (scriptFactoryArgs ? scriptFactoryArgs.hashCode() : 0);
     result = 31 * result + (initParameters ? initParameters.hashCode() : 0);
     return result;
   }

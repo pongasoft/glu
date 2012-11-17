@@ -47,6 +47,9 @@ import java.util.concurrent.TimeUnit
 import org.linkedin.glu.groovy.utils.concurrent.GluGroovyConcurrentUtils
 import org.linkedin.glu.agent.api.Shell
 import org.linkedin.util.clock.Chronos
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.linkedin.glu.utils.core.Externable
+import org.linkedin.glu.groovy.utils.test.GluGroovyTestUtils
 
 /**
  * Test for AgentImpl
@@ -485,8 +488,7 @@ def class TestAgentImpl extends GroovyTestCase
             parent: MountPoint.ROOT,
             scriptFactory:
             [
-                'class': 'org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory',
-                className: 'test.agent.impl.MyScriptTestAgentImpl3'
+              scriptClassName: 'test.agent.impl.MyScriptTestAgentImpl3'
             ],
             initParameters: [p1: 'v1']
         ],
@@ -511,8 +513,7 @@ def class TestAgentImpl extends GroovyTestCase
             parent: MountPoint.ROOT,
             scriptFactory:
             [
-                'class': 'org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory',
-                className: 'test.agent.impl.MyScriptTestTimer'
+              scriptClassName: 'test.agent.impl.MyScriptTestTimer'
             ],
             initParameters: [p1: 'v1']
         ],
@@ -798,6 +799,16 @@ gc: 1000
 """, agent.tailAgentLog([log: gcLog.name, maxLine: 2]).text)
   }
 
+  private Map toExternalRepresentation(Map m)
+  {
+    GluGroovyCollectionUtils.collectKey(m, [:]) { k, v ->
+      if(v instanceof Externable)
+        v.toExternalRepresentation()
+      else
+        v
+    }
+  }
+
   private void checkStorage(mountPoint, args)
   {
     def state = ramStorage[mountPoint]
@@ -872,6 +883,85 @@ gc: 1000
       // full 10s. We use 2s as a buffer...
       assertTrue(c.tick() < Timespan.parse("2s").durationInMilliseconds)
     }
+  }
+
+  /**
+   * test that the state is preserved properly
+   */
+  public void testCommandsState()
+  {
+    FileSystemImpl.createTempFileSystem() { FileSystem fs ->
+      def shell = new ShellImpl(fileSystem: fs)
+
+      Chronos c = new Chronos()
+
+      // testing interrupt 1 (interrupting before reading)
+      checkShellExec(shell, [command: ["sleep 10"]], null, "", "", { execResult ->
+
+        // we wait until the command is actually started...
+        shell.waitFor(timeout: '2s', heartbeat: '10') {
+          agent._commandManager.findCommand(execResult.id).command.exitValueStream != null
+        }
+
+        def mountPoint = MountPoint.create("/command/${execResult.id}")
+
+        def state = [
+          scriptDefinition: [
+            mountPoint: mountPoint,
+            parent: MountPoint.ROOT,
+            scriptFactory: [
+              scriptFactoryClass: 'CommandGluScriptFactory'
+            ],
+            initParameters: [:],
+          ],
+          scriptState: [
+            script: [:],
+            stateMachine: [
+              currentState: 'stopped',
+              transitionAction: 'start',
+              transitionState: 'stopped->running'
+            ]
+          ]
+        ]
+
+        try
+        {
+          checkStorage2(mountPoint, state)
+        }
+        catch(Throwable th)
+        {
+          th.printStackTrace()
+          throw th
+        }
+
+        assertTrue(agent.interruptCommand([id: execResult.id]))
+        return execResult
+      }, null)
+
+      // we make sure that the command got interrupted properly and that it did not last the
+      // full 10s. We use 2s as a buffer...
+      assertTrue(c.tick() < Timespan.parse("2s").durationInMilliseconds)
+
+      // after the command complete, it is automatically removed from storage
+      shell.waitFor(timeout: '2s', heartbeat: '10') {
+        ramStorage.size() == 1
+      }
+    }
+  }
+
+  private void checkStorage2(mountPoint, args)
+  {
+    def state = ramStorage[mountPoint]
+
+    assertNotNull("state is null for ${mountPoint}", state)
+
+    state = toExternalRepresentation(state)
+    args = toExternalRepresentation(args)
+
+    GluGroovyTestUtils.assertEqualsIgnoreType(this, "storage mismatch", args, state)
+
+    // we make sure it is serializable
+    new ObjectOutputStream(new ByteArrayOutputStream()).writeObject(ramStorage)
   }
 
   private void checkShellExec(Shell shell,

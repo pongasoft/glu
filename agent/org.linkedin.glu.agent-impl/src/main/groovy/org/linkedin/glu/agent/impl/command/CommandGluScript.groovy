@@ -30,9 +30,6 @@ import org.linkedin.util.annotations.Initializable
 public class CommandGluScript
 {
   @Initializable(required = true)
-  String commandId
-
-  @Initializable(required = true)
   transient CommandExecutionIOStorage ioStorage
 
   // will be set
@@ -52,7 +49,7 @@ public class CommandGluScript
   private CommandExecution findCommandExecution()
   {
     if(!commandExecution)
-      commandId = ioStorage.findCommandExecution(commandId)
+      commandExecution = ioStorage.findCommandExecution(mountPoint.name)
     commandExecution
   }
 
@@ -61,11 +58,11 @@ public class CommandGluScript
    */
   def start = { args ->
 
-    CommandExecution commandExecution = findCommandExecution()
+    CommandExecution ce = findCommandExecution()
 
-    commandExecution.syncCaptureIO { CommandStreamStorage storage ->
+    ce.syncCaptureIO { CommandStreamStorage storage ->
 
-      def actionArgs = [*:commandExecution.args]
+      def actionArgs = [*:ce.args]
 
       // handle stdin...
       storage.withOrWithoutStorageInput(StreamType.stdin) { stdin ->
@@ -86,7 +83,7 @@ public class CommandGluScript
             def callExecution = new CallExecution(action: 'run',
                                                   actionArgs: actionArgs,
                                                   clock: shell.clock,
-                                                  source: [invocable: commandExecution.command])
+                                                  source: [invocable: ce.command])
 
             return [exitValue: callExecution.runSync()]
           }

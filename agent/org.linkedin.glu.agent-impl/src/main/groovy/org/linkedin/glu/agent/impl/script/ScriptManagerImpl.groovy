@@ -147,7 +147,7 @@ def class ScriptManagerImpl implements ScriptManager
 
     try
     {
-      childScript = sd.scriptFactory.createScript(scriptConfig)
+      childScript = sd.getScriptFactory(scriptFactoryFactory).createScript(scriptConfig)
     }
     catch(Exception e)
     {

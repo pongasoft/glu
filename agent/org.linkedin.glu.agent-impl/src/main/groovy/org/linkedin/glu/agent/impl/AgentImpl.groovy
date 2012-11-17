@@ -89,29 +89,24 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
     _agentLogDir = args.agentLogDir
     _sigar = args.sigar
     _mop = args.mop ?: new MOPImpl()
-    _scriptManager = args.scriptManager ?: new ScriptManagerImpl(agentContext: this)
-    if(args.commandManager)
-      _commandManager = args.commandManager
-    else
-    {
-      _commandManager = new CommandManagerImpl(agentContext: this,
-                                               ioStorage: new MemoryCommandExecutionIOStorage(clock: clock),
-                                               scriptManager: _scriptManager)
-      if(!args.scriptManager)
-      {
-        def f = new CommandGluScriptFactoryFactory(ioStorage: _commandManager.ioStorage)
-        _scriptManager.scriptFactoryFactory.chain(f)
-      }
-    }
 
-    _commandManager = args.commandManager ?:
-      new CommandManagerImpl(agentContext: this,
-                             ioStorage: new MemoryCommandExecutionIOStorage(clock: clock),
-                             scriptManager: _scriptManager)
     def storage = args.storage
     if(storage != null)
+    {
+      _scriptManager = new ScriptManagerImpl(agentContext: this)
+      _commandManager = new CommandManagerImpl(agentContext: this,
+                                               ioStorage: new MemoryCommandExecutionIOStorage(clock: clock))
+      def f = new CommandGluScriptFactoryFactory(ioStorage: _commandManager.ioStorage)
+      _scriptManager.scriptFactoryFactory.chain(f)
       _scriptManager = new StateKeeperScriptManager(scriptManager: _scriptManager,
                                                     storage: storage)
+      _commandManager.scriptManager = _scriptManager
+    }
+    else
+    {
+      _scriptManager = args.scriptManager
+      _commandManager = args.commandManager
+    }
 
     if(!_scriptManager.isMounted(MountPoint.ROOT))
       _scriptManager.installRootScript([:])

@@ -73,6 +73,9 @@ import org.linkedin.glu.commands.impl.FileSystemCommandExecutionIOStorage
 import org.linkedin.glu.agent.impl.script.ScriptManagerImpl
 
 import org.linkedin.glu.agent.impl.command.CommandGluScriptFactoryFactory
+import org.linkedin.glu.agent.impl.script.AbstractScriptFactoryFactory
+import org.linkedin.glu.agent.impl.script.StateKeeperScriptManager
+import org.linkedin.glu.agent.impl.script.ScriptManager
 
 /**
  * This is the main class to start the agent.
@@ -432,6 +435,11 @@ class AgentMain implements LifecycleListener, Configurable
     _agentTempDir = GroovyIOUtils.toFile(Config.getRequiredString(_config, "${prefix}.agent.tempDir"))
     _storage = createStorage()
     def scriptManager = new ScriptManagerImpl(agentContext: _agent)
+    def scriptFactoryFactory = scriptManager.scriptFactoryFactory
+    if(_storage)
+      scriptManager = new StateKeeperScriptManager(scriptManager: scriptManager,
+                                                   storage: _storage)
+
 
     _zkClient?.registerListener(this)
 
@@ -444,9 +452,8 @@ class AgentMain implements LifecycleListener, Configurable
       rootShell: rootShell,
       shellForScripts: createShell(rootShell, "${prefix}.agent.scriptRootDir"),
       scriptManager: scriptManager,
-      commandManager: createCommandsManager(rootShell, scriptManager),
+      commandManager: createCommandsManager(rootShell, scriptManager, scriptFactoryFactory),
       agentLogDir: rootShell.toResource(Config.getRequiredString(_config, "${prefix}.agent.logDir")),
-      storage: _storage,
       sigar: _sigar,
       sync: _zkSync,
       taggeable: tagsStorage
@@ -623,7 +630,8 @@ class AgentMain implements LifecycleListener, Configurable
   }
 
   protected CommandManager createCommandsManager(ShellImpl rootShell,
-                                                 ScriptManagerImpl scriptManager)
+                                                 ScriptManager scriptManager,
+                                                 AbstractScriptFactoryFactory scriptFactoryFactory)
   {
     if(Config.getOptionalBoolean(_config, "${prefix}.agent.features.commands.enabled", false))
     {
@@ -651,7 +659,7 @@ class AgentMain implements LifecycleListener, Configurable
       ioStorage.clock = _agent.clock
 
       def f = new CommandGluScriptFactoryFactory(ioStorage: ioStorage)
-      scriptManager.scriptFactoryFactory.chain(f)
+      scriptFactoryFactory.chain(f)
 
       new CommandManagerImpl(agentContext: _agent,
                              ioStorage: ioStorage,

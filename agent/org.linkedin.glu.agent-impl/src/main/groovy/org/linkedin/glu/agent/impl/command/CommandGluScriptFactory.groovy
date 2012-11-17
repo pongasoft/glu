@@ -28,25 +28,22 @@ public class CommandGluScriptFactory implements ScriptFactory
   @Initializable(required = true)
   CommandExecutionIOStorage ioStorage
 
-  @Initializable(required = true)
-  String commandId
-
   @Override
   def createScript(ScriptConfig scriptConfig)
   {
-    new CommandGluScript(ioStorage: ioStorage, commandId: commandId)
+    new CommandGluScript(ioStorage: ioStorage)
   }
 
   @Override
   def toExternalRepresentation()
   {
-    return [commandGluScriptFactory: commandId]
+    return [scriptFactoryClass: 'CommandGluScriptFactory']
   }
 
   @Override
   public String toString()
   {
-    return "CommandGluScriptFactory[${commandId}]"
+    return "CommandGluScriptFactory"
   }
 
   boolean equals(o)
@@ -56,13 +53,13 @@ public class CommandGluScriptFactory implements ScriptFactory
 
     CommandGluScriptFactory that = (CommandGluScriptFactory) o
 
-    if(commandId != that.commandId) return false
+    if(ioStorage != that.ioStorage) return false
 
     return true
   }
 
   int hashCode()
   {
-    return (commandId != null ? commandId.hashCode() : 0)
+    return (ioStorage != null ? ioStorage.hashCode() : 0)
   }
 }

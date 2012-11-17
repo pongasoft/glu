@@ -29,6 +29,8 @@ import org.linkedin.util.clock.SystemClock
 import java.util.concurrent.RunnableFuture
 import org.linkedin.glu.utils.concurrent.Submitter
 import org.linkedin.glu.utils.concurrent.OneThreadPerTaskSubmitter
+import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
+import org.linkedin.util.lang.LangUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -182,8 +184,25 @@ public class FutureTaskExecution<T> implements FutureExecution<T>, RunnableFutur
     }
   }
 
+  void waitForStart(def timeout = null)
+  {
+    GroovyConcurrentUtils.awaitFor(clock, timeout, this) {
+      isStarted()
+    }
+  }
+
+  boolean isStarted()
+  {
+    return startTime > 0
+  }
+
   private def doCall = {
-    startTime = clock.currentTimeMillis()
+
+    synchronized(this)
+    {
+      startTime = clock.currentTimeMillis()
+      this.notifyAll()
+    }
 
     try
     {
