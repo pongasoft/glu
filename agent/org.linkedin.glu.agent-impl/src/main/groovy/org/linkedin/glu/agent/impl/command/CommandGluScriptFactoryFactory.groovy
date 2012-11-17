@@ -31,7 +31,7 @@ public class CommandGluScriptFactoryFactory extends AbstractScriptFactoryFactory
   @Override
   protected ScriptFactory doCreateScriptFactory(def args)
   {
-    if(args.scriptFactoryClass == "CommandGluScriptFactory")
+    if(args['class'] == "CommandGluScriptFactory")
       return new CommandGluScriptFactory(ioStorage: ioStorage)
 
     return null

@@ -52,7 +52,7 @@
   <g:each in="${ConsoleUtils.sortBy(model.mountPoints.keySet(), 'path')}" var="key" status="idx">
     <g:set var="mountPoint" value="${model.mountPoints[key]}"/>
     <a name="${mountPoint.mountPoint}" id="${mountPoint.mountPoint}"></a>
-    <h2 class="${cl.mountPointState(mountPoint: mountPoint)}"><cl:linkToFilteredDashboard systemFilter="mountPoint='${key}'" groupBy="mountPoint">${key.encodeAsHTML()}</cl:linkToFilteredDashboard> <cl:renderTags tags="${mountPoint.tags}" linkable="${true}"/>
+    <h2 class="${cl.mountPointState(mountPoint: mountPoint)}"><g:if test="${mountPoint.isCommand()}"><g:link action="commands" id="${model.agent.agentName}" params="[commandId: mountPoint.mountPoint.name]">${key.encodeAsHTML()}</g:link></g:if><g:else><cl:linkToFilteredDashboard systemFilter="mountPoint='${key}'" groupBy="mountPoint">${key.encodeAsHTML()}</cl:linkToFilteredDashboard></g:else> <cl:renderTags tags="${mountPoint.tags}" linkable="${true}"/>
     </h2>
     <ul class="summary">
       <cl:mountPointLogs agent="${model.agent.agentName}" mountPoint="${mountPoint}"/>

@@ -1215,8 +1215,8 @@ public class ConsoleTagLib
       exceptionAsJson?.eachWithIndex { e, idx ->
         def id = "${gid}-${idx}"
         out << "<dt class=\"stackTraceHeader\">"
-        out << "* ${e.name.encodeAsHTML()}: ${e.message.encodeAsHTML()}"
-        out << " [<a href=\"#\" onclick=\"toggleShowHide('#${id}')\">+</a>]"
+        out << "[<a href=\"#\" onclick=\"toggleShowHide('#${id}')\">+</a>]"
+        out << " ${e.name?.encodeAsHTML()}: ${e.message?.encodeAsHTML()}"
         out << "</dt>"
         out << "<div id=\"${id}\" class=\"hidden\">"
         e.stackTrace.each { ste ->

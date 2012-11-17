@@ -488,7 +488,8 @@ def class TestAgentImpl extends GroovyTestCase
             parent: MountPoint.ROOT,
             scriptFactory:
             [
-              scriptClassName: 'test.agent.impl.MyScriptTestAgentImpl3'
+                'class': 'org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory',
+                className: 'test.agent.impl.MyScriptTestAgentImpl3'
             ],
             initParameters: [p1: 'v1']
         ],
@@ -513,7 +514,8 @@ def class TestAgentImpl extends GroovyTestCase
             parent: MountPoint.ROOT,
             scriptFactory:
             [
-              scriptClassName: 'test.agent.impl.MyScriptTestTimer'
+                'class': 'org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory',
+                className: 'test.agent.impl.MyScriptTestTimer'
             ],
             initParameters: [p1: 'v1']
         ],
@@ -910,7 +912,7 @@ gc: 1000
             mountPoint: mountPoint,
             parent: MountPoint.ROOT,
             scriptFactory: [
-              scriptFactoryClass: 'CommandGluScriptFactory'
+              'class': 'CommandGluScriptFactory'
             ],
             initParameters: [:],
           ],

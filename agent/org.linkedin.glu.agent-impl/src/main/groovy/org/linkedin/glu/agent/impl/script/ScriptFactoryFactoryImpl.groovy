@@ -50,6 +50,7 @@ public class ScriptFactoryFactoryImpl extends AbstractScriptFactoryFactory
         return new FromLocationScriptFactory(args.scriptLocation)
     }
 
-    return null
+    return FromLocationScriptFactory.fromExternalRepresentation(args) ?:
+           FromClassNameScriptFactory.fromExternalRepresentation(args)
   }
 }

@@ -80,6 +80,11 @@ class MountPointInfo extends NodeInfo
     return initParameters?.tags
   }
 
+  boolean isCommand()
+  {
+    mountPoint.path.startsWith('/_/command/')
+  }
+
   public String toString()
   {
     return "MountPointInfo:${[agentName: agentName, mountPoint: mountPoint, data: data]}".toString()

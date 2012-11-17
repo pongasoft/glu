@@ -90,7 +90,7 @@ public class CommandManagerImpl implements CommandManager
     // install the CommandGluScript
     def scriptNode = scriptManager.installScript([
                                                    mountPoint: mountPoint,
-                                                   scriptFactoryClass: 'CommandGluScriptFactory'
+                                                   'class': 'CommandGluScriptFactory'
                                                  ])
 
     // run through install and configure phases

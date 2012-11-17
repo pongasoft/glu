@@ -197,7 +197,8 @@ class TestAgentRestClient extends GroovyTestCase
           mountPoint: '/a/b',
           parent: '/',
           scriptFactory: [
-            scriptClassName: 'test.agent.rest.client.MyScriptTestScriptResource'],
+            'class': 'org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory',
+            className: 'test.agent.rest.client.MyScriptTestScriptResource'],
           initParameters: [p1: 'v1']
         ],
         scriptState:[stateMachine:[currentState:'NONE'], script:[:]]
@@ -698,7 +699,7 @@ gc: 1000
                 mountPoint: "/_/command/${execResult.id}",
                 parent: '/',
                 scriptFactory: [
-                  scriptFactoryClass: 'CommandGluScriptFactory'
+                  'class': 'CommandGluScriptFactory'
                 ],
                 initParameters: [:],
               ],

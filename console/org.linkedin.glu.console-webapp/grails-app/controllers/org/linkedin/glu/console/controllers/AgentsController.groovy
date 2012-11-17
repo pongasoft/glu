@@ -727,19 +727,22 @@ class AgentsController extends ControllerBase
         }
         else
         {
-          def stateActions = mountPointActions[mp.currentState] ?: (mountPointActions["-"] ?: [])
+          if(!mp.isCommand())
+          {
+            def stateActions = mountPointActions[mp.currentState] ?: (mountPointActions["-"] ?: [])
 
-          stateActions = [*stateActions, *(mountPointActions["*"] ?: [])]
+            stateActions = [*stateActions, *(mountPointActions["*"] ?: [])]
 
-          stateActions?.each { stateAction ->
-            link = g.createLink(controller: 'agents',
-                                action: 'create_plan',
-                                id: agent.agentName,
-                                params: [
-                                 mountPoint: mp.mountPoint,
-                                 *:stateAction,
-                                ])
-            mpActions[link] = stateAction.displayName ?: stateAction.planType.capitalize()
+            stateActions?.each { stateAction ->
+              link = g.createLink(controller: 'agents',
+                                  action: 'create_plan',
+                                  id: agent.agentName,
+                                  params: [
+                                   mountPoint: mp.mountPoint,
+                                   *:stateAction,
+                                  ])
+              mpActions[link] = stateAction.displayName ?: stateAction.planType.capitalize()
+            }
           }
         }
 

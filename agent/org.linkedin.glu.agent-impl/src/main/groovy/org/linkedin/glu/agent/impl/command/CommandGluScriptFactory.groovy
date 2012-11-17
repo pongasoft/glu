@@ -37,7 +37,7 @@ public class CommandGluScriptFactory implements ScriptFactory
   @Override
   def toExternalRepresentation()
   {
-    return [scriptFactoryClass: 'CommandGluScriptFactory']
+    return ['class': 'CommandGluScriptFactory']
   }
 
   @Override

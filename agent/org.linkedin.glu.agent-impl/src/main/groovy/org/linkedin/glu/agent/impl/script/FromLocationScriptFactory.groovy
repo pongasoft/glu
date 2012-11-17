@@ -58,7 +58,15 @@ def class FromLocationScriptFactory implements ScriptFactory, Serializable
 
   public toExternalRepresentation()
   {
-    return [scriptLocation: _location];
+    return ['class': FromLocationScriptFactory.class.getName(), location: _location];
+  }
+
+  public static ScriptFactory fromExternalRepresentation(def args)
+  {
+    if(args['class'] == FromLocationScriptFactory.class.getName())
+      return new FromLocationScriptFactory(args.location)
+    else
+      return null
   }
 
   boolean equals(o)

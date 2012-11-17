@@ -82,10 +82,18 @@ def class FromClassNameScriptFactory implements ScriptFactory, Serializable
 
   public toExternalRepresentation()
   {
-    def res = [scriptClassName: _className]
+    def res = ['class': FromClassNameScriptFactory.class.getName(), className: _className]
     if(_classPath)
-      res.scriptClassPath = _classPath
+      res.classPath = _classPath
     return res;
+  }
+
+  public static ScriptFactory fromExternalRepresentation(def args)
+  {
+    if(args['class'] == FromClassNameScriptFactory.class.getName())
+      return new FromClassNameScriptFactory(args.className, args.classPath)
+    else
+      return null
   }
 
   boolean equals(o)
