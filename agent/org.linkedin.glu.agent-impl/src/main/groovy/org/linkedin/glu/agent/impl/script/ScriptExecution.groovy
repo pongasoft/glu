@@ -215,7 +215,7 @@ class ScriptExecution implements Startable, Shutdownable
   /**
    * Cancel callback
    */
-  private def cancel = { FutureExecutionImpl futureExecution ->
+  private def cancel = { def res, FutureExecutionImpl futureExecution ->
     synchronized(lock)
     {
       _timeline.remove(futureExecution)
@@ -243,9 +243,9 @@ class ScriptExecution implements Startable, Shutdownable
       }
       else
       {
-        return { FutureExecutionImpl futureExecution ->
-          cancel(futureExecution)
-          cancelCallback(futureExecution)
+        return { def res, FutureExecutionImpl futureExecution ->
+          cancel(res, futureExecution)
+          cancelCallback(res, futureExecution)
         }
       }
     }

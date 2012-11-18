@@ -113,8 +113,10 @@ class AgentRestClient implements Agent
     return getRes(response) as boolean
   }
 
-  public boolean interruptAction(Object args)
+  public boolean interruptAction(def args)
   {
+    args = GluGroovyCollectionUtils.subMap(args, ['mountPoint', 'action', 'actionId'])
+
     def response = handleResponse(toMountPointReference(args)) { ClientResource client ->
       client.post(toArgs([interruptAction: args]))
     }

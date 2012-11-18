@@ -64,7 +64,7 @@ class TestScriptExecution extends GroovyTestCase
       def timerFiringTime = Timespan.parse('10s').futureTimeMillis(se.clock)
 
       // schedule a timer with an initial frequency of 10s and a repeat frequency of 1m
-      se.scheduleTimer('timer1', '10s', '1m') {
+      se.scheduleTimer('timer1', '10s', '1m') { res, future ->
         tc.block('timer1.cancel')
       }
 
@@ -134,7 +134,7 @@ class TestScriptExecution extends GroovyTestCase
       def fe4 = se.executeAction('action2',
                                  [p1: 'v4'],
                                  null,
-                                 null) {
+                                 null) { res, future ->
         tc.block('action2.cancel')
       }
 
@@ -238,7 +238,7 @@ class TestScriptExecution extends GroovyTestCase
       // now we check for expiration (max elements based)
 
       // schedule a timer with a repeat frequency of 1m
-      se.scheduleTimer('timer1', null, '1s') {
+      se.scheduleTimer('timer1', null, '1s') { res, future ->
         tc.block('timer1.cancel')
       }
 

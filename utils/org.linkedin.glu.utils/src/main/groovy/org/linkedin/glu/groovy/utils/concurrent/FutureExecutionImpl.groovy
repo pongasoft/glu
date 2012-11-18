@@ -46,13 +46,15 @@ class FutureExecutionImpl<T> extends FutureTaskExecution<T> implements Comparabl
   boolean cancel(boolean mayInterruptIfRunning)
   {
     def res = false
-    def cancelSequence = []
 
-    cancelSequence << { if(onCancelPreCallback) onCancelPreCallback(this) }
-    cancelSequence << { res = super.cancel(mayInterruptIfRunning) }
-    cancelSequence << { if(onCancelPostCallback) onCancelPostCallback(this) }
+    if(onCancelPreCallback)
+      res = GluGroovyLangUtils.noExceptionWithValueOnException(false) { onCancelPreCallback(this) }
 
-    GluGroovyLangUtils.onlyOneException(cancelSequence)
+    if(!res)
+      res = super.cancel(mayInterruptIfRunning)
+
+    if(onCancelPostCallback)
+      GluGroovyLangUtils.noException { onCancelPostCallback(res, this) }
 
     return res
   }

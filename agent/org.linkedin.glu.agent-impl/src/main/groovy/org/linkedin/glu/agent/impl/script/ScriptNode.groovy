@@ -305,7 +305,7 @@ def class ScriptNode implements Shutdownable, Startable, GluScript
     }
     
     FutureExecutionImpl future =
-      _scriptExecution.scheduleTimer(timer, args.initialFrequency, args.repeatFrequency) {
+      _scriptExecution.scheduleTimer(timer, args.initialFrequency, args.repeatFrequency) { res, future ->
       _scriptState.removeTimer(timer)
     }
     _scriptState.addTimer([timer: timer, repeatFrequency: args.repeatFrequency])

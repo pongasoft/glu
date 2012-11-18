@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeoutException
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
 import org.linkedin.glu.utils.concurrent.Submitter
+import org.linkedin.groovy.util.lang.GroovyLangUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -109,16 +110,28 @@ public class CommandManagerImpl implements CommandManager
       new FutureTaskExecution( { scriptManager.uninstallScript(mountPoint, true) }).runAsync(submitter)
     }
 
-    ["stop", "unconfigure", "uninstall"].reverse().each { action ->
+    [uninstall: "installed", unconfigure: "stopped", stop: "running"].each { action, ifState ->
 
       def actionOnCompletionCallback = onCompletionCallback
 
       def callback = {
-        scriptNode.executeAction([
-                                   mountPoint: mountPoint,
-                                   action: action,
-                                   onCompletionCallback: actionOnCompletionCallback
-                                 ])
+
+        GroovyLangUtils.noException {
+
+          // 1. we clear error if any
+          if(scriptNode.scriptState.stateMachine.error)
+            scriptNode.clearError()
+
+          // 2. we make sure that the script is in the right state to invoke the action
+          if(scriptNode.scriptState.stateMachine.currentState == ifState)
+          {
+            scriptNode.executeAction([
+                                       mountPoint: mountPoint,
+                                       action: action,
+                                       onCompletionCallback: actionOnCompletionCallback
+                                     ])
+          }
+        }
       }
 
       onCompletionCallback = callback
@@ -128,6 +141,7 @@ public class CommandManagerImpl implements CommandManager
     scriptNode.executeAction([
                                mountPoint: mountPoint,
                                action: "start",
+                               onCancelPreCallback: { doInterruptCommand(command) },
                                onCompletionCallback: onCompletionCallback
                              ])
 
@@ -191,33 +205,43 @@ public class CommandManagerImpl implements CommandManager
     def commandExecution = findCommand(args.id)
     if(commandExecution)
     {
-      res = !commandExecution.isCompleted()
-
-      if(res)
-      {
-        // first we "destroy" the command itself which should end the subprocess
-        commandExecution.command.destroy()
-
-        // second, we give a bit of time for the operation to complete
-        res = commandExecution.waitForCompletionNoException(interruptCommandGracePeriod)
-
-        if(!res)
-        {
-          log.warn("Command did not terminate after ${interruptCommandGracePeriod} grace period")
-
-          // then we interrupt the execution (no effect if completed...)
-          commandExecution.interruptExecution()
-
-          // lastly we wait again, we give a bit of time for the operation to complete
-          res = commandExecution.waitForCompletionNoException(interruptCommandGracePeriod)
-        }
-      }
+      res = doInterruptCommand(commandExecution)
 
       commandExecution.log.info("interruptCommand(${GluGroovyCollectionUtils.xorMap(args, ['id'])}): ${res}")
     }
     else
     {
       log.info("interruptCommand(${args})): not found")
+    }
+
+    return res
+  }
+
+  /**
+   * Same closure called directly or from the glu script
+   */
+  def doInterruptCommand = { commandExecution ->
+
+    boolean res = !commandExecution.isCompleted()
+
+    if(res)
+    {
+      // first we "destroy" the command itself which should end the subprocess
+      commandExecution.command.destroy()
+
+      // second, we give a bit of time for the operation to complete
+      res = commandExecution.waitForCompletionNoException(interruptCommandGracePeriod)
+
+      if(!res)
+      {
+        log.warn("Command did not terminate after ${interruptCommandGracePeriod} grace period")
+
+        // then we interrupt the execution (no effect if completed...)
+        commandExecution.interruptExecution()
+
+        // lastly we wait again, we give a bit of time for the operation to complete
+        res = commandExecution.waitForCompletionNoException(interruptCommandGracePeriod)
+      }
     }
 
     return res

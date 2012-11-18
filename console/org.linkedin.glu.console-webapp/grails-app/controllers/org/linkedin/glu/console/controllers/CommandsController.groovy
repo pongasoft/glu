@@ -52,6 +52,10 @@ public class CommandsController extends ControllerBase
                                                     params.agentId,
                                                     params)
 
+    // remove currently executing commands from history
+    def currentIds = res.currentCommandExecutions.commandId as Set
+    res.commandExecutions = res.commandExecutions.findAll { !currentIds.contains(it.commandId) }
+
     render(template: 'history', model: res)
   }
 

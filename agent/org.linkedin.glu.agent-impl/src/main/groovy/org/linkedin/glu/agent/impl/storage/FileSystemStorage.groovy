@@ -89,6 +89,13 @@ class FileSystemStorage implements Storage
           return true
         }
 
+        if(state.scriptDefinition?.mountPoint?.path?.startsWith("/_/command/"))
+        {
+          _fileSystem.rm(resource)
+          log.warn("Detected stale command state... deleted ${resource}")
+          return true
+        }
+
         return false
       }
     }
