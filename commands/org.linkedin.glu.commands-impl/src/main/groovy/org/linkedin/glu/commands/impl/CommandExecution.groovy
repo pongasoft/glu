@@ -175,6 +175,10 @@ public class CommandExecution<T>
       {
         // ok the command was cancelled
       }
+      catch(InterruptedException e)
+      {
+        // ok the command was interrupted
+      }
     }
   }
 
@@ -204,6 +208,10 @@ public class CommandExecution<T>
       catch(CancellationException e)
       {
         // ok the command was cancelled
+      }
+      catch(InterruptedException e)
+      {
+        // ok the command was interrupted
       }
     }
 
@@ -243,6 +251,11 @@ public class CommandExecution<T>
       // ok the command was cancelled
       return null
     }
+    catch(InterruptedException e)
+    {
+      // ok the command was interrupted
+      return null
+    }
   }
 
   /**
@@ -277,6 +290,11 @@ public class CommandExecution<T>
     catch(CancellationException e)
     {
       // ok the command was cancelled
+      return null
+    }
+    catch(InterruptedException e)
+    {
+      // ok the command was interrupted
       return null
     }
   }

@@ -49,6 +49,15 @@ def class TestMountPoint extends GroovyTestCase
     assertTrue(mp.is(MountPoint.ROOT))
   }
 
+  void testPathWithNoSlash()
+  {
+    assertEquals("_", MountPoint.ROOT.toPathWithNoSlash())
+    assertEquals(MountPoint.ROOT, MountPoint.fromPathWithNoSlash("_"))
+
+    assertEquals("_%5F_*_%25_%23", MountPoint.fromPath("/_/*/%/#").toPathWithNoSlash())
+    assertEquals(MountPoint.fromPath("/_/*/%/#/"), MountPoint.fromPathWithNoSlash("_%5F_*_%25_%23"))
+  }
+
   void testErrors()
   {
     shouldFail(IllegalArgumentException) {

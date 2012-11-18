@@ -20,19 +20,18 @@ package org.linkedin.glu.agent.impl
 import org.linkedin.glu.agent.api.Agent
 import org.linkedin.glu.agent.impl.script.AgentContext
 import org.linkedin.glu.agent.api.Shell
-import org.linkedin.glu.agent.impl.script.MOP
+
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.impl.script.ScriptManagerImpl
 import org.linkedin.glu.agent.impl.script.ScriptManager
 import org.linkedin.glu.agent.impl.script.StateKeeperScriptManager
-import org.linkedin.glu.agent.impl.capabilities.MOPImpl
+
 import org.hyperic.sigar.Sigar
 import org.hyperic.sigar.SigarException
 import org.linkedin.glu.agent.api.AgentException
 import java.util.concurrent.TimeoutException
 import org.linkedin.util.lifecycle.Shutdownable
-import org.linkedin.util.clock.Clock
-import org.linkedin.util.clock.SystemClock
+
 import org.linkedin.util.io.resource.Resource
 import org.linkedin.util.clock.Timespan
 import org.linkedin.glu.agent.api.TimeOutException
@@ -46,6 +45,9 @@ import org.linkedin.glu.agent.api.NoSuchCommandException
 import org.linkedin.glu.commands.impl.MemoryCommandExecutionIOStorage
 import org.linkedin.glu.commands.impl.CommandExecution
 import org.linkedin.glu.agent.impl.command.CommandGluScriptFactoryFactory
+import org.linkedin.glu.agent.impl.script.AgentContextImpl
+import org.linkedin.glu.agent.impl.capabilities.MOPImpl
+import org.linkedin.util.clock.SystemClock
 
 /**
  * The main implementation of the agent
@@ -55,16 +57,12 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
   public static final String MODULE = AgentImpl.class.getName();
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
-  Clock clock = SystemClock.instance()
-
+  private @Delegate AgentContext _agentContext
   private Sigar _sigar
-  private Shell _shellForScripts
-  private Shell _shellForCommands
   private Shell _rootShell
   private Resource _agentLogDir
   private ScriptManager _scriptManager
   private CommandManager _commandManager
-  private MOP _mop
   private Closure _sync
   private Taggeable _taggeable
 
@@ -83,18 +81,20 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
    */
   void boot(args)
   {
-    _shellForScripts = args.shellForScripts
     _rootShell = args.rootShell
-    _shellForCommands = args.shellForCommands ?: _rootShell
+    _agentContext = args.agentContext ?:
+      new AgentContextImpl(clock: args.clock ?: SystemClock.INSTANCE,
+                           shellForScripts: args.shellForScripts,
+                           shellForCommands: args.shellForCommands ?: _rootShell,
+                           mop: new MOPImpl())
     _agentLogDir = args.agentLogDir
     _sigar = args.sigar
-    _mop = args.mop ?: new MOPImpl()
 
     def storage = args.storage
     if(storage != null)
     {
-      _scriptManager = new ScriptManagerImpl(agentContext: this)
-      _commandManager = new CommandManagerImpl(agentContext: this,
+      _scriptManager = new ScriptManagerImpl(agentContext: _agentContext)
+      _commandManager = new CommandManagerImpl(agentContext: _agentContext,
                                                ioStorage: new MemoryCommandExecutionIOStorage(clock: clock))
       def f = new CommandGluScriptFactoryFactory(ioStorage: _commandManager.ioStorage)
       _scriptManager.scriptFactoryFactory.chain(f)
@@ -108,6 +108,9 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
       _commandManager = args.commandManager
     }
 
+    if(_scriptManager instanceof StateKeeperScriptManager)
+      _scriptManager.restoreScripts()
+
     if(!_scriptManager.isMounted(MountPoint.ROOT))
       _scriptManager.installRootScript([:])
 
@@ -115,11 +118,6 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
     _taggeable = args.taggeable ?: new TaggeableTreeSetImpl()
   }
 
-  Clock getClock()
-  {
-    return clock
-  }
-  
   /**
    * Default shutdown: stops the containers and shut downs the agent
    *
@@ -552,22 +550,6 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
 
       _commandManager.interruptCommand(args)
     }
-  }
-
-  public Shell getShellForScripts()
-  {
-    return _shellForScripts;
-  }
-
-  @Override
-  Shell getShellForCommands()
-  {
-    return _shellForCommands
-  }
-
-  public MOP getMop()
-  {
-    return _mop;
   }
 
   @Override

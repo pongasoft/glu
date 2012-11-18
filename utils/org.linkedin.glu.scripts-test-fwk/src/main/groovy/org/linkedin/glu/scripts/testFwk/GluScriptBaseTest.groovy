@@ -128,7 +128,7 @@ public class GluScriptBaseTest extends GroovyTestCase
 
   protected AgentImpl createAgent()
   {
-    new AgentImpl(clock: clock)
+    new AgentImpl()
   }
 
 
@@ -168,6 +168,7 @@ public class GluScriptBaseTest extends GroovyTestCase
   protected Map getAgentBootArgs()
   {
     [
+      clock: clock,
       shellForScripts: shell,
       rootShell: rootShell,
       agentLogDir: logFileSystem.root,

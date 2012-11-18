@@ -35,3 +35,8 @@ dependencies {
 
   testRuntime project(':utils:org.linkedin.glu.utils.log4j-test-config')
 }
+
+test  {
+  // this is needed because of jvm wide url stream handler!
+  forkEvery = 1
+}

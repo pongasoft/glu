@@ -39,11 +39,9 @@ def class StateKeeperScriptManager implements ScriptManager
   {
     _scriptManager = args.scriptManager
     _storage = args.storage
-
-    restoreScripts()
   }
 
-  private void restoreScripts()
+  void restoreScripts()
   {
     def states = [:]
 

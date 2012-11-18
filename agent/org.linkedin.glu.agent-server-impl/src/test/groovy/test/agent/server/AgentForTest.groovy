@@ -21,6 +21,9 @@ import org.linkedin.glu.agent.server.AgentMain
 import org.linkedin.util.lifecycle.Destroyable
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.zookeeper.server.StandaloneZooKeeperServer
+import org.linkedin.glu.agent.impl.capabilities.ShellImpl
+import org.linkedin.glu.agent.api.Shell
+import org.linkedin.util.io.PathUtils
 
 /**
  * @author yan@pongasoft.com */
@@ -29,6 +32,7 @@ public class AgentForTest implements Destroyable
   FileSystemImpl fileSystem
   StandaloneZooKeeperServer zookeeperServer
   AgentMain agentMain
+  def urlFactory
   def args = []
   def agentProperties
 
@@ -121,9 +125,25 @@ glu.agent.truststorePassword=nacEn92x8-1
   {
     agentMain = new AgentMain()
     agentMain.init(args)
+    urlFactory = agentMain.urlFactory
     agentMain.start(false)
 
-    shutdownSequence << { agentMain.stop() }
+    shutdownSequence << { agentMain?.stop() }
+  }
+
+  void stop()
+  {
+    agentMain?.stop()
+    agentMain = null
+  }
+
+  void restart()
+  {
+    stop()
+    urlFactory.reInit()
+    agentMain = new AgentMain(urlFactory: urlFactory)
+    agentMain.init(args)
+    agentMain.start(false)
   }
 
   @Override
@@ -147,5 +167,29 @@ glu.agent.truststorePassword=nacEn92x8-1
 
 
     return resource.toURI().toString()
+  }
+
+  Shell getShellForScripts()
+  {
+    agentMain._agent.shellForScripts
+  }
+
+  Shell getShellForCommands()
+  {
+    agentMain._agent.shellForCommands
+  }
+
+  Shell getRootShell()
+  {
+    agentMain._agent._rootShell
+  }
+
+  /**
+   * Executes a rest call on the agent
+   */
+  def execRestCall(String path)
+  {
+    path = PathUtils.addLeadingSlash(path)
+    rootShell.exec("curl -k https://localhost:${agentPort}${path} -E ${devKeysDir.canonicalPath}/console.pem")
   }
 }

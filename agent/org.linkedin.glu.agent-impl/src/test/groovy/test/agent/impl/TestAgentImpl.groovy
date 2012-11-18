@@ -103,9 +103,10 @@ def class TestAgentImpl extends GroovyTestCase
 
     shell = new ShellImpl(fileSystem: fileSystem)
 
-    agent = new AgentImpl(clock: clock)
+    agent = new AgentImpl()
     Storage storage = createStorage()
-    agent.boot(shellForScripts: shell,
+    agent.boot(clock: clock,
+               shellForScripts: shell,
                rootShell: new ShellImpl(fileSystem: logFileSystem,
                                         agentProperties: agentProperties),
                agentLogDir: logFileSystem.root,
@@ -417,9 +418,10 @@ def class TestAgentImpl extends GroovyTestCase
     agent.shutdown()
     agent.waitForShutdown(0)
 
-    agent = new AgentImpl(clock: clock)
+    agent = new AgentImpl()
     Storage storage = createStorage()
-    agent.boot(shellForScripts: shell,
+    agent.boot(clock: clock,
+               shellForScripts: shell,
                taggeable: new TagsStorage(storage, APTN),
                storage: storage)
 

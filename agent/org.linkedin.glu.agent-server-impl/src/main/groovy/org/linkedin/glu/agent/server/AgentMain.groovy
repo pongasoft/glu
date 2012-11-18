@@ -38,7 +38,6 @@ import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.groovy.util.ivy.IvyURLHandler
 import org.linkedin.groovy.util.net.GroovyNetUtils
-import org.linkedin.groovy.util.net.SingletonURLStreamHandlerFactory
 import org.linkedin.util.codec.Base64Codec
 import org.linkedin.util.codec.Codec
 import org.linkedin.util.codec.CodecUtils
@@ -76,6 +75,9 @@ import org.linkedin.glu.agent.impl.command.CommandGluScriptFactoryFactory
 import org.linkedin.glu.agent.impl.script.AbstractScriptFactoryFactory
 import org.linkedin.glu.agent.impl.script.StateKeeperScriptManager
 import org.linkedin.glu.agent.impl.script.ScriptManager
+import org.linkedin.glu.groovy.utils.net.ReinitializableSingletonURLStreamHandlerFactory
+import org.linkedin.glu.agent.impl.script.AgentContextImpl
+import org.linkedin.glu.agent.impl.capabilities.MOPImpl
 
 /**
  * This is the main class to start the agent.
@@ -119,6 +121,7 @@ class AgentMain implements LifecycleListener, Configurable
   protected Shutdown _shutdown
   protected Agent _proxiedAgent
   protected AgentImpl _agent
+  protected AgentContextImpl _agentContext
   protected def _restServer
   protected DualWriteStorage _dwStorage = null
   protected Storage _storage = null
@@ -131,11 +134,24 @@ class AgentMain implements LifecycleListener, Configurable
     JulToSLF4jBridge.installBridge()
   }
 
+  def getUrlFactory()
+  {
+    _urlFactory
+  }
+
+  void setUrlFactory(def urlFactory)
+  {
+    _urlFactory = urlFactory
+  }
+
   void init(args)
   {
     // register url factory
-    _urlFactory = new SingletonURLStreamHandlerFactory()
-    URL.setURLStreamHandlerFactory(_urlFactory)
+    if(!_urlFactory)
+    {
+      _urlFactory = new ReinitializableSingletonURLStreamHandlerFactory()
+      URL.setURLStreamHandlerFactory(_urlFactory)
+    }
 
     // read all the properties provided as urls on the command line
     Properties configFromCli = new Properties()
@@ -432,9 +448,17 @@ class AgentMain implements LifecycleListener, Configurable
   {
     _shutdown = new Shutdown()
     _agent = new AgentImpl()
+
     _agentTempDir = GroovyIOUtils.toFile(Config.getRequiredString(_config, "${prefix}.agent.tempDir"))
+
+    def rootShell = createRootShell()
+    _agentContext =
+      new AgentContextImpl(shellForScripts: createShell(rootShell, "${prefix}.agent.scriptRootDir"),
+                           shellForCommands: rootShell,
+                           mop: new MOPImpl())
+
     _storage = createStorage()
-    def scriptManager = new ScriptManagerImpl(agentContext: _agent)
+    def scriptManager = new ScriptManagerImpl(agentContext: _agentContext)
     def scriptFactoryFactory = scriptManager.scriptFactoryFactory
     if(_storage)
       scriptManager = new StateKeeperScriptManager(scriptManager: scriptManager,
@@ -445,12 +469,11 @@ class AgentMain implements LifecycleListener, Configurable
 
     TagsStorage tagsStorage = new TagsStorage(_storage, "${prefix}.agent.tags".toString())
 
-    def rootShell = createRootShell()
 
     def agentArgs =
     [
       rootShell: rootShell,
-      shellForScripts: createShell(rootShell, "${prefix}.agent.scriptRootDir"),
+      agentContext: _agentContext,
       scriptManager: scriptManager,
       commandManager: createCommandsManager(rootShell, scriptManager, scriptFactoryFactory),
       agentLogDir: rootShell.toResource(Config.getRequiredString(_config, "${prefix}.agent.logDir")),
@@ -656,12 +679,12 @@ class AgentMain implements LifecycleListener, Configurable
           throw new IllegalArgumentException("unsupported storageType [${storageType}]")
       }
 
-      ioStorage.clock = _agent.clock
+      ioStorage.clock = _agentContext.clock
 
       def f = new CommandGluScriptFactoryFactory(ioStorage: ioStorage)
       scriptFactoryFactory.chain(f)
 
-      new CommandManagerImpl(agentContext: _agent,
+      new CommandManagerImpl(agentContext: _agentContext,
                              ioStorage: ioStorage,
                              scriptManager: scriptManager)
     }
@@ -713,7 +736,9 @@ class AgentMain implements LifecycleListener, Configurable
     }
     catch (Throwable th)
     {
-      log.warn("Cannot load the Sigar library... ignoring", th)
+      log.warn("Cannot load the Sigar library [${th.message}]... ignoring ")
+      if(log.isDebugEnabled())
+        log.debug("Cannot load the Sigar library... ignoring", th)
       return null
     }
   }
