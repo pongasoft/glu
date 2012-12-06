@@ -713,21 +713,7 @@ public class ConsoleTagLib
 
     if(throwable)
     {
-      out << '<div class="throwable">'
-      while(throwable)
-      {
-        out << '<div class="stackTrace">'
-        out << '<div class="stackTraceMessage">* <span class="stackTraceExceptionClass">'
-        out << throwable.class.name.encodeAsHTML()
-        out << ': </span>' << throwable.message.encodeAsHTML()
-        out << "</div>"
-        out << '<div class="stackTraceBody">'
-        out << throwable.stackTrace.join('\n').encodeAsHTML()
-        out << "</div>"
-        out << "</div>"
-        throwable = throwable.cause
-      }
-      out << '</div>'
+      out << renderJsonException(exception: throwable)
     }
   }
 
@@ -1211,7 +1197,7 @@ public class ConsoleTagLib
     if(exceptionAsJson)
     {
       def gid = "json-exception-${System.identityHashCode(exceptionAsJson)}"
-      out << "<div id=\"${gid}\" class=\"errorStackTrace\">"
+      out << "<dl id=\"${gid}\" class=\"errorStackTrace\">"
       exceptionAsJson?.eachWithIndex { e, idx ->
         def id = "${gid}-${idx}"
         out << "<dt class=\"stackTraceHeader\">"
@@ -1230,7 +1216,7 @@ public class ConsoleTagLib
         }
         out << "</div>"
       }
-      out << "</div>"
+      out << "</dl>"
     }
 
     if(exception instanceof Throwable)

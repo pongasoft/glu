@@ -99,6 +99,7 @@
 
   <bean id="planner" class="org.linkedin.glu.orchestration.engine.planner.impl.PlannerImpl">
     <property name="agentURIProvider" ref="_agentsServiceImpl"/>
+    <property name="skipMissingAgents" value="${console.plannerService.planner.skipMissingAgents}"/>
   </bean>
 
   <bean id="configurableFactory" class="org.linkedin.glu.agent.rest.client.ConfigurableFactoryImpl">

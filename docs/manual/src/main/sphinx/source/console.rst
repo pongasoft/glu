@@ -306,7 +306,7 @@ The plans page displays the list of deployments that have happened recently. Sin
   // set it to "0" if you want to disable auto archiving entirely
   console.deploymentService.autoArchiveTimeout = "30m"
 
-Limiting the number of paralell steps
+Limiting the number of parallel steps
 """""""""""""""""""""""""""""""""""""
 
 When running deployments in parallel, there is, by default, no limitation on how many steps can be executed at the same time. Depending on the size of your system, this may put a lot of stress on your infrastructure (like the network, binary repositories, etc...). In order to limit how many steps can run in parallel, you can define this property in the glu configuration file (``console-server/conf/glu-console-webapp.groovy``)::
@@ -314,6 +314,17 @@ When running deployments in parallel, there is, by default, no limitation on how
   // The following property limits how many (leaf) steps get executed in parallel during a deployment
   // By default (undefined), it is unlimited
   console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 500
+
+Plan
+^^^^
+
+Skipping missing agents
+"""""""""""""""""""""""
+
+By default, a missing agent generates a noop entry in the plan, or in other words it is skipped when the plan runs. If you want to change this behavior and generate an entry (which will fail on execution), then change the following property to ``false``::
+
+  // set to false if you want missing agents to not be skipped anymore in plan computation
+  console.plannerService.planner.skipMissingAgents = true
 
 UI configuration
 ^^^^^^^^^^^^^^^^

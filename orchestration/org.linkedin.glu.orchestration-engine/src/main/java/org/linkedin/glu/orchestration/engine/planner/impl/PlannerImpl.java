@@ -42,6 +42,7 @@ public class PlannerImpl implements Planner
   protected final static Collection<String> DELTA_TRANSITIONS = Arrays.asList(null, "<expected>");
 
   private AgentURIProvider _agentURIProvider;
+  private boolean _skipMissingAgents = true;
   private ActionDescriptorAdjuster _actionDescriptorAdjuster =
     DefaultActionDescriptorAdjuster.INSTANCE;
 
@@ -55,6 +56,11 @@ public class PlannerImpl implements Planner
   public AgentURIProvider getAgentURIProvider()
   {
     return _agentURIProvider;
+  }
+
+  public AgentURIProvider getAgentURIProviderForDeltaTransition()
+  {
+    return _skipMissingAgents ? _agentURIProvider : null;
   }
 
   @Initializer(required = false)
@@ -72,6 +78,17 @@ public class PlannerImpl implements Planner
   public void setActionDescriptorAdjuster(ActionDescriptorAdjuster actionDescriptorAdjuster)
   {
     _actionDescriptorAdjuster = actionDescriptorAdjuster;
+  }
+
+  public boolean isSkipMissingAgents()
+  {
+    return _skipMissingAgents;
+  }
+
+  @Initializer(required = false)
+  public void setSkipMissingAgents(boolean skipMissingAgents)
+  {
+    _skipMissingAgents = skipMissingAgents;
   }
 
   @Override
@@ -94,7 +111,7 @@ public class PlannerImpl implements Planner
 
     SingleDeltaTransitionPlan transitionPlan =
       new SingleDeltaTransitionPlan((InternalSystemModelDelta) systemModelDelta,
-                                    _agentURIProvider,
+                                    getAgentURIProviderForDeltaTransition(),
                                     _actionDescriptorAdjuster);
 
     transitionPlan.computeTransitionsToFixDelta();
@@ -135,7 +152,7 @@ public class PlannerImpl implements Planner
     {
       SingleDeltaTransitionPlan transitionPlan =
         new SingleDeltaTransitionPlan((InternalSystemModelDelta) delta,
-                                      _agentURIProvider,
+                                      getAgentURIProviderForDeltaTransition(),
                                       _actionDescriptorAdjuster,
                                       sequenceNumber++);
       transitionPlan.computeTransitionsToFixDelta();

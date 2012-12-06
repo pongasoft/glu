@@ -484,6 +484,51 @@ public class TestPlannerImpl extends GroovyTestCase
 
   }
 
+  /**
+   * Test for when the agent is missing (optional feature): glu-182
+   */
+  public void testMissingAgent()
+  {
+    planner.agentURIProvider = new ThrowExceptionAgentURIProvider()
+    Plan<ActionDescriptor> p = plan(Type.PARALLEL,
+                                    delta(m([agent: 'a1', mountPoint: 'p1', script: 's1']),
+
+                                          m()))
+
+    // by default a missing agent is simply skipped
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <parallel>
+    <sequential agent="a1" mountPoint="p1">
+      <leaf action="noop" agent="a1" fabric="f1" mountPoint="p1" reason="missingAgent" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(1, p.leafStepsCount)
+
+    // but you can change the default to actually execute the actions anyway
+    planner.skipMissingAgents = false
+    p = plan(Type.PARALLEL,
+             delta(m([agent: 'a1', mountPoint: 'p1', script: 's1']),
+
+                   m()))
+
+    assertEquals("""<?xml version="1.0"?>
+<plan>
+  <parallel>
+    <sequential agent="a1" mountPoint="p1">
+      <leaf agent="a1" fabric="f1" mountPoint="p1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="install" toState="installed" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="configure" toState="stopped" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="start" toState="running" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(4, p.leafStepsCount)
+  }
+
 
   private SystemModel m(Map... entries)
   {

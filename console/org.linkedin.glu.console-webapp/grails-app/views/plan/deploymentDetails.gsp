@@ -22,17 +22,9 @@
   <meta name="layout" content="main"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'status-colors.css')}"/>
   <style type="text/css">
-    div.stackTraceBody {
-      display: none;
-    }
-    span.stackTraceExceptionClass {
-      display: none;
-    }
-    div.stackTraceMessage {
-      color: #880000;
-      font-weight: bold;
-      font-family: monospace;
-      overflow-y: auto;
+    .errorStackTrace {
+      margin-top: 0;
+      margin-bottom: 0;
     }
     .progress {
       width: 150px;
