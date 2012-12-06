@@ -91,7 +91,7 @@ class UserPreferencesFilters
     }
 
     // 2) last resort (when only 1 fabric, simply select it...)
-    if(!fabric)
+    if(!fabric && !request.isRestRequest)
     {
       def fabricNames = fabricService.listFabricNames()
       if(fabricNames.size() >= 1)

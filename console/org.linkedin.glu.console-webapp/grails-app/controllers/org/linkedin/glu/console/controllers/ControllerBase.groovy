@@ -22,6 +22,8 @@ import org.linkedin.util.codec.Base64Codec
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.lang.LangUtils
 
+import javax.servlet.http.HttpServletResponse
+
 /**
  * Base class for controllers
  *
@@ -41,7 +43,10 @@ class ControllerBase
 
     if(!fabric)
     {
-      redirect(controller: 'fabric', action: 'select')
+      if(request.isRestRequest)
+        response.sendError(HttpServletResponse.SC_NOT_FOUND, "fabric")
+      else
+        redirect(controller: 'fabric', action: 'select')
       return false
     }
 
