@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2012 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -121,7 +122,9 @@ class MountPointResource extends BaseResource
   public void storeRepresentation(Representation representation)
   {
     noException {
-      agent.installScript(toArgs(representation))
+      def args = toArgs(representation)
+      args.mountPoint = getMountPoint() // making sure that the mountPoint is coming from the path (glu-178)
+      agent.installScript(args)
     }
   }
 
