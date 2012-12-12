@@ -36,7 +36,7 @@ public interface Planner
 
   /**
    * Compute the transition plan to 'fix' the delta
-   * @return a trasition plan to create a plan of the type you want
+   * @return a transition plan to create a plan of the type you want
    */
   TransitionPlan<ActionDescriptor> computeTransitionPlan(SystemModelDelta systemModelDelta);
 
@@ -44,7 +44,7 @@ public interface Planner
    * Compute the transition plan to 'fix' the deltas given a list of deltas (note that the order
    * of the deltas is very important and that
    * <code>deltas[n].currentModel == deltas[n-1].expectedModel</code> must be <code>true</code>.
-   * @return a trasition plan to create a plan of the type you want
+   * @return a transition plan to create a plan of the type you want
    */
   TransitionPlan<ActionDescriptor> computeTransitionPlan(Collection<SystemModelDelta> deltas);
 

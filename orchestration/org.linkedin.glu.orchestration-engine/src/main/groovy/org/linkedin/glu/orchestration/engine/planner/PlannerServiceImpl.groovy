@@ -21,9 +21,13 @@ package org.linkedin.glu.orchestration.engine.planner
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.glu.orchestration.engine.delta.DeltaMgr
+import org.linkedin.glu.orchestration.engine.delta.impl.SystemFiltersDeltaSystemModelFilter
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.orchestration.engine.fabric.FabricService
+import org.linkedin.glu.provisioner.core.model.LogicSystemFilterChain
 import org.linkedin.glu.provisioner.core.model.SystemEntry
+import org.linkedin.glu.provisioner.core.model.SystemEntryStateSystemFilter
+import org.linkedin.glu.provisioner.core.model.SystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.provisioner.plan.api.Plan
@@ -68,7 +72,7 @@ class PlannerServiceImpl implements PlannerService
    */
   Collection<Plan<ActionDescriptor>> computeDeployPlans(params, def metadata)
   {
-    computeDeploymentPlans(params, metadata, null)
+    doComputeDeploymentPlans(params, metadata, null)
   }
 
   /**
@@ -81,11 +85,12 @@ class PlannerServiceImpl implements PlannerService
    * </ol>
    * @return a collection of plans (<code>null</code> if no expected model) which may be empty
    */
-  private Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params,
-                                                                    def metadata,
-                                                                    Collection<String> toStates)
+  private Collection<Plan<ActionDescriptor>> doComputeDeploymentPlans(params,
+                                                                      def metadata,
+                                                                      Collection<String> toStates,
+                                                                      DeltaSystemModelFilter filter = null)
   {
-    computeDeploymentPlans(params, metadata, null, null, null, toStates)
+    computeDeploymentPlans(params, metadata, null, null, filter, toStates)
   }
 
   /**
@@ -102,7 +107,7 @@ class PlannerServiceImpl implements PlannerService
   public Collection<Plan<ActionDescriptor>> computeDeploymentPlans(params,
                                                                    def metadata,
                                                                    def expectedModelFilter,
-                                                                   def currentModelFiter,
+                                                                   def currentModelFilter,
                                                                    DeltaSystemModelFilter filter,
                                                                    Collection<String> toStates)
   {
@@ -121,8 +126,8 @@ class PlannerServiceImpl implements PlannerService
 
     SystemModel currentModel = agentsService.getCurrentSystemModel(fabric)
 
-    if(currentModelFiter)
-      currentModel = currentModel.filterBy(currentModelFiter)
+    if(currentModelFilter)
+      currentModel = currentModel.filterBy(currentModelFilter)
 
     doComputeDeploymentPlans(params, expectedModel, currentModel, filter, metadata, toStates)
   }
@@ -163,7 +168,7 @@ class PlannerServiceImpl implements PlannerService
     if(metadata == null)
       metadata = [:]
 
-    types.collect { Type type ->
+    Collection<Plan<ActionDescriptor>> allPlans = types.collect { Type type ->
       // 3. compute the deployment plan the given type
       Plan<ActionDescriptor> plan = transitionPlan.buildPlan(type)
 
@@ -191,7 +196,9 @@ class PlannerServiceImpl implements PlannerService
         plan.step?.metadata?.name = name
 
       return plan
-    }.findAll { Plan plan -> plan.hasLeafSteps() }
+    }
+
+    allPlans.findAll { Plan<ActionDescriptor> plan -> plan.hasLeafSteps() }
   }
 
   /**
@@ -200,7 +207,26 @@ class PlannerServiceImpl implements PlannerService
    */
   Collection<Plan<ActionDescriptor>> computeTransitionPlans(params, def metadata)
   {
-    computeDeploymentPlans(params, metadata, [params.state])
+    DeltaSystemModelFilter filter = null
+
+    if(params.expectedEntryStates || params.currentEntryStates)
+    {
+      def expectedEntrySystemFilter =
+        LogicSystemFilterChain.and(
+          (SystemFilter) params.system.filters,
+          SystemEntryStateSystemFilter.create((params.expectedEntryStates ?: []) as Set)
+        )
+
+      params.system = params.system.unfilter()
+
+      def currentEntrySystemFilter =
+        SystemEntryStateSystemFilter.create((params.currentEntryStates ?: []) as Set)
+
+      filter = new SystemFiltersDeltaSystemModelFilter(expectedEntrySystemFilter,
+                                                       currentEntrySystemFilter)
+    }
+
+    doComputeDeploymentPlans(params, metadata, [params.state], filter)
   }
 
   /**

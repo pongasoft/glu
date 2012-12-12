@@ -104,6 +104,12 @@ public class MultiDeltaBuilder
                                           getOriginalUnfilteredCurrentModel(),
                                           new SystemEntryKeyDeltaSystemModelFilter(getOriginalDelta().getFilteredKeys()));
 
+    Set<String> filteredKeys =
+      SingleDeltaBuilder.computeFilteredKeys(getOriginalUnfilteredExpectedModel(),
+                                             getOriginalUnfilteredCurrentModel(),
+                                             _latestDelta.getDeltaSystemModelFilter());
+
+    _latestDelta.setFilteredKeys(filteredKeys);
     _latestDelta.setParentKeys(new HashSet<String>(getOriginalDelta().getParentKeys()));
 
     for(String state : _toStates)

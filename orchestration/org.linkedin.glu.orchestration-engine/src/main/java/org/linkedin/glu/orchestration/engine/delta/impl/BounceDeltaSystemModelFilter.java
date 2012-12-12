@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2012 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,8 +16,8 @@
 
 package org.linkedin.glu.orchestration.engine.delta.impl;
 
-import org.linkedin.glu.orchestration.engine.delta.DeltaSystemModelFilter;
-import org.linkedin.glu.provisioner.core.model.SystemEntry;
+import org.linkedin.glu.provisioner.core.model.LogicSystemFilterChain;
+import org.linkedin.glu.provisioner.core.model.SystemEntryStateSystemFilter;
 import org.linkedin.glu.provisioner.core.model.SystemFilter;
 
 /**
@@ -26,12 +26,8 @@ import org.linkedin.glu.provisioner.core.model.SystemFilter;
  * 
  * @author yan@pongasoft.com
  */
-public class BounceDeltaSystemModelFilter implements DeltaSystemModelFilter
+public class BounceDeltaSystemModelFilter extends SystemFiltersDeltaSystemModelFilter
 {
-  private final SystemFilter _expectedSystemFilter;
-  private final String _expectedState;
-  private final String _bounceState;
-
   /**
    * Constructor
    */
@@ -47,21 +43,8 @@ public class BounceDeltaSystemModelFilter implements DeltaSystemModelFilter
                                       String expectedState,
                                       String bounceState)
   {
-    _expectedSystemFilter = expectedSystemFilter;
-    _expectedState = expectedState;
-    _bounceState = bounceState;
-  }
-
-  @Override
-  public boolean filter(SystemEntry expectedEntry, SystemEntry currentEntry)
-  {
-    if(expectedEntry == null || currentEntry == null)
-      return false;
-
-    String currentState = currentEntry.getEntryState();
-
-    return (currentState.equals(_expectedState) || currentState.equals(_bounceState)) &&
-           expectedEntry.getEntryState().equals(_expectedState) &&
-           (_expectedSystemFilter == null || _expectedSystemFilter.filter(expectedEntry));
+    super(LogicSystemFilterChain.and(expectedSystemFilter,
+                                     SystemEntryStateSystemFilter.create(expectedState)),
+          SystemEntryStateSystemFilter.create(expectedState, bounceState));
   }
 }

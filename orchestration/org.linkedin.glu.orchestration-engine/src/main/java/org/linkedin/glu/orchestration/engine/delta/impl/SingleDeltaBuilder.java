@@ -222,6 +222,9 @@ public class SingleDeltaBuilder
       expectedEntry = currentEntry;
     }
 
+    if(currentEntry == null && expectedEntry == null)
+      return null;
+
     InternalSystemEntryDelta delta =
       new SystemEntryDeltaImpl(expectedEntry,
                                currentEntry,
@@ -242,6 +245,9 @@ public class SingleDeltaBuilder
 
   protected InternalSystemEntryDelta processSystemEntryDelta(InternalSystemEntryDelta delta)
   {
+    if(delta == null)
+      return null;
+
     delta = _deltaProcessor.processSystemEntryDelta(delta);
     _systemModelDelta.setEntryDelta(delta);
     return delta;
