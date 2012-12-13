@@ -20,6 +20,7 @@ import org.linkedin.glu.orchestration.engine.action.execution.ActionExecutionFac
 import org.linkedin.glu.orchestration.engine.action.execution.ActionExecution
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor
 import org.linkedin.glu.orchestration.engine.action.descriptor.NoOpActionDescriptor
+import org.linkedin.glu.orchestration.engine.agents.MountPointStateProvider
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.linkedin.glu.orchestration.engine.action.descriptor.ScriptTransitionActionDescriptor
@@ -51,6 +52,9 @@ public class ActionExecutionFactoryImpl implements ActionExecutionFactory
   @Initializable(required = true)
   AgentURIProvider agentURIProvider
 
+  @Initializable
+  MountPointStateProvider mountPointStateProvider
+
   @Initializable(required = false)
   EncryptionKeysProvider encryptionKeysProvider
 
@@ -58,6 +62,11 @@ public class ActionExecutionFactoryImpl implements ActionExecutionFactory
    *  the timeout for the agent operations */
   @Initializable(required = false)
   Timespan timeout = Timespan.parse('10s')
+
+  /**
+   *  the timeout for state propagation (ZooKeeper) */
+  @Initializable(required = false)
+  Timespan timeoutForStatePropagation = Timespan.parse('2s')
 
   /**
    * when a communication exception is detected with the agent, it will sleep for this time
@@ -122,6 +131,29 @@ public class ActionExecutionFactoryImpl implements ActionExecutionFactory
           {
             agent.interruptAction(mountPoint: mountPoint, action: ad.action)
             throw new InterruptedException()
+          }
+        }
+      }
+
+      // 4. we wait for the state to propagate through ZooKeeper (glu-134)
+      if(mountPointStateProvider)
+      {
+        success = false
+        while(!success)
+        {
+          success = mountPointStateProvider.waitForState(ad.fabric,
+                                                         ad.agent,
+                                                         mountPoint,
+                                                         ad.toState,
+                                                         timeoutForStatePropagation)
+          if(!success)
+          {
+            if(Thread.currentThread().isInterrupted())
+            {
+              // we know that the action already completed (step 3) but somehow
+              // it did not propagate yet to ZooKeeper and has been interrupted
+              throw new InterruptedException()
+            }
           }
         }
       }

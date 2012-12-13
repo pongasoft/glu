@@ -43,7 +43,7 @@ import org.linkedin.glu.agent.api.TimeOutException
 /**
  * @author ypujante
  */
-class AgentsServiceImpl implements AgentsService, AgentURIProvider
+class AgentsServiceImpl implements AgentsService, AgentURIProvider, MountPointStateProvider
 {
   public static final String MODULE = AgentsServiceImpl.class.getName ();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
@@ -122,6 +122,16 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider
     withRemoteAgent(args.fabric, args.id) { Agent agent ->
       agent.getFullState(args)
     }
+  }
+
+  boolean waitForState(String fabric, String agentName, def mountPoint, String state, def timeout)
+  {
+    trackerService.waitForState(fabric, agentName, mountPoint, state, timeout)
+  }
+
+  boolean waitForState(Fabric fabric, String agentName, def mountPoint, String state, def timeout)
+  {
+    trackerService.waitForState(fabric, agentName, mountPoint, state, timeout)
   }
 
   def clearError(args)

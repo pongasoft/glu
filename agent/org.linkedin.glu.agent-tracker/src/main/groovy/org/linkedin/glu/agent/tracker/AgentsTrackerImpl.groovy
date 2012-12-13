@@ -602,6 +602,9 @@ class AgentsTrackerInstance
             case NodeEventType.DELETED:
               info = agentMountPoints.remove(mountPoint)
               break
+
+            default:
+              throw new RuntimeException("not reached [${event.eventType}]")
           }
 
           synchronized(_mountPoints)

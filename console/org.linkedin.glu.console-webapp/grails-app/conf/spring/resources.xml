@@ -66,6 +66,7 @@
         class="org.linkedin.glu.orchestration.engine.core.action.execution.ActionExecutionFactoryImpl">
     <property name="agentFactory" ref="agentFactory"/>
     <property name="agentURIProvider" ref="_agentsServiceImpl"/>
+    <property name="mountPointStateProvider" ref="_agentsServiceImpl"/>
     <property name="encryptionKeysProvider" ref="encryptionKeysProvider"/>
   </bean>
 
