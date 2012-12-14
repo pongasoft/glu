@@ -563,6 +563,8 @@ def interface Shell
    * @param args.command the command to execute. It will be delegated to the shell so it should
    *                     be native to the OS on which the agent runs (either a <code>String</code>
    *                     or a <code>Collection</code>) (required)
+   * @param args.pwd the directory from which the command will be run (optional, will
+   *                 default to the "current" directory)
    * @param args.stdin any input that can "reasonably" be converted into an
    *                   <code>InputStream</code>) to provide to the command line execution
    *                   (optional, default to no stdin)

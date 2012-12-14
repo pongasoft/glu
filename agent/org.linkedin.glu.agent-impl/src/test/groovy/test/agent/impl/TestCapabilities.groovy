@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2012 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,6 +18,7 @@
 
 package test.agent.impl
 
+import org.linkedin.glu.agent.impl.capabilities.ShellExec
 import org.linkedin.glu.agent.impl.capabilities.ShellImpl
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.groovy.util.io.fs.FileSystem
@@ -31,7 +32,6 @@ import org.linkedin.glu.agent.api.ShellExecException
 import org.linkedin.glu.agent.impl.storage.AgentProperties
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.Headers
-import org.linkedin.glu.utils.io.MultiplexedInputStream
 
 /**
  * Test for various capabilities.
@@ -291,15 +291,34 @@ class TestCapabilities extends GroovyTestCase
       assertTrue(errorMsg.endsWith("res=1 - output= - error="))
       assertEquals("this goes to stdout\n", new String(myStdout.toByteArray(), "UTF-8"))
       assertEquals("this goes to stderr\n", new String(myStderr.toByteArray(), "UTF-8"))
+
+      // testing pwd
+      checkShellExec(shell, [command: ["pwd"]], 0, "${new File(".").canonicalPath}\n", "")
+      def pwdDir = shell.mkdirs("/pwd")
+      checkShellExec(shell, [command: ["pwd"], pwd: "/pwd"], 0, "${pwdDir.file.canonicalPath}\n", "")
+
+      ProcessBuilder pb = new ProcessBuilder(ShellExec.buildCommandLine('pwd'))
+      pb.directory(shell.toResource("/pwdDoNotExist").file)
+      String errorMessage = null
+      try
+      {
+        pb.start()
+      }
+      catch(IOException e)
+      {
+        errorMessage = e.message
+      }
+
+      checkShellExec(shell, [command: ["pwd"], pwd: "/pwdDoNotExist", failOnError: false], 2, "", "${errorMessage}")
     }
   }
 
-  private void checkShellExec(shell, commands, exitValue, stdout, stderr)
+  private static void checkShellExec(shell, commands, exitValue, stdout, stderr)
   {
     checkShellExec(shell, commands, exitValue, stdout, stderr, null)
   }
 
-  private void checkShellExec(shell, commands, exitValue, stdout, stderr, Closure cl)
+  private static void checkShellExec(shell, commands, exitValue, stdout, stderr, Closure cl)
   {
     assertEquals(stdout.trim(), shell.exec(*:commands))
     if(cl) cl()

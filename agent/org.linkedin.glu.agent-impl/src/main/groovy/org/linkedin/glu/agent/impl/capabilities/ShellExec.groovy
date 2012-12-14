@@ -22,6 +22,8 @@ import org.linkedin.glu.commands.impl.StreamType
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.glu.groovy.utils.io.InputGeneratorStream
 import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
+import org.linkedin.glu.groovy.utils.lang.ProcessWithResult
+import org.linkedin.glu.utils.io.EmptyInputStream
 import org.linkedin.glu.utils.io.MultiplexedInputStream
 import org.linkedin.glu.utils.io.NullOutputStream
 
@@ -38,7 +40,7 @@ import org.linkedin.glu.groovy.utils.io.DestroyProcessInputStream
  * Because the logic of exec is quite complicated, it requires its own class
  *
  * @author yan@pongasoft.com  */
-private class ShellExec
+class ShellExec
 {
   public static final String MODULE = ShellExec.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
@@ -62,6 +64,14 @@ private class ShellExec
   private boolean _destroyProcessInFinally = true
   private Process _process
 
+  /**
+   * Use bash -c to run the command line
+   */
+  public static def buildCommandLine(String commandLine)
+  {
+    ['bash', '-c', commandLine]
+  }
+
   def exec()
   {
     initCommandLine()
@@ -80,10 +90,22 @@ private class ShellExec
       initOutput(StreamType.stderr)
 
     // builds the process
-    def pb = new ProcessBuilder(['bash', '-c', _commandLine])
+    def pb = new ProcessBuilder(buildCommandLine(_commandLine))
     pb.redirectErrorStream(_redirectStderr)
+    if(args.pwd)
+      pb.directory(args.pwd as File)
 
-    _process = pb.start()
+    try
+    {
+      _process = pb.start()
+    }
+    catch(IOException e)
+    {
+      _process = new ProcessWithResult(outputStream: NullOutputStream.INSTANCE,
+                                       inputStream: EmptyInputStream.INSTANCE,
+                                       errorStream: new InputGeneratorStream(e.message),
+                                       exitValue: 2)
+    }
 
     try
     {

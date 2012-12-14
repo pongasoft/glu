@@ -19,6 +19,8 @@
 package org.linkedin.glu.agent.impl.capabilities
 
 import eu.medsea.mimeutil.MimeUtil
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+
 import java.util.concurrent.TimeoutException
 import java.util.regex.Pattern
 import javax.management.MBeanServerConnection
@@ -603,6 +605,12 @@ def class ShellImpl implements Shell
    */
   def exec(Map args)
   {
+    if(args.pwd)
+    {
+      def pwd = toResource(args.pwd).file
+      args = GluGroovyCollectionUtils.xorMap(args, ['pwd'])
+      args.pwd = pwd
+    }
     new ShellExec(shell: this, args: args).exec()
   }
 
