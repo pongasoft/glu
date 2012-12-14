@@ -455,6 +455,7 @@ class AgentMain implements LifecycleListener, Configurable
     _agentContext =
       new AgentContextImpl(shellForScripts: createShell(rootShell, "${prefix}.agent.scriptRootDir"),
                            shellForCommands: rootShell,
+                           rootShell: rootShell,
                            mop: new MOPImpl())
 
     _storage = createStorage()

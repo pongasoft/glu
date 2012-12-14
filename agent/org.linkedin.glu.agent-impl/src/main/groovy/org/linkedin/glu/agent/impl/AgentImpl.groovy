@@ -86,6 +86,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
       new AgentContextImpl(clock: args.clock ?: SystemClock.INSTANCE,
                            shellForScripts: args.shellForScripts,
                            shellForCommands: args.shellForCommands ?: _rootShell,
+                           rootShell: _rootShell,
                            mop: new MOPImpl())
     _agentLogDir = args.agentLogDir
     _sigar = args.sigar

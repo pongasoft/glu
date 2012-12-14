@@ -32,10 +32,20 @@ public interface GluScript
   MountPoint getMountPoint()
 
   /**
+   * The shell returned by this call is relative to where apps are installed.
+   *
    * @return the shell for (unix) shell like capabilities
    * @see Shell
    */
   Shell getShell()
+
+  /**
+   * The shell returned by this call is set to the root of the filesystem (/) and should be
+   * used with caution!
+   * @return the (root) shell for (unix) shell like capabilities
+   * @see Shell
+   */
+  Shell getRootShell()
 
   /**
    * @return the initParameters provided at installation time

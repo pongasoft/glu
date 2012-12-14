@@ -281,6 +281,23 @@ An instance of ``org.linkedin.glu.agent.api.Shell`` (`Shell api <https://github.
 
   .. tip:: The agent handles ``zookeeper:/a/b/c`` style URIs and can be configured to handle ``ivy:/a/b/1.0`` style URIs.
 
+.. _agent-capabilities-root-shell:
+
+``rootShell``
+"""""""""""""
+The difference between ``rootShell`` and ``shell`` is where ``/`` is referring to. In the case
+of ``shell``, ``/`` refers to the application directory (see ``GLU_AGENT_APPS`` config property).
+In the case of ``rootShell``, ``/`` refers to the root of the filesystem.
+
+.. tip:: it is highly recommended to install your applications relative to ``shell`` using a
+         pattern like this::
+
+           def installRoot = shell.toResource(mountPoint)
+
+         glu will automatically clean after yourself on uninstall if you use this pattern.
+         Using ``rootShell`` is not recommended but still provided in the (hopefully rare) cases
+         when you need it.
+
 .. _agent-capabilities-shell-env:
 
 ``shell.env``

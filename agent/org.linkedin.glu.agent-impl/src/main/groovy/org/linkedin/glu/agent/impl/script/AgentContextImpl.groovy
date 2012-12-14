@@ -25,6 +25,7 @@ import org.linkedin.util.clock.SystemClock
 public class AgentContextImpl implements AgentContext
 {
   Clock clock = SystemClock.instance()
+  Shell rootShell
   Shell shellForScripts
   Shell shellForCommands
   MOP mop

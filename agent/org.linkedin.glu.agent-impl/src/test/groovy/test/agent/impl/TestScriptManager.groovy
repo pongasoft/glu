@@ -23,8 +23,9 @@ import org.linkedin.glu.agent.impl.capabilities.ShellImpl
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.api.DuplicateMountPointException
 import org.linkedin.glu.agent.api.NoSuchMountPointException
-import org.linkedin.glu.agent.impl.script.AgentContext
 import org.linkedin.glu.agent.impl.capabilities.MOPImpl
+import org.linkedin.glu.agent.impl.script.AgentContext
+import org.linkedin.glu.agent.impl.script.AgentContextImpl
 import org.linkedin.glu.agent.impl.script.ScriptManagerImpl
 import org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory
 import org.linkedin.groovy.util.io.fs.FileSystem
@@ -80,8 +81,11 @@ def class TestScriptManager extends GroovyTestCase
 
     shell = new ShellImpl(fileSystem: fileSystem)
 
+    def rootShell = new ShellImpl(fileSystem: new FileSystemImpl(new File("/")))
+
     def agentContext = [
       getShellForScripts: {shell},
+      getRootShell: { rootShell },
       getMop: {new MOPImpl()},
       getClock: { SystemClock.instance() }
     ] as AgentContext
@@ -628,6 +632,7 @@ private def class MyScriptTestScriptManager
     rootPath = mountPoint
     GroovyTestCase.assertEquals(args.expectedMountPoint, mountPoint)
     GroovyTestCase.assertEquals(args.expectedParentRootPath, parent.rootPath)
+    GroovyTestCase.assertEquals("/", rootShell.toResource("/").file.canonicalPath)
     shell.mkdirs(mountPoint)
     return [install: "${args.value}/${params.p1}".toString()]
   }

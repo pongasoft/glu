@@ -210,6 +210,7 @@ def class ScriptManagerImpl implements ScriptManager
             getMountPoint: { sd.mountPoint },
             getChildren: { locateChildrenNodes(sd.mountPoint) },
             getShell: { scriptConfig.shell },
+            getRootShell: { agentContext.rootShell },
             getParent: { getScript(sd.parent) },
             getParams: { self.scriptDefinition.initParameters },
             getState: { stateManager.state },

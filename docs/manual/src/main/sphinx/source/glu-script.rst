@@ -131,6 +131,8 @@ Table of all the properties usable from a ``GluScript``:
 +---------------------------------------------------+---------------------------------------------------------+
 |:ref:`shell <agent-capabilities-shell>`            |Access to all shell like capabilities (mv, ls, etc...)   |
 +---------------------------------------------------+---------------------------------------------------------+
+|:ref:`rootShell <agent-capabilities-root-shell>`   |Access to all shell like capabilities (mv, ls, etc...)   |
++---------------------------------------------------+---------------------------------------------------------+
 |:ref:`shell.env <agent-capabilities-shell-env>`    |Access to environment variables set at agent boot time   |
 +---------------------------------------------------+---------------------------------------------------------+
 |:ref:`stateManager                                 |Manage/Query the state                                   |
