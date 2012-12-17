@@ -565,6 +565,12 @@ def interface Shell
    *                     or a <code>Collection</code>) (required)
    * @param args.pwd the directory from which the command will be run (optional, will
    *                 default to the "current" directory)
+   * @param args.env a map (<code>String</code>, <code>String</code>) containing environment
+   *                 variables to be passed to sub-process. If the value is <code>null</code>,
+   *                 it will remove it from the inherited environment variables. (optional)
+   * @param args.inheritEnv a boolean to determine if the environment variables in effect in the
+   *                        agent will be passed down to the sub-process (optional, default to
+   *                        <code>true</code>)
    * @param args.stdin any input that can "reasonably" be converted into an
    *                   <code>InputStream</code>) to provide to the command line execution
    *                   (optional, default to no stdin)

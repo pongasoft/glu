@@ -92,8 +92,27 @@ class ShellExec
     // builds the process
     def pb = new ProcessBuilder(buildCommandLine(_commandLine))
     pb.redirectErrorStream(_redirectStderr)
+
+    // pwd
     if(args.pwd)
       pb.directory(args.pwd as File)
+
+    // environment
+    Map<String, String> environment = pb.environment()
+    if(!GluGroovyLangUtils.getOptionalBoolean(args.inheritEnv, true))
+      environment.clear()
+
+    if(args.env)
+    {
+      args.env.each { k, v ->
+        k = k.toString()
+
+        if(v == null)
+          environment.remove(k)
+        else
+          environment[k] = v.toString()
+      }
+    }
 
     try
     {

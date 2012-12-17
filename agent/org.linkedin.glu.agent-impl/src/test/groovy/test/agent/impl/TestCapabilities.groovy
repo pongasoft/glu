@@ -310,6 +310,19 @@ class TestCapabilities extends GroovyTestCase
       }
 
       checkShellExec(shell, [command: ["pwd"], pwd: "/pwdDoNotExist", failOnError: false], 2, "", "${errorMessage}")
+
+      // testing env
+      checkShellExec(shell, [command: ['echo $HOME']], 0, "${System.getenv().HOME}\n", "")
+
+      // changing environment variable
+      def homeDir = shell.mkdirs("/home")
+      checkShellExec(shell, [command: ['echo $HOME'], env: [HOME: homeDir.file.canonicalPath]], 0, "${homeDir.file.canonicalPath}\n", "")
+
+      // removing environment variable
+      checkShellExec(shell, [command: ['echo $HOME'], env: [HOME: null]], 0, "\n", "")
+
+      // not inheriting
+      checkShellExec(shell, [command: ['echo $HOME'], inheritEnv: false], 0, "\n", "")
     }
   }
 
