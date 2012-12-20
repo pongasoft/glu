@@ -1,6 +1,23 @@
 Latest changes
 ==============
 
+4.6.1 (2012/12/20)
+------------------
+
+This release is essentially a bug fix release with a couple of minor enhancements to the agent api.
+
+* Fixed `glu-134 <https://github.com/linkedin/glu/issues/134>`_: `Race condition between agent.waitForState and ZooKeeper state`
+* Fixed `glu-177 <https://github.com/linkedin/glu/issues/177>`_: `No plan generated when mountpoint not deployed with REST api`
+* Fixed `glu-178 <https://github.com/linkedin/glu/issues/178>`_: `Install script agent REST api not handling path correctly`
+* Fixed `glu-181 <https://github.com/linkedin/glu/issues/181>`_: `Using an unknown fabric in console REST call works`
+* Fixed `glu-182 <https://github.com/linkedin/glu/issues/182>`_: `Delta engine reports success when agents are missing`
+* Implemented `glu-185 <https://github.com/linkedin/glu/issues/185>`_: `Add "pwd" to generic shell.exec command`
+* Implemented `glu-191 <https://github.com/linkedin/glu/issues/191>`_: `Add rootShell to GluScript`
+* Implemented `glu-192 <https://github.com/linkedin/glu/issues/192>`_: `Add "env" to generic shell command`
+* Implemented `glu-193 <https://github.com/linkedin/glu/issues/193>`_: `Add support for nesting /console/ in a sub url in console-cli.py and PEP-8 Python style compliance` (Thanks to Stéphane)
+
+
+
 4.6.0 (2012/11/18)
 ------------------
 
