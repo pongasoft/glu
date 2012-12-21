@@ -31,7 +31,7 @@ Check the rest of the [documentation](http://linkedin.github.com/glu/docs/latest
 Quick Links
 ===========
 
-1. [Download](https://github.com/linkedin/glu/downloads)
+1. [Download](http://www.pongasoft.com/glu/downloads/)
 2. [Documentation (latest)](http://linkedin.github.com/glu/docs/latest/html/index.html)
 3. [Tutorial (latest)](http://linkedin.github.com/glu/docs/latest/html/tutorial.html)
 4. [Source code](http://www.github.com/linkedin/glu)

@@ -45,7 +45,7 @@ Currently glu requires a UNIX like platform (tested on Mac OS X and Solaris) and
 
 Install the tutorial
 --------------------
-Download the binary called ``org.linkedin.glu.packaging-all-<version>.tgz`` from the `downloads <https://github.com/linkedin/glu/downloads>`_ section on github.
+Download the binary called ``<version>/org.linkedin.glu.packaging-all-<version>.tgz`` from the `downloads <http://www.pongasoft.com/glu/downloads/>`_ section.
   
 Untar/Unzip in a location of your choice. From now on, this location will be referred to as ``GLU_TUTORIAL_ROOT``.
 
