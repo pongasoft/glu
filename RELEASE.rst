@@ -1,7 +1,7 @@
 Latest changes
 ==============
 
-4.6.1 (2012/12/20)
+4.6.1 (2012/12/21)
 ------------------
 
 This release is essentially a bug fix release with a couple of minor enhancements to the agent api.
@@ -15,8 +15,9 @@ This release is essentially a bug fix release with a couple of minor enhancement
 * Implemented `glu-191 <https://github.com/linkedin/glu/issues/191>`_: `Add rootShell to GluScript`
 * Implemented `glu-192 <https://github.com/linkedin/glu/issues/192>`_: `Add "env" to generic shell command`
 * Implemented `glu-193 <https://github.com/linkedin/glu/issues/193>`_: `Add support for nesting /console/ in a sub url in console-cli.py and PEP-8 Python style compliance` (Thanks to Stéphane)
+* Implemented `glu-194 <https://github.com/linkedin/glu/issues/194>`_: `Find a new "Downloads" space`
 
-
+.. note:: Due to `github deprecating the Download/Upload feature <https://github.com/blog/1302-goodbye-uploads>`_, the binary release has been moved to a new `location <http://www.pongasoft.com/glu/downloads/>`_.
 
 4.6.0 (2012/11/18)
 ------------------
