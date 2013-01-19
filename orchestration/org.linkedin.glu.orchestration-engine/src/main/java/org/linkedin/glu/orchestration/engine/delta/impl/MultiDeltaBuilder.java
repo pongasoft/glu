@@ -169,7 +169,9 @@ public class MultiDeltaBuilder
                                   SystemModel newExpectedModel,
                                   Set<String> filteredKeys)
   {
-    ParentChildDeltaStateBuilder pc = new ParentChildDeltaStateBuilder(_latestDelta, parentKey);
+    ParentChildDeltaStateBuilder pc = new ParentChildDeltaStateBuilder(_latestDelta,
+                                                                       getOriginalDelta(),
+                                                                       parentKey);
 
     // not a parent/child relationship... skipping
     if(pc.getParent() == null)

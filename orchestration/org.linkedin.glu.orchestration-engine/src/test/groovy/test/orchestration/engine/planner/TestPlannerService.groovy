@@ -969,6 +969,41 @@ public class TestPlannerService extends GroovyTestCase
   }
 
   /**
+   * Test that when a transition on a child is requested, the parent is also part of the plan (when
+   * necessary) (glu-198)
+   */
+  public void testParentChildGlu198()
+  {
+    Plan<ActionDescriptor> p
+
+    // current model is empty... trying to transition child to 'installed' state
+    p = transitionPlan(Type.PARALLEL,
+                       m([agent: 'a1', mountPoint: 'p1', script: 's1'],
+                         [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1']).filterBy(childFilter),
+
+                       m(),
+                       "installed")
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="transition - PARALLEL">
+  <sequential name="transition - PARALLEL">
+    <parallel depth="0">
+      <leaf agent="a1" fabric="f1" mountPoint="p1" script="s1" scriptLifecycle="installScript" />
+    </parallel>
+    <parallel depth="1">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" parent="p1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="install" toState="installed" />
+    </parallel>
+    <parallel depth="2">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="install" toState="installed" />
+    </parallel>
+  </sequential>
+</plan>
+""", p.toXml())
+    assertEquals(4, p.leafStepsCount)
+  }
+
+  /**
    * Test for stop plan when empty (issue #129)
    */
   public void testStopPlanWhenEmpty()
