@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -188,10 +188,15 @@ class FabricController extends ControllerBase
         {
           try
           {
+            // delete the fabric itself
             Fabric.executeUpdate("delete Fabric f where f.id=?", [fabricInstance.id])
+
+            // delete the current system associated to the fabric
+            systemService.deleteCurrentSystem(fabricInstance.name)
+
             fabricService.resetCache()
             flash.success = "Fabric ${params.id} deleted"
-            audit('fabric.deleted', params.id.toString())
+            audit('fabric.deleted', "id: ${params.id}, name: ${fabricInstance.name}")
             redirect(action: list)
           }
           catch (org.springframework.dao.DataIntegrityViolationException e)
