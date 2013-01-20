@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +16,7 @@
 
 package org.linkedin.glu.orchestration.engine.plugins.builtin
 
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.groovy.util.io.DataMaskingInputStream
 import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
@@ -39,6 +40,9 @@ public class StreamFileContentPlugin
   String unrestrictedRole = "ADMIN"
 
   @Initializable
+  boolean maskFileContent = true
+
+  @Initializable
   AuthorizationService authorizationService
 
   /**
@@ -47,6 +51,9 @@ public class StreamFileContentPlugin
   def PluginService_initialize = { args ->
     unrestrictedLocation = args.config.plugins.StreamFileContentPlugin.unrestrictedLocation
     unrestrictedRole = args.config.plugins.StreamFileContentPlugin.unrestrictedRole ?: "ADMIN"
+    maskFileContent =
+      GluGroovyLangUtils.getOptionalBoolean(args.config.plugins.StreamFileContentPlugin.maskFileContent,
+                                            true)
     authorizationService = args.applicationContext['authorizationService']
     log.info("Setting unrestrictedLocation to ${unrestrictedLocation}")
   }
@@ -71,7 +78,8 @@ public class StreamFileContentPlugin
    * it gets decorated with a DataMaskingInputStream to hide the passwords and keys
    */
   def AgentsService_post_streamFileContent = { args ->
-    if(args.serviceResult instanceof InputStream) {
+    if(args.serviceResult instanceof InputStream && maskFileContent)
+    {
       return new DataMaskingInputStream(args.serviceResult)
     }
     return null
