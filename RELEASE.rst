@@ -1,6 +1,16 @@
 Latest changes
 ==============
 
+4.6.2 (2013/01/21)
+------------------
+
+This release is a bug fix release only.
+
+* Fixed `glu-195 <https://github.com/linkedin/glu/issues/195>`_: `Very long lines in an application log are loaded surprisingly slow when browsing from Console`
+* Fixed `glu-196 <https://github.com/linkedin/glu/issues/196>`_: `DisabledFeatureProxy should proceed hashCode and equals methods to avoid breaking Spring ApplicationContext`
+* Fixed `glu-197 <https://github.com/linkedin/glu/issues/197>`_: `Once a fabric is deleted cannot create a new fabric with the same name`
+* Fixed `glu-198 <https://github.com/linkedin/glu/issues/198>`_: `Child not able to generate Parent Plan`
+
 4.6.1 (2012/12/21)
 ------------------
 
