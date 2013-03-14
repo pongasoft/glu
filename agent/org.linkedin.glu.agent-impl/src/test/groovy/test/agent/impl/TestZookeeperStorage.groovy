@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -48,7 +48,7 @@ class TestZookeeperStorage extends GroovyTestCase
     super.setUp();
 
     zkStart()
-    client = new ZKClient('localhost:2121',
+    client = new ZKClient('127.0.0.1:2121',
                           Timespan.parse('100'),
                           null)
     client.reconnectTimeout = Timespan.parse('500')
@@ -165,7 +165,7 @@ class TestZookeeperStorage extends GroovyTestCase
     assertTrue(data.stat.ephemeralOwner > 0) // ephemeral node
 
     client.destroy()
-    client = new ZKClient('localhost:2121',
+    client = new ZKClient('127.0.0.1:2121',
                           Timespan.parse('100'),
                           null)
     client.reconnectTimeout = Timespan.parse('500')

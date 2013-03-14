@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -27,6 +27,7 @@ import org.linkedin.glu.agent.impl.storage.DualWriteStorage
 import org.linkedin.glu.agent.impl.storage.FileSystemStorage
 import org.linkedin.glu.agent.impl.storage.Storage
 import org.linkedin.glu.agent.impl.zookeeper.ZooKeeperStorage
+import org.linkedin.glu.agent.rest.common.RestServerFactoryImpl
 import org.linkedin.glu.agent.rest.resources.AgentResource
 import org.linkedin.glu.agent.rest.resources.FileResource
 import org.linkedin.glu.agent.rest.resources.HostResource
@@ -49,6 +50,7 @@ import org.linkedin.util.reflect.ObjectProxyBuilder
 import org.linkedin.zookeeper.client.IZKClient
 import org.linkedin.zookeeper.client.LifecycleListener
 import org.linkedin.zookeeper.client.ZooKeeperURLHandler
+import org.restlet.Server
 import org.restlet.util.Series
 import org.restlet.routing.Router
 import org.linkedin.groovy.util.config.Config
@@ -577,6 +579,8 @@ class AgentMain implements LifecycleListener, Configurable
     
     _restServer.getDefaultHost().attach(router);
 
+    def restServerFactory = new RestServerFactoryImpl()
+
     def secure = ''
 
     if(Config.getOptionalBoolean(_config, "${prefix}.agent.sslEnabled", true))
@@ -604,14 +608,16 @@ class AgentMain implements LifecycleListener, Configurable
       params.add('defaultThreads',
                  Config.getOptionalString(_config, "${prefix}.agent.rest.server.defaultThreads", '3'))
       
-      def server = _restServer.getServers().add(Protocol.HTTPS, port);
+      def server = restServerFactory.createRestServer(true, null, port)
       server.setContext(serverContext)
+      _restServer.getServers().add(server)
 
       secure = '(secure)'
     }
     else
     {
-      _restServer.getServers().add(Protocol.HTTP, port);
+      def server = restServerFactory.createRestServer(false, null, port)
+      _restServer.getServers().add(server)
     }
 
     _restServer.start()

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
  * Portions Copyright (c) 2011 Andras Kovi
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -622,78 +622,78 @@ class SubScript extends BaseScript
 
     return jarFile
   }
-}
 
-private def class MyScriptTestScriptManager
-{
-  def rootPath
+  private static class MyScriptTestScriptManager
+  {
+    def rootPath
 
-  def install = { args ->
-    rootPath = mountPoint
-    GroovyTestCase.assertEquals(args.expectedMountPoint, mountPoint)
-    GroovyTestCase.assertEquals(args.expectedParentRootPath, parent.rootPath)
-    GroovyTestCase.assertEquals("/", rootShell.toResource("/").file.canonicalPath)
-    shell.mkdirs(mountPoint)
-    return [install: "${args.value}/${params.p1}".toString()]
+    def install = { args ->
+      rootPath = mountPoint
+      GroovyTestCase.assertEquals(args.expectedMountPoint, mountPoint)
+      GroovyTestCase.assertEquals(args.expectedParentRootPath, parent.rootPath)
+      GroovyTestCase.assertEquals("/", rootShell.toResource("/").file.canonicalPath)
+      shell.mkdirs(mountPoint)
+      return [install: "${args.value}/${params.p1}".toString()]
+    }
+
+    def configure = { args ->
+      return "${parent.closure(p1: args.p1, p2: args.p2)}".toString()
+    }
+
+    def createChild = { args ->
+      return args.script
+    }
+
+    def destroyChild = { args ->
+    }
+
+    def closure = { args ->
+      return "closure:${mountPoint}: ${args.p1}/${args.p2}".toString()
+    }
   }
 
-  def configure = { args ->
-    return "${parent.closure(p1: args.p1, p2: args.p2)}".toString()
+  /**
+   * "Script" class for testing transient modifier support for fields.
+   */
+  private static class TransientFieldTestScript
+  {
+    def normalField
+    def nullField
+    def nonSerializableField
+    def serializableWithNonSerializableContent
+    def transient transientField
+    def boolean booleanField
+    def int intField
+    static staticField
+
+    def install = { args ->
+      normalField = args.normalValue
+      nullField = null
+      nonSerializableField = args.nonSerializableValue
+      serializableWithNonSerializableContent = args.serializableWithNonSerializableContent
+      transientField = args.transientValue
+
+      booleanField = args.booleanValue
+      intField = args.intValue
+
+      staticField = args.staticValue
+    }
   }
 
-  def createChild = { args ->
-    return args.script
-  }
+  private static class TransientFieldTestScript2
+  {
+    def Object keepOnChanging = "initValue";
 
-  def destroyChild = { args ->
-  }
+    def install = {
+      keepOnChanging = 3; // serializable... should be part of the state
+    }
 
-  def closure = { args ->
-    return "closure:${mountPoint}: ${args.p1}/${args.p2}".toString()
-  }
-}
+    def configure = {
+      keepOnChanging = new Object(); // non-serializable
+    }
 
-/**
- * "Script" class for testing transient modifier support for fields.
- */
-private def class TransientFieldTestScript
-{
-  def normalField
-  def nullField
-  def nonSerializableField
-  def serializableWithNonSerializableContent
-  def transient transientField
-  def boolean booleanField
-  def int intField
-  static staticField
-
-  def install = { args ->
-    normalField = args.normalValue
-    nullField = null
-    nonSerializableField = args.nonSerializableValue
-    serializableWithNonSerializableContent = args.serializableWithNonSerializableContent
-    transientField = args.transientValue
-
-    booleanField = args.booleanValue
-    intField = args.intValue
-
-    staticField = args.staticValue
-  }
-}
-
-private def class TransientFieldTestScript2
-{
-  def Object keepOnChanging = "initValue";
-
-  def install = {
-    keepOnChanging = 3; // serializable... should be part of the state
-  }
-
-  def configure = {
-    keepOnChanging = new Object(); // non-serializable
-  }
-
-  def start = {
-    keepOnChanging = 3; // serializable again
+    def start = {
+      keepOnChanging = 3; // serializable again
+    }
   }
 }

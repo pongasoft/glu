@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -45,7 +45,7 @@ class TestFabricManager extends GroovyTestCase
                                                     clientPort: 2121,
                                                     dataDir: fs.root.file.canonicalPath)
     zookeeperServer.start()
-    client = new ZKClient('localhost:2121', Timespan.parse('100'), null)
+    client = new ZKClient('127.0.0.1:2121', Timespan.parse('100'), null)
 
     client.start()
     client.waitForStart(Timespan.parse('5s'))

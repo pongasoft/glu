@@ -1,6 +1,6 @@
-
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,7 +22,7 @@ def topPublishDir = new File(userConfig.top.publish.dir ?: "${topBuildDir}/publi
  * Repositories for build
  */
 allRepositories.build = {
-  mavenRepo urls: "file://${rootDir}/local-maven-repo"
+  mavenRepo url: "file://${rootDir}/local-maven-repo"
   add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
     name = "build-release"
     addIvyPattern "${topReleaseDir}/[organisation]/[module]/[revision]/[module]-[revision].ivy"
@@ -31,9 +31,11 @@ allRepositories.build = {
     checkmodified = true
   }
 
-  mavenRepo name: 'build-publish', urls: topPublishDir.toURI()
+  mavenRepo name: 'build-publish', url: topPublishDir.toURI()
 
-  mavenRepo name: 'restlet', urls: "http://maven.restlet.org"
+  mavenRepo name: 'restlet', url: "http://maven.restlet.org"
+
+  mavenRepo name: 'grails-central', url: "http://repo.grails.org/grails/core"
 
   mavenCentral()
 }

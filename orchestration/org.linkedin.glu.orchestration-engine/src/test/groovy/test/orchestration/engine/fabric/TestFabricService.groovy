@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -80,7 +80,7 @@ public class TestFabricService extends GroovyTestCase
   {
     fabrics.addAll(['f1', 'f2', 'f3'].collect { name ->
       new Fabric(name: name,
-                 zkConnectString: "localhost:${port}".toString(),
+                 zkConnectString: "127.0.0.1:${port}".toString(),
                  zkSessionTimeout: Timespan.parse('5s'),
                  color: "#ffff${name}".toString())
     })
@@ -125,7 +125,7 @@ public class TestFabricService extends GroovyTestCase
   {
     fabrics.addAll(['f1', 'f2', 'f3'].collect { name ->
       new Fabric(name: name,
-                 zkConnectString: "localhost:${port}".toString(),
+                 zkConnectString: "127.0.0.1:${port}".toString(),
                  zkSessionTimeout: Timespan.parse('5s'),
                  color: "#ffff${name}".toString())
     })

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Yan Pujante
+ * Copyright (c) 2012-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,56 +14,35 @@
  * the License.
  */
 
-
-
 package org.linkedin.glu.agent.rest.resources
 
-import org.restlet.Context
-import org.restlet.Request
-import org.restlet.Response
 import org.restlet.representation.Representation
-import org.restlet.representation.Variant
+import org.restlet.resource.Delete
+import org.restlet.resource.Get
 
 /**
  * @author yan@pongasoft.com */
 public class CommandExitValueResource extends CommandBaseResource
 {
-  CommandExitValueResource(Context context, Request request, Response response)
-  {
-    super(context, request, response);
-  }
-
-  @Override
-  boolean allowGet()
-  {
-    return true
-  }
-
-  @Override
-  boolean allowDelete()
-  {
-    return true
-  }
-
   /**
-   * GET: return the exit value of the command (blocking call with optional timeout)
+   * return the exit value of the command (blocking call with optional timeout)
    */
-  @Override
-  public Representation represent(Variant variant)
+  @Get
+  public Representation getExitValue()
   {
-    return noException {
+    noException {
       return toRepresentation(res: agent.waitForCommand(requestArgs))
     }
   }
 
   /**
-   * DELETE: interrupt the action if still running
+   * interrupt the action if still running
    */
-  @Override
-  void removeRepresentations()
+  @Delete
+  Representation interruptCommand()
   {
     noException {
-      response.setEntity(toRepresentation(res: agent.interruptCommand(requestArgs)))
+      toRepresentation(res: agent.interruptCommand(requestArgs))
     }
   }
 }

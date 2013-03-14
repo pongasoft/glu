@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -31,6 +31,7 @@ import org.restlet.data.MediaType
 import org.restlet.data.Reference
 import org.restlet.data.Status
 import org.restlet.ext.json.JsonRepresentation
+import org.restlet.representation.EmptyRepresentation
 import org.restlet.representation.Representation
 import org.restlet.resource.ClientResource
 import org.restlet.resource.ResourceException
@@ -285,7 +286,7 @@ class AgentRestClient implements Agent
         res = client.post(new InputStreamOutputRepresentation(stdin))
       else
       {
-        def empty = Representation.createEmpty()
+        def empty = new EmptyRepresentation()
         empty.mediaType = MediaType.APPLICATION_OCTET_STREAM
         res = client.post(empty)
       }
@@ -546,11 +547,10 @@ class AgentRestClient implements Agent
       {
         handleError(clientResource)
       }
-
     }
     catch(ResourceException e)
     {
-      handleError(clientResource)
+      handleError(clientResource, e)
     }
 
     return null
@@ -570,7 +570,7 @@ class AgentRestClient implements Agent
     return (T) clientResource.status
   }
 
-  private void handleError(ClientResource clientResource)
+  private void handleError(ClientResource clientResource, Throwable throwable = null)
   {
     def representation = extractRepresentation(clientResource, clientResource.responseEntity)
     if(representation instanceof Status)
@@ -579,7 +579,15 @@ class AgentRestClient implements Agent
     }
     else
     {
-      AgentRestUtils.throwAgentException(clientResource.status, RestException.fromJSON(representation))
+      if(representation instanceof InputStream)
+      {
+        throw new AgentException(representation.text, throwable)
+      }
+      else
+      {
+        AgentRestUtils.throwAgentException(clientResource.status,
+                                           RestException.fromJSON(representation))
+      }
     }
   }
 

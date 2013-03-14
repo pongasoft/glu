@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Yan Pujante
+ * Copyright (c) 2012-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,36 +16,22 @@
 
 package org.linkedin.glu.agent.rest.resources
 
-import org.restlet.Context
-import org.restlet.Request
-import org.restlet.Response
-import org.restlet.representation.Representation
-import org.restlet.representation.Variant
 import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
-import org.restlet.representation.EmptyRepresentation
 import org.restlet.data.Status
+import org.restlet.representation.Representation
+import org.restlet.resource.Get
 
 /**
  * @author yan@pongasoft.com */
 public class CommandStreamsResource extends CommandBaseResource
 {
-  CommandStreamsResource(Context context, Request request, Response response)
-  {
-    super(context, request, response);
-  }
-
-  @Override
-  boolean allowGet()
-  {
-    return true
-  }
-
   /**
-   * GET: return the stream(s) and information about the command
+   * return the stream(s) and information about the command
    */
-  public Representation represent(Variant variant)
+  @Get
+  public Representation streamCommandResults()
   {
-    return noException {
+    noException {
 
       def res = agent.streamCommandResults(requestArgs)
 
@@ -60,7 +46,7 @@ public class CommandStreamsResource extends CommandBaseResource
       else
       {
         response.setStatus(Status.SUCCESS_NO_CONTENT)
-        return EmptyRepresentation.createEmpty()
+        return null
       }
     }
   }

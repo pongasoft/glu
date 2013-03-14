@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Yan Pujante
+ * Copyright (c) 2012-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,23 +14,17 @@
  * the License.
  */
 
-
-
 package org.linkedin.glu.agent.rest.resources
-
-import org.restlet.Context
-import org.restlet.Request
-import org.restlet.Response
-
 /**
  * @author yan@pongasoft.com */
 public class CommandBaseResource extends BaseResource
 {
   protected String commandId
 
-  CommandBaseResource(Context context, Request request, Response response)
+  @Override
+  protected void doInit() throws org.restlet.resource.ResourceException
   {
-    super(context, request, response);
+    super.doInit()
     commandId = request.getAttributes().get("id")
   }
 

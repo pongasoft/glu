@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -32,13 +32,14 @@ subprojects {
   dependencies {
     compile spec.external.linkedinUtilsGroovy
     compile project(':agent:org.linkedin.glu.agent-api')
-    groovy spec.external.groovy
+    compile spec.external.groovy
 
     testCompile project(":utils:org.linkedin.glu.scripts-test-fwk")
     testCompile spec.external.junit
+    testCompile spec.external.groovyTest
   }
 
-  processedScriptsDir = new File("${buildDir}/src/main/groovy")
+  def processedScriptsDir = new File("${buildDir}/src/main/groovy")
 
   // compiling only the pre-processed files
   sourceSets.main.groovy.srcDirs = [processedScriptsDir]

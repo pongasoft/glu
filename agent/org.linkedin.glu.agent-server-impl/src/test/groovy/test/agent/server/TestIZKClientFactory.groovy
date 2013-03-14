@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -78,14 +78,14 @@ class TestIZKClientFactory extends GroovyTestCase
   {
     def zkPropertiesFile = fs.root.'zk.properties'.file
     Properties p = new Properties()
-    p['glu.agent.zkConnectString'] = 'localhost:1111'
+    p['glu.agent.zkConnectString'] = '127.0.0.1:1111'
     p['glu.agent.zkSessionTimeout'] = '11s'
     p['glu.agent.zkProperties'] = zkPropertiesFile.canonicalPath
     assertFalse(zkPropertiesFile.exists())
     def factory = new IZKClientFactory(config: p)
     def client = factory.create()
 
-    assertEquals('localhost:1111', client.factory.connectString)
+    assertEquals('127.0.0.1:1111', client.factory.connectString)
     assertEquals(Timespan.parse('11s'), client.factory.sessionTimeout)
     assertFalse(zkPropertiesFile.exists())
   }
@@ -98,7 +98,7 @@ class TestIZKClientFactory extends GroovyTestCase
     // first we store the file
     def zkPropertiesFile = fs.root.'zk.properties'.file
     Properties p = new Properties()
-    p['glu.agent.zkConnectString'] = 'localhost:2222'
+    p['glu.agent.zkConnectString'] = '127.0.0.1:2222'
     zkPropertiesFile.withWriter { p.store(it, null) }
 
     p = new Properties()
@@ -108,7 +108,7 @@ class TestIZKClientFactory extends GroovyTestCase
     def factory = new IZKClientFactory(config: p)
     def client = factory.create()
 
-    assertEquals('localhost:2222', client.factory.connectString)
+    assertEquals('127.0.0.1:2222', client.factory.connectString)
     assertEquals(Timespan.parse('22s'), client.factory.sessionTimeout)
   }
 
@@ -135,7 +135,7 @@ class TestIZKClientFactory extends GroovyTestCase
         cf.withRemoteConfigurable('localhost') { Configurable c ->
           try
           {
-            c.configure(['glu.agent.zkConnectString': 'localhost:3333'])
+            c.configure(['glu.agent.zkConnectString': '127.0.0.1:3333'])
             return true
           }
           catch (CannotConfigureException e)
@@ -166,7 +166,7 @@ class TestIZKClientFactory extends GroovyTestCase
     thread2.interrupt()
 
     assertNotNull('client is null', client)
-    assertEquals('localhost:3333', client.factory.connectString)
+    assertEquals('127.0.0.1:3333', client.factory.connectString)
     assertEquals(Timespan.parse('33s'), client.factory.sessionTimeout)
     assertFalse(zkPropertiesFile.exists())
   }
@@ -192,7 +192,7 @@ class TestIZKClientFactory extends GroovyTestCase
         cf.withRemoteConfigurable('localhost') { Configurable c ->
           try
           {
-            c.configure(['glu.agent.zkConnectString': 'localhost:3333'])
+            c.configure(['glu.agent.zkConnectString': '127.0.0.1:3333'])
             return false
           }
           catch (CannotConfigureException e)

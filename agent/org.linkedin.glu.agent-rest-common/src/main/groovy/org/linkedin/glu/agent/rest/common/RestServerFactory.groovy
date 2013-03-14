@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 Yan Pujante
+ * Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,17 +14,13 @@
  * the License.
  */
 
-apply plugin: 'groovy'
-apply plugin: 'org.linkedin.release'
+package org.linkedin.glu.agent.rest.common
 
-dependencies {
-  compile spec.external.linkedinUtilsCore
-  compile spec.external.linkedinUtilsGroovy
-  compile spec.external.groovy
+import org.restlet.Server
 
-  testCompile spec.external.junit
-  testCompile spec.external.groovyTest
-
-  runtime spec.external.slf4jLog4j
-  runtime spec.external.log4j
+/**
+ * @author yan@pongasoft.com  */
+public interface RestServerFactory
+{
+  Server createRestServer(boolean secure, String address, int port)
 }

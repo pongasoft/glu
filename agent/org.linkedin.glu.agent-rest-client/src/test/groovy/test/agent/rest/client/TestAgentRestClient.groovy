@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -29,6 +29,7 @@ import org.linkedin.glu.agent.impl.capabilities.ShellImpl
 import org.linkedin.glu.agent.impl.storage.RAMStorage
 import org.linkedin.glu.agent.rest.client.AgentFactoryImpl
 import org.linkedin.glu.agent.rest.client.AgentRestClient
+import org.linkedin.glu.agent.rest.common.RestServerFactoryImpl
 import org.linkedin.glu.agent.rest.resources.AgentResource
 import org.linkedin.glu.agent.rest.resources.FileResource
 import org.linkedin.glu.agent.rest.resources.LogResource
@@ -40,6 +41,7 @@ import org.linkedin.util.concurrent.ConcurrentUtils
 import org.linkedin.util.concurrent.ThreadControl
 import org.linkedin.util.io.ram.RAMDirectory
 import org.linkedin.util.io.resource.internal.RAMResourceProvider
+import org.restlet.Server
 import org.restlet.data.Protocol
 import org.restlet.routing.Router
 import org.restlet.Component
@@ -109,10 +111,6 @@ class TestAgentRestClient extends GroovyTestCase
       newFileSystem: { r,t -> fileSystem }
     ] as FileSystem
 
-    // the agent is logging for each script... we don't want the output in the test
-    // TODO MED YP: how do I do this with slf4j ?
-    // Log.setFactory(new RAMLoggerFactory())
-
     shell = new ShellImpl(fileSystem: fileSystem)
 
     logFileSystem = FileSystemImpl.createTempFileSystem()
@@ -130,7 +128,10 @@ class TestAgentRestClient extends GroovyTestCase
                sync: { sync << clock.currentTimeMillis() })
 
     component = new Component();
-    def server = component.getServers().add(Protocol.HTTP, 0);
+    def server = new RestServerFactoryImpl().createRestServer(false,
+                                                              null,
+                                                              0) // port => ephemeral
+    component.getServers().add(server)
     def context = component.getContext().createChildContext()
     router = new Router(context)
     context.getAttributes().put('agent', agent)
@@ -153,7 +154,7 @@ class TestAgentRestClient extends GroovyTestCase
     }
   }
 
-  void testMounPointResource()
+  void testMountPointResource()
   {
     router.attach("/agent", AgentResource)
     router.context.getAttributes().put(AgentResource.class.name, "/agent")
