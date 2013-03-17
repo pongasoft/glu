@@ -32,9 +32,10 @@ dependencies {
   compile spec.external.groovy
 
   runtime spec.external.hsqldb
-  runtime spec.external.slf4jLog4j
   runtime spec.external.log4j
 }
+
+def grailsExe = file("grailsw").canonicalPath
 
 def facets = """
 <component name="FacetManager">
@@ -84,11 +85,13 @@ task lib(dependsOn: jar) << {
   copy {
     from configurations.runtime
     into 'lib'
+    exclude("spring-*.jar")
+    exclude("slf4j-log4j12-*.jar")
   }
 
   // issue is that we end up with duplicate files (with slightly different names!) because grails
   // add them!
-  fileTree('lib').include('spring-*.jar').each { it.delete() }
+  //fileTree('lib').include('spring-*.jar').each { it.delete() }
 
   def keysDir = new File(rootDir, 'dev-keys')
   def secretKeyStoreDir = new File(buildDir, 'conf')
@@ -119,7 +122,7 @@ console.commandsService.commandExecutionIOStorage.filesystem.rootDir="${buildDir
 
 ['run-app', 'test-app'].each { taskName ->
   task "${taskName}"(dependsOn: lib) << {
-    ant.exec(dir: '.', executable: "grails", failonerror: true) {
+    ant.exec(dir: '.', executable: grailsExe, failonerror: true) {
       arg(line: "${taskName}")
     }
   }
@@ -128,7 +131,7 @@ console.commandsService.commandExecutionIOStorage.filesystem.rootDir="${buildDir
 def warFile = new File("${buildDir}/distributions/${project.name}-${project.version}.war")
 
 task war(dependsOn: lib) << {
-  ant.exec(dir: '.', executable: "grails") {
+  ant.exec(dir: '.', executable: grailsExe) {
     arg(line: "-Dgrails.project.war.file=${warFile} -Dbuild.version=${project.version} war")
   }
 }

@@ -25,6 +25,4 @@ dependencies {
   compile spec.external.restlet
   compile spec.external.restletExtJson
   compile spec.external.groovy
-
-  runtime spec.external.restletExtJetty
 }
