@@ -31,6 +31,7 @@ dependencies {
 
   compile spec.external.groovy
 
+  runtime spec.external.hsqldb
   runtime spec.external.slf4jLog4j
   runtime spec.external.log4j
 }
@@ -55,13 +56,13 @@ def facets = """
 </component>
 """
 
-ideaModule {
-  whenConfigured { module ->
+idea.module.iml {
+  whenMerged { module ->
     ['grails-app/utils', 'grails-app/controllers', 'grails-app/domain', 'grails-app/services', 'grails-app/realms', 'grails-app/taglib', 'grails-app/conf'].each {
-      module.sourceFolders << new org.gradle.plugins.idea.model.Path("file://\$MODULE_DIR\$/${it}")
+      module.sourceFolders << new org.gradle.plugins.ide.idea.model.Path("file://\$MODULE_DIR\$/${it}")
     }
     ['test/unit', 'test/integration'].each {
-      module.testSourceFolders << new org.gradle.plugins.idea.model.Path("file://\$MODULE_DIR\$/${it}")
+      module.testSourceFolders << new org.gradle.plugins.ide.idea.model.Path("file://\$MODULE_DIR\$/${it}")
     }
   }
 
@@ -78,18 +79,12 @@ project.clean << {
   fileTree(dir: 'lib').each { it.delete() }
 }
 
-workaroundDir = new File(buildDir, "distributions/lib")
-
 task lib(dependsOn: jar) << {
   fileTree(dir: 'lib').each { it.delete() }
   copy {
     from configurations.runtime
     into 'lib'
   }
-  // workaround against /org/apache/tools/ant/antlib.xml:37: Problem: failed to create 
-  // task or type componentdef
-  ant.move(file: file('lib/ant-1.8.1.jar'), todir: workaroundDir)
-  ant.move(file: file('lib/ant-launcher-1.8.1.jar'), todir: workaroundDir)
 
   // issue is that we end up with duplicate files (with slightly different names!) because grails
   // add them!
@@ -135,10 +130,6 @@ def warFile = new File("${buildDir}/distributions/${project.name}-${project.vers
 task war(dependsOn: lib) << {
   ant.exec(dir: '.', executable: "grails") {
     arg(line: "-Dgrails.project.war.file=${warFile} -Dbuild.version=${project.version} war")
-  }
-
-  ant.war(destfile: warFile, update: true) {
-    lib(dir: workaroundDir, includes: '*.jar')
   }
 }
 

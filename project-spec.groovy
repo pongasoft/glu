@@ -55,6 +55,7 @@ spec.external = [
   grailsCore: "org.grails:grails-core:${spec.versions.grails}",
   groovy: "org.codehaus.groovy:groovy:${spec.versions.groovy}",
   groovyTest: "org.codehaus.groovy:groovy-test:${spec.versions.groovy}",
+  hsqldb: "hsqldb:hsqldb:1.8.0.10",
   httpClient: "org.apache.httpcomponents:httpclient:4.2.3",
   ivy: 'org.apache.ivy:ivy:2.2.0',
   jettyPackage: [
@@ -67,19 +68,9 @@ spec.external = [
   linkedinUtilsCore: "org.linkedin:org.linkedin.util-core:${spec.versions.linkedinUtils}",
   linkedinUtilsGroovy: "org.linkedin:org.linkedin.util-groovy:${spec.versions.linkedinUtils}",
   linkedinZookeeperCliImpl: "org.linkedin:org.linkedin.zookeeper-cli-impl:${spec.versions.linkedinZookeeper}",
-  linkedinZookeeperCliPackage: [
-    group: "org.linkedin",
-    name: "org.linkedin.zookeeper-cli",
-    version: spec.versions.linkedinZookeeper,
-    packaging: "tgz"
-  ],
+  linkedinZookeeperCliPackage: "org.linkedin:org.linkedin.zookeeper-cli:${spec.versions.linkedinZookeeper}@tgz",
   linkedinZookeeperImpl: "org.linkedin:org.linkedin.zookeeper-impl:${spec.versions.linkedinZookeeper}",
-  linkedinZookeeperServerPackage: [
-    group: "org.linkedin",
-    name: "org.linkedin.zookeeper-server",
-    version: spec.versions.linkedinZookeeper,
-    packaging: "tgz"
-  ],
+  linkedinZookeeperServerPackage: "org.linkedin:org.linkedin.zookeeper-server:${spec.versions.linkedinZookeeper}@tgz",
   log4j: 'log4j:log4j:1.2.16',
   mimeUtil: 'eu.medsea.mimeutil:mime-util:2.1.3',
   restlet: "org.restlet.jse:org.restlet:${spec.versions.restlet}",

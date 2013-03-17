@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -99,7 +99,7 @@ class BootStrap {
       ].each { username, roles ->
         User.withTransaction { status ->
           User user = new User(username: username)
-          user.setRoles(roles)
+          user.updateRoles(roles)
           if(!user.save())
             throw new RuntimeException("could not create ${username} user")
 
@@ -121,7 +121,7 @@ class BootStrap {
 
       User.withTransaction { status ->
         def userInstance = new User(username: "admin")
-        userInstance.setRoles([RoleName.USER, RoleName.RELEASE, RoleName.ADMIN])
+        userInstance.updateRoles([RoleName.USER, RoleName.RELEASE, RoleName.ADMIN])
         if(!userInstance.save())
           throw new RuntimeException("could not create admin user")
 

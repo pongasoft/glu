@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,23 +17,31 @@
 package org.linkedin.glu.orchestration.engine.delta
 
 import org.linkedin.util.annotations.Initializable
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * @author yan@pongasoft.com */
 public class CustomDeltaDefinitionStorageImpl implements CustomDeltaDefinitionStorage
 {
+  public static final String MODULE = CustomDeltaDefinitionStorageImpl.class.getName();
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
+
   @Initializable(required = true)
   CustomDeltaDefinitionSerializer customDeltaDefinitionSerializer
 
   @Override
   boolean save(UserCustomDeltaDefinition definition)
   {
+    definition = autoWire(definition)
     definition.save([flush: true])
   }
 
   @Override
   boolean delete(UserCustomDeltaDefinition definition)
   {
+    definition = autoWire(definition)
+
     // TODO MED YP: somehow definition.delete([flush: true]) is not working and giving the following
     // messsage: org.springframework.dao.InvalidDataAccessApiUsageException: Write operations are
     // not allowed in read-only mode (FlushMode.MANUAL): Turn your Session into
@@ -46,7 +54,7 @@ public class CustomDeltaDefinitionStorageImpl implements CustomDeltaDefinitionSt
   @Override
   UserCustomDeltaDefinition findByUsernameAndName(String username, String name)
   {
-    UserCustomDeltaDefinition.findByUsernameAndName(username, name)
+    autoWire(UserCustomDeltaDefinition.findByUsernameAndName(username, name))
   }
 
   @Override
@@ -60,7 +68,7 @@ public class CustomDeltaDefinitionStorageImpl implements CustomDeltaDefinitionSt
 
     if(includeDetails)
     {
-      list = UserCustomDeltaDefinition.findAllByUsername(username, params)
+      list = autoWire(UserCustomDeltaDefinition.findAllByUsername(username, params))
     }
     else
     {
@@ -84,7 +92,7 @@ public class CustomDeltaDefinitionStorageImpl implements CustomDeltaDefinitionSt
 
     if(includeDetails)
     {
-      list = UserCustomDeltaDefinition.findAllByShareable(true, params)
+      list = autoWire(UserCustomDeltaDefinition.findAllByShareable(true, params))
     }
     else
     {
@@ -97,6 +105,24 @@ public class CustomDeltaDefinitionStorageImpl implements CustomDeltaDefinitionSt
     ]
   }
 
+  /**
+   * This method is a workaround for 2.x which breaks auto-wiring
+   */
+  protected UserCustomDeltaDefinition autoWire(UserCustomDeltaDefinition ucdd)
+  {
+    ucdd.customDeltaDefinitionSerializer = customDeltaDefinitionSerializer
+    return ucdd
+  }
+
+  /**
+   * This method is a workaround for 2.x which breaks auto-wiring
+   */
+  protected Collection<UserCustomDeltaDefinition> autoWire(Collection<UserCustomDeltaDefinition> list)
+  {
+    list.each { autoWire(it) }
+    return list
+  }
+  
   protected def processParams(params)
   {
     if(params.offset == null)
