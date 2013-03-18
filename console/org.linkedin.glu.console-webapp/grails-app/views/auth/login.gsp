@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -19,7 +19,7 @@
   <title>GLU Console Login</title>
   <link rel="shortcut icon" href="${resource(dir:'images',file:'favicon.ico')}" type="image/x-icon"/>
   <link rel="stylesheet" href="${resource(dir:'css/twitter-bootstrap',file:'bootstrap.min.css')}"/>
-  <link rel="stylesheet" href="${resource(dir:'css',file:'main.css')}"/>
+  <link rel="stylesheet" href="${resource(dir:'css',file:'main-glu.css')}"/>
   <style type="text/css">
   body {
     padding-top: 0;
@@ -45,6 +45,7 @@
   </style>
   <g:javascript library="jquery" plugin="jquery"/>
   <g:javascript src="twitter-bootstrap/bootstrap-alerts.js" />
+  <r:layoutResources/>
 </head>
 <body OnLoad="document.login.username.focus();">
 <g:render template="/layouts/flash"/>
@@ -76,5 +77,6 @@
 <div id="footer">
   GLU Console - ${grailsApplication?.metadata?.getAt('app.version')}
 </div>
+<r:layoutResources/>
 </body>
 </html>

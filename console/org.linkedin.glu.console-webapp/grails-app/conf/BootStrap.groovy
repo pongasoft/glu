@@ -19,7 +19,6 @@ import org.linkedin.glu.console.domain.Fabric
 import grails.util.Environment
 import org.linkedin.glu.console.domain.User
 import org.linkedin.glu.console.domain.RoleName
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
 import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.linkedin.groovy.util.net.SingletonURLStreamHandlerFactory
 import org.linkedin.groovy.util.ivy.IvyURLHandler
@@ -30,10 +29,10 @@ import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.orchestration.engine.delta.DeltaService
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
 import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
-import org.codehaus.groovy.grails.commons.ApplicationHolder
 
 class BootStrap {
 
+  def grailsApplication
   ConsoleConfig consoleConfig
   SystemService systemService
   DeltaService deltaService
@@ -43,14 +42,16 @@ class BootStrap {
     log.info "Starting up... [${Environment.current} mode]"
 
     JulToSLF4jBridge.installBridge()
-    
+
+    def config = grailsApplication.config
+
     if(!consoleConfig.defaults)
       throw new IllegalStateException("could not find console config defaults. Did you properly set console.defaults property ?")
 
     servletContext.consoleConfig = consoleConfig
 
     // setup ivy url handler
-    def ivySettings = ConfigurationHolder.config.console.ivySettingsURL
+    def ivySettings = config.console.ivySettingsURL
     if (ivySettings) {
       SingletonURLStreamHandlerFactory.INSTANCE.registerHandler('ivy') {
         return new IvyURLHandler(ivySettings)
@@ -60,12 +61,11 @@ class BootStrap {
     }
 
     // initializing the plugin if one is provided
-    def config = ConfigurationHolder.config
     if(config.orchestration.engine.plugins)
     {
       pluginService.initializePlugin(config.orchestration.engine.plugins,
                                      [
-                                       applicationContext: ApplicationHolder.application.mainContext,
+                                       applicationContext: grailsApplication.mainContext,
                                        config: config
                                      ])
     }

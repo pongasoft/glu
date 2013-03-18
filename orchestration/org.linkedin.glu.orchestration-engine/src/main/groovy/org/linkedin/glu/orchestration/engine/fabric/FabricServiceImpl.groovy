@@ -51,7 +51,7 @@ class FabricServiceImpl implements FabricService, Destroyable
   String prefix = "glu"
 
   @Initializable
-  Timespan zkClientWaitForStartTimeout = Timespan.parse('5s')
+  Timespan zkClientWaitForStartTimeout = Timespan.parse('10s')
 
   /**
    * In memory cache of fabrics (small list, changes rarely...)

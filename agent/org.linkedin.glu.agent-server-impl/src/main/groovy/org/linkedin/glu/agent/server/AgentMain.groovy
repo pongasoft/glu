@@ -50,12 +50,10 @@ import org.linkedin.util.reflect.ObjectProxyBuilder
 import org.linkedin.zookeeper.client.IZKClient
 import org.linkedin.zookeeper.client.LifecycleListener
 import org.linkedin.zookeeper.client.ZooKeeperURLHandler
-import org.restlet.Server
 import org.restlet.util.Series
 import org.restlet.routing.Router
 import org.linkedin.groovy.util.config.Config
 import org.restlet.Component
-import org.restlet.data.Protocol
 import org.restlet.routing.Template
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.agent.rest.resources.TagsResource
@@ -601,7 +599,7 @@ class AgentMain implements LifecycleListener, Configurable
       params.add('truststorePath', truststore.path)
       params.add('truststorePassword', getPassword(_config, "${prefix}.agent.truststorePassword"))
 
-      params.add('sslContextFactory', 'org.restlet.engine.security.DefaultSslContextFactory')
+      params.add('sslContextFactory', 'org.restlet.ext.ssl.DefaultSslContextFactory')
 
       params.add('needClientAuthentication', 'true')
 

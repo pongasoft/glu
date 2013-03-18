@@ -102,7 +102,7 @@ grails.external.domain.packages = [
 ]
 
 // this parameter disables auto flushing in grails which happens when an object is dirty
-// and not saved... when setting this to manual you need to explicitely save the object
+// and not saved... when setting this to manual you need to explicitly save the object
 hibernate.flush.mode="manual"
 
 // see ConsoleConfig for explanation

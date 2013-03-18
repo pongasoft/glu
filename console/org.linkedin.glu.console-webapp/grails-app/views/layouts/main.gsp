@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -20,7 +20,7 @@
 <head>
   <title><cl:withFabric>[${fabric}] </cl:withFabric><g:layoutTitle/> - GLU Console</title>
   <link rel="stylesheet" href="${resource(dir:'css/twitter-bootstrap',file:'bootstrap.min.css')}"/>
-  <link rel="stylesheet" href="${resource(dir:'css',file:'main.css')}"/>
+  <link rel="stylesheet" href="${resource(dir:'css',file:'main-glu.css')}"/>
   <link rel="shortcut icon" href="${resource(dir:'images',file:'favicon.ico')}" type="image/x-icon"/>
   <style type="text/css">
   <cl:withFabric>
@@ -58,6 +58,7 @@
   <g:javascript src="twitter-bootstrap/bootstrap-dropdown.js" />
   <g:javascript src="twitter-bootstrap/bootstrap-alerts.js" />
   <script type="text/javascript" src="${resource(dir:'js',file:'console_jquery.js')}"></script>
+  <r:layoutResources/>
 </head>
 <body onload="${pageProperty(name:'body.onload')}">
 <g:set var="zkStatus" value="zk-unknown" scope="request"/>
@@ -97,6 +98,7 @@
 <div class="container">
   <g:render template="/layouts/flash"/>
   <g:layoutBody/>
+  <r:layoutResources/>
 </div>
 <div id="footer">
   <div id="footer-image"><img src="${resource(dir: 'images', file: 'glu_100_white.png')}" alt="glu deployment automation platform"/></div>

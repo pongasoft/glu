@@ -1,0 +1,299 @@
+/*
+ * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011 Yan Pujante
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+body {
+  background: #fff;
+  color: black;
+  padding-top: 40px; /* 40px to make the container go all the way to the bottom of the topbar */
+}
+
+.topbar a {
+  color: black;
+  font-weight: bold;
+}
+
+.container {
+  width: 99%;
+}
+
+.tabs {
+  margin-bottom: .8em;
+}
+
+dl {
+  margin-top: 1px;
+}
+
+.bordered-table {
+  border-collapse: collapse;
+  border-color: #888888;
+}
+
+.bordered-table td {
+  border-color: #888888;
+}
+
+.bordered-table th {
+  border-color: #888888;
+  background-color: #f0f0ff;
+}
+
+.bordered-table th + th, .bordered-table td + td, .bordered-table th + td {
+  border: 1px solid #888888;
+}
+
+table.tight-table th, table.tight-table td {
+  padding: 0.2em;
+}
+
+table.xtight-table th, table.xtight-table td {
+  padding: 0 0.1em 0 0.1em;
+}
+
+pre {
+  white-space: pre;
+  word-wrap: normal;
+  overflow-y: auto;
+}
+
+li {
+  color: black;
+}
+
+.noFullWidth {
+  width: auto;
+}
+
+form .input {
+  margin-left: inherit;
+}
+
+.modal {
+  width: auto;
+  height: auto;
+  max-width: 50%;
+  max-height: 75%;
+  overflow: auto;
+}
+
+input,
+textarea,
+select,
+.uneditable-input {
+  height: inherit;
+}
+
+.ERROR {
+  background: #ffdddd;
+}
+
+.TRANSITION {
+  background: #ddddff;
+}
+
+.RUNNING {
+  background: #ddffdd;
+}
+
+.NOT_RUNNING {
+  background: #dddddd;
+}
+
+#flash {
+  margin-top: 1em;
+}
+
+.errorStackTrace {
+  background: #ffdddd;
+  color: black;
+  font-family: monospace;
+  overflow-y: auto;
+  overflow-x: auto;
+  max-height: 30em;
+  width: auto;
+}
+
+dt.stackTraceHeader {
+  color: #880000;
+  font-weight: bold;
+  white-space: pre;
+}
+
+dd.stackTraceBody {
+  margin-left: 1.5em;
+}
+
+.example {
+  color: #aaaaaa;
+  border: solid 1px #aaaaaa;
+  font-size: 0.8em;
+  font-style: italic;
+  white-space: pre;
+}
+
+.info {
+  color: #333;
+  border: dashed 1px black;
+  background: #F0F0F0;
+  padding: 5px;
+  width: auto;
+}
+
+.error-status {
+  color: red;
+}
+
+.hidden {
+  display: none;
+}
+
+dl.plan dd {
+  margin-left: 2em;
+}
+
+dl.plan .LEAF {
+  margin: .2em 0em .2em 0em;
+}
+
+dl dt {
+  font-weight: normal;
+}
+
+.paginateButtons {
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+.paginateButtons a {
+  margin-left: 0.3em;
+  margin-right: 0.3em;
+}
+
+.paginateButtons .currentStep {
+  font-size: 1.2em;
+  background-color: #005a87;
+  color: #ffffff;
+  margin-left: 0.3em;
+  margin-right: 0.3em;
+  padding: 0.3em;
+}
+
+.systemId {
+  font-family: monospace;
+}
+
+ul.tags {
+  display: inline;
+  padding: 0;
+  margin: 0;
+}
+
+ul.tags li.tag {
+  font-size: 0.8em;
+  list-style: none;
+  display: inline;
+  margin: 0 1px 0 1px;
+}
+
+ul.tags.with-links a {
+  border: solid black 1px;
+  padding: 1px;
+  margin: 0;
+  font-weight: bold;
+}
+
+ul.tags.with-links a:link, ul.tags.with-links a:visited {
+  text-decoration: none;
+}
+
+ul.tags.with-links a:hover {
+  text-decoration: none;
+}
+
+#footer {
+  clear: both;
+}
+
+#select-plan #select-plan-radio {
+  float: left;
+}
+
+#select-plan #select-plan-radio .plan-type-DEPLOY {
+  background: #ffdddd;
+}
+
+#select-plan #plan-preview {
+  margin-left: .5em;
+  float: left;
+}
+
+td.systemFilter li {
+  list-style: none;
+}
+
+td.systemFilter ul {
+  margin-left: .5em;
+  margin-bottom: 0;
+}
+
+li.filter-LogicSystemFilterChain {
+  list-style: none;
+  font-weight: bold;
+}
+
+.summary-checkbox, .errorsOnly-checkbox {
+  text-align: center;
+}
+
+.shell {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background-color: #000080;
+  color: #ffff00;
+  font-family: Monaco, Andale Mono, Courier New, monospace;
+  font-size: 12px;
+  padding: 2px;
+}
+
+.shell a {
+  color: #00fff7;
+}
+
+.shell .errorStackTrace a {
+  color: #000000;
+}
+
+.shell .cli {
+  font-size: 120%;
+}
+
+.shell .stderr {
+  color: #ffaaaa;
+}
+
+.shell .stdin {
+  color: #aaffaa;
+}
+
+.shell .date, .shell .exitValue {
+  color: #aaaaaa;
+}
+
+.shell .close {
+  opacity: 0.8;
+  color: #ffff00;
+}
