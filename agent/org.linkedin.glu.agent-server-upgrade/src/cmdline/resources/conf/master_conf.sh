@@ -147,7 +147,7 @@ fi
 
 # Log4J configuration
 if [ -z "$JVM_LOG4J" ]; then
-  JVM_LOG4J="-Dlog4j.configuration=file:$CONF_DIR/log4j.xml"
+  JVM_LOG4J="-Dlog4j.configuration=file:$CONF_DIR/log4j.xml -Djava.util.logging.config.file=$CONF_DIR/logging.properties"
 fi
 
 # Java I/O tmp dir

@@ -839,8 +839,16 @@ class AgentMain implements LifecycleListener, Configurable
   static void main(args)
   {
     AgentMain agentMain = new AgentMain()
-    agentMain.init(args)
-    agentMain.startAndWait()
+    try
+    {
+      agentMain.init(args)
+      agentMain.startAndWait()
+    }
+    catch(Throwable th)
+    {
+      log.error("unexpected error... terminating", th)
+      System.exit(1)
+    }
   }
 
   protected def readConfig(url, Properties properties)

@@ -33,7 +33,7 @@ for file in `ls -1 $LIB_DIR/*.jar `; do
 done
 
 OPTIONS="-f ${BASEDIR}/conf/clientConfig.properties"
-JVM_LOG4J=-Dlog4j.configuration=file:$BASEDIR/conf/log4j.xml
+JVM_LOG4J="-Dlog4j.configuration=file:$BASEDIR/conf/log4j.xml -Djava.util.logging.config.file=$CONF_DIR/logging.properties"
 JVM_DEBUG=
 #JVM_DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
 
