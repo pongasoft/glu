@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -70,7 +70,7 @@
     </p>
     <g:set var="status" value="['missing-old': 'Agent is most likely down', 'missing-new': 'Agent is most likely new', 'unknown': 'Unknown to this fabric']"/>
     <g:form name="unassignedAgents" action="setAgentsFabrics">
-      <table class="bordered-table condensed-table">
+      <table class="table table-bordered condensed-table">
         <tr>
           <th>Agent</th>
           <th>Fabric</th>
@@ -87,7 +87,7 @@
           </tr>
         </g:each>
       </table>
-      <g:submitButton class="btn primary" name="Assign Fabric"/>
+      <g:submitButton class="btn btn-primary" name="Assign Fabric"/>
     </g:form>
   </g:if>
   <g:else>
@@ -95,7 +95,7 @@
   </g:else>
 
   <h1>Assigned agents</h1>
-  <table class="bordered-table condensed-table">
+  <table class="table table-bordered condensed-table">
     <tr>
       <th>Agent</th>
       <th>Fabric</th>

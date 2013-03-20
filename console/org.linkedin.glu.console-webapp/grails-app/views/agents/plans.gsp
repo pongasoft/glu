@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2011 Yan Pujante
+  - Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -39,7 +39,7 @@
 </head>
 <body>
 <g:if test="${agent}">
-  <ul class="tabs">
+  <ul class="nav nav-tabs">
     <li><g:link controller="agents" action="list">List</g:link></li>
     <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
     <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
@@ -50,7 +50,7 @@
   <g:render template="/plan/selectPlan" model="[title: title, hasDelta: hasDelta]"/>
 </g:if>
 <g:else>
-  <ul class="tabs">
+  <ul class="nav nav-tabs">
     <li><g:link controller="agents" action="list">List</g:link></li>
     <li class="active"><a href="#">agent [${params.id}]</a></li>
   </ul>

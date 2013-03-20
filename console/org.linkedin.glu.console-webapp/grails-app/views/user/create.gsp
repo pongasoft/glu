@@ -1,7 +1,7 @@
 
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -24,7 +24,7 @@
         <title>Create User</title>
     </head>
     <body>
-    <ul class="tabs">
+    <ul class="nav nav-tabs">
       <li><g:link action="list">User List</g:link></li>
       <li class="active"><a href="#">New</a></li>
     </ul>
@@ -36,7 +36,7 @@
             </g:hasErrors>
             <g:form method="post" action="save">
               <div class="dialog">
-                <table class="bordered-table condensed-table nofullwidth">
+                <table class="table table-bordered condensed-table noFullWidth">
                   <tbody>
                         
                   <tr class="prop">
@@ -70,7 +70,7 @@
                 </table>
               </div>
               <div class="buttons">
-                <span class="button"><g:actionSubmit class="btn primary" value="Create" action="save"/></span>
+                <span class="button"><g:actionSubmit class="btn btn-primary" value="Create" action="save"/></span>
               </div>
             </g:form>
         </div>

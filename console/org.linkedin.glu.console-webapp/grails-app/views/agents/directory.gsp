@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="${resource(dir:'css',file:'agents-list.css')}"/>
 </head>
 <body>
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li><g:link controller="agents" action="list">List</g:link></li>
   <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
   <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
@@ -33,7 +33,7 @@
   <li class="active"><a href="#">Directory [${params.location.encodeAsHTML()}]</a></li>
 </ul>
 <g:if test="${dir != null}">
-  <table class="bordered-table tight-table">
+  <table class="table table-bordered tight-table">
     <g:if test="${new File(params.location).parent}">
       <tr>
         <td><g:link action="fileContent" id="${params.id}" params="[location: new File(params.location).parent]">../</g:link></td>

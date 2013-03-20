@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2011 Yan Pujante
+  - Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -20,7 +20,7 @@
   <meta name="layout" content="main"/>
 </head>
 <body>
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li><g:link
     action="delta">${request.userSession.currentCustomDeltaDefinitionName.encodeAsHTML()}</g:link></li>
   <li><g:link controller="dashboard" action="plans">Plans</g:link></li>
@@ -39,17 +39,19 @@
   </div><!-- /clearfix -->
   </fieldset>
   <div class="actions">
-    <input type="submit" class="btn primary" name="update" value="Save changes"/>
+    <input type="submit" class="btn btn-primary" name="update" value="Save changes"/>
     <input type="submit" class="btn" name="delete" value="Delete"
                     onclick="return confirm('Are you sure?');"/>
-    <a class="btn" data-controls-modal="dashboardSources" data-backdrop="true" data-keyboard="true">View Possible Sources</a>
+    <a href="#dashboardSources" role="button" class="btn" data-toggle="modal" data-backdrop="true" data-keyboard="true">View Possible Sources</a>
   </div>
 </g:form>
-<div id="dashboardSources" class="modal hide">
-  <a href="#" class="close">&times;</a>
-  <div class="modal-header">Possible sources (based on current model)</div>
+<div id="dashboardSources" class="modal hide" role="dialog" aria-labelledby="possibleSources" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h4 id="possibleSources">Possible sources (based on current model)</h4>
+  </div>
   <div class="modal-body">
-    <table class="condensed-table">
+    <table class="table-condensed">
       <g:each in="${sources}" var="source">
         <tr>
           <td>${source.encodeAsHTML()}</td>

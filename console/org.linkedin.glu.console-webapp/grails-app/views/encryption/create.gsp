@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="${resource(dir:'css',file:'main-glu.css')}"/>
 </head>
 <body>
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li><g:link action="list">List</g:link></li>
   <li class="active"><a href="#">New</a></li>
   <li><g:link action="encrypt">Encrypt/Decrypt</g:link></li>
@@ -32,7 +32,7 @@
   <h3>Create New Encryption Key</h3>
   <g:form action="ajaxSave" method="post">
     <div class="dialog">
-      <table class="bordered-table condensed-table noFullWidth">
+      <table class="table table-bordered condensed-table noFullWidth">
         <tbody>
 
         <tr class="prop">
@@ -44,7 +44,7 @@
         </tbody>
       </table>
     </div>
-    <g:submitToRemote class="btn primary" action="ajaxSave" update="status" value='Create'/>
+    <g:submitToRemote class="btn btn-primary" action="ajaxSave" update="status" value='Create'/>
   </g:form>
 
   <div id="status" class="info">Output Area</div>

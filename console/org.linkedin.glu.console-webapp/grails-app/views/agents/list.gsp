@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2011 Yan Pujante
+  - Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -21,11 +21,11 @@
   <meta name="layout" content="main"/>
 </head>
 <body>
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li class="active"><a href="#">List</a></li>
   <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
 </ul>
-<table class="bordered-table xtight-table">
+<table class="table table-bordered xtight-table">
   <thead>
   <tr>
     <th>Agent</th>

@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="${resource(dir:'css',file:'main-glu.css')}"/>
 </head>
 <body>
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li><g:link action="list">List</g:link></li>
   <li><g:link action="create">New</g:link></li>
   <li class="active"><a href="#">Encrypt/Decrypt</a></li>
@@ -32,7 +32,7 @@
   <h3>Encrypt Plain Text</h3>
   <g:form name="encryptForm" action="ajaxEncrypt" method="post">
     <div class="dialog">
-      <table class="bordered-table condensed-table noFullWidth">
+      <table class="table table-bordered condensed-table noFullWidth">
         <tbody>
         <tr class="prop">
           <th>Select Encryption Key:</th>
@@ -49,13 +49,13 @@
         </tbody>
       </table>
     </div>
-    <g:submitToRemote class="btn primary" action="ajaxEncrypt" update="status" value='Encrypt'/>
+    <g:submitToRemote class="btn btn-primary" action="ajaxEncrypt" update="status" value='Encrypt'/>
   </g:form>
 
   <h3>Decrypt Text</h3>
   <g:form name="decryptForm" action="ajaxDecrypt" method="post">
     <div class="dialog">
-      <table class="bordered-table condensed-table noFullWidth">
+      <table class="table table-bordered condensed-table noFullWidth">
         <tbody>
         <tr class="prop">
           <th>Enter Encrypted String:</th>
@@ -66,7 +66,7 @@
         </tbody>
       </table>
     </div>
-    <g:submitToRemote class="btn primary" action="ajaxDecrypt" update="status" value='Decrypt'/>
+    <g:submitToRemote class="btn btn-primary" action="ajaxDecrypt" update="status" value='Decrypt'/>
   </g:form>
 
   <div id="status" class="info">Output Area</div>

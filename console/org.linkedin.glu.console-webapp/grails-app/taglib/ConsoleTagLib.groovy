@@ -227,7 +227,7 @@ public class ConsoleTagLib
               out << value.encodeAsHTML()
             }
             out << g.link(controller: 'agents', action: 'view', id: value) {
-              out << "<img class=\"shortcut\" src=\"${g.resource(dir: 'images', file: 'magnifier.png')}\" />"
+              out << '<i class="icon-search"> </i>'
             }
           }
         }
@@ -826,7 +826,7 @@ public class ConsoleTagLib
     {
       out << '<li class="dropdown">'
       if(fabric)
-        out << "<a href=\"#\" class=\"dropdown-toggle\">${fabric.encodeAsHTML()}</a>"
+        out << "<a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\">${fabric.encodeAsHTML()}<b class=\"caret\"></b></a>"
       out << '<ul class="dropdown-menu">'
       fabricNames.each { fabricName ->
         out << "<li>"
@@ -847,7 +847,7 @@ public class ConsoleTagLib
    * Renders the drop down in the subtab section under the dashboard tab
    */
   def renderDashboardSelectDropdown = {
-    out << "<a href=\"#\" class=\"dropdown-toggle\">${request.userSession?.currentCustomDeltaDefinitionName?.encodeAsHTML()}</a>"
+    out << "<a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\">${request.userSession?.currentCustomDeltaDefinitionName?.encodeAsHTML()}<b class=\"caret\"></b></a>"
     out << "<ul class=\"dropdown-menu\">"
     out << "<li>"
     out << g.link('class': 'btn', controller: 'dashboard', action: 'redelta', params: ['session.reset': true]) {
@@ -878,7 +878,7 @@ public class ConsoleTagLib
     }
 
     out << "<li>"
-    out << "<a class=\"btn\" data-controls-modal=\"saveAsNew\" data-backdrop=\"true\" data-keyboard=\"true\">Save as new</a>"
+    out << '<a href="#saveAsNew" role="button" class="btn" data-toggle="modal" data-backdrop="true" data-keyboard="true">Save as new</a>'
     out << "</li>"
     out << "</ul>"
   }
@@ -934,12 +934,12 @@ public class ConsoleTagLib
         }
 
         out << '<li class="dropdown">'
-        out << "<a href=\"#\" class=\"dropdown-toggle\">"
+        out << "<a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\">"
         if(selectedFilterDisplayName)
           out << selectedFilterDisplayName.encodeAsHTML()
         else
           out << "All [${name}]"
-        out << "</a>"
+        out << "<b class=\"caret\"></b></a>"
         out << '<ul class="dropdown-menu">'
         dd.values().each { v ->
           out << "<li>"

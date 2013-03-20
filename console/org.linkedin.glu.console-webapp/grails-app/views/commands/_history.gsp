@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2012 Yan Pujante
+  - Copyright (c) 2012-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -15,9 +15,9 @@
   --}%
 <div id="history">
   <g:if test="${currentCommandExecutions}">
-    <h3>Active commands [${currentCommandExecutions.size()}]</h3>
+    <h4>Active commands [${currentCommandExecutions.size()}]</h4>
     <g:render template="executingCommands" model="[commandExecutions: currentCommandExecutions]"/>
   </g:if>
-  <h3>Commands [${commandExecutions.size()}/${count}]</h3>
+  <h4>Commands [${commandExecutions.size()}/${count}]</h4>
   <g:render template="completedCommands" model="[commandExecutions: commandExecutions, count: count]"/>
 </div>

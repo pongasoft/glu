@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -36,12 +36,12 @@
 </head>
 <body>
 <g:if test="${deployment}">
-  <ul class="tabs">
+  <ul class="nav nav-tabs">
     <li><g:link action="deployments">Recent</g:link></li>
     <li><g:link action="archived">Archived</g:link></li>
     <li class="active"><a href="#">Archived [${deployment.description.encodeAsHTML()}]</a></li>
   </ul>
-  <table id="deployment" class="bordered-table condensed-table">
+  <table id="deployment" class="table table-bordered condensed-table">
     <tr>
       <th>Username</th>
       <th>Start Date</th>
@@ -76,16 +76,16 @@ ${deployment.details.encodeAsHTML()}
   </pre>
 </g:if>
 <g:else>
-  <ul class="tabs">
+  <ul class="nav nav-tabs">
     <li><g:link action="deployments">Recent</g:link></li>
     <li class="active"><a href="#">Archived</a></li>
   </ul>
 <g:if test="${deployments}">
-  <h2>Archived deployments [${count}]</h2>
+  <h3>Archived deployments [${count}]</h3>
   <div class="paginateButtons">
     <g:paginate total="${count}" max="25"/>
   </div>
-  <table id="deployments" class="bordered-table condensed-table">
+  <table id="deployments" class="table table-bordered condensed-table">
     <tr>
       <th>Description</th>
       <th>Username</th>
@@ -124,7 +124,7 @@ ${deployment.details.encodeAsHTML()}
   </div>
 </g:if>
 <g:else>
-  <h2>No archived deployments...</h2>
+  <h3>No archived deployments...</h3>
 </g:else>
 </g:else>
 </body>

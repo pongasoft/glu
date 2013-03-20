@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,9 +21,22 @@ body {
   padding-top: 40px; /* 40px to make the container go all the way to the bottom of the topbar */
 }
 
-.topbar a {
+.navbar .nav > li > a {
   color: black;
   font-weight: bold;
+}
+
+.navbar .nav > li > a:focus,
+.navbar .nav > li > a:hover {
+  color: white;
+}
+
+.navbar .nav > .active > a,
+.navbar .nav > .active > a:hover,
+.navbar .nav > .active > a:focus {
+  color: black;
+  font-weight: bold;
+  text-shadow: none;
 }
 
 .container {
@@ -38,21 +51,25 @@ dl {
   margin-top: 1px;
 }
 
-.bordered-table {
+.table tbody + tbody {
+  border-top: 1px solid #888888;
+}
+
+.table-bordered {
   border-collapse: collapse;
   border-color: #888888;
 }
 
-.bordered-table td {
+.table-bordered td {
   border-color: #888888;
 }
 
-.bordered-table th {
+.table-bordered th {
   border-color: #888888;
   background-color: #f0f0ff;
 }
 
-.bordered-table th + th, .bordered-table td + td, .bordered-table th + td {
+.table-bordered th + th, .table-bordered td + td, .table-bordered th + td {
   border: 1px solid #888888;
 }
 

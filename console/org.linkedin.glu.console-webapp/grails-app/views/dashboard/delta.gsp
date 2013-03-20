@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -23,27 +23,29 @@
   <link rel="stylesheet" href="${resource(dir:'css',file:'delta.css')}"/>
 </head>
 <body>
-<ul class="tabs">
-  <li class="active" data-dropdown="dropdown">
+<ul class="nav nav-tabs">
+  <li class="active dropdown">
     <cl:renderDashboardSelectDropdown/>
   </li>
   <li><g:link controller="dashboard" action="plans">Plans</g:link></li>
   <li><g:link controller="dashboard" action="customize">Customize</g:link></li>
 </ul>
-<div id="saveAsNew" class="modal hide">
-  <a href="#" class="close">&times;</a>
-  <div class="modal-header">Save as new dashboard</div>
+<div id="saveAsNew" class="modal hide" role="dialog" aria-labelledby="saveAsNewHeader" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h4 id="saveAsNewHeader">Save as new dashboard</h4>
+  </div>
   <div class="modal-body">
-   <g:form class="form-stacked" controller="dashboard" action="saveAsNewCustomDashboard">
+   <g:form controller="dashboard" action="saveAsNewCustomDashboard">
      <fieldset>
        <legend>New Name</legend>
        <div class="clearfix">
          <input id="customDashboardNewName" type="text" name="name" value="${request.userSession?.currentCustomDeltaDefinitionName?.encodeAsHTML()}"/>
        </div><!-- /clearfix -->
+       <div class="actions">
+         <input type="submit" class="btn btn-primary" name="update" value="Save"/>
+       </div>
      </fieldset>
-     <div class="actions">
-       <input type="submit" class="btn primary" name="update" value="Save"/>
-     </div>
    </g:form>
   </div>
 </div>
