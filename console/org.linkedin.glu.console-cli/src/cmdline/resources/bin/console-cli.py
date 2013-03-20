@@ -175,7 +175,7 @@ def main():
 
     if options.debug:
         log.setLevel(logging.DEBUG)
-        gluconsole.rest.log.setLevel(logging.DEBUG)
+        gluconsole.rest.logger.setLevel(logging.DEBUG)
 
     if options.filter and options.filter_filename:
         parser.error('Only --systemFilter or --systemFilterFile must be'
