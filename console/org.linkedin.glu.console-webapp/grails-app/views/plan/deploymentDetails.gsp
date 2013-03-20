@@ -30,12 +30,17 @@
       width: 150px;
       border: solid black 1px;
       display: inline-block;
+      margin: 0;
     }
     a.step-link {
       color: black;
     }
     a.step-link:hover {
       color: #0069D6;
+    }
+
+    #deployment-details {
+      font-size: smaller;
     }
   </style>
   <g:javascript>
@@ -96,11 +101,11 @@ function refresh()
   <li><g:link action="archived">Archived</g:link></li>
 </ul>
 
-<h3>
+<h4>
   Show Errors Only: <cl:checkBoxInitFromParams name="showErrorsOnly" id="showErrorsOnly" onclick="showErrorsOnly();"/> |
   Auto Refresh: <cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
   <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/>
-</h3>
+</h4>
 
 <div id="asyncDetails">
   <g:render template="deploymentDetails" model="[deployment: deployment]"/>

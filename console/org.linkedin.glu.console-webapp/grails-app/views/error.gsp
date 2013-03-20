@@ -14,19 +14,20 @@
   - License for the specific language governing permissions and limitations under
   - the License.
   --}%<html>
-	<head>
-		<title><g:if env="development">Grails Runtime Exception</g:if><g:else>Error</g:else></title>
-		<meta name="layout" content="main">
-		<g:if env="development"><link rel="stylesheet" href="${resource(dir: 'css', file: 'errors.css')}" type="text/css"></g:if>
-	</head>
-	<body>
-		<g:if env="development">
-			<g:renderException exception="${exception}" />
-		</g:if>
-		<g:else>
-			<ul class="errors">
-				<li>An error has occurred</li>
-			</ul>
-		</g:else>
-	</body>
+<head>
+  <title>Unexpected Error</title>
+  <meta name="layout" content="main">
+  <link rel="stylesheet" href="${resource(dir: 'css', file: 'errors.css')}" type="text/css">
+</head>
+<body>
+<g:if env="development">
+  <g:renderException exception="${exception}" />
+</g:if>
+<g:else>
+  <h2>An unexpected error has occurred <a href="#" onclick="toggleShowHide('#exceptionDetails');return false;"><i class="icon-info-sign"> </i></a></h2>
+  <div id="exceptionDetails" class="hidden">
+    <g:renderException exception="${exception}" />
+  </div>
+</g:else>
+</body>
 </html>

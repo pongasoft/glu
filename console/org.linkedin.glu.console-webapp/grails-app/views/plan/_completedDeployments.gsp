@@ -18,7 +18,7 @@
 <%@ page import="org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus" %>
 <h3>Completed deployments [${deployments?.size()}] [<g:link action="archiveAllDeployments" controller="plan" onClick="return confirm('Are you sure you want to archive all deployments ?');">Archive All</g:link>]</h3>
 <g:if test="${deployments}">
-  <table class="table table-bordered condensed-table" id="completedDeployments">
+  <table class="table table-bordered table-condensed" id="completedDeployments">
     <tr>
       <th class="descriptionFilter">Description</th>
       <th class="usernameFilter">Username</th>

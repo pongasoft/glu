@@ -45,7 +45,7 @@ class ProcessResource extends BaseResource
    * PUT: send a signal to a process
    */
   @Put
-  public void kill(Representation representation)
+  public Representation kill(Representation representation)
   {
     noException {
       def args = toArgs(representation)
@@ -53,6 +53,8 @@ class ProcessResource extends BaseResource
       def pid = PathUtils.removeLeadingSlash(path).toInteger()
       
       agent.kill(pid, args.signal)
+
+      return null
     }
   }
 }

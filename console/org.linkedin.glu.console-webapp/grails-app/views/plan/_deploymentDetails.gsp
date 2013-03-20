@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -34,10 +34,12 @@
 </g:if>
 <g:set var="progress" value="${deployment.progressTracker.steps}"/>
 
-<h3>
-  <div class="progress"><img src="${g.resource(dir: 'images', file: 'progress_1x12.png')}" alt="${deployment.progressTracker.completionPercentage}%" width="${deployment.progressTracker.completionPercentage}%" height="12"></div>
+<h4>
+  <div class="progress">
+    <div class="bar" style="width: ${deployment.progressTracker.completionPercentage}%;"></div>
+  </div>
   ${deployment.progressTracker.leafStepsCompletedCount}/${deployment.planExecution.plan.leafStepsCount} - <span id="progress">${deployment.progressTracker.completionPercentage}</span>%
-</h3>
+</h4>
 
 <div id="deployment-details">
   <dl class="plan">

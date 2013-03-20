@@ -11,7 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 #
-# Copyright (c) 2011 Yan Pujante
+# Copyright (c) 2011-2013 Yan Pujante
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -57,7 +57,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = u'glu'
-copyright = u'2011-2012, Yan Pujante'
+copyright = u'2011-2013, Yan Pujante'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

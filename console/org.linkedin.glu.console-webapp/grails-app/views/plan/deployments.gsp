@@ -36,6 +36,7 @@
       width: 150px;
       border: solid black 1px;
       display: inline-block;
+      margin: 0;
     }
   </style>
     <g:javascript>

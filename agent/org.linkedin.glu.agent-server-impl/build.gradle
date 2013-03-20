@@ -28,7 +28,6 @@ dependencies {
 
   testCompile project(':agent:org.linkedin.glu.agent-rest-client')
   testCompile spec.external.junit
-  testCompile spec.external.groovyTest
 
   runtime spec.external.commonsCli
   runtime spec.external.slf4jLog4j

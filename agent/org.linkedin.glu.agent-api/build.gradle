@@ -24,5 +24,4 @@ dependencies {
   compile spec.external.groovy
 
   testCompile spec.external.junit
-  testCompile spec.external.groovyTest
 }

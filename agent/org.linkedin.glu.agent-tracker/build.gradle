@@ -27,7 +27,6 @@ dependencies {
   compile spec.external.groovy
 
   testCompile spec.external.junit
-  testCompile spec.external.groovyTest
 
   testRuntime spec.external.slf4jLog4j
 }

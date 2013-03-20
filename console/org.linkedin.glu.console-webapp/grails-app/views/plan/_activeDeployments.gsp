@@ -17,7 +17,7 @@
 
 <h3>Active deployments [${deployments?.size()}]</h3>
 <g:if test="${deployments}">
-<table id="activeDeployments" class="table table-bordered condensed-table">
+<table id="activeDeployments" class="table table-bordered table-condensed">
   <tr>
     <th class="descriptionFilter">Description</th>
     <th class="usernameFilter">Username</th>

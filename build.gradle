@@ -41,7 +41,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'org.linkedin:org.linkedin.gradle-plugins:1.5.glu47.2'
+    classpath 'org.linkedin:org.linkedin.gradle-plugins:1.5.glu47.3'
   }
 }
 

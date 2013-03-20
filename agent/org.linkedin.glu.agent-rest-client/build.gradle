@@ -30,7 +30,6 @@ dependencies {
   compile spec.external.groovy
 
   testCompile spec.external.junit
-  testCompile spec.external.groovyTest
   testCompile project(':agent:org.linkedin.glu.agent-impl')
   testCompile project(':agent:org.linkedin.glu.agent-rest-resources')
 

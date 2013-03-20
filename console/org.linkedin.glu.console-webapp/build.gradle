@@ -85,12 +85,12 @@ task lib(dependsOn: jar) << {
   copy {
     from configurations.runtime
     into 'lib'
+    // issue is that we end up with duplicate files (with slightly different names!) because grails
+    // add them!
     exclude("spring-*.jar")
     exclude("slf4j-log4j12-*.jar")
   }
 
-  // issue is that we end up with duplicate files (with slightly different names!) because grails
-  // add them!
   //fileTree('lib').include('spring-*.jar').each { it.delete() }
 
   def keysDir = new File(rootDir, 'dev-keys')

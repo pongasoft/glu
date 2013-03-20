@@ -26,8 +26,8 @@ spec = [
     grails: '2.2.1',
     groovy: '2.0.7',
     jetty: '8.1.10.v20130312', // '9.0.0.v20130308' (cannot use 9 -> requires jdk 1.7)
-    linkedinUtils: '1.8.glu47.0',
-    linkedinZookeeper: '1.5.glu47.0',
+    linkedinUtils: '1.8.glu47.2',
+    linkedinZookeeper: '1.5.glu47.1',
     restlet: '2.1.2',
     sigar: '1.6.4',
     slf4j: '1.6.2' // to be compatible with grails 2.2.1
@@ -54,7 +54,7 @@ spec.external = [
   ehcacheCore: 'net.sf.ehcache:ehcache-core:2.4.6', // using same version embedded in grails
   grailsBootstrap: "org.grails:grails-bootstrap:${spec.versions.grails}",
   grailsCore: "org.grails:grails-core:${spec.versions.grails}",
-  groovy: "org.codehaus.groovy:groovy:${spec.versions.groovy}",
+  groovy: "org.codehaus.groovy:groovy-all:${spec.versions.groovy}",
   groovyTest: "org.codehaus.groovy:groovy-test:${spec.versions.groovy}",
   hsqldb: "hsqldb:hsqldb:1.8.0.10",
   httpClient: "org.apache.httpcomponents:httpclient:4.2.3",

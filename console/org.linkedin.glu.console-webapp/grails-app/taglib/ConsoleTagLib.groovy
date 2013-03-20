@@ -227,7 +227,7 @@ public class ConsoleTagLib
               out << value.encodeAsHTML()
             }
             out << g.link(controller: 'agents', action: 'view', id: value) {
-              out << '<i class="icon-search"> </i>'
+              out << '<i class="icon-zoom-in"> </i>'
             }
           }
         }

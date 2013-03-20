@@ -36,7 +36,6 @@ subprojects {
 
     testCompile project(":utils:org.linkedin.glu.scripts-test-fwk")
     testCompile spec.external.junit
-    testCompile spec.external.groovyTest
   }
 
   def processedScriptsDir = new File("${buildDir}/src/main/groovy")

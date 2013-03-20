@@ -23,7 +23,6 @@ dependencies {
   compile project(':agent:org.linkedin.glu.agent-impl')
 
   compile spec.external.groovy
-  compile spec.external.groovyTest
 
   compile spec.external.junit
 }

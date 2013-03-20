@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2010-2010 LinkedIn, Inc
-# Portions Copyright (c) 2011 Yan Pujante
+# Portions Copyright (c) 2011-2013 Yan Pujante
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -48,4 +48,14 @@ if [ -d $PLUGINS_DIR ]; then
   done
 fi
 
-JAVA_OPTIONS="-Dorg.linkedin.app.name=org.linkedin.glu.console-webapp -Dorg.linkedin.glu.console.config.location=$BASEDIR/conf/glu-console-webapp.groovy -Dorg.linkedin.glu.console.keys.dir=$BASEDIR/keys -Dorg.linkedin.glu.console.plugins.classpath=$PLUGINS_CLASSPATH -Dorg.linkedin.glu.console.root=$BASEDIR" $JETTY_DISTRIBUTION/bin/jetty.sh "$@"
+if [ -z "$JVM_SIZE" ]; then
+  JVM_SIZE="-Xmx512m -XX:MaxPermSize=384m"
+fi
+
+if [ -z "$JAVA_OPTIONS" ]; then
+  JAVA_OPTIONS=""
+fi
+
+JAVA_OPTIONS="$JAVA_OPTIONS $JVM_SIZE -Dorg.linkedin.app.name=org.linkedin.glu.console-webapp -Dorg.linkedin.glu.console.config.location=$BASEDIR/conf/glu-console-webapp.groovy -Dorg.linkedin.glu.console.keys.dir=$BASEDIR/keys -Dorg.linkedin.glu.console.plugins.classpath=$PLUGINS_CLASSPATH -Dorg.linkedin.glu.console.root=$BASEDIR"
+
+JAVA_OPTIONS="$JAVA_OPTIONS" $JETTY_DISTRIBUTION/bin/jetty.sh "$@"
