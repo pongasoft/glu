@@ -21,6 +21,7 @@ package org.linkedin.glu.agent.cli
 import org.linkedin.glu.agent.api.Agent
 import org.linkedin.glu.agent.rest.client.AgentFactory
 import org.linkedin.glu.agent.rest.client.AgentFactoryImpl
+import org.linkedin.glu.groovy.utils.ExceptionJdk17Workaround
 import org.linkedin.groovy.util.config.Config
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.util.lifecycle.Startable
@@ -466,6 +467,8 @@ class ClientMain implements Startable
 
   static void main(args)
   {
+    ExceptionJdk17Workaround.installWorkaround()
+
     ClientMain clientMain = new ClientMain()
     def options = clientMain.init(args)
 
