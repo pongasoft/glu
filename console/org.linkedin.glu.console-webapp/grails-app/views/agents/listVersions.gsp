@@ -49,7 +49,7 @@
     | <a href="#" onClick="quickSelect('agent_${version}', 'agentCheckbox', ${pct});return false;">${pct}%</a>
   </g:each>
   </p>
-  <table class="table table-bordered condensed-table noFullWidth" id="agent_${version}">
+  <table class="table table-bordered table-condensed noFullWidth" id="agent_${version}">
     <g:each in="${versions[version].agentName.sort()}" var="agentName">
       <tr>
         <td>${agentName}</td>

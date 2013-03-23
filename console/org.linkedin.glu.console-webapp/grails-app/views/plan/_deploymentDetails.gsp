@@ -20,7 +20,7 @@
     Aborted
   </g:if>
   <g:else>
-    <h3>
+    <h4>
       <g:link action="deployments" id="${deployment.id}">Refresh</g:link>
     <g:if test="${deployment.planExecution.paused}">
       | <g:link action="resumeDeployment" id="${deployment.id}">Resume</g:link>
@@ -29,7 +29,7 @@
       | <g:link action="pauseDeployment" id="${deployment.id}">Pause</g:link>
     </g:else>
     | <g:link action="abortDeployment" id="${deployment.id}">Abort</g:link>
-    </h3>
+    </h4>
   </g:else>
 </g:if>
 <g:set var="progress" value="${deployment.progressTracker.steps}"/>

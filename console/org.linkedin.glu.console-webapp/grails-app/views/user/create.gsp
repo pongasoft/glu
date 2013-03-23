@@ -36,7 +36,7 @@
             </g:hasErrors>
             <g:form method="post" action="save">
               <div class="dialog">
-                <table class="table table-bordered condensed-table noFullWidth">
+                <table class="table table-bordered table-condensed noFullWidth">
                   <tbody>
                         
                   <tr class="prop">

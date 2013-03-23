@@ -32,7 +32,7 @@
   <h3>Encrypt Plain Text</h3>
   <g:form name="encryptForm" action="ajaxEncrypt" method="post">
     <div class="dialog">
-      <table class="table table-bordered condensed-table noFullWidth">
+      <table class="table table-bordered table-condensed noFullWidth">
         <tbody>
         <tr class="prop">
           <th>Select Encryption Key:</th>
@@ -55,7 +55,7 @@
   <h3>Decrypt Text</h3>
   <g:form name="decryptForm" action="ajaxDecrypt" method="post">
     <div class="dialog">
-      <table class="table table-bordered condensed-table noFullWidth">
+      <table class="table table-bordered table-condensed noFullWidth">
         <tbody>
         <tr class="prop">
           <th>Enter Encrypted String:</th>

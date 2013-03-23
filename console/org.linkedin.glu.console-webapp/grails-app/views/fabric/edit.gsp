@@ -38,7 +38,7 @@
     <input type="hidden" name="id" value="${fabricInstance?.id}"/>
     <input type="hidden" name="version" value="${fabricInstance?.version}"/>
     <div class="dialog">
-      <table class="table table-bordered condensed-table noFullWidth">
+      <table class="table table-bordered table-condensed noFullWidth">
         <tbody>
 
         <tr class="prop">

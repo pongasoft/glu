@@ -28,7 +28,7 @@
   <li><g:link action="encrypt">Encrypt/Decrypt</g:link></li>
 </ul>
 <h3>Number of keys in KeyStore: ${count}</h3>
-<table class="table table-bordered condensed-table noFullWidth">
+<table class="table table-bordered table-condensed noFullWidth">
   <tr>
     <th>KeyName</th>
     <th>Base64 Encoded Value</th>

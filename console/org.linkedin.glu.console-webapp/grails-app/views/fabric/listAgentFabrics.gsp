@@ -65,12 +65,12 @@
   <h2>Fabric pre-selection is based on current fabric [${request.fabric}]!</h2>
   <g:if test="${unassignedAgents}">
     <p>Quick defaults:
-      <a href="#" onclick="setSelectByValue('unassignedAgents', '${request.fabric}'); return false;">${request.fabric}</a>
-      <a href="#" onclick="setSelectByValue('unassignedAgents', ''); return false;">[None]</a>
+      <a href="#" onclick="$('#unassignedAgents').find('select').val('${request.fabric}'); return false;">${request.fabric}</a>
+      <a href="#" onclick="$('#unassignedAgents').find('select').val('-Choose-'); return false;">[None]</a>
     </p>
     <g:set var="status" value="['missing-old': 'Agent is most likely down', 'missing-new': 'Agent is most likely new', 'unknown': 'Unknown to this fabric']"/>
     <g:form name="unassignedAgents" action="setAgentsFabrics">
-      <table class="table table-bordered condensed-table">
+      <table class="table table-bordered table-condensed">
         <tr>
           <th>Agent</th>
           <th>Fabric</th>
@@ -95,7 +95,7 @@
   </g:else>
 
   <h1>Assigned agents</h1>
-  <table class="table table-bordered condensed-table">
+  <table class="table table-bordered table-condensed">
     <tr>
       <th>Agent</th>
       <th>Fabric</th>

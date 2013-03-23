@@ -32,7 +32,7 @@
     <g:paginate total="${userInstanceTotal}" max="100"/>
   </div>
   <div class="list">
-    <table class="table table-bordered condensed-table noFullWidth">
+    <table class="table table-bordered table-condensed noFullWidth">
       <thead>
       <tr>
         <g:sortableColumn property="username" title="Username"/>

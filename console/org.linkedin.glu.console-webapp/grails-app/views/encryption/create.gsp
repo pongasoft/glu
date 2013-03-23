@@ -32,7 +32,7 @@
   <h3>Create New Encryption Key</h3>
   <g:form action="ajaxSave" method="post">
     <div class="dialog">
-      <table class="table table-bordered condensed-table noFullWidth">
+      <table class="table table-bordered table-condensed noFullWidth">
         <tbody>
 
         <tr class="prop">

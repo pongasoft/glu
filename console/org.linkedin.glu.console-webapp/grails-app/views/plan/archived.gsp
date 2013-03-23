@@ -41,7 +41,7 @@
     <li><g:link action="archived">Archived</g:link></li>
     <li class="active"><a href="#">Archived [${deployment.description.encodeAsHTML()}]</a></li>
   </ul>
-  <table id="deployment" class="table table-bordered condensed-table">
+  <table id="deployment" class="table table-bordered table-condensed">
     <tr>
       <th>Username</th>
       <th>Start Date</th>
@@ -85,7 +85,7 @@ ${deployment.details.encodeAsHTML()}
   <div class="paginateButtons">
     <g:paginate total="${count}" max="25"/>
   </div>
-  <table id="deployments" class="table table-bordered condensed-table">
+  <table id="deployments" class="table table-bordered table-condensed">
     <tr>
       <th>Description</th>
       <th>Username</th>

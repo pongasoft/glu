@@ -70,33 +70,3 @@ function selectOne(containerId, className)
     }
   }
 }
-
-/**
- * Select default value in a drop down combo box
- *
- * @param formName Name of the form that contains the combo boxes
- * @param defaultValue default value to set combo box selection to
- */
-function setSelectByValue(formName, defaultValue)
-{
-  var form = document.forms(formName);
-  var inputs = form.getElementsByTagName('select');
-  var rv = false;
-
-  for(var i = 0; i < inputs.length; i++)
-  {
-    var input = inputs.item(i)
-    if(input.type == 'select-one')
-    {
-      var combo = input
-      var clen = combo.options.length
-      for (var j = 0; j < clen && combo.options[j].value != defaultValue; j++)
-        ;
-      if (rv = (j != clen)) {
-          combo.selectedIndex = j;
-      }
-    }
-  }
-
-  return rv;
-}
