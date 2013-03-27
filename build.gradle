@@ -41,7 +41,7 @@ buildscript {
   }
 
   dependencies {
-    classpath 'org.linkedin:org.linkedin.gradle-plugins:1.5.glu47.3'
+    classpath 'org.linkedin:org.linkedin.gradle-plugins:1.6.0'
   }
 }
 
@@ -75,6 +75,13 @@ allprojects {
   apply plugin: 'idea'
   group = spec.group
   version = spec.version
+
+  // this is to force JUnit to a consistent version (zookeeper is bringing a different one!)
+  configurations.all {
+    resolutionStrategy {
+      force spec.external.junit
+    }
+  }
 }
 
 def ideaCopyright = """

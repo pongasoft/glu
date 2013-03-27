@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -20,6 +20,7 @@ package org.linkedin.glu.agent.impl.capabilities
 
 import eu.medsea.mimeutil.MimeUtil
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.linkedin.groovy.util.ant.AntUtils
 
 import java.util.concurrent.TimeoutException
 import java.util.regex.Pattern
@@ -319,7 +320,7 @@ def class ShellImpl implements Shell
    */
   def ant(Closure closure)
   {
-    return AntHelper.withBuilder { closure(it) }
+    return AntUtils.withBuilder { closure(it) }
   }
 
   /**

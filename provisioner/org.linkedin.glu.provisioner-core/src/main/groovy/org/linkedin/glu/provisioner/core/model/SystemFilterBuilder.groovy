@@ -76,17 +76,25 @@ public class SystemFilterBuilder
 
     def builder = new SystemFilterBuilder(filter: new LogicAndSystemFilterChain())
 
-    Script script = new GroovyShell(new BindingBuilder(systemFilterBuilder: builder)).parse(dsl)
+    def shell = new GroovyShell(new BindingBuilder(systemFilterBuilder: builder))
+    try
+    {
+      Script script = shell.parse(dsl)
 
-    script.metaClass = createEMC(script.class) { ExpandoMetaClass emc ->
-      ['and', 'or', 'not', 'c'].each { method ->
-        emc."${method}" = { Closure cl ->
-          builder."${method}"(cl)
+      script.metaClass = createEMC(script.class) { ExpandoMetaClass emc ->
+        ['and', 'or', 'not', 'c'].each { method ->
+          emc."${method}" = { Closure cl ->
+            builder."${method}"(cl)
+          }
         }
       }
-    }
 
-    script.run()
+      script.run()
+    }
+    finally
+    {
+      shell.resetLoadedClasses()
+    }
 
     return builder.optimizeFilter(builder.filter)
   }

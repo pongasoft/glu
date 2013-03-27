@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -31,6 +31,7 @@ def class FromLocationScriptFactory implements ScriptFactory, Serializable
   private final def _location
   private def _scriptFile
   private transient def _script
+  private transient GroovyClassLoader _gcl
 
   FromLocationScriptFactory(location)
   {
@@ -44,11 +45,26 @@ def class FromLocationScriptFactory implements ScriptFactory, Serializable
       if(!_scriptFile?.exists())
         _scriptFile = scriptConfig.shell.fetch(_location)
 
-      Class scriptClass = new GroovyClassLoader(getClass().classLoader).parseClass(_scriptFile.file)
+      _gcl = new GroovyClassLoader(getClass().classLoader)
+
+      Class scriptClass = _gcl.parseClass(_scriptFile.file)
+
       _script = scriptClass.newInstance()
     }
     
     return _script
+  }
+
+  @Override
+  void destroyScript(ScriptConfig scriptConfig)
+  {
+    if(_scriptFile?.exists())
+      scriptConfig.shell.rm(_scriptFile)
+
+    _scriptFile = null
+    _script = null
+    _gcl.clearCache()
+    _gcl = null
   }
 
   String toString()
