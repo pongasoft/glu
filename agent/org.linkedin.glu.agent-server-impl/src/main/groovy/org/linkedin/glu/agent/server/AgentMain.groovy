@@ -35,6 +35,7 @@ import org.linkedin.glu.agent.rest.resources.LogResource
 import org.linkedin.glu.agent.rest.resources.MountPointResource
 import org.linkedin.glu.agent.rest.resources.ProcessResource
 import org.linkedin.glu.groovy.utils.ExceptionJdk17Workaround
+import org.linkedin.glu.groovy.utils.jvm.JVMInfo
 import org.linkedin.groovy.util.ant.AntUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
@@ -133,6 +134,7 @@ class AgentMain implements LifecycleListener, Configurable
   AgentMain()
   {
     JulToSLF4jBridge.installBridge()
+    log.info JVMInfo.getJVMInfoAsStringCollection().join(" | ")
   }
 
   def getUrlFactory()

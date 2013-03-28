@@ -23,6 +23,7 @@ import org.apache.zookeeper.KeeperException
 import org.apache.zookeeper.ZooDefs.Ids
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.impl.storage.WriteOnlyStorage
+import org.linkedin.glu.groovy.utils.jvm.JVMInfo
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.lang.LangUtils
 import org.linkedin.zookeeper.client.IZKClient
@@ -164,12 +165,12 @@ class ZooKeeperStorage implements WriteOnlyStorage
   @Override
   AgentProperties saveAgentProperties(AgentProperties agentProperties)
   {
-    Map<String, String> props = agentProperties.exposedProperties
-
     // we filter out the properties
-    props = props.findAll { k, v ->
-      k.startsWith(prefix) || k.startsWith('java.vm')
-    }
+    Map<String, String> props =
+      agentProperties.exposedProperties.findAll { k, v ->
+        k.startsWith(prefix)
+      }
+    props.putAll(JVMInfo.getJVMInfo(agentProperties.exposedProperties))
 
     if(log.isDebugEnabled())
       log.debug "Creating/Updating agent ephemeral node: ${new TreeMap(props)}"

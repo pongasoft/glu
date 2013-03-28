@@ -37,6 +37,7 @@
   div#footer {
     clear: both;
     margin-top: 2em;
+    padding-right: 0.5em;
     border-top: solid 1px #dddddd;
     text-align: right;
     font-style: italic;

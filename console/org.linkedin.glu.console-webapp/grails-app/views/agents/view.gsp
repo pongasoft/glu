@@ -15,7 +15,7 @@
   - the License.
   --}%
 
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="org.linkedin.glu.groovy.utils.jvm.JVMInfo" contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
   <title>Agent [${model.agent?.agentName}]</title>
@@ -46,7 +46,10 @@
       <g:link class="btn" action="sync" id="${model.agent.agentName}">ZooKeeper Sync</g:link></li>
   </ul>
   <div id="agent-details" class="hidden">
+    <h4>Agent</h4>
     <cl:mapToTable class="table table-bordered xtight-table noFullWidth" map="${model.agent.agentProperties.findAll { !it.key.startsWith('java.') }}"/>
+    <h4>JVM Info (Agent)</h4>
+    <cl:mapToTable class="table table-bordered xtight-table noFullWidth" map="${JVMInfo.getJVMInfo(model.agent.agentProperties) }"/>
   </div>
 
   <g:each in="${ConsoleUtils.sortBy(model.mountPoints.keySet(), 'path')}" var="key" status="idx">

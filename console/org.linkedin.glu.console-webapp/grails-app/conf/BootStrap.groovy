@@ -21,6 +21,7 @@ import org.linkedin.glu.console.domain.User
 import org.linkedin.glu.console.domain.RoleName
 import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.linkedin.glu.groovy.utils.ExceptionJdk17Workaround
+import org.linkedin.glu.groovy.utils.jvm.JVMInfo
 import org.linkedin.groovy.util.net.SingletonURLStreamHandlerFactory
 import org.linkedin.groovy.util.ivy.IvyURLHandler
 import org.linkedin.glu.provisioner.core.model.SystemModel
@@ -45,6 +46,8 @@ class BootStrap {
     ExceptionJdk17Workaround.installWorkaround()
 
     JulToSLF4jBridge.installBridge()
+
+    log.info JVMInfo.getJVMInfoAsStringCollection().join(" | ")
 
     def config = grailsApplication.config
 
