@@ -1,4 +1,4 @@
-.. Copyright (c) 2011 Yan Pujante
+.. Copyright (c) 2011-2013 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -20,36 +20,19 @@ Compilation
 In order to compile the code you need
 
 * java 1.6
-* `gradle 0.9 <http://www.gradle.org/>`_
-* `grails 1.3.5 <http://www.grails.org/>`_ (only for the console)
 * Unix (tested on Mac OS X and Solaris)
-
-Before doing anything go to::
-
-    console/org.linkedin.glu.console-webapp
-
-and issue::
-
-    grails install-plugin ../../local-maven-repo/com/pongasoft/grails-external-domain-classes/1.0.0/grails-external-domain-classes-1.0.0.zip
-    grails upgrade
 
 At the top simply run::
 
-    gradle test
+    ./gradlew test
 
-which should compile and run all the tests.
-
-Note: if you do not run the 'grails upgrade' command, you may see this messages::
-
-    Plugin `shiro-1.1-SNAPSHOT <not installed. ...
-    Plugin [hibernate-1.3.5] not installed. ...
-    Plugin [tomcat-1.3.5] not installed. ...
+which should compile and run all the tests (glu uses the gradle wrapper which will download the proper version of gradle as well as the grails wrapper which will as well download the proper version of grails).
 
 IDE Support
 -----------
 You can issue the command (at the top)::
 
-    gradle idea
+    ./gradlew cleanIdea idea
 
 which will use the gradle IDEA plugin to create the right set of modules in order to open the
 project in IntelliJ IDEA.
@@ -71,8 +54,8 @@ Directory structure
 * ``agent/org.linkedin.glu.agent-cli``:
   The command line which can talk to the agent directly::
 
-        gradle package // to create the package
-        gradle package-install // to install locally (for dev)
+        ../../gradlew package // to create the package
+        ../../gradlew package-install // to install locally (for dev)
 
 * ``agent/org.linkedin.glu.agent-cli-impl``:
   Contains the implementation of the agent cli
@@ -86,44 +69,44 @@ Directory structure
 * ``agent/org.linkedin.glu.agent-server-upgrade``:
   Create the upgrade package (to be used when uprading an already installed agent)::
 
-        gradle package // create the upgrade package
+        ../../gradlew package // create the upgrade package
 
 * ``agent/org.linkedin.glu.agent-server``:
   The actual server::
 
-        gradle package // create the package
+        ../../gradlew package // create the package
 
-        gradle package-install // to install locally (for dev)
-        gradle setup // setup dev fabric and keys in zookeeper (used in conjunction with gradle install)
+        ../../gradlew package-install // to install locally (for dev)
+        ../../gradlew setup // setup dev fabric and keys in zookeeper (used in conjunction with gradle install)
 
-        gradle setup-x-y // setup x agents in y fabrics: automatically setup zookeeper with the right set of
-                            data and create x agents package with a wrapper shell script to start them all
+        ../../gradlew setup-x-y // setup x agents in y fabrics: automatically setup zookeeper with the right set of
+                                // data and create x agents package with a wrapper shell script to start them all
 
-        gradle clean-setup // to delete the setup
+        ../../gradlew clean-setup // to delete the setup
 
 * ``console/org.linkedin.glu.console-webapp``:
   The console webapp (grails application)::
 
-        gradle lib // compile all the dependencies and put them in the lib folder
-        grails run-app // after running gradle lib, you can simply run grails directly as it will use the
-                       // libraries in lib to boot the app
+        ../../gradlew lib // compile all the dependencies and put them in the lib folder
+        ../../gradlew run-app // after running gradle lib, you can simply run grails directly as it will use the
+                              // libraries in lib to boot the app
 
 * ``console/org.linkedin.glu.console-cli``:
   The cli for the console (written in python) to use the REST api of the console::
 
-        gradle package // create the package
-        gradle package-install // to install locally (for dev)
+        ../../gradlew package // create the package
+        ../../gradlew package-install // to install locally (for dev)
 
 * ``console/org.linkedin.glu.console-server``:
   The ``console/org.linkedin.glu.console-webapp`` project generates the war (or is used in dev through grails). This project creates a ready to run console embedding jetty::
 
-        gradle package // create the package
-        gradle package-install // to install locally (for dev)
+        ../../gradlew package // create the package
+        ../../gradlew package-install // to install locally (for dev)
 
 * ``docs/manual``:
   The manual/documentation. To build simply issue::
 
-        gradle doc
+        ../../gradlew doc
 
   .. note:: You need to have sphinx installed in order to build the documentation.
 
@@ -136,14 +119,14 @@ Directory structure
 * ``packaging/org.linkedin.glu.packaging-all``:
   Creates a package which contains all prebuilt packages and is also used for the tutorial::
 
-        gradle package // create the package
-        gradle package-install // to install locally (for dev)
+        ../../gradlew package // create the package
+        ../../gradlew package-install // to install locally (for dev)
 
 * ``packaging/org.linkedin.glu.packaging-setup``:
   Creates a package with convenient shell scripts to setup the keys and agent in ZooKeeper::
 
-        gradle package // create the package
-        gradle package-install // to install locally (for dev)
+        ../../gradlew package // create the package
+        ../../gradlew package-install // to install locally (for dev)
 
 * ``dev-keys``:
   Contains the keys used in dev (check `key_generation.txt <https://github.com/linkedin/glu/blob/master/dev-keys/key_generation.txt>`_) for instructions on how to generate a different set of keys)
@@ -185,7 +168,7 @@ Issue::
 
     cd agent/org.linkedin.glu.agent-server
 
-    gradle setup-2-2
+    ../../gradlew setup-2-2
 
 This will automatically create a setup by loading all the necessary information in ZooKeeper and creating a startup script: it creates 2 fabrics and 2 agents.
 
@@ -213,7 +196,7 @@ Go to checkout root (you may want to do this in a different window as the tail c
 
     cd agent/org.linkedin.glu.agent-cli
 
-    gradle package-install
+    ../../gradlew package-install
 
 Go to the installation folder (the previous command will tell you where) and issue::
 
@@ -261,14 +244,14 @@ Go to checkout root::
 
     cd console/org.linkedin.glu.console-webapp
 
-    gradle -i run-app
+    ../../gradlew -i run-app
 
 Note that in order to work you must have grails installed. The -i option is a bit verbose but if you don't gradle is very silent and you don't see the output coming from grails::
     [ant:exec] Server running. Browse to http://localhost:8080/console
 
 Note that if you prefer you can run::
 
-    gradle lib
+    ../../gradlew lib
     grails run-app
 
 This way you run grails command directly. gradle lib is used to populate the lib folder with the
@@ -299,7 +282,7 @@ are used.
 
 7. Different setups
 ^^^^^^^^^^^^^^^^^^^
-The command ``gradle setup-2-2`` has several flavors using gradle task rules. It allows to configure and setup your development environment with multiple agents on multiple fabrics quickly and effortlessly: the first number is the number of agents, the second one is the number of fabrics.
+The command ``../../gradlew setup-2-2`` has several flavors using gradle task rules. It allows to configure and setup your development environment with multiple agents on multiple fabrics quickly and effortlessly: the first number is the number of agents, the second one is the number of fabrics.
 
 8. Cleaning up
 ^^^^^^^^^^^^^^
@@ -313,7 +296,7 @@ Stop all the agents that were started in Step 2. by issuing::
 
 Under ``agent/org.linkedin.glu.agent-server`` you can use::
 
-    gradle clean-setup
+    ../../gradlew clean-setup
 
 which cleans up all the data in ZooKeeper and deletes the devsetup folder created in step 2.
 

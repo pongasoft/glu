@@ -65,7 +65,7 @@ ext {
     'NOTICE.txt',
     'README.md',
     'RELEASE.rst',
-    'RESTLET-2.0.1-EPL-LICENSE.html',
+    'RESTLET-2.1.2-EPL-LICENSE.html',
     'SIGAR-1.6.4-LICENSE.txt'
   ]
   packageIncludes = fileTree(dir: rootDir, includes: packageIncludesFiles)

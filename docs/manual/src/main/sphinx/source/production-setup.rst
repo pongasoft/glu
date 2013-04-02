@@ -19,10 +19,19 @@ This document describes how to setup glu for production.
 
 Requirements
 ------------
-Currently glu requires a UNIX like platform (tested on Mac OS X and Solaris) and Java 1.6.
+Currently glu requires a UNIX like platform (tested on Mac OS X) and the following version of java:
+
++----------------+-----------------------------------+
+|glu version     |java version(s)                    |
++================+===================================+
+| 4.7.x          |java 1.6 (any VM) or java 1.7      |
++----------------+-----------------------------------+
+| 4.6.x and below|java 1.6 (with Sun/Oracle VM only!)|
++----------------+-----------------------------------+
+
 
 .. warning::
-   Due to a `bug with OpenJDK <https://github.com/linkedin/glu/issues/74>`_ glu currently requires the Sun Java VM.
+   Due to a `bug with OpenJDK <https://github.com/linkedin/glu/issues/74>`_ glu prior to 4.7.0 requires the Sun Java VM.
 
 Step 1: Download
 ----------------
@@ -393,4 +402,10 @@ The console will output a log file called ``console.log`` under ``jetty-distribu
 
 .. tip::
    If you use this option, the documentation is automatically available when you start the server, under ``http://<consolehost>:8080/glu/docs/html/index.html``
+
+Upgrade
+-------
+
+Check the :ref:`section <agent-auto-upgrade>` on how to upgrade the agents.
+
 

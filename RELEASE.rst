@@ -1,6 +1,32 @@
 Latest changes
 ==============
 
+4.7.0 (2013/04/02)
+------------------
+
+This release contains a major upgrade of all the libraries used by glu. The purpose of this release is to allow glu to finally be able to run under any java VM including java 1.7 (as java 1.6 is now no longer supported by Oracle). Here are the requirements in terms of VM version(s):
+
++----------------+-----------------------------------+
+|glu version     |java version(s)                    |
++================+===================================+
+| 4.7.x          |java 1.6 (any VM) or java 1.7      |
++----------------+-----------------------------------+
+| 4.6.x and below|java 1.6 (with Sun/Oracle VM only!)|
++----------------+-----------------------------------+
+
+The next major release of glu (5.0.0) will support java 1.7 only. As a result, the 4.7.x line is also the recommended upgrade path from any prior version of glu since it will be the only line that will support both 1.6 and 1.7 java VMs!
+
+The code in glu has not changed much in this release, but it contains a whole set of new libraries. Although glu has been tested thoroughly (including longevity tests which uncovered some memory leak in the latest version of groovy!), you should use caution when upgrading to this version and make sure you test it on a small set of nodes prior to making a big push.
+
+.. note:: One notable change is the use of the latest version of ZooKeeper (3.4.5). Although the ZooKeeper servers do not need to be upgraded (backward compatible), it is advised to upgrade them and you should follow the procedure described on the ZooKeeper web site.
+
+* Implemented `glu-135 <https://github.com/linkedin/glu/issues/135>`_: `Migrate to latest grails/groovy`
+* Fixed `glu-143 <https://github.com/linkedin/glu/issues/143>`_: `Removal of hardcoded 'java' command from zk.sh`
+* Fixed `glu-201 <https://github.com/linkedin/glu/issues/201>`_: `Incorrect plan generated from console-cli`
+
+Thanks to `JProfiler <http://www.ej-technologies.com/products/jprofiler/overview.html>`_ for providing a free license key in order to troubleshoot (and very quickly identify!) the memory leak in groovy.
+
+
 4.6.2 (2013/01/21)
 ------------------
 

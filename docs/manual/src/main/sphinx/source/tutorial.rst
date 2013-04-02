@@ -38,10 +38,19 @@ During this tutorial you are going to deploy 3 jetty containers running 4 webapp
 
 Requirements
 ------------
-Currently glu requires a UNIX like platform (tested on Mac OS X and Solaris) and Java 1.6.
+Currently glu requires a UNIX like platform (tested on Mac OS X) and the following version of java:
+
++----------------+-----------------------------------+
+|glu version     |java version(s)                    |
++================+===================================+
+| 4.7.x          |java 1.6 (any VM) or java 1.7      |
++----------------+-----------------------------------+
+| 4.6.x and below|java 1.6 (with Sun/Oracle VM only!)|
++----------------+-----------------------------------+
+
 
 .. warning::
-   Due to a `bug with OpenJDK <https://github.com/linkedin/glu/issues/74>`_ glu currently requires the Sun Java VM.
+   Due to a `bug with OpenJDK <https://github.com/linkedin/glu/issues/74>`_ glu prior to 4.7.0 requires the Sun Java VM.
 
 Install the tutorial
 --------------------

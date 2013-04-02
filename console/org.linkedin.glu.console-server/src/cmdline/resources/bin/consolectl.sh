@@ -36,6 +36,9 @@ if [ -z "$PLUGINS_DIR"]; then
   PLUGINS_DIR=$BASEDIR/glu/repository/plugins
 fi
 
+# this will make $PLUGINS_DIR/*.jar returns empty string
+shopt -s nullglob
+
 # Add all plugins from the plugins directory to the plugins classpath
 if [ -d $PLUGINS_DIR ]; then
   for file in $PLUGINS_DIR/*.jar

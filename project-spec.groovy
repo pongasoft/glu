@@ -18,7 +18,7 @@
 spec = [
   name: 'glu',
   group: 'org.linkedin',
-  version: '4.7.0.PREVIEW-2',
+  version: '4.7.0',
 
   versions: [
     jdk: '1.6',
@@ -26,8 +26,8 @@ spec = [
     grails: '2.2.1',
     groovy: '2.0.7',
     jetty: '8.1.10.v20130312', // '9.0.0.v20130308' (cannot use 9 -> requires jdk 1.7)
-    linkedinUtils: '1.8.glu47.3',
-    linkedinZookeeper: '1.5.glu47.2',
+    linkedinUtils: '1.9.0',
+    linkedinZookeeper: '1.5.0',
     restlet: '2.1.2',
     sigar: '1.6.4',
     slf4j: '1.6.2' // to be compatible with grails 2.2.1
