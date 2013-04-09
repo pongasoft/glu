@@ -20,9 +20,16 @@ The code in glu has not changed much in this release, but it contains a whole se
 
 .. note:: One notable change is the use of the latest version of ZooKeeper (3.4.5). Although the ZooKeeper servers do not need to be upgraded (backward compatible), it is advised to upgrade them and you should follow the procedure described on the ZooKeeper web site.
 
+* Fixed `glu-74 <https://github.com/linkedin/glu/issues/74>`_: `NPE when opening the Dashboard in the tutorial`
+* Implemented `glu-109 <https://github.com/linkedin/glu/issues/109>`_: `Make build compatiable with Gradle version 1.0-miestone-3`
+* Fixed `glu-123 <https://github.com/linkedin/glu/issues/123>`_: `Hammering console with several simple REST requests in parallel leads to strange groovy error`
 * Implemented `glu-135 <https://github.com/linkedin/glu/issues/135>`_: `Migrate to latest grails/groovy`
 * Fixed `glu-143 <https://github.com/linkedin/glu/issues/143>`_: `Removal of hardcoded 'java' command from zk.sh`
+* Implemented `glu-148 <https://github.com/linkedin/glu/issues/148>`_: `Upgrade to gradle 1.0`
+* Fixed `glu-193 <https://github.com/linkedin/glu/issues/193>`_: `Add support for nesting /console/ in a sub url in console-cli.py and PEP-8 Python style compliance`
+* Fixed `glu-199 <https://github.com/linkedin/glu/issues/199>`_: `Cannot resolve reference to bean LightUserCustomDeltaDefinitionDomainClass`
 * Fixed `glu-201 <https://github.com/linkedin/glu/issues/201>`_: `Incorrect plan generated from console-cli`
+* Fixed `glu-208 <https://github.com/linkedin/glu/issues/208>`_: `When no (console) plugins available, getting a warning message from jetty (8)`
 
 Thanks to `JProfiler <http://www.ej-technologies.com/products/jprofiler/overview.html>`_ for providing a free license key in order to troubleshoot (and very quickly identify!) the memory leak in groovy.
 
