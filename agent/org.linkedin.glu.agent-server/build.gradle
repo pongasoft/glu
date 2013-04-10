@@ -24,6 +24,19 @@ buildscript {
   }
 }
 
+configurations {
+  zkBuild
+}
+
+dependencies {
+  zkBuild spec.external.linkedinZookeeperCliImpl
+}
+
+URLClassLoader loader = GroovyObject.class.classLoader
+configurations.zkBuild.each {File file ->
+  loader.addURL(file.toURI().toURL())
+}
+
 cmdline {
   dependsOn = [':agent:org.linkedin.glu.agent-server-upgrade:package-assemble']
   replacementTokens = [

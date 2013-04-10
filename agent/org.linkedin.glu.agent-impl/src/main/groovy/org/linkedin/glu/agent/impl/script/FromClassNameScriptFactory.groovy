@@ -46,6 +46,13 @@ def class FromClassNameScriptFactory implements ScriptFactory, Serializable
     _classPath = classPath
   }
 
+  private FromClassNameScriptFactory(String className, def classPath, def localClassPath)
+  {
+    _className = className
+    _classPath = classPath
+    _jarFiles = localClassPath
+  }
+
   FromClassNameScriptFactory(Class c)
   {
     this(c.name, null)
@@ -93,13 +100,17 @@ def class FromClassNameScriptFactory implements ScriptFactory, Serializable
     def res = ['class': FromClassNameScriptFactory.class.getName(), className: _className]
     if(_classPath)
       res.classPath = _classPath
+    if(_jarFiles)
+      res.localClassPath = _jarFiles
     return res;
   }
 
   public static ScriptFactory fromExternalRepresentation(def args)
   {
     if(args['class'] == FromClassNameScriptFactory.class.getName())
-      return new FromClassNameScriptFactory(args.className, args.classPath)
+      return new FromClassNameScriptFactory(args.className,
+                                            args.classPath,
+                                            args.localClassPath)
     else
       return null
   }

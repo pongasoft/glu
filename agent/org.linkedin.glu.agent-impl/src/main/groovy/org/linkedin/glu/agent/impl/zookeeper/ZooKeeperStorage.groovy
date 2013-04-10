@@ -151,7 +151,6 @@ class ZooKeeperStorage implements WriteOnlyStorage
         error = extractStackTrace(error, [])
         state.scriptState.stateMachine.error = error
       }
-      state.scriptDefinition = state.scriptDefinition?.toExternalRepresentation()
 
       state = JsonUtils.compactPrint(state)
 

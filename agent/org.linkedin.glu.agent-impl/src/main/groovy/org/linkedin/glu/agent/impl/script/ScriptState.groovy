@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  * Portions Copyright (c) 2011 Andras Kovi
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -188,9 +188,7 @@ class ScriptState
 
   def getExternalFullState()
   {
-    def state = internalFullState
-    state.scriptDefinition = state.scriptDefinition.toExternalRepresentation()
-    return cloneState(state)
+    return cloneState(internalFullState)
   }
 
   private def cloneState(state)
@@ -201,16 +199,16 @@ class ScriptState
   private def getInternalFullState()
   {
     [
-        scriptDefinition: scriptDefinition,
-        scriptState: _scriptState
+      scriptDefinition: scriptDefinition.toExternalRepresentation(),
+      scriptState: _scriptState
     ]
   }
 
-    /**
-     * Determine whether a property is part of the script permanent state.
-     * @param property the property under evaluation
-     * @return true if part of the permanent state, false otherwise
-     */
+  /**
+   * Determine whether a property is part of the script permanent state.
+   * @param property the property under evaluation
+   * @return true if part of the permanent state, false otherwise
+   */
   private boolean isPartOfScriptPermanentState(MetaProperty property)
   {
     if(_potentialFields.containsKey(property.name))

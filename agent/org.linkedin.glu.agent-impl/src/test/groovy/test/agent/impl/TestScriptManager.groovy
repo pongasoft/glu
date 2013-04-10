@@ -28,6 +28,7 @@ import org.linkedin.glu.agent.impl.script.AgentContext
 import org.linkedin.glu.agent.impl.script.AgentContextImpl
 import org.linkedin.glu.agent.impl.script.ScriptManagerImpl
 import org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory
+import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
 import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.glu.agent.api.ScriptIllegalStateException
 import org.linkedin.util.io.ram.RAMDirectory
@@ -419,17 +420,18 @@ class Dependency2
 
       // creating jar file with dependency classes
       Resource dependenciesJarFile =
-        compileAndJar(fs,
-                      [fs.saveContent("/src/classes/dependencies.groovy", dependencyClasses).file],
-                      fs.toResource('/out/jars/dependencies.jar'),
-                      null)
+        GluGroovyIOUtils.compileAndJar(fs,
+                                       [fs.saveContent("/src/classes/dependencies.groovy",
+                                                       dependencyClasses).file],
+                                       fs.toResource('/out/jars/dependencies.jar'))
 
       // creating jar file containing glu script
       Resource scriptJarFile =
-        compileAndJar(fs,
-                      [fs.saveContent("/src/classes/script.groovy", scriptClass).file],
-                      fs.toResource('/out/jars/script.jar'),
-                      [dependenciesJarFile])
+        GluGroovyIOUtils.compileAndJar(fs,
+                                       [fs.saveContent("/src/classes/script.groovy",
+                                                       scriptClass).file],
+                                       fs.toResource('/out/jars/script.jar'),
+                                       [dependenciesJarFile])
 
       def classpath = [dependenciesJarFile, scriptJarFile].collect { it.file.canonicalPath }
 
@@ -543,17 +545,18 @@ class SubScript extends BaseScript
 
       // creating jar file with base class
       Resource dependenciesJarFile =
-        compileAndJar(fs,
-                      [fs.saveContent("/src/classes/dependencies.groovy", baseScriptClass).file],
-                      fs.toResource('/out/jars/dependencies.jar'),
-                      null)
+        GluGroovyIOUtils.compileAndJar(fs,
+                                       [fs.saveContent("/src/classes/dependencies.groovy",
+                                                       baseScriptClass).file],
+                                       fs.toResource('/out/jars/dependencies.jar'))
 
       // creating jar file containing glu script (subclass)
       Resource scriptJarFile =
-        compileAndJar(fs,
-                      [fs.saveContent("/src/classes/script.groovy", subScriptClass).file],
-                      fs.toResource('/out/jars/script.jar'),
-                      [dependenciesJarFile])
+        GluGroovyIOUtils.compileAndJar(fs,
+                                       [fs.saveContent("/src/classes/script.groovy",
+                                                       subScriptClass).file],
+                                       fs.toResource('/out/jars/script.jar'),
+                                       [dependenciesJarFile])
 
       def classpath = [dependenciesJarFile, scriptJarFile].collect { it.file.canonicalPath }
 
@@ -600,28 +603,6 @@ class SubScript extends BaseScript
     }
   }
 
-  private Resource compileAndJar(FileSystem fs, def sources, def jar, def classpath)
-  {
-    def cc = new CompilerConfiguration()
-    cc.targetDirectory = fs.createTempDir().file
-    if(classpath)
-      cc.classpathList = classpath.collect { it.file.canonicalPath }
-    CompilationUnit cu = new CompilationUnit(cc)
-    sources.each {
-      cu.addSource(GroovyIOUtils.toFile(it))
-    }
-    cu.compile()
-
-    Resource jarFile = fs.toResource(jar)
-
-    AntUtils.withBuilder { ant ->
-      ant.jar(destfile: jarFile.file, basedir: cc.targetDirectory)
-    }
-
-    fs.rmdirs(cc.targetDirectory)
-
-    return jarFile
-  }
 
   private static class MyScriptTestScriptManager
   {

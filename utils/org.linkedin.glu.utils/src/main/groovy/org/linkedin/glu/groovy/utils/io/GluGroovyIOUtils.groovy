@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Yan Pujante
+ * Copyright (c) 2012-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,7 +16,12 @@
 
 package org.linkedin.glu.groovy.utils.io
 
+import org.codehaus.groovy.control.CompilationUnit
+import org.codehaus.groovy.control.CompilerConfiguration
+import org.linkedin.groovy.util.ant.AntUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
+import org.linkedin.util.io.resource.Resource
+import org.linkedin.groovy.util.io.fs.FileSystem
 
 import javax.crypto.Cipher
 import javax.crypto.CipherInputStream
@@ -46,6 +51,40 @@ public class GluGroovyIOUtils extends GroovyIOUtils
   {
     encryptStream(password, outputStream).withStream { closure(it) }
   }
+
+  /**
+   * Compiles a set of sources (using an optional classpath) and jar it into the destination jar
+   *
+   * @param fs where the jar file is relative to (as well as temp space)
+   * @param sources list of sources (use {@link #toFile(Object)} to convert into a file)
+   * @param jar destination jar file
+   * @param classpath optional classpath (list/set of other jar files) (use
+   *                  {@link #toFile(Object)} to convert into a file)
+   * @return
+   */
+  static Resource compileAndJar(FileSystem fs, def sources, def jar, def classpath = null)
+  {
+    def cc = new CompilerConfiguration()
+    cc.targetDirectory = fs.createTempDir().file
+    if(classpath)
+      cc.classpathList = classpath.collect { toFile(it).canonicalPath }
+    CompilationUnit cu = new CompilationUnit(cc)
+    sources.each {
+      cu.addSource(toFile(it))
+    }
+    cu.compile()
+
+    Resource jarFile = fs.toResource(jar)
+
+    AntUtils.withBuilder { ant ->
+      ant.jar(destfile: jarFile.file, basedir: cc.targetDirectory)
+    }
+
+    fs.rmdirs(cc.targetDirectory)
+
+    return jarFile
+  }
+
 
   private static Cipher computeCipher(String password, int mode)
   {

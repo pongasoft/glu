@@ -277,14 +277,19 @@ def class TestAgentImpl extends GroovyTestCase
     // should be root in the state...
     assertEquals(1, ramStorage.size())
     def rootValues = [
-            scriptDefinition: new ScriptDefinition(MountPoint.ROOT,
-                                                   null,
-                                                   new FromClassNameScriptFactory(RootScript),
-                                                   [:]),
-            scriptState: [
-                    script: [rootPath: MountPoint.ROOT],
-                    stateMachine: [currentState: 'installed']
-            ]
+      scriptDefinition: [
+        mountPoint: MountPoint.ROOT,
+        parent: null,
+        scriptFactory: [
+          'class': FromClassNameScriptFactory.class.getName(),
+          className: RootScript.class.name
+        ],
+        initParameters: [:]
+      ],
+      scriptState: [
+        script: [rootPath: MountPoint.ROOT],
+        stateMachine: [currentState: 'installed']
+      ]
     ]
 
     // we check root
@@ -297,14 +302,20 @@ def class TestAgentImpl extends GroovyTestCase
                         scriptFactory: new FromClassNameScriptFactory(MyScriptTestAgentImpl3))
 
     def scriptValues = [
-            scriptDefinition: new ScriptDefinition(scriptMountPoint,
-                                                   MountPoint.ROOT,
-                                                   new FromClassNameScriptFactory(MyScriptTestAgentImpl3),
-                                                   [p1: 'v1']),
-            scriptState: [
-                    script: [:],
-                    stateMachine: [currentState: StateMachine.NONE],
-            ]
+      scriptDefinition: [
+        mountPoint: scriptMountPoint,
+        parent: MountPoint.ROOT,
+        scriptFactory: [
+          'class': FromClassNameScriptFactory.class.getName(),
+          className: MyScriptTestAgentImpl3.class.name
+        ],
+        initParameters: [p1: 'v1']
+      ],
+
+      scriptState: [
+        script: [:],
+        stateMachine: [currentState: StateMachine.NONE],
+      ]
     ]
 
     // we check root (to be sure) and /s

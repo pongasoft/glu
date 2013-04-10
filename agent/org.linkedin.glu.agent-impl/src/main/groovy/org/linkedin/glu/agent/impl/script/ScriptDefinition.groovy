@@ -24,6 +24,10 @@ import org.linkedin.glu.utils.core.Externable
 /**
  * Represents the script definition (does not change over the life of the script)
  *
+ * YP Note: as of glu 4.7.1, this class is no longer serialized. Instead
+ * {@link #toExternalRepresentation()} is called. For backward compatibility with prior
+ * releases, it is kept serializable
+ *
  * @author ypujante@linkedin.com
  */
 class ScriptDefinition implements Serializable, Externable
@@ -54,7 +58,9 @@ class ScriptDefinition implements Serializable, Externable
 
   def getScriptFactoryArgs()
   {
-    _scriptFactoryArgs
+    scriptFactory?.toExternalRepresentation() ?: // prior to 4.6.0, this field is not null!
+      _scriptFactory?.toExternalRepresentation() ?:
+        _scriptFactoryArgs
   }
 
   ScriptFactory getScriptFactory()

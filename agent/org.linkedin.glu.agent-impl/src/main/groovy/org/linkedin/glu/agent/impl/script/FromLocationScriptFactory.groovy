@@ -38,6 +38,12 @@ def class FromLocationScriptFactory implements ScriptFactory, Serializable
     _location = location
   }
 
+  private FromLocationScriptFactory(location, def scriptFile)
+  {
+    _location = location
+    _scriptFile = scriptFile
+  }
+
   public createScript(ScriptConfig scriptConfig)
   {
     if(!_script)
@@ -74,13 +80,23 @@ def class FromLocationScriptFactory implements ScriptFactory, Serializable
 
   public toExternalRepresentation()
   {
-    return ['class': FromLocationScriptFactory.class.getName(), location: _location];
+    def ext =
+      [
+        'class': FromLocationScriptFactory.class.getName(),
+        location: _location
+      ]
+
+    if(_scriptFile)
+      ext.localScriptFile = _scriptFile
+
+    return ext;
   }
 
   public static ScriptFactory fromExternalRepresentation(def args)
   {
     if(args['class'] == FromLocationScriptFactory.class.getName())
-      return new FromLocationScriptFactory(args.location)
+      return new FromLocationScriptFactory(args.location,
+                                           args.localScriptFile)
     else
       return null
   }

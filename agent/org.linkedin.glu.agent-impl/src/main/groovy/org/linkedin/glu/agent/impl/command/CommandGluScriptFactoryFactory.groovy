@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Yan Pujante
+ * Copyright (c) 2012-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -31,6 +31,14 @@ public class CommandGluScriptFactoryFactory extends AbstractScriptFactoryFactory
   @Override
   protected ScriptFactory doCreateScriptFactory(def args)
   {
+    if(args.scriptFactory)
+    {
+      if(args.scriptFactory instanceof ScriptFactory)
+        return args.scriptFactory
+      else
+        args = args.scriptFactory
+    }
+
     if(args['class'] == "CommandGluScriptFactory")
       return new CommandGluScriptFactory(ioStorage: ioStorage)
 
