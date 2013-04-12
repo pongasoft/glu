@@ -27,7 +27,7 @@ spec = [
     groovy: '2.0.7',
     jetty: '8.1.10.v20130312', // '9.0.0.v20130308' (cannot use 9 -> requires jdk 1.7)
     linkedinUtils: '1.9.0',
-    linkedinZookeeper: '1.5.0',
+    linkedinZookeeper: '1.5.1-SNAPSHOT',
     restlet: '2.1.2',
     sigar: '1.6.4',
     slf4j: '1.6.2' // to be compatible with grails 2.2.1

@@ -17,6 +17,7 @@
 
 package org.linkedin.glu.agent.server
 
+import org.apache.zookeeper.KeeperException
 import org.hyperic.sigar.Sigar
 import org.hyperic.sigar.SigarException
 import org.linkedin.glu.agent.api.Agent
@@ -35,12 +36,14 @@ import org.linkedin.glu.agent.rest.resources.LogResource
 import org.linkedin.glu.agent.rest.resources.MountPointResource
 import org.linkedin.glu.agent.rest.resources.ProcessResource
 import org.linkedin.glu.groovy.utils.ExceptionJdk17Workaround
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.glu.groovy.utils.jvm.JVMInfo
 import org.linkedin.groovy.util.ant.AntUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.groovy.util.ivy.IvyURLHandler
 import org.linkedin.groovy.util.net.GroovyNetUtils
+import org.linkedin.util.clock.Timespan
 import org.linkedin.util.codec.Base64Codec
 import org.linkedin.util.codec.Codec
 import org.linkedin.util.codec.CodecUtils
@@ -80,6 +83,8 @@ import org.linkedin.glu.agent.impl.script.ScriptManager
 import org.linkedin.glu.groovy.utils.net.ReinitializableSingletonURLStreamHandlerFactory
 import org.linkedin.glu.agent.impl.script.AgentContextImpl
 import org.linkedin.glu.agent.impl.capabilities.MOPImpl
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * This is the main class to start the agent.
@@ -89,7 +94,7 @@ import org.linkedin.glu.agent.impl.capabilities.MOPImpl
 class AgentMain implements LifecycleListener, Configurable
 {
   public static final String MODULE = AgentMain.class.getName();
-  public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   private static final Codec TWO_WAY_CODEC
   private static final OneWayCodec ONE_WAY_CODEC
@@ -496,6 +501,8 @@ class AgentMain implements LifecycleListener, Configurable
     if(withTerminationHandler)
       registerTerminationHandler()
 
+    startZooKeeperMonitor()
+
     log.info 'Agent started.'
   }
 
@@ -797,6 +804,68 @@ class AgentMain implements LifecycleListener, Configurable
   protected String computeAgentEphemeralPath()
   {
     return "${_zooKeeperRoot}/agents/fabrics/${_fabric}/instances/${_agentName}"
+  }
+
+  /**
+   * The purpose of this code is to try to drill down on glu-210 (Agent not recreating ephemeral
+   * node after ZK outage)
+   */
+  protected void startZooKeeperMonitor()
+  {
+    if(_zkClient)
+    {
+      if(Config.getOptionalBoolean(_config, "${prefix}.agent.zkMonitor.enabled", true))
+      {
+        def log = LoggerFactory.getLogger(MODULE + ".zkMonitor")
+
+        def repeatFrequencyString =
+          Config.getOptionalString(_config, "${prefix}.agent.zkMonitor.repeatFrequency", "10s")
+        def repeatFrequency = Timespan.parse(repeatFrequencyString)
+        def agentEphemeralPath = computeAgentEphemeralPath()
+        boolean attemptToFixFailure =
+          Config.getOptionalBoolean(_config, "${prefix}.agent.zkMonitor.attemptToFixFailure", true)
+
+        Thread.startDaemon("zkMonitor") {
+          while(!_receivedShutdown)
+          {
+            Thread.sleep(repeatFrequency.durationInMilliseconds)
+            GluGroovyLangUtils.noException {
+              if(_zkClient?.isConnected())
+              {
+                try
+                {
+                  _zkClient.getStringData(agentEphemeralPath)
+                  if(log.isDebugEnabled())
+                    log.debug("ZooKeeper ok.")
+                }
+                catch(KeeperException ke)
+                {
+                  if(ke.code() == KeeperException.Code.NONODE)
+                  {
+                    log.warn("Detected missing agent ephemeral node: [${agentEphemeralPath}]")
+                    if(attemptToFixFailure)
+                    {
+                      log.info("Trying to fix...")
+                      _zkSync()
+                    }
+                  }
+                  else
+                    throw ke // will be handled by noException
+                }
+              }
+              else
+              {
+                log.warn("ZooKeeper not connected...")
+              }
+            }
+          }
+
+          log.info("Terminated.")
+        }
+
+        log.info("Started.")
+      }
+    }
   }
 
   public void onDisconnected()

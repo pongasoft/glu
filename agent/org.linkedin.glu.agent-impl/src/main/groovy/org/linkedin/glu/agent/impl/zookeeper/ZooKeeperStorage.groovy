@@ -28,6 +28,8 @@ import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.lang.LangUtils
 import org.linkedin.zookeeper.client.IZKClient
 import org.linkedin.glu.agent.impl.storage.AgentProperties
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Implementation of the storage using zookeeper.
@@ -37,7 +39,7 @@ import org.linkedin.glu.agent.impl.storage.AgentProperties
 class ZooKeeperStorage implements WriteOnlyStorage
 {
   public static final String MODULE = ZooKeeperStorage.class.getName();
-  public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   private static def ACLs = Ids.OPEN_ACL_UNSAFE
 
@@ -73,11 +75,11 @@ class ZooKeeperStorage implements WriteOnlyStorage
       if(zk.isConnected())
         return closure(zk)
     }
-    catch(KeeperException.ConnectionLossException e)
+    catch(KeeperException.ConnectionLossException ignored)
     {
       log.warn("Call ignored ${closure.toString()} due to ConnectionLossException: zookeeper is not connected")
     }
-    catch(IllegalStateException e)
+    catch(IllegalStateException ignored)
     {
       log.warn("Call ignored ${closure.toString()} due to IllegalStateException: zookeeper is not connected")
     }
