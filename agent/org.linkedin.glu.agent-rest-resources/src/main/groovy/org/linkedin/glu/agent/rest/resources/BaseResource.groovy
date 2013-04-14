@@ -29,15 +29,15 @@ import org.linkedin.groovy.util.rest.RestException
 import org.restlet.engine.header.Header
 import org.restlet.resource.ResourceException
 import org.restlet.data.Form
-import org.restlet.data.MediaType
 import org.restlet.data.Reference
 import org.restlet.data.Status
 import org.restlet.ext.json.JsonRepresentation
 import org.restlet.representation.Representation
-import org.restlet.representation.Variant
 import org.linkedin.glu.utils.exceptions.DisabledFeatureException
 import org.restlet.resource.ServerResource
 import org.restlet.util.Series
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Base class for resources to the agent
@@ -47,7 +47,7 @@ import org.restlet.util.Series
 class BaseResource extends ServerResource
 {
   public static final String MODULE = BaseResource.class.getName();
-  public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   private static final String HEADERS_KEY = "org.restlet.http.headers"
 
@@ -58,8 +58,9 @@ class BaseResource extends ServerResource
   protected void doInit() throws ResourceException
   {
     _resourceMountPoint = context.attributes[getClass().name]
-    _agent = context.attributes['agent']
-    variants.add(new Variant(MediaType.APPLICATION_JSON))
+    _agent = (Agent) context.attributes['agent']
+    // using annotation => disabling content negotiation for now
+    setNegotiated(false)
   }
 
   def static toArgs(Representation representation)
