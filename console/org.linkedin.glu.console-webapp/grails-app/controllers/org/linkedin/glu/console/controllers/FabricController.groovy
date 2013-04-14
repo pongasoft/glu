@@ -52,6 +52,7 @@ class FabricController extends ControllerBase
       if(newFabric)
       {
         request.fabric = newFabric
+        request.userSession.fabric = newFabric.name
         flash.success = "Selected fabric '${params.id}'"
       }
       else

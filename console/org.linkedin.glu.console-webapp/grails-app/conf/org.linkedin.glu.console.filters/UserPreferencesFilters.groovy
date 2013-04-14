@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -94,7 +94,7 @@ class UserPreferencesFilters
     if(!fabric && !request.isRestRequest)
     {
       def fabricNames = fabricService.listFabricNames()
-      if(fabricNames.size() >= 1)
+      if(fabricNames.size() == 1)
       {
         fabric = fabricService.findFabric(fabricNames.iterator().next())
       }

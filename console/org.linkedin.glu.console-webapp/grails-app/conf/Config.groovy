@@ -431,7 +431,7 @@ environments {
     plugins.StreamFileContentPlugin.unrestrictedLocation = '/export/content/glu'
     plugins.StreamFileContentPlugin.maskFileContent = true
 
-    grails.serverURL = "http://${InetAddress.getLocalHost().canonicalHostName}:8080/${appName}"
+    grails.serverURL = "http://localhost:8080/${appName}"
 
     // define the plugins as a Map, or a class name or an array of class names
     orchestration.engine.plugins = [
