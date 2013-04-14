@@ -554,6 +554,7 @@ class AgentMain implements LifecycleListener, Configurable
   def startRestServer()
   {
     def port = Config.getOptionalInt(_config, "${prefix}.agent.port", 12906)
+    def address = Config.getOptionalString(_config, "${prefix}.agent.address", null)
 
     _restServer = new Component();
     def context = _restServer.getContext().createChildContext()
@@ -616,7 +617,7 @@ class AgentMain implements LifecycleListener, Configurable
       params.add('defaultThreads',
                  Config.getOptionalString(_config, "${prefix}.agent.rest.server.defaultThreads", '3'))
       
-      def server = restServerFactory.createRestServer(true, null, port)
+      def server = restServerFactory.createRestServer(true, address, port)
       server.setContext(serverContext)
       _restServer.getServers().add(server)
 
@@ -624,12 +625,13 @@ class AgentMain implements LifecycleListener, Configurable
     }
     else
     {
-      def server = restServerFactory.createRestServer(false, null, port)
+      def server = restServerFactory.createRestServer(false, address, port)
       _restServer.getServers().add(server)
+      secure = '(NON SECURE)'
     }
 
     _restServer.start()
-    log.info "Started REST service on ${secure} port: ${port}"
+    log.info "Started REST service${address ? ' @'+ address : ''} on ${secure} port: ${port}"
   }
 
   def awaitTermination()

@@ -75,6 +75,14 @@ else
   D_GLU_AGENT_PORT="-D$GLU_CONFIG_PREFIX.agent.port=$GLU_AGENT_PORT"
 fi
 
+# handle GLU_AGENT_ADDRESS
+if [ -z "$GLU_AGENT_ADDRESS" ]; then
+  D_GLU_AGENT_ADDRESS=""
+else
+  D_GLU_AGENT_ADDRESS="-D$GLU_CONFIG_PREFIX.agent.address=$GLU_AGENT_ADDRESS"
+fi
+
+
 # handle GLU_AGENT_FABRIC
 if [ -z "$GLU_AGENT_FABRIC" ]; then
   D_GLU_AGENT_FABRIC=""
@@ -157,7 +165,7 @@ fi
 
 # Any additional JVM arguments
 if [ -z "$JVM_XTRA_ARGS" ]; then
-  JVM_XTRA_ARGS="-Dsun.security.pkcs11.enable-solaris=false -Djava.awt.headless=true $D_GLU_ZOOKEEPER $D_GLU_AGENT_NAME $D_GLU_AGENT_TAGS $D_GLU_AGENT_HOSTNAME_FACTORY $D_GLU_AGENT_PORT $D_GLU_AGENT_FABRIC -D$GLU_CONFIG_PREFIX.agent.homeDir=$GLU_AGENT_HOME -D$GLU_CONFIG_PREFIX.agent.apps=$GLU_AGENT_APPS -D$GLU_CONFIG_PREFIX.agent.zookeeper.root=$GLU_AGENT_ZOOKEEPER_ROOT"
+  JVM_XTRA_ARGS="-Dsun.security.pkcs11.enable-solaris=false -Djava.awt.headless=true $D_GLU_ZOOKEEPER $D_GLU_AGENT_NAME $D_GLU_AGENT_TAGS $D_GLU_AGENT_HOSTNAME_FACTORY $D_GLU_AGENT_PORT $D_GLU_AGENT_ADDRESS $D_GLU_AGENT_FABRIC -D$GLU_CONFIG_PREFIX.agent.homeDir=$GLU_AGENT_HOME -D$GLU_CONFIG_PREFIX.agent.apps=$GLU_AGENT_APPS -D$GLU_CONFIG_PREFIX.agent.zookeeper.root=$GLU_AGENT_ZOOKEEPER_ROOT"
 fi
 
 # Debug arguments to pass to the JVM (when starting with '-d' flag)
