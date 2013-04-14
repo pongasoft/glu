@@ -158,6 +158,7 @@
         class="org.linkedin.glu.orchestration.engine.tracker.TrackerServiceImpl"
         destroy-method="destroy">
     <property name="fabricService" ref="fabricService"/>
+    <property name="zookeeperRoot" value="${console.trackerService.zookeeperRoot}"/>
   </bean>
 
   <!-- *********************** -->
