@@ -190,7 +190,7 @@ class UrlMappings
     }
 
     // /
-    "/"(controller: 'dashboard', action: 'delta') { 
+    "/"(controller: 'home', action: 'slash') {
       __nvbe = 'Dashboard'
       __role = UrlMappings.role('/')
     }

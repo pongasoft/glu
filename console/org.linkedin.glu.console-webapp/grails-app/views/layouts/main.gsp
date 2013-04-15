@@ -67,7 +67,7 @@
 <div class="navbar navbar-fixed-top">
   <div class="navbar-inner">
       <ul class="nav">
-        <li ${cl.navbarEntryClass(entry: 'Dashboard')} id="tab-dashboard"><g:link controller="dashboard">Dashboard</g:link></li>
+        <li ${cl.navbarEntryClass(entry: 'Dashboard')} id="tab-dashboard"><g:link controller="dashboard" action="delta">Dashboard</g:link></li>
         <li ${cl.navbarEntryClass(entry: 'Agents')} id="tab-agents"><g:link controller="agents" action="list">Agents</g:link></li>
         <g:if test="${fabric}">
           <li ${cl.navbarEntryClass(entry: 'Deployments')} id="tab-plans"><g:link controller="plan" action="deployments">Deployments</g:link></li>
