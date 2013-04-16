@@ -4,6 +4,8 @@ Latest changes
 4.7.0 (2013/04/02)
 ------------------
 
+.. warning:: 2013/04/16 update: a `critical bug <https://github.com/linkedin/glu/issues/214>`_ has been found in this release if you are using the ``console.datasource.table.user.mapping`` configuration option (which allows you to rename the ``user`` table). If you are, do not upgrade to this version until further notice.
+
 This release contains a major upgrade of all the libraries used by glu. The purpose of this release is to allow glu to finally be able to run under any java VM including java 1.7 (as java 1.6 is now no longer supported by Oracle). Here are the requirements in terms of VM version(s):
 
 +----------------+-----------------------------------+
@@ -21,7 +23,7 @@ The code in glu has not changed much in this release, but it contains a whole se
 .. note:: One notable change is the use of the latest version of ZooKeeper (3.4.5). Although the ZooKeeper servers do not need to be upgraded (backward compatible), it is advised to upgrade them and you should follow the procedure described on the ZooKeeper web site.
 
 * Fixed `glu-74 <https://github.com/linkedin/glu/issues/74>`_: `NPE when opening the Dashboard in the tutorial`
-* Implemented `glu-109 <https://github.com/linkedin/glu/issues/109>`_: `Make build compatiable with Gradle version 1.0-miestone-3`
+* Implemented `glu-109 <https://github.com/linkedin/glu/issues/109>`_: `Make build compatible with Gradle version 1.0-milestone-3`
 * Fixed `glu-123 <https://github.com/linkedin/glu/issues/123>`_: `Hammering console with several simple REST requests in parallel leads to strange groovy error`
 * Implemented `glu-135 <https://github.com/linkedin/glu/issues/135>`_: `Migrate to latest grails/groovy`
 * Fixed `glu-143 <https://github.com/linkedin/glu/issues/143>`_: `Removal of hardcoded 'java' command from zk.sh`
