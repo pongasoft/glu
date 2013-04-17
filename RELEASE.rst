@@ -1,10 +1,29 @@
 Latest changes
 ==============
 
+4.7.1 (2013/04/16)
+------------------
+
+This release is a bug fix release.
+
+.. warning:: this version should be used instead of 4.7.0 due to the `critical bug <https://github.com/linkedin/glu/issues/214>`_
+
+* Implemented `glu-205 <https://github.com/linkedin/glu/issues/205>`_: `Make zookeeperRoot configurable in console`
+* Implemented `glu-206 <https://github.com/linkedin/glu/issues/206>`_: `Allow agent to bind to a specified network interface`
+* Fixed `glu-207 <https://github.com/linkedin/glu/issues/207>`_: `Agent fails to restart if cannot reload scripts`
+* Implemented `glu-210 <https://github.com/linkedin/glu/issues/210>`_: `Agent not recreating ephemeral node after ZK outage`
+* Fixed `glu-211 <https://github.com/linkedin/glu/issues/211>`_: `Add Support to Users for Default Fabric`
+* Fixed `glu-212 <https://github.com/linkedin/glu/issues/212>`_: `agent returns a 405 when Accept header with a value of 'application/json' is specified`
+* Fixed `glu-213 <https://github.com/linkedin/glu/issues/213>`_: `Glu console does more absolute url redirects with 4.7.0`
+* Fixed `glu-214 <https://github.com/linkedin/glu/issues/214>`_: `Upgrading from 4.6.2 to 4.7.0 breaks all user roles`
+
+.. note:: Due to the fact that `glu-210 <https://github.com/linkedin/glu/issues/210>`_ is (most likely) a race condition, a monitor has been added to the agent in order to detect (and correct) the situation. This will hopefully provide more insight into the problem. In order to disable the monitor, set the property ``glu.agent.zkMonitor.enabled`` to ``false``.
+
 4.7.0 (2013/04/02)
 ------------------
 
-.. warning:: 2013/04/16 update: a `critical bug <https://github.com/linkedin/glu/issues/214>`_ has been found in this release if you are using the ``console.datasource.table.user.mapping`` configuration option (which allows you to rename the ``user`` table). If you are, do not upgrade to this version until further notice.
+.. warning:: * 2013/04/15 update: a `critical bug <https://github.com/linkedin/glu/issues/214>`_ has been found in this release if you are using the ``console.datasource.table.user.mapping`` configuration option (which allows you to rename the ``user`` table). If you are, do not upgrade to this version.
+             * 2013/04/16 update: the bug has been resolved in version 4.7.1
 
 This release contains a major upgrade of all the libraries used by glu. The purpose of this release is to allow glu to finally be able to run under any java VM including java 1.7 (as java 1.6 is now no longer supported by Oracle). Here are the requirements in terms of VM version(s):
 
