@@ -21,7 +21,6 @@ dataSource {
 	username = "sa"
 	password = ""
   //logSql=true
-  configClass="org.linkedin.glu.grails.config.GluGrailsAnnotationConfiguration"
 }
 hibernate {
     cache.use_second_level_cache=true

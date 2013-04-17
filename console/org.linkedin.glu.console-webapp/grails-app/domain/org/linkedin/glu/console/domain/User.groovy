@@ -17,6 +17,8 @@
 
 package org.linkedin.glu.console.domain
 
+import org.linkedin.glu.grails.config.GluGrailsCustomNamingStrategy
+
 class User
 {
   String username
@@ -26,6 +28,10 @@ class User
 //  static mapping = {
 //    roles fetch:'join'
 //  }
+
+  static mapping = {
+    table GluGrailsCustomNamingStrategy.getTableName('user')
+  }
 
   static hasMany = [ roles: Role, permissions: String ]
 

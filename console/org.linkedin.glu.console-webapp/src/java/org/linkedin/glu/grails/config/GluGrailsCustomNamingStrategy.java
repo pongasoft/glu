@@ -16,37 +16,26 @@
 
 package org.linkedin.glu.grails.config;
 
+import grails.util.Holders;
 import org.codehaus.groovy.grails.commons.GrailsApplication;
-import org.codehaus.groovy.grails.plugins.support.aware.GrailsApplicationAware;
-import org.hibernate.cfg.ImprovedNamingStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author yan@pongasoft.com
  */
-public class GluGrailsCustomNamingStrategy extends ImprovedNamingStrategy
-  implements GrailsApplicationAware
+public class GluGrailsCustomNamingStrategy
 {
   public static final String MODULE = GluGrailsCustomNamingStrategy.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
-  private GrailsApplication _grailsApplication;
-
-  @Override
-  public void setGrailsApplication(GrailsApplication grailsApplication)
+  public static String getTableName(String originalTableName)
   {
-    _grailsApplication = grailsApplication;
-  }
-
-  @Override
-  public String classToTableName(String className)
-  {
-    String originalTableName = super.classToTableName(className);
     String tableName = originalTableName;
 
+    GrailsApplication grailsApplication = Holders.getGrailsApplication();
     Object optionalTableMapping =
-      _grailsApplication.getFlatConfig().get("console.datasource.table." + originalTableName + ".mapping");
+      grailsApplication.getFlatConfig().get("console.datasource.table." + originalTableName + ".mapping");
 
     if(optionalTableMapping != null)
     {
