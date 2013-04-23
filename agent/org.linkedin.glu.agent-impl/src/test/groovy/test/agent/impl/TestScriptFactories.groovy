@@ -121,7 +121,7 @@ class TestScriptFactories extends GroovyTestCase
   }
 
   /**
-   * Test case for https://github.com/linkedin/glu/issues#issue/27
+   * Test case for https://github.com/pongasoft/glu/issues#issue/27
    */
   public void testFailingScript()
   {

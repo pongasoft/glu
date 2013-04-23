@@ -30,7 +30,7 @@ subprojects {
   }
 
   dependencies {
-    compile spec.external.linkedinUtilsGroovy
+    compile spec.external.utilsMiscGroovy
     compile project(':agent:org.linkedin.glu.agent-api')
     compile spec.external.groovy
 

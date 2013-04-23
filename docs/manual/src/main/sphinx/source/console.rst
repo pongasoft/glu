@@ -1,4 +1,4 @@
-.. Copyright (c) 2011-2012 Yan Pujante
+.. Copyright (c) 2011-2013 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -186,7 +186,7 @@ Here are the steps to follow in order to use MySql instead of HSQLDB (the steps 
             timeouts, or using the Connector/J connection property 'autoReconnect=true' to avoid 
             this problem
 
-          it has been `reported <https://github.com/linkedin/glu/issues/141>`_ that in order to fix the issue, you can add the following configuration properties in the glu configuration 
+          it has been `reported <https://github.com/pongasoft/glu/issues/141>`_ that in order to fix the issue, you can add the following configuration properties in the glu configuration
           file::
 
             dataSource.properties.validationQuery = "SELECT 1"
@@ -281,7 +281,7 @@ Here are some examples::
   // a REST call
   console.security.roles.'POST:/rest/v1/$fabric/model/static' = 'RELEASE'
 
-.. note:: You can check the `Config <https://github.com/linkedin/glu/blob/master/console/org.linkedin.glu.console-webapp/grails-app/conf/Config.groovy>`_ file for an exhaustive list of all the URLs and REST calls.
+.. note:: You can check the `Config <https://github.com/pongasoft/glu/blob/master/console/org.linkedin.glu.console-webapp/grails-app/conf/Config.groovy>`_ file for an exhaustive list of all the URLs and REST calls.
 
 .. tip:: If you have more than one entry to change, you can use a simpler 
          notation::

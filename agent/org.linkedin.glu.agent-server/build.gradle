@@ -16,11 +16,10 @@
 */
 
 apply plugin: 'org.linkedin.cmdline'
-apply plugin: 'org.linkedin.release'
 
 buildscript {
   dependencies {
-    classpath spec.external.linkedinZookeeperCliImpl
+    classpath spec.external.utilsZookeeperCliImpl
   }
 }
 
@@ -29,7 +28,7 @@ configurations {
 }
 
 dependencies {
-  zkBuild spec.external.linkedinZookeeperCliImpl
+  zkBuild spec.external.utilsZookeeperCliImpl
 }
 
 URLClassLoader loader = GroovyObject.class.classLoader

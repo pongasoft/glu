@@ -21,7 +21,7 @@ apply plugin: 'org.linkedin.release'
 dependencies {
   compile project(':agent:org.linkedin.glu.agent-api')
   compile project(':agent:org.linkedin.glu.agent-rest-common')
-  compile spec.external.linkedinUtilsGroovy
+  compile spec.external.utilsMiscGroovy
   compile spec.external.restlet
   compile spec.external.restletExtJson
   compile spec.external.restletExtHttpClient

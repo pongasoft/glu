@@ -1,4 +1,4 @@
-.. Copyright (c) 2011-2012 Yan Pujante
+.. Copyright (c) 2011-2013 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -24,6 +24,8 @@ Currently glu requires a UNIX like platform (tested on Mac OS X) and the followi
 +----------------+-----------------------------------+
 |glu version     |java version(s)                    |
 +================+===================================+
+| 5.0.0+         |java 1.7                           |
++----------------+-----------------------------------+
 | 4.7.x          |java 1.6 (any VM) or java 1.7      |
 +----------------+-----------------------------------+
 | 4.6.x and below|java 1.6 (with Sun/Oracle VM only!)|
@@ -31,12 +33,12 @@ Currently glu requires a UNIX like platform (tested on Mac OS X) and the followi
 
 
 .. warning::
-   Due to a `bug with OpenJDK <https://github.com/linkedin/glu/issues/74>`_ glu prior to 4.7.0 requires the Sun Java VM.
+   Due to a `bug with OpenJDK <https://github.com/pongasoft/glu/issues/74>`_ glu prior to 4.7.0 requires the Sun Java VM.
 
 Step 1: Download
 ----------------
 
-Download the binary called ``<version>/org.linkedin.glu.packaging-all-<version>.tgz`` from the `downloads <http://www.pongasoft.com/glu/downloads/>`_ section.
+Download the binary called ``<version>/org.linkedin.glu.packaging-all-<version>.tgz`` from `bintray <https://bintray.com/pkg/show/general/pongasoft/glu/releases>`_ glu repository.
   
 Untar/Unzip in a location of your choice::
 
@@ -253,7 +255,7 @@ To encrypt the passwords you use a little utility bundled with glu::
 
 .. note:: there is no feedback on purpose (the password is not printed on the output)
 
-.. note:: the encrypting key is always the same and is ``gluos2way``. At this time, the only way to change it is to override the `AgentMain.groovy <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-server-impl/src/main/groovy/org/linkedin/glu/agent/server/AgentMain.groovy>`_ class and override the ``getTwoWayCodec()`` method and provide your own main class during agent boot (``MAIN_CLASS``). See :ref:`agent-configuration` for more details on how to configure the agent.
+.. note:: the encrypting key is always the same and is ``gluos2way``. At this time, the only way to change it is to override the `AgentMain.groovy <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-server-impl/src/main/groovy/org/linkedin/glu/agent/server/AgentMain.groovy>`_ class and override the ``getTwoWayCodec()`` method and provide your own main class during agent boot (``MAIN_CLASS``). See :ref:`agent-configuration` for more details on how to configure the agent.
 
 To generate the checksum you use the same utility but you provide the file you want to compute the checksum for as an argument::
 

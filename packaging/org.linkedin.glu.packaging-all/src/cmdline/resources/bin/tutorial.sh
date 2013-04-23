@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2010-2010 LinkedIn, Inc
-# Portions Copyright (c) 2011 Yan Pujante
+# Portions Copyright (c) 2011-2013 Yan Pujante
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -103,6 +103,7 @@ done
 JAVA_VER=$("$JAVA_HOME/bin/java" -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
 if [ "$JAVA_VER" -ge 16 ]; then
 	echo "### Suitable JVM found under $JAVA_HOME"
+	$JAVA_HOME/bin/java -version
 else
 	echo "### Java @ $JAVA_HOME too old." 
 	exit 1;

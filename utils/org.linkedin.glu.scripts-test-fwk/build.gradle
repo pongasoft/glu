@@ -18,7 +18,7 @@ apply plugin: 'groovy'
 apply plugin: 'org.linkedin.release'
 
 dependencies {
-  compile spec.external.linkedinUtilsGroovy
+  compile spec.external.utilsMiscGroovy
   compile project(':agent:org.linkedin.glu.agent-api')
   compile project(':agent:org.linkedin.glu.agent-impl')
 

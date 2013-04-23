@@ -23,8 +23,8 @@ dependencies {
   compile project(':agent:org.linkedin.glu.agent-rest-common')
   compile project(':commands:org.linkedin.glu.commands-impl')
   compile project(':utils:org.linkedin.glu.utils')
-  compile spec.external.linkedinUtilsGroovy
-  compile spec.external.linkedinZookeeperImpl
+  compile spec.external.utilsMiscGroovy
+  compile spec.external.utilsZookeeperImpl
   compile spec.external.sigar
   compile spec.external.mimeUtil
   compile spec.external.commonsIO

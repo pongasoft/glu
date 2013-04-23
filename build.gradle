@@ -24,24 +24,27 @@ buildscript {
 
     if(project.hasProperty('ivy.buildscript.repository'))
     {
-      add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
-        name = "ivy.buildscript.repository"
-        addIvyPattern "${project.properties['ivy.buildscript.repository']}/[organisation]/[module]/[revision]/[module]-[revision].ivy"
-        addArtifactPattern "${project.properties['ivy.buildscript.repository']}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
-        m2compatible = true
-        checkmodified = true
+      ivy {
+        url = new File(project.properties['ivy.buildscript.repository'])
+        layout 'maven'
       }
     }
 
-    // if you want to disallow maven central
-    if(project.properties['no.maven.central'] != 'true')
-    {
-      mavenCentral()
-    }
-  }
+   // if you want to disallow jcenter
+   if(project.properties['no.jcenter'] != 'true')
+   {
+     mavenRepo(url: 'http://jcenter.bintray.com')
+   }
+
+   // if you want to disallow maven central
+   if(project.properties['no.maven.central'] != 'true')
+   {
+     mavenCentral()
+   }
+ }
 
   dependencies {
-    classpath 'org.linkedin:org.linkedin.gradle-plugins:1.6.0'
+    classpath 'org.pongasoft:org.linkedin.gradle-plugins:2.0.1'
   }
 }
 
@@ -51,8 +54,6 @@ apply plugin: 'org.linkedin.spec'
 ext {
   topBuildDir = userConfig.top.build.dir ?: "${rootDir}/out/build"
 }
-
-apply plugin: 'org.linkedin.repository'
 
 ext {
   consoleKeys = fileTree(dir: 'dev-keys',
@@ -85,16 +86,16 @@ allprojects {
 }
 
 def ideaCopyright = """
-<component name="CopyrightManager" default="LinkedIn Apache 2.0">
+<component name="CopyrightManager" default="Yan Pujante Apache 2.0">
   <copyright>
-    <option name="notice" value="Copyright (c) ${userConfig.copyright ?: '2010-&amp;#36;today.year LinkedIn, Inc'}&#10;&#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may not&#10;use this file except in compliance with the License. You may obtain a copy of&#10;the License at&#10;&#10;http://www.apache.org/licenses/LICENSE-2.0&#10;&#10;Unless required by applicable law or agreed to in writing, software&#10;distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT&#10;WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the&#10;License for the specific language governing permissions and limitations under&#10;the License." />
+    <option name="notice" value="Copyright (c) ${userConfig.copyright ?: '#36;today.year Yan Pujante'}&#10;&#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may not&#10;use this file except in compliance with the License. You may obtain a copy of&#10;the License at&#10;&#10;http://www.apache.org/licenses/LICENSE-2.0&#10;&#10;Unless required by applicable law or agreed to in writing, software&#10;distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT&#10;WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the&#10;License for the specific language governing permissions and limitations under&#10;the License." />
     <option name="keyword" value="Copyright" />
     <option name="allowReplaceKeyword" value="" />
-    <option name="myName" value="LinkedIn Apache 2.0" />
+    <option name="myName" value="Yan Pujante Apache 2.0" />
     <option name="myLocal" value="true" />
   </copyright>
   <module2copyright>
-    <element module="All" copyright="LinkedIn Apache 2.0" />
+    <element module="All" copyright="Yan Pujante Apache 2.0" />
   </module2copyright>
 </component>
 """
@@ -111,6 +112,7 @@ idea.project {
 }
 
 subprojects { p ->
+  apply plugin: 'org.linkedin.repository'
   buildscript {
     allRepositories.buildscript.configure(repositories)
   }
@@ -131,5 +133,5 @@ task clean(type: Delete) {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '1.4'
+  gradleVersion = '1.5'
 }

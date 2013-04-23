@@ -1,4 +1,4 @@
-.. Copyright (c) 2011 Yan Pujante
+.. Copyright (c) 2011-2013 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -42,7 +42,7 @@ The most basic structure of the model is the following::
     "entries": []
   }
 
-.. note:: The model is internally represented by the `SystemModel <https://github.com/linkedin/glu/blob/master/provisioner/org.linkedin.glu.provisioner-core/src/main/groovy/org/linkedin/glu/provisioner/core/model/SystemModel.groovy>`_ (groovy) class.
+.. note:: The model is internally represented by the `SystemModel <https://github.com/pongasoft/glu/blob/master/provisioner/org.linkedin.glu.provisioner-core/src/main/groovy/org/linkedin/glu/provisioner/core/model/SystemModel.groovy>`_ (groovy) class.
 
 Table of possible values:
 
@@ -116,7 +116,7 @@ This section is an array of entries. An entry describes where a particular insta
     "tags": []
   }
 
-.. note:: An entry is internally represented by the `SystemEntry <https://github.com/linkedin/glu/blob/master/provisioner/org.linkedin.glu.provisioner-core/src/main/groovy/org/linkedin/glu/provisioner/core/model/SystemEntry.groovy>`_ (groovy class).
+.. note:: An entry is internally represented by the `SystemEntry <https://github.com/pongasoft/glu/blob/master/provisioner/org.linkedin.glu.provisioner-core/src/main/groovy/org/linkedin/glu/provisioner/core/model/SystemEntry.groovy>`_ (groovy class).
 
 .. tip:: If you check :ref:`agent-glu-script-engine`, you will be able to understand better why an entry is defined this way:
 

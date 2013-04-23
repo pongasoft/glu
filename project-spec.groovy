@@ -17,17 +17,17 @@
 
 spec = [
   name: 'glu',
-  group: 'org.linkedin',
-  version: '4.7.1',
+  group: 'org.pongasoft',
+  version: '5.0.0',
 
   versions: [
-    jdk: '1.6',
+    jdk: '1.7',
     bootstrap: '2.3.1',
     grails: '2.2.1',
     groovy: '2.0.7',
     jetty: '8.1.10.v20130312', // '9.0.0.v20130308' (cannot use 9 -> requires jdk 1.7)
-    linkedinUtils: '1.9.0',
-    linkedinZookeeper: '1.5.1',
+    utilsMisc: '2.0.0',
+    utilsZookeeper: '2.0.0',
     restlet: '2.1.2',
     sigar: '1.6.4',
     slf4j: '1.6.2' // to be compatible with grails 2.2.1
@@ -43,7 +43,7 @@ spec = [
   ]
 ]
 
-spec.scmUrl = "git@github.com:linkedin/${spec.name}.git"
+spec.scmUrl = "git@github.com:pongasoft/${spec.name}.git"
 
 /**
  * External dependencies
@@ -66,12 +66,12 @@ spec.external = [
     ext: "tar.gz"
   ],
   junit: 'junit:junit:4.10',
-  linkedinUtilsCore: "org.linkedin:org.linkedin.util-core:${spec.versions.linkedinUtils}",
-  linkedinUtilsGroovy: "org.linkedin:org.linkedin.util-groovy:${spec.versions.linkedinUtils}",
-  linkedinZookeeperCliImpl: "org.linkedin:org.linkedin.zookeeper-cli-impl:${spec.versions.linkedinZookeeper}",
-  linkedinZookeeperCliPackage: "org.linkedin:org.linkedin.zookeeper-cli:${spec.versions.linkedinZookeeper}@tgz",
-  linkedinZookeeperImpl: "org.linkedin:org.linkedin.zookeeper-impl:${spec.versions.linkedinZookeeper}",
-  linkedinZookeeperServerPackage: "org.linkedin:org.linkedin.zookeeper-server:${spec.versions.linkedinZookeeper}@tgz",
+  utilsMiscCore: "org.pongasoft:org.linkedin.util-core:${spec.versions.utilsMisc}",
+  utilsMiscGroovy: "org.pongasoft:org.linkedin.util-groovy:${spec.versions.utilsMisc}",
+  utilsZookeeperCliImpl: "org.pongasoft:org.linkedin.zookeeper-cli-impl:${spec.versions.utilsZookeeper}",
+  utilsZookeeperCliPackage: "org.pongasoft:org.linkedin.zookeeper-cli:${spec.versions.utilsZookeeper}@tgz",
+  utilsZookeeperImpl: "org.pongasoft:org.linkedin.zookeeper-impl:${spec.versions.utilsZookeeper}",
+  utilsZookeeperServerPackage: "org.pongasoft:org.linkedin.zookeeper-server:${spec.versions.utilsZookeeper}@tgz",
   log4j: 'log4j:log4j:1.2.16',
   mimeUtil: 'eu.medsea.mimeutil:mime-util:2.1.3',
   restlet: "org.restlet.jse:org.restlet:${spec.versions.restlet}",
@@ -85,4 +85,21 @@ spec.external = [
   slf4jLog4j: "org.slf4j:slf4j-log4j12:${spec.versions.slf4j}",
   slf4jJul: "org.slf4j:jul-to-slf4j:${spec.versions.slf4j}",
   zookeeper: 'org.apache.zookeeper:zookeeper:3.4.5'
+]
+
+// information about the bintray distribution
+spec.bintray = [
+  apiBaseUrl: 'https://bintray.com/api/v1',
+  username: 'yan',
+  pkgOrganization: 'pongasoft',
+  repositories: [
+    binaries: [
+      pkgRepository: 'binaries',
+      pkgName: spec.name
+    ],
+    distributions: [
+      pkgRepository: spec.name,
+      pkgName: 'releases'
+    ],
+  ]
 ]

@@ -19,7 +19,7 @@ Compilation
 -----------
 In order to compile the code you need
 
-* java 1.6
+* java 1.7
 * Unix (tested on Mac OS X and Solaris)
 
 At the top simply run::
@@ -129,11 +129,11 @@ Directory structure
         ../../gradlew package-install // to install locally (for dev)
 
 * ``dev-keys``:
-  Contains the keys used in dev (check `key_generation.txt <https://github.com/linkedin/glu/blob/master/dev-keys/key_generation.txt>`_) for instructions on how to generate a different set of keys)
+  Contains the keys used in dev (check `key_generation.txt <https://github.com/pongasoft/glu/blob/master/dev-keys/key_generation.txt>`_) for instructions on how to generate a different set of keys)
 
 Build configuration
 -------------------
-The project uses the `org.linkedin.userConfig <https://github.com/linkedin/gradle-plugins/blob/master/README.md>`_ plugin and as such can be configured
+The project uses the `org.linkedin.userConfig <https://github.com/pongasoft/gradle-plugins/blob/master/README.md>`_ plugin and as such can be configured
 
 Example::
 
@@ -152,7 +152,7 @@ This is a quick setup guide that shows you how to bring all the stack up (step 3
 First you need ZooKeeper installed. If you do not have a ZooKeeper running on your box then you can either:
 
 * download it and install it from `the main website <http://hadoop.apache.org/zookeeper/>`_
-* download and install the server and cli from the sibling project on github called `linkedin-zookeeper <https://github.com/linkedin/linkedin-zookeeper/downloads>`_ (if you want to build it yourself, follow the `instructions <https://github.com/linkedin/linkedin-zookeeper/blob/master/README.md>`_)
+* download and install the server and cli from the sibling project on github called `linkedin-zookeeper <https://github.com/pongasoft/linkedin-zookeeper/downloads>`_ (if you want to build it yourself, follow the `instructions <https://github.com/pongasoft/linkedin-zookeeper/blob/master/README.md>`_)
 
 In any case, make sure that ZooKeeper is up and running. If you installed the cli simply run::
 
@@ -277,7 +277,7 @@ The same way you can configure the build, you can also configure the setup by ed
     glu.agent.devsetup.dir=... <---- this is most likely the one you will modify to install somewhere else
     glu.agent.setup.zkConfigDir=...
 
-Check the file `build.gradle <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-server/build.gradle>`_ in ``org.linkedin.glu.agent-server`` for details on how those properties
+Check the file `build.gradle <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-server/build.gradle>`_ in ``org.linkedin.glu.agent-server`` for details on how those properties
 are used.
 
 7. Different setups

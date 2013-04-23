@@ -1,4 +1,4 @@
-.. Copyright (c) 2011 Yan Pujante
+.. Copyright (c) 2011-2013 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -43,6 +43,8 @@ Currently glu requires a UNIX like platform (tested on Mac OS X) and the followi
 +----------------+-----------------------------------+
 |glu version     |java version(s)                    |
 +================+===================================+
+| 5.0.0+         |java 1.7                           |
++----------------+-----------------------------------+
 | 4.7.x          |java 1.6 (any VM) or java 1.7      |
 +----------------+-----------------------------------+
 | 4.6.x and below|java 1.6 (with Sun/Oracle VM only!)|
@@ -50,11 +52,11 @@ Currently glu requires a UNIX like platform (tested on Mac OS X) and the followi
 
 
 .. warning::
-   Due to a `bug with OpenJDK <https://github.com/linkedin/glu/issues/74>`_ glu prior to 4.7.0 requires the Sun Java VM.
+   Due to a `bug with OpenJDK <https://github.com/pongasoft/glu/issues/74>`_ glu prior to 4.7.0 requires the Sun Java VM.
 
 Install the tutorial
 --------------------
-Download the binary called ``<version>/org.linkedin.glu.packaging-all-<version>.tgz`` from the `downloads <http://www.pongasoft.com/glu/downloads/>`_ section.
+Download the binary called ``<version>/org.linkedin.glu.packaging-all-<version>.tgz`` from `bintray <https://bintray.com/pkg/show/general/pongasoft/glu/releases>`_ glu repository.
   
 Untar/Unzip in a location of your choice. From now on, this location will be referred to as ``GLU_TUTORIAL_ROOT``.
 
@@ -236,7 +238,7 @@ Loading the model
       :align: center
       :alt: Applications are now deployed successfully
 
-   .. note:: the terminology 'entry' may sound a little vague right now, but it is associated to a unique mountPoint (or unique key) like ``/sample/i001`` on an agent with a script (called glu script) which represents the set of instructions necessary to start an application. In the course of this tutorial we use the `JettyGluScript <https://github.com/linkedin/glu/blob/master/scripts/org.linkedin.glu.script-jetty/src/main/groovy/JettyGluScript.groovy>`_ which starts a jetty webapp container and deploy some webapps in it.
+   .. note:: the terminology 'entry' may sound a little vague right now, but it is associated to a unique mountPoint (or unique key) like ``/sample/i001`` on an agent with a script (called glu script) which represents the set of instructions necessary to start an application. In the course of this tutorial we use the `JettyGluScript <https://github.com/pongasoft/glu/blob/master/scripts/org.linkedin.glu.script-jetty/src/main/groovy/JettyGluScript.groovy>`_ which starts a jetty webapp container and deploy some webapps in it.
 
 7. At this stage you have just started 3 jetty container with 4 webapps and you can verify that it worked::
 

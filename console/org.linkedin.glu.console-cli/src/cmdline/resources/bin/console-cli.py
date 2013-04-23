@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2010-2010 LinkedIn, Inc
-# Portions Copyright (c) 2011 Yan Pujante
+# Portions Copyright (c) 2011-2013 Yan Pujante
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -131,13 +131,13 @@ def main():
         '-s', '--systemFilter', dest='filter', action='store',
         help='Filter in DSL sytax for filtering the model. Applicable only'
             ' with "status" command. See "Filter Syntax" section here:'
-            ' https://github.com/linkedin/glu/wiki/Console '
+            ' https://github.com/pongasoft/glu/wiki/Console '
     )
     parser.add_option(
         '-S', '--systemFilterFile', dest='filter_filename', action='store',
         help='Filter file with filters in DSL sytax for filtering the model.'
             ' Applicable only with "status" command. See "Filter Syntax"'
-            ' section here: https://github.com/linkedin/glu/wiki/Console '
+            ' section here: https://github.com/pongasoft/glu/wiki/Console '
     )
 
     # options for model loading
