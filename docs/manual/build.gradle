@@ -24,7 +24,7 @@ ext {
   htmlDocDir = new File(sphinxDir, "build/html")
 }
 
-def syncDir = new File(userConfig.doc.sync.dir ?: "${rootDir}/../glu-docs/docs/latest/html").canonicalFile
+def syncDir = new File(userConfig.doc.sync.dir ?: "${rootDir}/../pongasoft.github.io/docs/latest/html").canonicalFile
 
 /**
  * Copy the source in the sphinxDir because they need to be processed to inject the version

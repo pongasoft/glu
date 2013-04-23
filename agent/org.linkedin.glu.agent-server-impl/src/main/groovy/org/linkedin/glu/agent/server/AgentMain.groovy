@@ -35,7 +35,6 @@ import org.linkedin.glu.agent.rest.resources.HostResource
 import org.linkedin.glu.agent.rest.resources.LogResource
 import org.linkedin.glu.agent.rest.resources.MountPointResource
 import org.linkedin.glu.agent.rest.resources.ProcessResource
-import org.linkedin.glu.groovy.utils.ExceptionJdk17Workaround
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.glu.groovy.utils.jvm.JVMInfo
 import org.linkedin.groovy.util.ant.AntUtils
@@ -912,8 +911,6 @@ class AgentMain implements LifecycleListener, Configurable
 
   static void main(args)
   {
-    ExceptionJdk17Workaround.installWorkaround()
-
     AgentMain agentMain = new AgentMain()
     try
     {
