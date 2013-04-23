@@ -26,7 +26,7 @@ glu takes a very **declarative** approach, in which you describe/model what you 
 * ensure that it remains consistent over time
 * detect and alert you when there is a mismatch
 
-Check the rest of the [documentation](http://linkedin.github.com/glu/docs/latest/html/index.html) for more details (including  screenshots and diagrams).
+Check the rest of the [documentation](http://pongasoft.github.io/glu/docs/latest/html/index.html) for more details (including  screenshots and diagrams).
 
 Quick Links
 ===========

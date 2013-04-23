@@ -524,7 +524,7 @@ Also tweaked a couple of parameters for the agent (starting VM now 128M).
 
 * Massive documentation rewrite which covers the tickets `glu-5 <https://github.com/pongasoft/glu/issues/5>`_, `glu-36 <https://github.com/pongasoft/glu/issues/36>`_ and `glu-14 <https://github.com/pongasoft/glu/issues/14>`_
 
-  Check out the `new documentation <http://linkedin.github.com/glu/docs/latest/html/index.html>`_
+  Check out the `new documentation <http://pongasoft.github.io/glu/docs/latest/html/index.html>`_
 
 
 2.1.1 (2011/03/04)

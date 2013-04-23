@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory
  * <p>Make sure that the jar file(s) containing your plugin (and its dependencies) is available to
  * glu. If you are using the (console) server to deploy the glu webapp, then you can follow the
  * steps that explain how to use the MySql driver in the documentation
- * (http://linkedin.github.com/glu/docs/latest/html/console.html#example-for-a-different-database-mysql):
+ * (http://pongasoft.github.io/glu/docs/latest/html/console.html#example-for-a-different-database-mysql):
  * you would copy your jar file(s) in the same location.
  *
  * <p>A closure receives arguments provided by the caller which depend on the hook (see individual

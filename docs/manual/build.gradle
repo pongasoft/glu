@@ -24,7 +24,7 @@ ext {
   htmlDocDir = new File(sphinxDir, "build/html")
 }
 
-def syncDir = new File(userConfig.doc.sync.dir ?: "${rootDir}/../pongasoft.github.io/docs/latest/html").canonicalFile
+def syncDir = new File(userConfig.doc.sync.dir ?: "${rootDir}/../pongasoft.github.io/glu/docs/latest/html").canonicalFile
 
 /**
  * Copy the source in the sphinxDir because they need to be processed to inject the version
@@ -63,7 +63,7 @@ task doc << {
 }
 
 /**
- * Syncs the documentation to linkedin.github.com (does not push it!)
+ * Syncs the documentation to pongasoft.github.io (does not push it!)
  */
 task sync(dependsOn: doc) << {
   ant.sync(todir: syncDir) {
