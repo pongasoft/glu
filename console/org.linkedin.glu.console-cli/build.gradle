@@ -18,6 +18,8 @@
 apply plugin: 'org.linkedin.cmdline'
 
 cmdline {
+  resources.clear()
+  resources << [from: 'src/cmdline/resources', replaceTokensExclude: '**/*.egg']
   resources << packageIncludes
   replacementTokens = [
     'console.version': version,
