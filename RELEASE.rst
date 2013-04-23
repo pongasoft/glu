@@ -1,6 +1,25 @@
 Latest changes
 ==============
 
+5.0.0 (2013/04/23)
+------------------
+
+This release is the very first release that requires java 1.7. As noted in the previous release notes, in order to upgrade glu from an earlier release, you should first upgrade to the `4.7.x` line (which works both with java 1.6 and java 1.7), then upgrade to the 5.x.y line.
+
+There is no new features or bug fixes since `4.7.1`.
+
+* Implemented `glu-218 <https://github.com/pongasoft/glu/issues/218>`_: `Migrate to jdk1.7`
+
+.. note:: This version comes with some structural changes that you should be aware of:
+
+          * the glu binaries (tar files) are now hosted on bintray under the `glu <https://bintray.com/pkg/show/general/pongasoft/glu/releases>`_ repository
+          * the source code has been moved under a new home on github: `pongasoft/glu <http://www.github.com/pongasoft/glu>`_
+          * the documentation also has been moved under a new home on github `pongasoft.github.io/glu <http://pongasoft.github.io/glu/docs/latest/html/index.html>`_
+          * the glu jar files (which you should normally not care about unless you are extending glu in some shape or form) are also hosted on bintray/jcenter::
+
+               mavenRepo url: 'http://jcenter.bintray.com'
+
+
 4.7.1 (2013/04/16)
 ------------------
 
@@ -30,6 +49,8 @@ This release contains a major upgrade of all the libraries used by glu. The purp
 +----------------+-----------------------------------+
 |glu version     |java version(s)                    |
 +================+===================================+
+| 5.0.0+         |java 1.7                           |
++----------------+-----------------------------------+
 | 4.7.x          |java 1.6 (any VM) or java 1.7      |
 +----------------+-----------------------------------+
 | 4.6.x and below|java 1.6 (with Sun/Oracle VM only!)|
