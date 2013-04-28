@@ -74,14 +74,4 @@ project.'package-assemble'.doFirst {
   configurations.zookeeperPackages.resolve().each { zkp ->
     ant.untar(src: zkp, dest: basePackage, compression: 'gzip')
   }
-
-  def gitSha1 = 'git rev-parse HEAD'.execute().text.trim()
-  new File(basePackage, 'build.info').text = """------------------------------------------------------------
-glu ${project.version}
-------------------------------------------------------------
-glu git sha-1: ${gitSha1}
-glu build time: ${new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z").format(new Date())}
-glu build environment:
-${org.gradle.util.GradleVersion.current().prettyPrint().trim()}
-"""
 }

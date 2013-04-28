@@ -44,6 +44,7 @@ spec = [
 ]
 
 spec.scmUrl = "git@github.com:pongasoft/${spec.name}.git"
+spec.scm = 'git'
 
 /**
  * External dependencies
