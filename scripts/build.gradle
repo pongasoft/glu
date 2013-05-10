@@ -23,11 +23,6 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 subprojects {
   apply plugin: 'groovy'
-  apply plugin: 'org.linkedin.release'
-
-  release {
-    releaseConfigurations << 'script'
-  }
 
   dependencies {
     compile spec.external.linkedinUtilsGroovy

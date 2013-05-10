@@ -1,6 +1,13 @@
 Latest changes
 ==============
 
+4.7.2 (2013/05/09)
+------------------
+
+This release is a bug fix release.
+
+* Fixed `glu-223 <https://github.com/linkedin/glu/issues/223>`_: `jdk1.7 workaround does not "persist" in 4.7.1`
+
 4.7.1 (2013/04/16)
 ------------------
 
