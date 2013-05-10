@@ -37,26 +37,41 @@ public class ExceptionJdk17Workaround
       if(metaClass instanceof HandleMetaClass)
         metaClass = metaClass.replaceDelegate()
 
-      def field = MetaClassImpl.class.getDeclaredField('constructors')
-      field.setAccessible(true)
-      def constructors = field.get(metaClass)
-
-      int jdk7ConstructorIdx = -1
-
-      constructors.array.eachWithIndex { elt, idx ->
-        if(elt.cachedConstructor.parameterTypes.size() == 4)
-          jdk7ConstructorIdx = idx
-      }
-
-      if(jdk7ConstructorIdx != -1)
+      if(metaClass.hasProperty("__gluExceptionJdk17Workaround"))
       {
-        constructors.remove(jdk7ConstructorIdx)
-        log.info "Running with jdk1.7: installed groovy Exception workaround"
+        log.info "Running with jdk1.7: groovy Exception workaround already installed"
       }
+      else
+      {
+        def field = MetaClassImpl.class.getDeclaredField('constructors')
+        field.setAccessible(true)
+        def constructors = field.get(metaClass)
+
+        int jdk7ConstructorIdx = -1
+
+        constructors.array.eachWithIndex { elt, idx ->
+          if(elt.cachedConstructor.parameterTypes.size() == 4)
+            jdk7ConstructorIdx = idx
+        }
+
+        if(jdk7ConstructorIdx != -1)
+        {
+          constructors.remove(jdk7ConstructorIdx)
+          // this has 2 purposes:
+          // 1) allowing to check the workaround
+          // 2) making sure that the metaclass is no longer a weak reference, hence is not garbage collected!
+          metaClass.__gluExceptionJdk17Workaround = true
+          log.info "Running with jdk1.7: installed groovy Exception workaround"
+        }
+      }
+
+      // making sure the workaround is in place...
+      if(!new Exception().__gluExceptionJdk17Workaround)
+        throw new RuntimeException("groovy exception workaround not set properly!!!")
     }
     else
     {
-      log.debug "Running with jdk1.6: non workaround necessary"
+      log.debug "Running with jdk1.6: no workaround necessary"
     }
   }
 
