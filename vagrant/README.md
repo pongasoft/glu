@@ -10,9 +10,9 @@ Steps (for OSX host)
 1. Install newest [Vagrant](http://downloads.vagrantup.com/)
 1. `git clone git@github.com:pongasoft/glu.git`
 1. `cd glu/vagrant`
-1. `vagrant up`
+1. `vagrant up --glu-version=5.0.0` (or specify another verion)
 1. `vagrant ssh`
-1. `sudo su -`
+1. `sudo su -l`
 1. `cd /var/lib/glu`
 1. Now you are ready to follow along with the [glu tutorial](http://pongasoft.github.io/glu/docs/latest/html/tutorial.html)
 
