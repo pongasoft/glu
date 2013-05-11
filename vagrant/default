@@ -1,0 +1,45 @@
+<VirtualHost *:8000>
+        ServerAdmin webmaster@localhost
+
+        DocumentRoot /var/www
+        <Directory />
+                Options FollowSymLinks
+                AllowOverride None
+        </Directory>
+        <Directory /var/www/>
+                Options Indexes FollowSymLinks MultiViews
+                AllowOverride None
+                Order allow,deny
+                allow from all
+        </Directory>
+
+        ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
+        <Directory "/usr/lib/cgi-bin">
+                AllowOverride None
+                Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
+                Order allow,deny
+                Allow from all
+        </Directory>
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel warn
+
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+        # Glu Proxy Configuration:
+        <Proxy *>
+                Order deny,allow
+                Allow from all
+        </Proxy>
+
+        ProxyRequests           Off
+        ProxyPreserveHost       On
+        ProxyPass               /       http://localhost:8080/
+        ProxyPassReverse        /       http://localhost:8080/
+        
+        # handle absolute hostname location redirect: http://stackoverflow.com/questions/5236787/grails-redirect-why-is-it-always-absolute
+        Header edit Location ^http://.*?/(.*)$ http://localhost:8000/$1
+</VirtualHost>

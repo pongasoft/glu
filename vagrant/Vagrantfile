@@ -1,6 +1,20 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# process arguments for glu
+# getoptlong removes arguments from ARGV which is required by vagrant
+require 'getoptlong'
+opts = GetoptLong.new(
+  [ '--glu-version', GetoptLong::OPTIONAL_ARGUMENT ]
+)
+gluVersion=''
+opts.each do |opt, arg|
+  case opt
+    when '--glu-version'
+      gluVersion=arg
+  end
+end
+
 Vagrant.configure("2") do |config|
   # Every Vagrant virtual environment requires a box to build off of.
   config.vm.box = "puppetlabs_debian_607_x64"
@@ -14,7 +28,10 @@ Vagrant.configure("2") do |config|
   
   # Forward ports
 
-  # console 
+  # apache frontend to glu console webapp
+  config.vm.network :forwarded_port, guest: 8000, host: 8000
+
+  # glu console 
   config.vm.network :forwarded_port, guest: 8080, host: 8080
 
   # webapp1
@@ -32,5 +49,8 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm", :id, "--cpus", "1"]
   end
 
-  config.vm.provision :shell, :path => "install-glu.sh"
+  config.vm.provision :shell do |s|
+    s.path = "install-glu.sh"
+    s.args = "#{gluVersion}"
+  end
 end
