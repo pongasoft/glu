@@ -20,6 +20,9 @@ import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.pongasoft.glu.packaging.setup.KeysGenerator
 
+import java.nio.file.Files
+import java.nio.file.Path
+
 /**
  * @author yan@pongasoft.com  */
 public class TestKeysGenerator extends GroovyTestCase
@@ -29,9 +32,50 @@ public class TestKeysGenerator extends GroovyTestCase
     FileSystemImpl.createTempFileSystem { FileSystem fs ->
 
       def generator = new KeysGenerator(outputFolder: fs.toResource('/keys').getFile().toPath(),
-                                        masterPassword: "abcdefgh".toCharArray())
+                                        masterPassword: "abcdefgh")
 
-      println generator.generateAgentKeystore()
+      def keys = generator.generateKeys()
+      assertEquals(4, keys.size())
+      assertNull(keys.values().find { Path path ->
+        !Files.exists(path)
+      })
+
+      def expectedPasswords = [
+        agentKeystore: "85ZPMe2MD0f36AIISE4wwnlbgWn",
+        agentKey: "2aVH_Oql860q6M1aMrMu_xY6yDF",
+        agentTruststore: "c1xkQpjD413jQzV8UV3dYtp0R8V",
+        consoleKeystore: "3kbzrLeQNG6zU_0VseJZE2l-uCy",
+        consoleKey: "cAj9rr8_QyFxJmFMAJC5igVq8KF",
+        consoleTruststore: "5KIsE2sjCRhCRsDoI6sDyiLXMM0"
+      ]
+
+      assertEquals(expectedPasswords, generator.passwords)
+
+      def expectedEncryptedPasswords = [
+        agentKeystore: "x-Mlb8fFMp60W9tw3irTJTbvWr0VEieARdiY",
+        agentKey: "W_Wat--Y5p9t6_e7Ji0T6oSTunffoeUj98rV",
+        agentTruststore: "9d73JKm0RRAg9-iY9lcWZdJftrWO6kk2Dykd",
+        consoleKeystore: "DiteqRvVW9cCE5tRJkU9DdEKo-k-oKwPb81g",
+        consoleKey: "W_1Y69ElZo9y3_ktW8eCDrEai9HY6ljaZ_kd",
+        consoleTruststore: "JretRrfcDiWgt_-BWKt3AT73ATcgJ_9g3i1e"
+      ]
+
+      assertEquals(expectedEncryptedPasswords, generator.encryptedPasswords)
     }
+  }
+
+  public void testComputeChecksum()
+  {
+    FileSystemImpl.createTempFileSystem { FileSystem fs ->
+
+      def generator = new KeysGenerator(outputFolder: fs.toResource('/keys').getFile().toPath(),
+                                        masterPassword: "abcdefgh")
+
+      // since keystores and truststores change every time, we need to create a file for
+      // which we control the content so that the checksum is predictable
+      assertEquals('kH_rwI1Cii2_Wk8HBcDju9vKbq3',
+                   generator.computeChecksum(fs.saveContent('/foo.txt', 'abcdef').file.toPath()))
+    }
+
   }
 }
