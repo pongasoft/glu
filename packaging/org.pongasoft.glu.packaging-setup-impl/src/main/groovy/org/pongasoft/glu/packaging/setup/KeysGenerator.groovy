@@ -132,29 +132,29 @@ public class KeysGenerator
    */
   Path generateAgentKeystore()
   {
-    Path agentKeystore = createPathInOutputFolder('agent.keystore')
+    createPathInOutputFolder('agent.keystore') { Path agentKeystore ->
+      def cmd = [
+        'keytool',
+        '-noprompt',
+        '-genkey',
+        '-alias', 'agent',
+        '-keystore', agentKeystore.toString(),
+        '-storepass', getPasswords().agentKeystore,
+        '-keypass', getPasswords().agentKey,
+        '-keyalg', opts.keyalg,
+        '-keysize', opts.keysize,
+        '-validity', opts.validity,
+        '-dname', opts.dname.collect {k, v -> "${k}=${v}"}.join(', ')
+      ]
 
-    def cmd = [
-      'keytool',
-      '-noprompt',
-      '-genkey',
-      '-alias', 'agent',
-      '-keystore', agentKeystore.toString(),
-      '-storepass', getPasswords().agentKeystore,
-      '-keypass', getPasswords().agentKey,
-      '-keyalg', opts.keyalg,
-      '-keysize', opts.keysize,
-      '-validity', opts.validity,
-      '-dname', opts.dname.collect {k, v -> "${k}=${v}"}.join(', ')
-    ]
+      def res = executeCommand(cmd)
 
-    def res = executeCommand(cmd)
+      log.info "Created agent.keystore"
+      if(res)
+        log.info res
 
-    log.info "Created agent.keystore"
-    if(res)
-      log.info res
-
-    return agentKeystore
+      return agentKeystore
+    }
   }
 
   /**
@@ -164,50 +164,54 @@ public class KeysGenerator
    */
   Path generateAgentTruststore(Path agentKeystore)
   {
-    Path agentTruststore = createPathInOutputFolder('agent.truststore')
+    createPathInOutputFolder('agent.truststore') { Path agentTruststore ->
 
-    Path tempFile = createPathInOutputFolder('agent.cert.temp')
-    try
-    {
-      def cmd = [
-        'keytool',
-        '-noprompt',
-        '-export',
-        '-keystore', agentKeystore.toString(),
-        '-storepass', getPasswords().agentKeystore,
-        '-alias', 'agent',
-        '-file', tempFile.toString()
-      ]
+      createPathInOutputFolder('agent.cert.temp', false) { Path tempFile ->
+        try
+        {
+          def cmd = [
+            'keytool',
+            '-noprompt',
+            '-export',
+            '-keystore', agentKeystore.toString(),
+            '-storepass', getPasswords().agentKeystore,
+            '-alias', 'agent',
+            '-file', tempFile.toString()
+          ]
 
-      def res = executeCommand(cmd)
+          def res = executeCommand(cmd)
 
-      log.debug "Created agent.cert.temp"
-      if(res)
-        log.debug res
+          log.debug "Created agent.cert.temp"
+          if(res)
+            log.debug res
 
-      cmd = [
-        'keytool',
-        '-noprompt',
-        '-import',
-        '-alias', 'agent',
-        '-keystore', agentTruststore.toString(),
-        '-storepass', getPasswords().agentTruststore,
-        '-file', tempFile.toString()
-      ]
+          cmd = [
+            'keytool',
+            '-noprompt',
+            '-import',
+            '-alias', 'agent',
+            '-keystore', agentTruststore.toString(),
+            '-storepass', getPasswords().agentTruststore,
+            '-file', tempFile.toString()
+          ]
 
-      res = executeCommand(cmd)
+          res = executeCommand(cmd)
 
-      log.info "Created agent.truststore"
-      if(res)
-        log.info res
+          log.info "Created agent.truststore"
+          if(res)
+            log.info res
 
+        }
+        finally
+        {
+          Files.delete(tempFile)
+        }
+
+        return tempFile
+      }
+
+      return agentTruststore
     }
-    finally
-    {
-      Files.delete(tempFile)
-    }
-
-    return agentTruststore
   }
 
   /**
@@ -217,29 +221,30 @@ public class KeysGenerator
    */
   Path generateConsoleKeystore()
   {
-    Path consoleKeystore = createPathInOutputFolder('console.keystore')
+    createPathInOutputFolder('console.keystore') { Path consoleKeystore ->
+      def cmd = [
+        'keytool',
+        '-noprompt',
+        '-genkey',
+        '-alias', 'console',
+        '-keystore', consoleKeystore.toString(),
+        '-storepass', getPasswords().consoleKeystore,
+        '-keypass', getPasswords().consoleKey,
+        '-keyalg', opts.keyalg,
+        '-keysize', opts.keysize,
+        '-validity', opts.validity,
+        '-dname', opts.dname.collect {k, v -> "${k}=${v}"}.join(', ')
+      ]
 
-    def cmd = [
-      'keytool',
-      '-noprompt',
-      '-genkey',
-      '-alias', 'console',
-      '-keystore', consoleKeystore.toString(),
-      '-storepass', getPasswords().consoleKeystore,
-      '-keypass', getPasswords().consoleKey,
-      '-keyalg', opts.keyalg,
-      '-keysize', opts.keysize,
-      '-validity', opts.validity,
-      '-dname', opts.dname.collect {k, v -> "${k}=${v}"}.join(', ')
-    ]
+      def res = executeCommand(cmd)
 
-    def res = executeCommand(cmd)
+      log.info "Created console.keystore"
+      if(res)
+        log.info res
 
-    log.info "Created console.keystore"
-    if(res)
-      log.info res
+      return consoleKeystore
+    }
 
-    return consoleKeystore
   }
 
   /**
@@ -249,50 +254,54 @@ public class KeysGenerator
    */
   Path generateConsoleTruststore(Path consoleKeystore)
   {
-    Path consoleTruststore = createPathInOutputFolder('console.truststore')
+    createPathInOutputFolder('console.truststore') { Path consoleTruststore ->
 
-    Path tempFile = createPathInOutputFolder('console.cert.temp')
-    try
-    {
-      def cmd = [
-        'keytool',
-        '-noprompt',
-        '-export',
-        '-keystore', consoleKeystore.toString(),
-        '-storepass', getPasswords().consoleKeystore,
-        '-alias', 'console',
-        '-file', tempFile.toString()
-      ]
+      createPathInOutputFolder('console.cert.temp', false) { Path tempFile ->
+        try
+        {
+          def cmd = [
+            'keytool',
+            '-noprompt',
+            '-export',
+            '-keystore', consoleKeystore.toString(),
+            '-storepass', getPasswords().consoleKeystore,
+            '-alias', 'console',
+            '-file', tempFile.toString()
+          ]
 
-      def res = executeCommand(cmd)
+          def res = executeCommand(cmd)
 
-      log.debug "Created console.cert.temp"
-      if(res)
-        log.debug res
+          log.debug "Created console.cert.temp"
+          if(res)
+            log.debug res
 
-      cmd = [
-        'keytool',
-        '-noprompt',
-        '-import',
-        '-alias', 'console',
-        '-keystore', consoleTruststore.toString(),
-        '-storepass', getPasswords().consoleTruststore,
-        '-file', tempFile.toString()
-      ]
+          cmd = [
+            'keytool',
+            '-noprompt',
+            '-import',
+            '-alias', 'console',
+            '-keystore', consoleTruststore.toString(),
+            '-storepass', getPasswords().consoleTruststore,
+            '-file', tempFile.toString()
+          ]
 
-      res = executeCommand(cmd)
+          res = executeCommand(cmd)
 
-      log.info "Created console.truststore"
-      if(res)
-        log.info res
+          log.info "Created console.truststore"
+          if(res)
+            log.info res
 
+        }
+        finally
+        {
+          Files.delete(tempFile)
+        }
+
+        return tempFile
+      }
+
+      return consoleTruststore
     }
-    finally
-    {
-      Files.delete(tempFile)
-    }
-
-    return consoleTruststore
   }
 
   private String executeCommand(def cmd)
@@ -312,11 +321,16 @@ public class KeysGenerator
     return res
   }
 
-  private Path createPathInOutputFolder(String name)
+  private Path createPathInOutputFolder(String name,
+                                        boolean callClosureOnlyIfFileDoesNotExist = true,
+                                        Closure<Path> closure)
   {
     if(!Files.exists(outputFolder))
       Files.createDirectories(outputFolder)
-    outputFolder.resolve(name).toAbsolutePath()
+    Path path = outputFolder.resolve(name).toAbsolutePath()
+    if(!callClosureOnlyIfFileDoesNotExist || !Files.exists(path))
+      path = closure(path)
+    return path
   }
 
 }
