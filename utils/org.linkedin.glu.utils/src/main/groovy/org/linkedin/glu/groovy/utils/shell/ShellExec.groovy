@@ -48,7 +48,7 @@ class ShellExec
   // the args passed to shell.exec
   Map args
 
-  private String _commandLine
+  private def _commandLine
   private InputStream _stdin
   private boolean _redirectStderr
   private boolean _failOnError
@@ -64,9 +64,12 @@ class ShellExec
   /**
    * Use bash -c to run the command line
    */
-  public static def buildCommandLine(String commandLine)
+  public static def buildCommandLine(def commandLine)
   {
-    ['bash', '-c', commandLine]
+    if(commandLine instanceof List<String>)
+      commandLine
+    else
+      ['bash', '-c', commandLine.toString()]
   }
 
   def exec()
@@ -152,6 +155,17 @@ class ShellExec
   }
 
   /**
+   * @return always a string
+   */
+  private String getCommandLineAsString()
+  {
+    if(_commandLine instanceof Collection)
+      _commandLine.join(' ')
+    else
+      _commandLine.toString()
+  }
+
+  /**
    * Creates the appropriate stream but make sure we still destroy the process when the
    * stream closes
    */
@@ -159,7 +173,7 @@ class ShellExec
   {
     // execute the block call asynchronously
     FutureTaskExecution future = new FutureTaskExecution(executeBlockingCall)
-    future.description = _commandLine
+    future.description = commandLineAsString
 
     InputStream inputStream
 
@@ -289,13 +303,13 @@ class ShellExec
     {
       if(log.isDebugEnabled())
       {
-        log.debug("Error while executing command ${_commandLine}: ${exitValue}")
+        log.debug("Error while executing command ${commandLineAsString}: ${exitValue}")
         log.debug("output=${shell.toStringOutput(bytes[StreamType.stdout])}")
         log.debug("error=${shell.toStringOutput(bytes[StreamType.stderr])}")
       }
 
       ShellExecException exception =
-      new ShellExecException("Error while executing command ${_commandLine}: res=${exitValue} - output=${shell.toLimitedStringOutput(bytes[StreamType.stdout], 512)} - error=${shell.toLimitedStringOutput(bytes[StreamType.stderr], 512)}".toString())
+      new ShellExecException("Error while executing command ${commandLineAsString}: res=${exitValue} - output=${shell.toLimitedStringOutput(bytes[StreamType.stdout], 512)} - error=${shell.toLimitedStringOutput(bytes[StreamType.stderr], 512)}".toString())
       exception.res = exitValue
       exception.output = bytes[StreamType.stdout]
       exception.error = bytes[StreamType.stderr]
@@ -346,12 +360,25 @@ class ShellExec
 
   private void initCommandLine()
   {
-    _commandLine = shell.toStringCommandLine(args.command)
+    def command = args.command
 
-    if(_commandLine.startsWith('file:'))
+    if(command instanceof GString)
+      command = command.toString()
+
+    if(!(command instanceof String))
     {
-      _commandLine -= 'file:'
+     // clone and make sure it is a collection of strings
+     command = command.findAll { it != null }.collect { it.toString() }
+      if(command.size() > 0 && command[0].toString().startsWith('file:'))
+        command[0] -= 'file:'
     }
+    else
+    {
+      if(command.startsWith('file:'))
+        command -= 'file'
+    }
+
+    _commandLine = command
   }
 
   private void initOutput(StreamType streamType, String argName = streamType.name())
@@ -412,7 +439,7 @@ class ShellExec
 
       // need to consume output (in a separate thread!)
       def future = new FutureTaskExecution(consumeStream)
-      future.description = "${_commandLine} > ${streamType.name()}"
+      future.description = "${commandLineAsString} > ${streamType.name()}"
       _processIO[streamType].future = future
       future.runAsync(shell.submitter)
     }

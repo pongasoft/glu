@@ -16,6 +16,7 @@
 
 package test.setup
 
+import org.linkedin.glu.groovy.utils.shell.ShellImpl
 import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.util.io.resource.Resource
@@ -29,7 +30,7 @@ public class TestKeysGenerator extends GroovyTestCase
   {
     FileSystemImpl.createTempFileSystem { FileSystem fs ->
 
-      def generator = new KeysGenerator(fileSystem: fs,
+      def generator = new KeysGenerator(shell: new ShellImpl(fileSystem: fs),
                                         outputFolder: fs.toResource('/keys'),
                                         masterPassword: "abcdefgh")
 
@@ -67,7 +68,7 @@ public class TestKeysGenerator extends GroovyTestCase
   {
     FileSystemImpl.createTempFileSystem { FileSystem fs ->
 
-      def generator = new KeysGenerator(fileSystem: fs,
+      def generator = new KeysGenerator(shell: new ShellImpl(fileSystem: fs),
                                         outputFolder: fs.toResource('/keys'),
                                         masterPassword: "abcdefgh")
 

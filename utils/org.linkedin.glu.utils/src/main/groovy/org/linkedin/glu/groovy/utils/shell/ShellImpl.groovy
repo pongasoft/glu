@@ -795,7 +795,7 @@ def class ShellImpl implements Shell
   /**
    * Make sure that the command line is a string.
    */
-  protected String toStringCommandLine(commandLine)
+  String toStringCommandLine(commandLine)
   {
     if(commandLine instanceof GString)
       commandLine = commandLine.toString()
@@ -806,7 +806,7 @@ def class ShellImpl implements Shell
     return commandLine
   }
 
-  protected InputStream toInputStream(stream)
+  InputStream toInputStream(stream)
   {
     if(stream == null)
       return stream

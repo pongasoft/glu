@@ -16,7 +16,7 @@
 
 package org.pongasoft.glu.packaging.setup
 
-import org.linkedin.groovy.util.io.fs.FileSystem
+import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.util.codec.Base64Codec
 import org.linkedin.util.codec.Codec
 import org.linkedin.util.codec.CodecUtils
@@ -37,7 +37,7 @@ public class KeysGenerator
 
   Codec base64Codec = new Base64Codec()
 
-  FileSystem fileSystem
+  Shell shell
   Resource outputFolder
   String masterPassword
   String sha1Password = 'gluos1way1'
@@ -147,11 +147,11 @@ public class KeysGenerator
         '-dname', opts.dname.collect {k, v -> "${k}=${v}"}.join(', ')
       ]
 
-      def res = SetupUtils.executeCommand(cmd)
+      def res = shell.exec(command: cmd)
 
       log.info "Created agent.keystore"
       if(res)
-        log.info res
+        log.info res.toString()
 
       return agentKeystore
     }
@@ -179,7 +179,7 @@ public class KeysGenerator
             '-file', tempFile.file.canonicalPath
           ]
 
-          def res = SetupUtils.executeCommand(cmd)
+          def res = shell.exec(command: cmd)
 
           log.debug "Created agent.cert.temp"
           if(res)
@@ -195,7 +195,7 @@ public class KeysGenerator
             '-file', tempFile.file.canonicalPath
           ]
 
-          res = SetupUtils.executeCommand(cmd)
+          res = shell.exec(command: cmd)
 
           log.info "Created agent.truststore"
           if(res)
@@ -204,7 +204,7 @@ public class KeysGenerator
         }
         finally
         {
-          fileSystem.rm(tempFile)
+          shell.rm(tempFile)
         }
 
         return tempFile
@@ -236,7 +236,7 @@ public class KeysGenerator
         '-dname', opts.dname.collect {k, v -> "${k}=${v}"}.join(', ')
       ]
 
-      def res = SetupUtils.executeCommand(cmd)
+      def res = shell.exec(command: cmd)
 
       log.info "Created console.keystore"
       if(res)
@@ -269,7 +269,7 @@ public class KeysGenerator
             '-file', tempFile.file.canonicalPath
           ]
 
-          def res = SetupUtils.executeCommand(cmd)
+          def res = shell.exec(command: cmd)
 
           log.debug "Created console.cert.temp"
           if(res)
@@ -285,7 +285,7 @@ public class KeysGenerator
             '-file', tempFile.file.canonicalPath
           ]
 
-          res = SetupUtils.executeCommand(cmd)
+          res = shell.exec(command: cmd)
 
           log.info "Created console.truststore"
           if(res)
@@ -294,7 +294,7 @@ public class KeysGenerator
         }
         finally
         {
-          fileSystem.rm(tempFile)
+          shell.rm(tempFile)
         }
 
         return tempFile
@@ -309,7 +309,7 @@ public class KeysGenerator
                                             Closure<Resource> closure)
   {
     if(!outputFolder.exists())
-      fileSystem.mkdirs(outputFolder)
+      shell.mkdirs(outputFolder)
     Resource resource = outputFolder.createRelative(name)
     if(!callClosureOnlyIfFileDoesNotExist || !resource.exists())
       resource = closure(resource)
