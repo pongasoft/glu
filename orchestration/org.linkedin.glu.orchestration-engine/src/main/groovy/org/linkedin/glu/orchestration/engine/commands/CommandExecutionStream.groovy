@@ -16,7 +16,7 @@
 
 package org.linkedin.glu.orchestration.engine.commands
 
-import org.linkedin.glu.commands.impl.StreamType
+import org.linkedin.glu.groovy.utils.io.StreamType
 import org.linkedin.glu.commands.impl.CommandStreamStorage
 import org.linkedin.glu.utils.io.LimitedOutputStream
 import org.apache.tools.ant.util.TeeOutputStream

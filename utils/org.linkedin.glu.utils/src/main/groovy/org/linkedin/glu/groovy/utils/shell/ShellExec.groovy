@@ -14,27 +14,24 @@
  * the License.
  */
 
-package org.linkedin.glu.agent.impl.capabilities
+package org.linkedin.glu.groovy.utils.shell
 
 import org.apache.tools.ant.taskdefs.Execute
-import org.linkedin.glu.agent.api.ShellExecException
-import org.linkedin.glu.groovy.utils.io.StreamType
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
+import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
+import org.linkedin.glu.groovy.utils.io.DestroyProcessInputStream
 import org.linkedin.glu.groovy.utils.io.InputGeneratorStream
+import org.linkedin.glu.groovy.utils.io.StreamType
 import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
 import org.linkedin.glu.groovy.utils.lang.ProcessWithResult
 import org.linkedin.glu.utils.io.EmptyInputStream
 import org.linkedin.glu.utils.io.MultiplexedInputStream
 import org.linkedin.glu.utils.io.NullOutputStream
-
+import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.util.concurrent.ExecutionException
-import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
-import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
-
-import org.linkedin.glu.groovy.utils.io.DestroyProcessInputStream
 
 /**
  * Because the logic of exec is quite complicated, it requires its own class
@@ -234,7 +231,7 @@ class ShellExec
       {
         future.get().toString()
       }
-      catch(Throwable th)
+      catch(Throwable ignored)
       {
         // ok to ignore... will be part of the exit error stream...
       }

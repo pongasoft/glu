@@ -21,7 +21,7 @@ import org.linkedin.glu.commands.impl.CommandExecution
 import org.linkedin.glu.commands.impl.CommandStreamStorage
 import org.linkedin.glu.commands.impl.GluCommandFactory
 import org.linkedin.glu.commands.impl.MemoryCommandExecutionIOStorage
-import org.linkedin.glu.commands.impl.StreamType
+import org.linkedin.glu.groovy.utils.io.StreamType
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.clock.SettableClock

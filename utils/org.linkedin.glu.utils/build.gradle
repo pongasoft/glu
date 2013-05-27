@@ -20,10 +20,13 @@ apply plugin: 'org.linkedin.release'
 dependencies {
   compile spec.external.utilsMiscCore
   compile spec.external.utilsMiscGroovy
+  compile spec.external.mimeUtil
   compile spec.external.groovy
 
   testCompile spec.external.junit
 
   runtime spec.external.slf4jLog4j
   runtime spec.external.log4j
+
+  testRuntime spec.external.ivy
 }

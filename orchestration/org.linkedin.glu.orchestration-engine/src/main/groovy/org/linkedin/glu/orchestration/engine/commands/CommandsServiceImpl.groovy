@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeoutException
 
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
-import org.linkedin.glu.commands.impl.StreamType
+import org.linkedin.glu.groovy.utils.io.StreamType
 import org.linkedin.glu.commands.impl.CommandExecution
 import org.linkedin.glu.commands.impl.CommandExecutionIOStorage
 import org.linkedin.glu.commands.impl.CommandStreamStorage

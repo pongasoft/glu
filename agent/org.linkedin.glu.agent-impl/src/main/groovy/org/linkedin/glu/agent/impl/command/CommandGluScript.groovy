@@ -18,7 +18,7 @@ package org.linkedin.glu.agent.impl.command
 
 import org.linkedin.glu.commands.impl.CommandExecution
 import org.linkedin.glu.commands.impl.CommandStreamStorage
-import org.linkedin.glu.commands.impl.StreamType
+import org.linkedin.glu.groovy.utils.io.StreamType
 import org.linkedin.glu.groovy.utils.concurrent.CallExecution
 import org.linkedin.glu.commands.impl.CommandExecutionIOStorage
 import org.linkedin.util.annotations.Initializable

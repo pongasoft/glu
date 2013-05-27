@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Yan Pujante
+ * Copyright (c) 2012-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.linkedin.glu.commands.impl
+package org.linkedin.glu.groovy.utils.io
 
 /**
  * @author yan@pongasoft.com */

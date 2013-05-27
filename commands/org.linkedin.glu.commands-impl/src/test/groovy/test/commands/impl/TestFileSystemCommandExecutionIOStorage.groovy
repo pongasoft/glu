@@ -24,7 +24,7 @@ import org.linkedin.glu.commands.impl.GluCommandFactory
 import java.text.SimpleDateFormat
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.commands.impl.CommandStreamStorage
-import org.linkedin.glu.commands.impl.StreamType
+import org.linkedin.glu.groovy.utils.io.StreamType
 import org.linkedin.util.clock.Timespan
 import org.linkedin.util.io.resource.Resource
 import org.linkedin.glu.commands.impl.CommandExecution
@@ -32,7 +32,6 @@ import org.linkedin.glu.utils.io.MultiplexedInputStream
 import org.linkedin.glu.groovy.utils.json.GluGroovyJsonUtils
 import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
 import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
-import org.linkedin.groovy.util.collections.IgnoreTypeComparator
 import org.linkedin.glu.groovy.utils.test.GluGroovyTestUtils
 
 /**
