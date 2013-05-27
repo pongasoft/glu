@@ -16,16 +16,15 @@
 
 package org.pongasoft.glu.packaging.setup
 
+import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.util.codec.Base64Codec
 import org.linkedin.util.codec.Codec
 import org.linkedin.util.codec.CodecUtils
 import org.linkedin.util.codec.OneWayCodec
 import org.linkedin.util.codec.OneWayMessageDigestCodec
+import org.linkedin.util.io.resource.Resource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
-import java.nio.file.Files
-import java.nio.file.Path
 
 /**
  * The purpose of this class is to generate keys and keystore for glu
@@ -38,7 +37,8 @@ public class KeysGenerator
 
   Codec base64Codec = new Base64Codec()
 
-  Path outputFolder
+  FileSystem fileSystem
+  Resource outputFolder
   String masterPassword
   String sha1Password = 'gluos1way1'
   String encryptingKey = 'gluos2way'
@@ -105,20 +105,20 @@ public class KeysGenerator
     }
   }
 
-  String computeChecksum(Path path)
+  String computeChecksum(Resource resource)
   {
     OneWayCodec oneWayCodec =
       OneWayMessageDigestCodec.createSHA1Instance(new String(sha1Password),
                                                   new Base64Codec(new String(encryptingKey)));
 
-    return oneWayCodec.encode(readFile(path))
+    return oneWayCodec.encode(readFile(resource))
   }
 
-  private static byte[] readFile(Path path) throws IOException
+  private static byte[] readFile(Resource resource) throws IOException
   {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-    Files.newInputStream(path).withStream { stream ->
+    resource.inputStream.withStream { stream ->
       baos << stream
     }
 
@@ -128,17 +128,17 @@ public class KeysGenerator
   /**
    * Step 1: generate agent keystore
    *
-   * @return the path to the keystore
+   * @return the resource to the keystore
    */
-  Path generateAgentKeystore()
+  Resource generateAgentKeystore()
   {
-    createPathInOutputFolder('agent.keystore') { Path agentKeystore ->
+    createResourceInOutputFolder('agent.keystore') { Resource agentKeystore ->
       def cmd = [
         'keytool',
         '-noprompt',
         '-genkey',
         '-alias', 'agent',
-        '-keystore', agentKeystore.toString(),
+        '-keystore', agentKeystore.file.canonicalPath,
         '-storepass', getPasswords().agentKeystore,
         '-keypass', getPasswords().agentKey,
         '-keyalg', opts.keyalg,
@@ -147,7 +147,7 @@ public class KeysGenerator
         '-dname', opts.dname.collect {k, v -> "${k}=${v}"}.join(', ')
       ]
 
-      def res = executeCommand(cmd)
+      def res = SetupUtils.executeCommand(cmd)
 
       log.info "Created agent.keystore"
       if(res)
@@ -160,26 +160,26 @@ public class KeysGenerator
   /**
    * Step 2: extract the certificate from the agent keystore to create the agent truststore
    *
-   * @return the path to the truststore
+   * @return the resource to the truststore
    */
-  Path generateAgentTruststore(Path agentKeystore)
+  Resource generateAgentTruststore(Resource agentKeystore)
   {
-    createPathInOutputFolder('agent.truststore') { Path agentTruststore ->
+    createResourceInOutputFolder('agent.truststore') { Resource agentTruststore ->
 
-      createPathInOutputFolder('agent.cert.temp', false) { Path tempFile ->
+      createResourceInOutputFolder('agent.cert.temp', false) { Resource tempFile ->
         try
         {
           def cmd = [
             'keytool',
             '-noprompt',
             '-export',
-            '-keystore', agentKeystore.toString(),
+            '-keystore', agentKeystore.file.canonicalPath,
             '-storepass', getPasswords().agentKeystore,
             '-alias', 'agent',
-            '-file', tempFile.toString()
+            '-file', tempFile.file.canonicalPath
           ]
 
-          def res = executeCommand(cmd)
+          def res = SetupUtils.executeCommand(cmd)
 
           log.debug "Created agent.cert.temp"
           if(res)
@@ -190,12 +190,12 @@ public class KeysGenerator
             '-noprompt',
             '-import',
             '-alias', 'agent',
-            '-keystore', agentTruststore.toString(),
+            '-keystore', agentTruststore.file.canonicalPath,
             '-storepass', getPasswords().agentTruststore,
-            '-file', tempFile.toString()
+            '-file', tempFile.file.canonicalPath
           ]
 
-          res = executeCommand(cmd)
+          res = SetupUtils.executeCommand(cmd)
 
           log.info "Created agent.truststore"
           if(res)
@@ -204,7 +204,7 @@ public class KeysGenerator
         }
         finally
         {
-          Files.delete(tempFile)
+          fileSystem.rm(tempFile)
         }
 
         return tempFile
@@ -217,17 +217,17 @@ public class KeysGenerator
   /**
    * Step 3: generate console keystore
    *
-   * @return the path to the keystore
+   * @return the resource to the keystore
    */
-  Path generateConsoleKeystore()
+  Resource generateConsoleKeystore()
   {
-    createPathInOutputFolder('console.keystore') { Path consoleKeystore ->
+    createResourceInOutputFolder('console.keystore') { Resource consoleKeystore ->
       def cmd = [
         'keytool',
         '-noprompt',
         '-genkey',
         '-alias', 'console',
-        '-keystore', consoleKeystore.toString(),
+        '-keystore', consoleKeystore.file.canonicalPath,
         '-storepass', getPasswords().consoleKeystore,
         '-keypass', getPasswords().consoleKey,
         '-keyalg', opts.keyalg,
@@ -236,7 +236,7 @@ public class KeysGenerator
         '-dname', opts.dname.collect {k, v -> "${k}=${v}"}.join(', ')
       ]
 
-      def res = executeCommand(cmd)
+      def res = SetupUtils.executeCommand(cmd)
 
       log.info "Created console.keystore"
       if(res)
@@ -250,26 +250,26 @@ public class KeysGenerator
   /**
    * Step 4: extract the certificate from the console keystore to create the console truststore
    *
-   * @return the path to the truststore
+   * @return the resource to the truststore
    */
-  Path generateConsoleTruststore(Path consoleKeystore)
+  Resource generateConsoleTruststore(Resource consoleKeystore)
   {
-    createPathInOutputFolder('console.truststore') { Path consoleTruststore ->
+    createResourceInOutputFolder('console.truststore') { Resource consoleTruststore ->
 
-      createPathInOutputFolder('console.cert.temp', false) { Path tempFile ->
+      createResourceInOutputFolder('console.cert.temp', false) { Resource tempFile ->
         try
         {
           def cmd = [
             'keytool',
             '-noprompt',
             '-export',
-            '-keystore', consoleKeystore.toString(),
+            '-keystore', consoleKeystore.file.canonicalPath,
             '-storepass', getPasswords().consoleKeystore,
             '-alias', 'console',
-            '-file', tempFile.toString()
+            '-file', tempFile.file.canonicalPath
           ]
 
-          def res = executeCommand(cmd)
+          def res = SetupUtils.executeCommand(cmd)
 
           log.debug "Created console.cert.temp"
           if(res)
@@ -280,12 +280,12 @@ public class KeysGenerator
             '-noprompt',
             '-import',
             '-alias', 'console',
-            '-keystore', consoleTruststore.toString(),
+            '-keystore', consoleTruststore.file.canonicalPath,
             '-storepass', getPasswords().consoleTruststore,
-            '-file', tempFile.toString()
+            '-file', tempFile.file.canonicalPath
           ]
 
-          res = executeCommand(cmd)
+          res = SetupUtils.executeCommand(cmd)
 
           log.info "Created console.truststore"
           if(res)
@@ -294,7 +294,7 @@ public class KeysGenerator
         }
         finally
         {
-          Files.delete(tempFile)
+          fileSystem.rm(tempFile)
         }
 
         return tempFile
@@ -304,33 +304,16 @@ public class KeysGenerator
     }
   }
 
-  private String executeCommand(def cmd)
+  private Resource createResourceInOutputFolder(String name,
+                                            boolean callClosureOnlyIfFileDoesNotExist = true,
+                                            Closure<Resource> closure)
   {
-    Process process = cmd.execute()
-    Thread.start {
-      System.err << process.errorStream
-    }
-    Thread.start {
-      process.outputStream.close()
-    }
-    def res = process.text
-
-    if(process.waitFor() != 0)
-      throw new Exception("error while executing command")
-
-    return res
-  }
-
-  private Path createPathInOutputFolder(String name,
-                                        boolean callClosureOnlyIfFileDoesNotExist = true,
-                                        Closure<Path> closure)
-  {
-    if(!Files.exists(outputFolder))
-      Files.createDirectories(outputFolder)
-    Path path = outputFolder.resolve(name).toAbsolutePath()
-    if(!callClosureOnlyIfFileDoesNotExist || !Files.exists(path))
-      path = closure(path)
-    return path
+    if(!outputFolder.exists())
+      fileSystem.mkdirs(outputFolder)
+    Resource resource = outputFolder.createRelative(name)
+    if(!callClosureOnlyIfFileDoesNotExist || !resource.exists())
+      resource = closure(resource)
+    return resource
   }
 
 }

@@ -18,10 +18,8 @@ package test.setup
 
 import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
+import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.packaging.setup.KeysGenerator
-
-import java.nio.file.Files
-import java.nio.file.Path
 
 /**
  * @author yan@pongasoft.com  */
@@ -31,13 +29,14 @@ public class TestKeysGenerator extends GroovyTestCase
   {
     FileSystemImpl.createTempFileSystem { FileSystem fs ->
 
-      def generator = new KeysGenerator(outputFolder: fs.toResource('/keys').getFile().toPath(),
+      def generator = new KeysGenerator(fileSystem: fs,
+                                        outputFolder: fs.toResource('/keys'),
                                         masterPassword: "abcdefgh")
 
       def keys = generator.generateKeys()
       assertEquals(4, keys.size())
-      assertNull(keys.values().find { Path path ->
-        !Files.exists(path)
+      assertNull(keys.values().find { Resource resource ->
+        !resource.exists()
       })
 
       def expectedPasswords = [
@@ -68,13 +67,14 @@ public class TestKeysGenerator extends GroovyTestCase
   {
     FileSystemImpl.createTempFileSystem { FileSystem fs ->
 
-      def generator = new KeysGenerator(outputFolder: fs.toResource('/keys').getFile().toPath(),
+      def generator = new KeysGenerator(fileSystem: fs,
+                                        outputFolder: fs.toResource('/keys'),
                                         masterPassword: "abcdefgh")
 
       // since keystores and truststores change every time, we need to create a file for
       // which we control the content so that the checksum is predictable
       assertEquals('kH_rwI1Cii2_Wk8HBcDju9vKbq3',
-                   generator.computeChecksum(fs.saveContent('/foo.txt', 'abcdef').file.toPath()))
+                   generator.computeChecksum(fs.saveContent('/foo.txt', 'abcdef')))
     }
 
   }

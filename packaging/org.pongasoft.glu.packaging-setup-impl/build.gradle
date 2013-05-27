@@ -18,10 +18,9 @@ apply plugin: 'groovy'
 apply plugin: 'org.linkedin.release'
 
 dependencies {
-  compile spec.external.utilsMiscCore
+  compile project(':utils:org.linkedin.glu.utils')
   compile spec.external.groovy
 
-  testCompile spec.external.utilsMiscGroovy
   testCompile spec.external.junit
 
   testRuntime project(':utils:org.linkedin.glu.utils.log4j-test-config')
