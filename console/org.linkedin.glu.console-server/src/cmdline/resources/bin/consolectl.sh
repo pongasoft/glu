@@ -24,7 +24,7 @@ JETTY_DISTRIBUTION=$BASEDIR/@jetty.distribution@
 
 if [ ! -d $JETTY_DISTRIBUTION ]; then
   echo "Setting up jetty..."
-  tar -zxf $BASEDIR/glu/repository/tgzs/@jetty.archive@
+  gunzip -c $BASEDIR/glu/repository/tgzs/@jetty.archive@ | tar -xf -
   rm -rf $JETTY_DISTRIBUTION/contexts/*
   rm -rf $JETTY_DISTRIBUTION/webapps/*
   cp $BASEDIR/conf/*-jetty-context.xml $JETTY_DISTRIBUTION/contexts
