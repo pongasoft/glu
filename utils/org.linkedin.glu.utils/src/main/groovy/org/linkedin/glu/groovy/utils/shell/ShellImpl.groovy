@@ -75,7 +75,7 @@ def class ShellImpl implements Shell
    */
   static <T> T createTempShell(Closure<T> closure)
   {
-    FileSystemImpl.createTempFileSystem { FileSystem fs ->
+    return FileSystemImpl.createTempFileSystem { FileSystem fs ->
       ShellImpl shell = new ShellImpl(fileSystem: fs)
       closure(shell)
     }
@@ -147,22 +147,25 @@ def class ShellImpl implements Shell
     file = toResource(file)
     toDir = toResource(toDir)
     def compression = 'none'
+    def command = "tar -xf ${file.file}"
 
     def mimeTypes = getMimeTypes(file)
 
     if(mimeTypes.find { it == 'application/x-gzip'})
     {
       compression = 'gzip'
+      command = "gunzip -c ${file.file} | tar -xf -"
     }
 
     if(mimeTypes.find { it == 'application/x-bzip2'})
     {
       compression = 'bzip2'
+      command = "bunzip2 -c ${file.file} | tar -xf -"
     }
 
-    ant { ant ->
-      ant.untar(src: file.file, dest: toDir.file, compression: compression)
-    }
+    mkdirs(toDir)
+
+    exec(command: command, pwd: toDir.file)
 
     return toDir
   }
@@ -245,7 +248,7 @@ def class ShellImpl implements Shell
         return 'tgz'
 
       case 'bzip2':
-        return 'tb2'
+        return 'tbz2'
 
       default:
         throw new IllegalArgumentException("unsupported compression ${compression}")

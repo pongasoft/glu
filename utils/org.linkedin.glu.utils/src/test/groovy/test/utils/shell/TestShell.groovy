@@ -407,7 +407,7 @@ this is line 1000
         [tarFile: '/out4/foo.tar.gz', expectedTarFile: '/out4/foo.tar.gz', compression: 'gzip'],
 
         // tar into a directory with compression (bzip2)
-        [tarDir: '/out5', expectedTarFile: '/out5/tar.tb2', compression: 'bzip2'],
+        [tarDir: '/out5', expectedTarFile: '/out5/tar.tbz2', compression: 'bzip2'],
 
         // tar into a file with compression (bzip2)
         [tarFile: '/out6/foo.tar.bz2', expectedTarFile: '/out6/foo.tar.bz2', compression: 'bzip2'],
@@ -432,10 +432,10 @@ this is line 1000
           ].each { f ->
             Resource includedFile = outputDir.createRelative(includeRoot ? f : f - '/tar')
             assertEquals("for ${[*:tc, includeRoot: includeRoot]}", "...content of ${f}...".toString(), shell.cat(includedFile))
-  //          if(includedFile.filename.endsWith('.sh'))
-  //            assertTrue("${includedFile} is executable", Files.isExecutable(includedFile.file.toPath()))
-  //          else
-  //            assertFalse(Files.isExecutable(includedFile.file.toPath()))
+            if(includedFile.filename.endsWith('.sh'))
+              assertTrue("${includedFile} is executable", Files.isExecutable(includedFile.file.toPath()))
+            else
+              assertFalse(Files.isExecutable(includedFile.file.toPath()))
           }
         }
       }
