@@ -29,12 +29,15 @@ import org.linkedin.glu.utils.concurrent.OneThreadPerTaskSubmitter
 import org.linkedin.glu.utils.concurrent.Submitter
 import org.linkedin.groovy.util.ant.AntUtils
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
+import org.linkedin.groovy.util.config.Config
 import org.linkedin.groovy.util.encryption.EncryptionUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.io.fs.FileSystem
+import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.groovy.util.net.GroovyNetUtils
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
+import org.linkedin.util.io.PathUtils
 import org.linkedin.util.io.resource.Resource
 import org.linkedin.util.lang.MemorySize
 import org.linkedin.util.url.QueryBuilder
@@ -44,6 +47,7 @@ import javax.management.MBeanServerConnection
 import javax.management.ObjectName
 import javax.management.remote.JMXConnectorFactory
 import javax.management.remote.JMXServiceURL
+import java.nio.file.Files
 import java.util.concurrent.TimeoutException
 import java.util.regex.Pattern
 import org.slf4j.Logger
@@ -61,6 +65,20 @@ def class ShellImpl implements Shell
 
   static {
     MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
+  }
+
+  /**
+   * Convenient call which simply creates a shell in a temporary directory
+   *
+   * @param closure the closure will be called with the created shell
+   * @return whatever the closure returns
+   */
+  static <T> T createTempShell(Closure<T> closure)
+  {
+    FileSystemImpl.createTempFileSystem { FileSystem fs ->
+      ShellImpl shell = new ShellImpl(fileSystem: fs)
+      closure(shell)
+    }
   }
 
   Clock clock = SystemClock.instance()
@@ -137,11 +155,101 @@ def class ShellImpl implements Shell
       compression = 'gzip'
     }
 
+    if(mimeTypes.find { it == 'application/x-bzip2'})
+    {
+      compression = 'bzip2'
+    }
+
     ant { ant ->
       ant.untar(src: file.file, dest: toDir.file, compression: compression)
     }
 
     return toDir
+  }
+
+  Resource tar(args)
+  {
+    Resource dir = toResource(args.dir)
+
+    if(args.tarFile && args.tarDir)
+      throw new IllegalArgumentException("tarFile and tarDir should not be used together: provide only one")
+
+    Resource tarFile = null
+
+    if(args.tarFile)
+    {
+      tarFile = toResource(args.tarFile)
+    }
+    else
+    {
+      Resource tarDir = toResource(args.tarDir ?: createTempDir())
+
+      if(tarDir.exists() && !tarDir.isDirectory())
+        throw new IllegalArgumentException("${tarDir} is not a directory")
+
+      tarFile =
+        tarDir.createRelative("${dir.filename}.${computeTarFileExtension(args.compression)}")
+    }
+
+    // make sure the folder exists
+    mkdirs(tarFile.parentResource)
+
+    boolean includeRoot = Config.getOptionalBoolean(args, "includeRoot", true)
+
+    def basedir = (includeRoot ? dir.parentResource : dir).chroot('.')
+    def includes = includeRoot ? basedir.createRelative(dir.filename) : basedir
+
+    def executables = []
+    def nonExecutables = []
+
+    GroovyIOUtils.eachChildRecurse(includes) { Resource child ->
+      if(!child.isDirectory() && Files.isExecutable(child.file.toPath()))
+        executables << PathUtils.removeLeadingSlash(child.path)
+      else
+        nonExecutables << PathUtils.removeLeadingSlash(child.path)
+    }
+
+    // make sure the tarFile actually does not already exist
+    rm(tarFile)
+
+    ant { ant ->
+      ant.tar(destfile: tarFile.file,
+              longfile: 'gnu',
+              compression: args.compression ?: 'none') {
+        if(executables)
+          tarfileset(dir: basedir.file, filemode: '755') {
+            executables.each {
+              include(name: it)
+            }
+          }
+        if(nonExecutables)
+          fileset(dir: basedir.file) {
+            nonExecutables.each {
+              include(name: it)
+            }
+          }
+      }
+    }
+
+    return tarFile
+  }
+
+  private String computeTarFileExtension(String compression)
+  {
+    if(!compression)
+      return 'tar'
+
+    switch(compression)
+    {
+      case 'gzip':
+        return 'tgz'
+
+      case 'bzip2':
+        return 'tb2'
+
+      default:
+        throw new IllegalArgumentException("unsupported compression ${compression}")
+    }
   }
 
   /**

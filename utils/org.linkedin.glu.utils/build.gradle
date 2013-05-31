@@ -29,4 +29,5 @@ dependencies {
   runtime spec.external.log4j
 
   testRuntime spec.external.ivy
+  testRuntime project(':utils:org.linkedin.glu.utils.log4j-test-config')
 }

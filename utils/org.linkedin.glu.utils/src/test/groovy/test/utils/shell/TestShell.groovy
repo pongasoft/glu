@@ -2,16 +2,19 @@ package test.utils.shell
 
 import com.sun.net.httpserver.Headers
 import com.sun.net.httpserver.HttpExchange
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellExec
 import org.linkedin.glu.groovy.utils.shell.ShellExecException
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
-import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.groovy.util.ivy.IvyURLHandler
 import org.linkedin.groovy.util.net.GroovyNetUtils
 import org.linkedin.groovy.util.net.SingletonURLStreamHandlerFactory
 import org.linkedin.util.io.resource.Resource
+
+import java.nio.file.Files
 
 /**
  * @author yan@pongasoft.com  */
@@ -19,12 +22,11 @@ public class TestShell extends GroovyTestCase
 {
   void testFetch()
   {
-    FileSystemImpl.createTempFileSystem() { org.linkedin.groovy.util.io.fs.FileSystem fs ->
-      def shell = new ShellImpl(fileSystem: fs)
+    ShellImpl.createTempShell { Shell shell ->
 
-      Resource tempFile = fs.tempFile()
+      Resource tempFile = shell.tempFile()
       assertFalse(tempFile.exists())
-      fs.saveContent(tempFile, "this is a test")
+      shell.saveContent(tempFile, "this is a test")
       assertTrue(tempFile.exists())
 
       // on the other end if we provide a uri it will 'fetch' it to a different location
@@ -32,10 +34,10 @@ public class TestShell extends GroovyTestCase
       assertNotSame(tempFile.file.canonicalPath, fetchedFile.file.canonicalPath)
 
       // we make sure that the file was copied entirely
-      assertEquals("this is a test", fs.readContent(fetchedFile))
+      assertEquals("this is a test", shell.readContent(fetchedFile))
 
       // we now remove the temp file and we make sure that fetch throws an exception
-      fs.rm(tempFile)
+      shell.rm(tempFile)
       assertFalse(tempFile.exists())
       shouldFail(FileNotFoundException) { shell.fetch(tempFile.toURI()) }
     }
@@ -46,8 +48,7 @@ public class TestShell extends GroovyTestCase
    */
   void testFetchRemote()
   {
-    FileSystemImpl.createTempFileSystem() { org.linkedin.groovy.util.io.fs.FileSystem fs ->
-      def shell = new ShellImpl(fileSystem: fs)
+    ShellImpl.createTempShell { Shell shell ->
 
       String response
       Headers requestHeaders
@@ -62,7 +63,7 @@ public class TestShell extends GroovyTestCase
 
       GroovyNetUtils.withHttpServer(0, ['/content': handler]) { int port ->
 
-        File root = fs.root.file
+        File root = shell.root.file
 
         File tmpFile = new File(root, 'foo.txt')
 
@@ -88,7 +89,7 @@ public class TestShell extends GroovyTestCase
    */
   void testFetchWithIvy()
   {
-    FileSystemImpl.createTempFileSystem() { org.linkedin.groovy.util.io.fs.FileSystem fs ->
+    ShellImpl.createTempShell { Shell shell ->
 
       def ivySettings = new File("./src/test/resources/ivysettings.xml").canonicalFile.toURI()
 
@@ -98,19 +99,17 @@ public class TestShell extends GroovyTestCase
       }
       URL.setURLStreamHandlerFactory(factory)
 
-      def shell = new ShellImpl(fileSystem: fs)
-
       def file = shell.fetch('ivy:/test.agent.impl/myArtifact/1.0.0')
 
       assertEquals(new File("./src/test/resources/test/agent/impl/myArtifact/1.0.0/myArtifact-1.0.0.jar").getText(),
-                   fs.readContent(file))
+                   shell.readContent(file))
 
       assertEquals('myArtifact-1.0.0.jar', GroovyNetUtils.guessFilename(new URI('ivy:/test.agent.impl/myArtifact/1.0.0')))
 
       file = shell.fetch('ivy:/test.agent.impl/myArtifact/1.0.0/text')
 
       assertEquals(new File("./src/test/resources/test/agent/impl/myArtifact/1.0.0/myArtifact-1.0.0.txt").getText(),
-                   fs.readContent(file))
+                   shell.readContent(file))
     }
   }
 
@@ -119,8 +118,7 @@ public class TestShell extends GroovyTestCase
    */
   void testExec()
   {
-    FileSystemImpl.createTempFileSystem() { org.linkedin.groovy.util.io.fs.FileSystem fs ->
-      def shell = new ShellImpl(fileSystem: fs)
+    ShellImpl.createTempShell { Shell shell ->
 
       // non existent script
       try
@@ -143,7 +141,7 @@ public class TestShell extends GroovyTestCase
 
       // we make sure that the script is not executable because exec changes the exec flag
       // automatically
-      fs.chmod(shellScript, '-x')
+      shell.chmod(shellScript, '-x')
 
       // we make sure that the other syntax works
       assertEquals("Hello", shell.exec(shellScript))
@@ -161,7 +159,7 @@ public class TestShell extends GroovyTestCase
       assertEquals("       1       1       6".trim(), shell.exec("${shellScript} | wc").trim())
 
       // we make the shell script non executable
-      fs.chmod(shellScript, '-x')
+      shell.chmod(shellScript, '-x')
       try
       {
         shell.exec("${shellScript} a b c")
@@ -183,11 +181,10 @@ public class TestShell extends GroovyTestCase
 
   void testGenericExec()
   {
-    FileSystemImpl.createTempFileSystem() { org.linkedin.groovy.util.io.fs.FileSystem fs ->
-      def shell = new ShellImpl(fileSystem: fs)
+    ShellImpl.createTempShell { Shell shell ->
       def shellScript = shell.fetch("./src/test/resources/shellScriptTestShellExec.sh")
       // let's make sure it is executable
-      fs.chmod(shellScript, '+x')
+      shell.chmod(shellScript, '+x')
 
       // stdout only
       checkShellExec(shell, [command: [shellScript, "-1"]], 0, "this goes to stdout\n", "")
@@ -333,12 +330,11 @@ public class TestShell extends GroovyTestCase
 
   void testTail()
   {
-    FileSystemImpl.createTempFileSystem() { org.linkedin.groovy.util.io.fs.FileSystem fs ->
-      def shell = new ShellImpl(fileSystem: fs)
+    ShellImpl.createTempShell { Shell shell ->
 
       def content = new StringBuilder()
 
-      def f = fs.withOutputStream('testFile') { file, out ->
+      def f = shell.withOutputStream('testFile') { file, out ->
         (1..1000).each { lineNumber ->
           def line = "this is line ${lineNumber}\n"
           out.write(line.getBytes('UTF-8'))
@@ -364,8 +360,7 @@ this is line 1000
    */
   void testUntar()
   {
-    FileSystemImpl.createTempFileSystem() { org.linkedin.groovy.util.io.fs.FileSystem fs ->
-      def shell = new ShellImpl(fileSystem: fs)
+    ShellImpl.createTempShell { Shell shell ->
 
       ["./src/test/resources/testUntar_tar", "./src/test/resources/testUntar_tgz"].each { file ->
         def fetchedFile = new File(file).canonicalFile.toURI()
@@ -378,15 +373,84 @@ this is line 1000
   }
 
   /**
+   * Test that tarring/untarring preserve executable bit
+   */
+  void testTar()
+  {
+    ShellImpl.createTempShell { Shell shell ->
+      def tarFileContent = [
+        '/tar/a/a.sh',
+        '/tar/a/a.txt',
+        '/tar/b.sh',
+        '/tar/b.txt'
+      ].collect {
+        def f = shell.saveContent(it, "...content of ${it}...")
+        if(f.filename.endsWith('.sh'))
+          shell.chmodPlusX(f)
+        return f
+      }
+
+      assertEquals(tarFileContent.findAll { it.filename.endsWith('.sh') },
+                   tarFileContent.findAll { Files.isExecutable(it.file.toPath()) })
+
+      def testCases = [
+        // tar into a directory
+        [tarDir: '/out', expectedTarFile: '/out/tar.tar'],
+
+        // tar into a file
+        [tarFile: '/out2/foo.tar', expectedTarFile: '/out2/foo.tar'],
+
+        // tar into a directory with compression (gzip)
+        [tarDir: '/out3', expectedTarFile: '/out3/tar.tgz', compression: 'gzip'],
+
+        // tar into a file with compression (gzip)
+        [tarFile: '/out4/foo.tar.gz', expectedTarFile: '/out4/foo.tar.gz', compression: 'gzip'],
+
+        // tar into a directory with compression (bzip2)
+        [tarDir: '/out5', expectedTarFile: '/out5/tar.tb2', compression: 'bzip2'],
+
+        // tar into a file with compression (bzip2)
+        [tarFile: '/out6/foo.tar.bz2', expectedTarFile: '/out6/foo.tar.bz2', compression: 'bzip2'],
+      ]
+
+      testCases.each { tc ->
+        [true, false].each { boolean includeRoot ->
+          Resource tarFile = shell.tar(dir: '/tar',
+                                       includeRoot: includeRoot,
+                                       *:GluGroovyCollectionUtils.xorMap(tc, ['expectedTarFile']))
+
+          // make sure that the tarFile is the proper one
+          assertEquals(shell.toResource(tc.expectedTarFile), tarFile)
+
+          def outputDir = shell.untar(tarFile)
+
+          [
+            '/tar/a/a.sh',
+            '/tar/a/a.txt',
+            '/tar/b.sh',
+            '/tar/b.txt'
+          ].each { f ->
+            Resource includedFile = outputDir.createRelative(includeRoot ? f : f - '/tar')
+            assertEquals("for ${[*:tc, includeRoot: includeRoot]}", "...content of ${f}...".toString(), shell.cat(includedFile))
+  //          if(includedFile.filename.endsWith('.sh'))
+  //            assertTrue("${includedFile} is executable", Files.isExecutable(includedFile.file.toPath()))
+  //          else
+  //            assertFalse(Files.isExecutable(includedFile.file.toPath()))
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Test the grep capability
    */
   void testGrep()
   {
-    FileSystemImpl.createTempFileSystem() { org.linkedin.groovy.util.io.fs.FileSystem fs ->
-      def shell = new ShellImpl(fileSystem: fs)
+    ShellImpl.createTempShell { Shell shell ->
 
-      Resource tempFile = fs.tempFile()
-      fs.saveContent(tempFile, """line 1 abc
+      Resource tempFile = shell.tempFile()
+      shell.saveContent(tempFile, """line 1 abc
 line 2 def
 line 3 abcdef
 """)
@@ -438,8 +502,7 @@ line 3 abcdef
 
   void testGzip()
   {
-    FileSystemImpl.createTempFileSystem() { org.linkedin.groovy.util.io.fs.FileSystem fs ->
-      def shell = new ShellImpl(fileSystem: fs)
+    ShellImpl.createTempShell { Shell shell ->
 
       def root = shell.toResource('/root')
 
@@ -486,8 +549,7 @@ line 3 abcdef
 
   void testRecurse()
   {
-    FileSystemImpl.createTempFileSystem() { org.linkedin.groovy.util.io.fs.FileSystem fs ->
-      def shell = new ShellImpl(fileSystem: fs)
+    ShellImpl.createTempShell { Shell shell ->
 
       def root = shell.toResource('/root')
       shell.saveContent('/root/dir1/a.txt', 'this is a test a')
@@ -498,7 +560,7 @@ line 3 abcdef
 
       // every file and dir under root
       def files = []
-      fs.eachChildRecurse(root) { r ->
+      shell.eachChildRecurse(root) { r ->
         files << r.path
       }
       files.sort()
@@ -507,7 +569,7 @@ line 3 abcdef
       assertEquals(expectedFiles, files)
 
       // find only dirs under root
-      def dirs = fs.findAll('/root') { r ->
+      def dirs = shell.findAll('/root') { r ->
         if (r.isDirectory()) {
           return true
         } else {
@@ -532,8 +594,7 @@ line 3 abcdef
 
   void testReplaceTokens()
   {
-    FileSystemImpl.createTempFileSystem() { org.linkedin.groovy.util.io.fs.FileSystem fs ->
-      def shell = new ShellImpl(fileSystem: fs)
+    ShellImpl.createTempShell { Shell shell ->
 
       assertEquals('abc foo efg bar hij foo',
                    shell.replaceTokens('abc @token1@ efg @token2@ hij @token1@',

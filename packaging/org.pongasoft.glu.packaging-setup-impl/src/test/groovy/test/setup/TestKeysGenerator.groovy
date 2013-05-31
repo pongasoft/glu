@@ -16,9 +16,8 @@
 
 package test.setup
 
+import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
-import org.linkedin.groovy.util.io.fs.FileSystem
-import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.packaging.setup.KeysGenerator
 
@@ -28,10 +27,10 @@ public class TestKeysGenerator extends GroovyTestCase
 {
   public void testKeysGenerator()
   {
-    FileSystemImpl.createTempFileSystem { FileSystem fs ->
+    ShellImpl.createTempShell { Shell shell ->
 
-      def generator = new KeysGenerator(shell: new ShellImpl(fileSystem: fs),
-                                        outputFolder: fs.toResource('/keys'),
+      def generator = new KeysGenerator(shell: shell,
+                                        outputFolder: shell.toResource('/keys'),
                                         masterPassword: "abcdefgh")
 
       def keys = generator.generateKeys()
@@ -66,16 +65,16 @@ public class TestKeysGenerator extends GroovyTestCase
 
   public void testComputeChecksum()
   {
-    FileSystemImpl.createTempFileSystem { FileSystem fs ->
+    ShellImpl.createTempShell { Shell shell ->
 
-      def generator = new KeysGenerator(shell: new ShellImpl(fileSystem: fs),
-                                        outputFolder: fs.toResource('/keys'),
+      def generator = new KeysGenerator(shell: shell,
+                                        outputFolder: shell.toResource('/keys'),
                                         masterPassword: "abcdefgh")
 
       // since keystores and truststores change every time, we need to create a file for
       // which we control the content so that the checksum is predictable
       assertEquals('kH_rwI1Cii2_Wk8HBcDju9vKbq3',
-                   generator.computeChecksum(fs.saveContent('/foo.txt', 'abcdef')))
+                   generator.computeChecksum(shell.saveContent('/foo.txt', 'abcdef')))
     }
 
   }

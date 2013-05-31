@@ -308,6 +308,22 @@ def interface Shell
   Resource unzip(file, toDir)
 
   /**
+   * If neither <code>tarFile</code> nor <code>tarDir</code> is provided, then the resulting
+   * tar file will be created in a temporary directory.
+   *
+   * @param args.dir the directory to tar ({@see #toResource(Object)} for possible values)
+   * @param args.tarFile the resulting tar file name/location ({@see #toResource(Object)}
+   *                     for possible values) (optional) (cannot be used with <code>tarDir</code>)
+   * @param args.tarDir the directory to store the resulting tar file ({@see #toResource(Object)}
+   *                    for possible values) (optional) (cannot be used with <code>tarFile</code>)
+   * @param args.compression what kind of compression to use (ex: gzip, bzip2)
+   * @param args.includeRoot a boolean to include the root (args.dir) in the tar file or not
+   *                         (default to <code>true</code>)
+   * @return the resulting tar file resource
+   */
+  Resource tar(args)
+
+  /**
    * Untars the provided file in a temporary location. Note that the implementation will try
    * to detect if the file is also gziped and unzip it first (equivalent to <code>tar -zxf</code>)
    *
