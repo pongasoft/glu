@@ -738,6 +738,25 @@ def interface Shell
   Resource replaceTokens(def from, def to, Map tokens)
 
   /**
+   * Processes the template provided with the tokens provided and generate the output in
+   * <code>to</code>.
+   *
+   * <ul>
+   *   <li>if the template ends with <code>.gtmpl</code> it will be processed through the groovy
+   *       template engine</li>
+   *   <li>if the template ends with <code>.xtmpl</code> it will be processed through the
+   *       {@link #replaceTokens(java.lang.String, java.util.Map)} mechanism</li>
+   *   <li>if the template has no extension, the the replaceTokens mechanism will be called</li>
+   * </ul>
+   *
+   * @param template ({@see #toResource(Object)} for possible values)
+   * @param to ({@see #toResource(Object)} for possible values)}
+   * @param tokens a map of token
+   * @return <code>to</code> as a {@link Resource}
+   */
+  Resource processTemplate(def template, def to, Map tokens)
+
+  /**
    * Processes the content to the token replacement method.
    *
    * @see #saveContent(Object, String)

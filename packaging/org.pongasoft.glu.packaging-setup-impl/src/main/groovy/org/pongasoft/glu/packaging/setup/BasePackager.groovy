@@ -1,15 +1,16 @@
 package org.pongasoft.glu.packaging.setup
 
+import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.util.io.resource.Resource
-import org.linkedin.groovy.util.io.fs.FileSystem
 
 /**
  * @author yan@pongasoft.com  */
 public class BasePackager
 {
-  FileSystem fileSystem
+  Shell shell
   Resource outputFolder
   Resource inputPackage
+  Resource templatesRoot
 
   String getPackageName()
   {
@@ -22,6 +23,28 @@ public class BasePackager
 
   Resource copyInputPackage(Resource destination)
   {
+    Resource parent = shell.mkdirs(destination.parentResource)
 
+    def fileName = inputPackage.filename
+    Resource location
+    if(fileName.endsWith(".tgz"))
+    {
+      location = shell.untar(inputPackage, parent)
+      // should contain 1 directory
+      location = location.list()[0]
+    }
+    else
+    {
+      location = shell.cp(inputPackage, parent)
+    }
+
+    shell.mv(location, destination)
+
+    return destination
+  }
+
+  Resource processTemplate(String relativeTemplateName, def output, def tokens)
+  {
+    shell.processTemplate(templatesRoot.createRelative(relativeTemplateName), output, tokens)
   }
 }

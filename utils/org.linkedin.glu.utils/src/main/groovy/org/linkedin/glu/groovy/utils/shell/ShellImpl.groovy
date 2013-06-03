@@ -19,6 +19,7 @@
 package org.linkedin.glu.groovy.utils.shell
 
 import eu.medsea.mimeutil.MimeUtil
+import groovy.text.GStringTemplateEngine
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.apache.tools.ant.filters.ReplaceTokens.Token
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
@@ -1018,6 +1019,43 @@ def class ShellImpl implements Shell
     }
 
     return to
+  }
+
+  Resource processTemplate(def template, def to, Map tokens)
+  {
+    Resource templateResource = toResource(template)
+
+    boolean toIsDirectory = to.toString().endsWith('/')
+    Resource toResource = toResource(to)
+    toIsDirectory = toIsDirectory || toResource.isDirectory()
+
+    if(templateResource.filename.endsWith(".gtmpl"))
+    {
+      def groovyTemplate = new GStringTemplateEngine().createTemplate(cat(templateResource))
+      def processedTemplate = groovyTemplate.make(tokens)
+
+      if(toIsDirectory)
+        toResource = toResource.createRelative(templateResource.filename - '.gtmpl')
+
+      withWriter(toResource) { Writer writer -> processedTemplate.writeTo(writer) }
+    }
+    else
+    {
+      if(templateResource.filename.endsWith(".xtmpl"))
+      {
+        if(toIsDirectory)
+          toResource = toResource.createRelative(templateResource.filename - '.xtmpl')
+      }
+      else
+      {
+        if(toIsDirectory)
+          toResource = toResource.createRelative(templateResource.filename)
+      }
+
+      replaceTokens(templateResource, toResource, tokens)
+    }
+
+    return toResource
   }
 
   /**
