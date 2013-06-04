@@ -607,6 +607,52 @@ line 3 abcdef
     }
   }
 
+  void testProcessTemplate()
+  {
+    ShellImpl.createTempShell { Shell shell ->
+
+      def templates = shell.mkdirs('/templates')
+
+      // .xtmpl
+      def t1 = shell.saveContent(templates.createRelative('/foo.xtmpl'),
+                                 'abc @token1@ efg @token2@ hij @token1@')
+      // in a file
+      def p1 = shell.processTemplate(t1, '/out1/foo', [token1: 'foo', token2: 'bar'])
+      assertEquals('/out1/foo', p1.path)
+      assertEquals('abc foo efg bar hij foo', shell.cat(p1))
+
+      shell.mkdirs('/out')
+      // in an existing dir
+      def p2 = shell.processTemplate(t1, '/out', [token1: 'foo', token2: 'bar'])
+      assertEquals('/out/foo', p2.path)
+      assertEquals('abc foo efg bar hij foo', shell.cat(p2))
+
+      // .gtmpl
+      def t2 = shell.saveContent(templates.createRelative('/foo.gtmpl'),
+                                 'abc ${token1} efg ${token2} hij ${token1} \\${token3}')
+
+      // in a file
+      def p3 = shell.processTemplate(t2, '/out3/foo', [token1: 'foo', token2: 'bar'])
+      assertEquals('/out3/foo', p3.path)
+      assertEquals('abc foo efg bar hij foo ${token3}', shell.cat(p3))
+
+      // in an existing dir
+      def p4 = shell.processTemplate(t2, '/out', [token1: 'foo', token2: 'bar'])
+      assertEquals('/out/foo', p4.path)
+      assertEquals('abc foo efg bar hij foo ${token3}', shell.cat(p4))
+
+      // unknown extension
+      def t3 = shell.saveContent(templates.createRelative('/foo.xxx'),
+                                 'abc @token1@ efg @token2@ hij @token1@')
+
+      // in an existing dir
+      def p5 = shell.processTemplate(t3, '/out', [token1: 'foo', token2: 'bar'])
+      assertEquals('/out/foo.xxx', p5.path)
+      assertEquals('abc foo efg bar hij foo', shell.cat(p5))
+
+    }
+  }
+
   private def leavesPaths(Resource root)
   {
     new TreeSet(GroovyIOUtils.findAll(root) { !it.isDirectory() }.collect { it.path })

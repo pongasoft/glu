@@ -4,7 +4,7 @@ import org.linkedin.util.io.resource.Resource
 
 /**
  * @author yan@pongasoft.com  */
-public class ZooKeeperPackager extends BasePackager
+public class ZooKeeperClusterPackager extends BasePackager
 {
   // collection of maps (host, clientPort, quorumPort, leaderElectionPort)
   def zookeperServers = []
@@ -13,7 +13,7 @@ public class ZooKeeperPackager extends BasePackager
     clientPort: 2181,
   ]
 
-  Collection<Resource> createPackages()
+  Collection<PackagedArtifact> createPackages()
   {
     int serverIndex = 1
     zookeperServers.collect { def zk ->
@@ -21,13 +21,17 @@ public class ZooKeeperPackager extends BasePackager
     }
   }
 
-  Resource createPackage(int serverIndex, def zk)
+  PackagedArtifact createPackage(int serverIndex, def zk)
   {
-    def newPackageName = "${packageName}-${zk.host ?: 'localhost'}-${zk.clientPort ?: opts.clientPort}"
+    String host = zk.host ?: 'localhost'
+    int port = (zk.clientPort ?: opts.clientPort) as int
+    def newPackageName = "${packageName}-${host}-${port}"
     Resource packagePath = outputFolder.createRelative(newPackageName)
     copyInputPackage(packagePath)
     configure(packagePath, serverIndex, zk)
-    return packagePath
+    return new PackagedArtifact(location: packagePath,
+                                host: host,
+                                port: port)
   }
 
   Resource configure(Resource packagePath, int serverIndex, def zk)
@@ -57,24 +61,4 @@ public class ZooKeeperPackager extends BasePackager
 
     return packagePath
   }
-
-  private static String MYID = '${id}'
-
-  private static String ZOO_CFG = '''
-# The number of milliseconds of each tick
-tickTime=${zk.tickTime ?: opts.tickTime ?: 2000}
-# The number of ticks that the initial
-# synchronization phase can take
-initLimit=${zk.initLimit ?: opts.initLimit ?: 10}
-# The number of ticks that can pass between
-# sending a request and getting an acknowledgement
-syncLimit=${zk.syncLimit ?: opts.syncLimit ?: 5}
-# the directory where the snapshot is stored.
-dataDir=${zk.dataDir ?: opts.dataDir ?: 'data'}
-# the port at which the clients will connect
-clientPort=${zk.clientPort ?: opts.clientPort ?: 2181}
-<% allServers?.eachWithIndex { server, idx -> %>
-server.${idx}=${server.host ?: 'localhost'}:${server.quorumPort ?: opts.quorumPort ?: 2888}:${server.leaderElectionPort ?: opts.leaderElectionPort ?: 3888}
-<% } %>
-'''
 }

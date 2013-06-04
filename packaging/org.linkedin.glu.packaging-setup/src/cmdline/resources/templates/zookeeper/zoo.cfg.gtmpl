@@ -11,5 +11,5 @@ dataDir=${zk.dataDir ?: opts.dataDir ?: 'data'}
 # the port at which the clients will connect
 clientPort=${zk.clientPort ?: opts.clientPort ?: 2181}
 <% allServers?.eachWithIndex { server, idx -> %>
-server.${idx}=${server.host ?: 'localhost'}:${server.quorumPort ?: opts.quorumPort ?: 2888}:${server.leaderElectionPort ?: opts.leaderElectionPort ?: 3888}
+server.${idx + 1}=${server.host ?: 'localhost'}:${server.quorumPort ?: opts.quorumPort ?: 2888}:${server.leaderElectionPort ?: opts.leaderElectionPort ?: 3888}
 <% } %>

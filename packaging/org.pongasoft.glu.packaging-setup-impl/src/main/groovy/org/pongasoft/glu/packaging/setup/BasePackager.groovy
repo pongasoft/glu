@@ -47,4 +47,12 @@ public class BasePackager
   {
     shell.processTemplate(templatesRoot.createRelative(relativeTemplateName), output, tokens)
   }
+
+  Resource processOptionalTemplate(String relativeTemplateName, def output, def tokens)
+  {
+    if(templatesRoot.createRelative(relativeTemplateName).exists())
+      processTemplate(relativeTemplateName, output, tokens)
+    else
+      return null
+  }
 }
