@@ -23,9 +23,17 @@ import org.linkedin.glu.utils.core.Externable;
  */
 public interface ServerMetaModel extends Externable
 {
+  String getVersion();
+
   HostMetaModel getHost();
 
   int getMainPort();
+
+  /**
+   * The default port for this server (ex: 12906 for agent)
+   * @return -1 if no default port
+   */
+  int getDefaultPort();
 
   int getPort(String portName);
 }

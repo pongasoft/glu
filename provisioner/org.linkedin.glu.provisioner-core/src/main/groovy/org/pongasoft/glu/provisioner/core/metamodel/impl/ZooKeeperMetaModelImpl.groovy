@@ -26,6 +26,12 @@ public class ZooKeeperMetaModelImpl extends ServerMetaModelImpl implements ZooKe
   ZooKeeperClusterMetaModel zooKeeperCluster
 
   @Override
+  int getDefaultPort()
+  {
+    return 2181;
+  }
+
+  @Override
   int getClientPort()
   {
     getMainPort()
@@ -34,13 +40,13 @@ public class ZooKeeperMetaModelImpl extends ServerMetaModelImpl implements ZooKe
   @Override
   int getQuorumPort()
   {
-    getPort('quorumPort')
+    getPort('quorumPort', 2888)
   }
 
   @Override
   int getLeaderElectionPort()
   {
-    getPort('leaderElectionPort')
+    getPort('leaderElectionPort', 3888)
   }
 
   @Override

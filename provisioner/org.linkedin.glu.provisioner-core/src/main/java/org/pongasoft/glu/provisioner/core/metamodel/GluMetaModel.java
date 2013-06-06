@@ -37,4 +37,9 @@ public interface GluMetaModel extends Externable
 
   Map<String, ZooKeeperClusterMetaModel> getZooKeeperClusters();
   ZooKeeperClusterMetaModel findZooKeeperCluster(String zooKeeperClusterName);
+
+  /**
+   * This is the version of the meta model, NOT the version of glu
+   */
+  String getMetaModelVersion();
 }

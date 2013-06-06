@@ -27,11 +27,28 @@ public class AgentMetaModelImpl extends ServerMetaModelImpl implements AgentMeta
   FabricMetaModel fabric
 
   @Override
+  int getDefaultPort()
+  {
+    return 12906;
+  }
+
+  @Override
+  String getName()
+  {
+    if(!name)
+      host.resolveHostAddress()
+    else
+      name
+  }
+
+  @Override
   Object toExternalRepresentation()
   {
     def ext = super.toExternalRepresentation()
 
-    ext.name = name
+    if(name)
+      ext.name = name
+
     ext.fabric = fabric.name
 
     return ext

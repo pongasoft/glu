@@ -26,7 +26,10 @@ import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
  * @author yan@pongasoft.com  */
 public class GluMetaModelImpl implements GluMetaModel
 {
+  public static final String META_MODEL_VERSION = '1.0.0'
+
   Map<String, FabricMetaModel> fabrics
+  String metaModelVersion = META_MODEL_VERSION
 
   @Override
   FabricMetaModel findFabric(String fabricName)
@@ -92,6 +95,7 @@ public class GluMetaModelImpl implements GluMetaModel
   Object toExternalRepresentation()
   {
     [
+      metaModelVersion: metaModelVersion,
       agents: agents.collect { it.toExternalRepresentation() },
       consoles: consoles.values().collect { it.toExternalRepresentation() },
       zooKeeperClusters: zooKeeperClusters.values().collect { it.toExternalRepresentation() }

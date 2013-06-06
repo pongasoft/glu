@@ -27,6 +27,12 @@ public class ConsoleMetaModelImpl extends ServerMetaModelImpl implements Console
   Map<String, FabricMetaModel> fabrics
 
   @Override
+  int getDefaultPort()
+  {
+    return 8080;
+  }
+
+  @Override
   FabricMetaModel findFabric(String fabricName)
   {
     return fabrics[fabricName]

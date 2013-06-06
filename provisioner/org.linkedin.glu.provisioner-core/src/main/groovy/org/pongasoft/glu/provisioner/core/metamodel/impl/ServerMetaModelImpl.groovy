@@ -24,13 +24,16 @@ import org.pongasoft.glu.provisioner.core.metamodel.ServerMetaModel
  * @author yan@pongasoft.com  */
 public class ServerMetaModelImpl implements ServerMetaModel
 {
+  public static final String MAIN_PORT_KEY = 'main'
+
+  String version
   HostMetaModel host
   Map<String, Integer> ports
 
   @Override
   int getMainPort()
   {
-    getPort('main')
+    getPort(MAIN_PORT_KEY, defaultPort)
   }
 
   @Override
@@ -42,18 +45,33 @@ public class ServerMetaModelImpl implements ServerMetaModel
       throw new IllegalArgumentException("not a valid portName: [${portName}]")
   }
 
+  int getPort(String portName, int defaultPortValue)
+  {
+    ports[portName] ?: defaultPortValue
+  }
+
+  /**
+   * Default implementation returns -1 => override to return a "real" default port
+   */
+  @Override
+  int getDefaultPort()
+  {
+    return -1
+  }
+
   @Override
   Object toExternalRepresentation()
   {
     def res = [
+      version: version,
       host: host.toExternalRepresentation(),
     ]
 
-    if(ports.containsKey('main'))
+    if(mainPort != defaultPort)
       res.port = mainPort
 
     if(ports.size() > 1)
-      res.ports =  GluGroovyCollectionUtils.xorMap(ports, ['main'])
+      res.ports =  GluGroovyCollectionUtils.xorMap(ports, [MAIN_PORT_KEY])
 
     return res
   }
