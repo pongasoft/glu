@@ -16,24 +16,13 @@
 
 package org.pongasoft.glu.provisioner.core.metamodel;
 
-import org.linkedin.glu.utils.core.Externable;
+import java.util.Map;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface ServerMetaModel extends Externable, Configurable
+public interface Configurable
 {
-  String getVersion();
-
-  HostMetaModel getHost();
-
-  int getMainPort();
-
-  /**
-   * The default port for this server (ex: 12906 for agent)
-   * @return -1 if no default port
-   */
-  int getDefaultPort();
-
-  int getPort(String portName);
+  Map<String, ConfigMetaModel> getConfigs();
+  ConfigMetaModel findConfig(String configName);
 }

@@ -18,22 +18,29 @@ package org.pongasoft.glu.provisioner.core.metamodel;
 
 import org.linkedin.glu.utils.core.Externable;
 
+import java.net.URI;
+import java.util.Map;
+
 /**
  * @author yan@pongasoft.com
  */
-public interface ServerMetaModel extends Externable, Configurable
+public interface ConfigMetaModel extends Externable
 {
-  String getVersion();
+  interface ConfigSource extends Externable {}
 
-  HostMetaModel getHost();
+  interface URIConfigSource extends ConfigSource
+  {
+    URI getUri();
+  }
 
-  int getMainPort();
+  interface TemplateConfigSource extends ConfigSource
+  {
+    URI getTemplate();
+    Map<String, String> getTokens();
+  }
 
-  /**
-   * The default port for this server (ex: 12906 for agent)
-   * @return -1 if no default port
-   */
-  int getDefaultPort();
+  String getName();
 
-  int getPort(String portName);
+  ConfigSource getFrom();
+  URI getTo();
 }

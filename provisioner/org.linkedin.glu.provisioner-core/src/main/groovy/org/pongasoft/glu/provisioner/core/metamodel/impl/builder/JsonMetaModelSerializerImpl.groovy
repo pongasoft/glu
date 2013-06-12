@@ -14,7 +14,7 @@
  * the License.
  */
 
-package org.pongasoft.glu.provisioner.core.metamodel.impl
+package org.pongasoft.glu.provisioner.core.metamodel.impl.builder
 
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.io.resource.Resource

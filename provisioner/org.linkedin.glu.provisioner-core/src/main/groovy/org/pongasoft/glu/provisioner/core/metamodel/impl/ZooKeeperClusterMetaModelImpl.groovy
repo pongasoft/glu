@@ -16,6 +16,7 @@
 
 package org.pongasoft.glu.provisioner.core.metamodel.impl
 
+import org.pongasoft.glu.provisioner.core.metamodel.ConfigMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.FabricMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperMetaModel
@@ -27,6 +28,7 @@ public class ZooKeeperClusterMetaModelImpl implements ZooKeeperClusterMetaModel
   String name
   Map<String, FabricMetaModel> fabrics
   List<ZooKeeperMetaModel> zooKeepers
+  Map<String, ConfigMetaModel> configs
 
   @Override
   FabricMetaModel findFabric(String fabricName)
@@ -41,12 +43,28 @@ public class ZooKeeperClusterMetaModelImpl implements ZooKeeperClusterMetaModel
   }
 
   @Override
+  ConfigMetaModel findConfig(String configName)
+  {
+    configs[configName]
+  }
+
+  @Override
   Object toExternalRepresentation()
   {
-    [
+    def res = [
       name: name,
       fabrics: fabrics.keySet().collect { it },
       zooKeepers: zooKeepers.collect { it.toExternalRepresentation() }
     ]
+
+    if(configs)
+    {
+      if(configs.size() == 1)
+        res.config = configs.keySet().iterator().next()
+      else
+        res.configs = configs.keySet().collect { it }
+    }
+
+    return res
   }
 }

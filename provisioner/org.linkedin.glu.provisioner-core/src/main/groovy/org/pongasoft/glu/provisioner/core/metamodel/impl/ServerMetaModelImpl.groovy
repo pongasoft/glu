@@ -17,6 +17,7 @@
 package org.pongasoft.glu.provisioner.core.metamodel.impl
 
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.pongasoft.glu.provisioner.core.metamodel.ConfigMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.HostMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ServerMetaModel
 
@@ -29,6 +30,7 @@ public class ServerMetaModelImpl implements ServerMetaModel
   String version
   HostMetaModel host
   Map<String, Integer> ports
+  Map<String, ConfigMetaModel> configs
 
   @Override
   int getMainPort()
@@ -60,6 +62,12 @@ public class ServerMetaModelImpl implements ServerMetaModel
   }
 
   @Override
+  ConfigMetaModel findConfig(String configName)
+  {
+    configs[configName]
+  }
+
+  @Override
   Object toExternalRepresentation()
   {
     def res = [
@@ -72,6 +80,14 @@ public class ServerMetaModelImpl implements ServerMetaModel
 
     if(ports.size() > 1)
       res.ports =  GluGroovyCollectionUtils.xorMap(ports, [MAIN_PORT_KEY])
+
+    if(configs)
+    {
+      if(configs.size() == 1)
+        res.config = configs.keySet().iterator().next()
+      else
+        res.configs = configs.keySet().collect { it }
+    }
 
     return res
   }

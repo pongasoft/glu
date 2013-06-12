@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * @author yan@pongasoft.com
  */
-public interface GluMetaModel extends Externable
+public interface GluMetaModel extends Externable, Configurable
 {
   Map<String, FabricMetaModel> getFabrics();
   FabricMetaModel findFabric(String fabricName);

@@ -14,19 +14,34 @@
  * the License.
  */
 
-package org.pongasoft.glu.provisioner.core.metamodel.impl
+package org.pongasoft.glu.provisioner.core.metamodel.impl.builder
 
+import com.fasterxml.jackson.core.JsonParseException
+import org.codehaus.groovy.control.CompilationFailedException
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.io.resource.Resource
+import org.pongasoft.glu.provisioner.core.metamodel.ConfigMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.FabricMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.impl.AgentMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.ConfigMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.ConsoleMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.FabricMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.GluMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.HostMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.PhysicalHostMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.ServerMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.ZooKeeperClusterMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.ZooKeeperMetaModelImpl
 
 /**
  * @author yan@pongasoft.com  */
 public class GluMetaModelBuilder
 {
   Map<String, FabricMetaModelImpl> fabrics = [:]
+  Map<String, ConfigMetaModelImpl> configs = [:]
 
   void deserializeFromJsonResource(Resource resource, String fabricName = null)
   {
@@ -36,15 +51,48 @@ public class GluMetaModelBuilder
 
   void deserializeFromJson(String jsonModel, String fabricName = null)
   {
-    deserializeFromJson((Map) JsonUtils.fromJSON(jsonModel?.trim()), fabricName)
+    Map jsonMapModel
+
+    try
+    {
+      jsonMapModel = (Map) JsonUtils.fromJSON(jsonModel?.trim())
+    }
+    catch(JsonParseException jpe)
+    {
+      try
+      {
+        jsonMapModel = GluMetaModelJsonGroovyDsl.parseJsonGroovy(jsonModel)
+      }
+      catch(CompilationFailedException cfe)
+      {
+        def ex = new IllegalArgumentException("cannot parse json model")
+        ex.addSuppressed(jpe)
+        ex.addSuppressed(cfe)
+        throw ex
+      }
+    }
+
+    deserializeFromJsonMap(jsonMapModel, fabricName)
   }
 
-  void deserializeFromJson(Map jsonModel, String fabricName = null)
+  void deserializeFromJsonMap(Map jsonModel, String fabricName = null)
   {
     // sanity check... leave it open for future versions
     def metaModelVersion = jsonModel.metaModelVersion ?: GluMetaModelImpl.META_MODEL_VERSION
     if(metaModelVersion != GluMetaModelImpl.META_MODEL_VERSION)
       throw new IllegalArgumentException("unsupported meta model version ${metaModelVersion}")
+
+    // if a fabric is provided, it is carried along on all calls
+    if(jsonModel.fabric)
+    {
+      if(fabricName && fabricName != jsonModel.fabric)
+        throw new IllegalArgumentException("fabric mismatch ${fabricName} != ${jsonModel.fabric}")
+
+      fabricName = jsonModel.fabric
+    }
+
+    // configs first because they get "wired" in the other components
+    jsonModel.configs?.each { deserializeConfig(it) }
 
     // agents
     jsonModel.agents?.each { deserializeAgent(it, fabricName) }
@@ -139,6 +187,8 @@ public class GluMetaModelBuilder
       fabric.zooKeeperCluster = zooKeeperCluster
     }
 
+    zooKeeperCluster.configs = getConfigsFromModel(zooKeeperClusterModel)
+
     zooKeeperCluster.fabrics = Collections.unmodifiableMap(fabrics)
   }
 
@@ -148,6 +198,38 @@ public class GluMetaModelBuilder
   ZooKeeperMetaModelImpl deserializeZooKeeper(Map zooKeeperModel)
   {
     deserializeServer(zooKeeperModel, new ZooKeeperMetaModelImpl())
+  }
+
+  /**
+   * Deserializes a config
+   */
+  ConfigMetaModelImpl deserializeConfig(Map configModel)
+  {
+    ConfigMetaModelImpl config = new ConfigMetaModelImpl(name: configModel.name)
+
+    config.to = new URI(configModel.to.toString())
+    config.from = deserializeConfigSource(configModel.from)
+
+    if(!config.name)
+      throw new IllegalArgumentException("missing name for config [${configModel}]")
+
+    if(configs.containsKey(config.name))
+      throw new IllegalArgumentException("duplicate config [${config.name}]")
+
+    configs[config.name] = config
+
+    return config
+  }
+
+  ConfigMetaModelImpl.ConfigSourceImpl deserializeConfigSource(def from)
+  {
+    if(from instanceof Map)
+    {
+      return new ConfigMetaModelImpl.TemplateConfigSourceImpl(template: new URI(from.template),
+                                                              tokens: from.tokens ?: [:])
+    }
+    else
+      return new ConfigMetaModelImpl.URIConfigSourceImpl(uri: new URI(from.toString()))
   }
 
   /**
@@ -202,8 +284,43 @@ public class GluMetaModelBuilder
     if(impl.ports)
       ports.putAll(impl.ports)
     impl.ports = ports
+    impl.configs = getConfigsFromModel(serverModel)
 
     return impl
+  }
+
+  /**
+   * Get config in the model
+   */
+  Map<String, ConfigMetaModel> getConfigsFromModel(Map model)
+  {
+    if(model.config)
+      return getSingleConfig(model.config)
+
+    if(model.configs)
+      return getMultipleConfigs(model.configs)
+
+    return [:]
+  }
+
+  /**
+   * Get config (single)
+   */
+  Map<String, ConfigMetaModel> getSingleConfig(String name)
+  {
+    getMultipleConfigs([name])
+  }
+
+  Map<String, ConfigMetaModel> getMultipleConfigs(Collection<String> names)
+  {
+    def res = GluGroovyCollectionUtils.toMapKey(names) { String name ->
+      def config = configs[name]
+      if(!config)
+        throw new IllegalArgumentException("config [${name}] not defined")
+      return config
+    }
+
+    return Collections.unmodifiableMap(res)
   }
 
   HostMetaModelImpl deserializeHostMetaModel(def host)
@@ -220,6 +337,7 @@ public class GluMetaModelBuilder
       fabric.agents = Collections.unmodifiableMap(fabric.agents)
       [name, fabric]
     }
-    return new GluMetaModelImpl(fabrics: Collections.unmodifiableMap(newFabrics))
+    return new GluMetaModelImpl(fabrics: Collections.unmodifiableMap(newFabrics),
+                                configs: Collections.unmodifiableMap(configs))
   }
 }
