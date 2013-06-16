@@ -16,41 +16,25 @@
 
 package org.pongasoft.glu.provisioner.core.metamodel.impl
 
-import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.FabricMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.KeyStoreMetaModel
 
 /**
  * @author yan@pongasoft.com  */
-public class AgentMetaModelImpl extends ServerMetaModelImpl implements AgentMetaModel
+public class KeyStoreMetaModelImpl implements KeyStoreMetaModel
 {
-  String name
-  FabricMetaModel fabric
-
-  @Override
-  int getDefaultPort()
-  {
-    return DEFAULT_PORT;
-  }
-
-  @Override
-  String getName()
-  {
-    if(!name)
-      host.resolveHostAddress()
-    else
-      name
-  }
+  URI uri
+  String checksum
+  String storePassword
+  String keyPassword
 
   @Override
   Object toExternalRepresentation()
   {
-    def ext = super.toExternalRepresentation()
-
-    if(name)
-      ext.name = name
-
-    ext.fabric = fabric.name
-
-    return ext
+    [
+      uri: uri.toString(),
+      checksum: checksum,
+      storePassword: storePassword,
+      keyPassword: keyPassword
+    ]
   }
 }

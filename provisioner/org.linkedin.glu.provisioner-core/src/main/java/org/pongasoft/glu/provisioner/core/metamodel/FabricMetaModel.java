@@ -16,12 +16,14 @@
 
 package org.pongasoft.glu.provisioner.core.metamodel;
 
+import org.linkedin.glu.utils.core.Externable;
+
 import java.util.Map;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface FabricMetaModel
+public interface FabricMetaModel extends Externable
 {
   String getName();
 
@@ -32,4 +34,6 @@ public interface FabricMetaModel
   ZooKeeperClusterMetaModel getZooKeeperCluster();
 
   ConsoleMetaModel getConsole();
+
+  KeysMetaModel getKeys();
 }

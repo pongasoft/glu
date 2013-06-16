@@ -18,28 +18,15 @@ package org.pongasoft.glu.provisioner.core.metamodel;
 
 import org.linkedin.glu.utils.core.Externable;
 
-import java.util.Collection;
-import java.util.Map;
+import java.net.URI;
 
 /**
  * @author yan@pongasoft.com
  */
-public interface GluMetaModel extends Externable
+public interface KeyStoreMetaModel extends Externable
 {
-  Map<String, FabricMetaModel> getFabrics();
-  FabricMetaModel findFabric(String fabricName);
-
-  Collection<AgentMetaModel> getAgents();
-  AgentMetaModel findAgent(String fabricName, String agentName);
-
-  Map<String, ConsoleMetaModel> getConsoles();
-  ConsoleMetaModel findConsole(String consoleName);
-
-  Map<String, ZooKeeperClusterMetaModel> getZooKeeperClusters();
-  ZooKeeperClusterMetaModel findZooKeeperCluster(String zooKeeperClusterName);
-
-  /**
-   * This is the version of the meta model, NOT the version of glu
-   */
-  String getMetaModelVersion();
+  URI getUri();
+  String getChecksum();
+  String getStorePassword();
+  String getKeyPassword();
 }

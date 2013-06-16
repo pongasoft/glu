@@ -18,19 +18,17 @@ package org.pongasoft.glu.provisioner.core.metamodel.impl.builder
 
 import com.fasterxml.jackson.core.JsonParseException
 import org.codehaus.groovy.control.CompilationFailedException
-import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.io.resource.Resource
-import org.pongasoft.glu.provisioner.core.metamodel.ConfigMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.FabricMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.impl.AgentMetaModelImpl
-import org.pongasoft.glu.provisioner.core.metamodel.impl.ConfigMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.ConsoleMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.FabricMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.GluMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.HostMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.KeyStoreMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.KeysMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.PhysicalHostMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.ServerMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.ZooKeeperClusterMetaModelImpl
@@ -41,15 +39,16 @@ import org.pongasoft.glu.provisioner.core.metamodel.impl.ZooKeeperMetaModelImpl
 public class GluMetaModelBuilder
 {
   Map<String, FabricMetaModelImpl> fabrics = [:]
-  Map<String, ConfigMetaModelImpl> configs = [:]
+  Map<String, ConsoleMetaModelImpl> consoles = [:]
+  Map<String, ZooKeeperClusterMetaModelImpl> zooKeeperClusters = [:]
 
-  void deserializeFromJsonResource(Resource resource, String fabricName = null)
+  void deserializeFromJsonResource(Resource resource)
   {
     if(resource != null)
-      deserializeFromJson(GroovyIOUtils.cat(resource), fabricName)
+      deserializeFromJson(GroovyIOUtils.cat(resource))
   }
 
-  void deserializeFromJson(String jsonModel, String fabricName = null)
+  void deserializeFromJson(String jsonModel)
   {
     Map jsonMapModel
 
@@ -72,43 +71,69 @@ public class GluMetaModelBuilder
       }
     }
 
-    deserializeFromJsonMap(jsonMapModel, fabricName)
+    deserializeFromJsonMap(jsonMapModel)
   }
 
-  void deserializeFromJsonMap(Map jsonModel, String fabricName = null)
+  void deserializeFromJsonMap(Map jsonModel)
   {
     // sanity check... leave it open for future versions
     def metaModelVersion = jsonModel.metaModelVersion ?: GluMetaModelImpl.META_MODEL_VERSION
     if(metaModelVersion != GluMetaModelImpl.META_MODEL_VERSION)
       throw new IllegalArgumentException("unsupported meta model version ${metaModelVersion}")
 
-    // if a fabric is provided, it is carried along on all calls
-    if(jsonModel.fabric)
-    {
-      if(fabricName && fabricName != jsonModel.fabric)
-        throw new IllegalArgumentException("fabric mismatch ${fabricName} != ${jsonModel.fabric}")
-
-      fabricName = jsonModel.fabric
-    }
-
-    // configs first because they get "wired" in the other components
-    jsonModel.configs?.each { deserializeConfig(it) }
-
     // agents
-    jsonModel.agents?.each { deserializeAgent(it, fabricName) }
+    jsonModel.agents?.each { deserializeAgent(it) }
 
     // consoles
-    jsonModel.consoles?.each { deserializeConsole(it, fabricName) }
+    jsonModel.consoles?.each { deserializeConsole(it) }
 
     // zookeeperClusters
-    jsonModel.zooKeeperClusters?.each { deserializeZooKeeperCluster(it, fabricName) }
+    jsonModel.zooKeeperClusters?.each { deserializeZooKeeperCluster(it) }
 
+    // fabrics
+    jsonModel.fabrics?.each { name, fabricModel -> deserializeFabric(name, fabricModel)}
+  }
+
+  /**
+   * Deserialize a fabric
+   */
+  void deserializeFabric(String fabricName, Map fabricModel)
+  {
+    FabricMetaModelImpl fabric = findOrCreateFabric(fabricName)
+
+    // handling console
+    if(fabricModel.console)
+    {
+      if(fabric.console?.name && (fabricModel.console != fabric.console.name))
+        throw new IllegalArgumentException("trying to redefine console for fabric [${fabricName}] ([${fabricModel.console}] != [${fabric.console.name}]")
+
+      fabric.console = consoles[fabricModel.console]
+      if(!fabric.console)
+        throw new IllegalArgumentException("could not find console [${fabricModel.console}] for fabric [${fabricName}]")
+
+      fabric.console.fabrics[fabricName] = fabric
+    }
+
+    // handling zooKeeperCluster
+    if(fabricModel.zooKeeperCluster)
+    {
+      if(fabric.zooKeeperCluster?.name && (fabricModel.zooKeeperCluster != fabric.zooKeeperCluster.name))
+        throw new IllegalArgumentException("trying to redefine zooKeeperCluster for fabric [${fabricName}] ([${fabricModel.zooKeeperCluster}] != [${fabric.zooKeeperCluster.name}]")
+
+      fabric.zooKeeperCluster = zooKeeperClusters[fabricModel.zooKeeperCluster]
+      if(!fabric.zooKeeperCluster)
+        throw new IllegalArgumentException("could not find zooKeeperCluster [${fabricModel.zooKeeperCluster}] for fabric [${fabricName}]")
+
+      fabric.zooKeeperCluster.fabrics[fabricName] = fabric
+    }
+
+    fabric.keys = deserializeKeys(fabricModel.keys)
   }
 
   /**
    * Deserialize an agent
    */
-  void deserializeAgent(Map agentModel, String fabricName = null)
+  void deserializeAgent(Map agentModel)
   {
     AgentMetaModelImpl agent =
       deserializeServer(agentModel, new AgentMetaModelImpl(name: agentModel.name))
@@ -116,7 +141,7 @@ public class GluMetaModelBuilder
     if(!agent.name)
       throw new IllegalArgumentException("missing agent name for ${agentModel}")
 
-    def fabric = findOrCreateFabric(agentModel.fabric, fabricName)
+    def fabric = findOrCreateFabric(agentModel.fabric)
 
     if(fabric.agents.containsKey(agent.name))
       throw new IllegalArgumentException("duplicate agent name [${agent.name}] for fabric [${fabric.name}]")
@@ -129,67 +154,36 @@ public class GluMetaModelBuilder
   /**
    * Deserialize a console which can handle multiple fabrics
    */
-  void deserializeConsole(Map consoleModel, String fabricName = null)
+  void deserializeConsole(Map consoleModel)
   {
-    ConsoleMetaModelImpl console = deserializeServer(consoleModel,
-                                                     new ConsoleMetaModelImpl(name: consoleModel.name ?: 'default'))
+    ConsoleMetaModelImpl console =
+      deserializeServer(consoleModel,
+                        new ConsoleMetaModelImpl(name: consoleModel.name ?: 'default',
+                                                 fabrics: [:]))
 
-    // handling fabrics
-    Map<String, FabricMetaModel> fabrics = [:]
-
-    def modelFabricNames = consoleModel.fabrics ?: [fabricName]
-
-    modelFabricNames.each { modelFabricName ->
-      def fabric = findOrCreateFabric(modelFabricName)
-
-      // linking the 2
-      fabrics[modelFabricName] = fabric
-
-      if(fabric.console)
-        throw new IllegalArgumentException("console for [${modelFabricName}] already set to [${fabric.console.name}] (trying to set it to [${console.name}])")
-      fabric.console = console
-    }
-
-    console.fabrics = Collections.unmodifiableMap(fabrics)
+    consoles[console.name] = console
   }
 
   /**
    * ZooKeeper cluster which is made of ZooKeeper servers and represent multiple fabrics
    */
-  void deserializeZooKeeperCluster(Map zooKeeperClusterModel, String fabricName = null)
+  void deserializeZooKeeperCluster(Map zooKeeperClusterModel)
   {
     ZooKeeperClusterMetaModelImpl zooKeeperCluster =
-      new ZooKeeperClusterMetaModelImpl(name: zooKeeperClusterModel.name ?: 'default')
+      new ZooKeeperClusterMetaModelImpl(name: zooKeeperClusterModel.name ?: 'default',
+                                        fabrics: [:])
 
     // handle the zookeepers making up the cluster
     def zooKeepers = []
-      zooKeeperClusterModel.zooKeepers?.each {
-        def zooKeeper = deserializeZooKeeper(it)
-        // linking the 2
-        zooKeeper.zooKeeperCluster = zooKeeperCluster
-        zooKeepers << zooKeeper
-      }
-    zooKeeperCluster.zooKeepers = Collections.unmodifiableList(zooKeepers)
-
-    // handling the fabrics
-    Map<String, FabricMetaModel> fabrics = [:]
-
-    def modelFabricNames = zooKeeperClusterModel.fabrics ?: [fabricName]
-
-    modelFabricNames.each { modelFabricName ->
-      def fabric = findOrCreateFabric(modelFabricName)
-
+    zooKeeperClusterModel.zooKeepers?.each {
+      def zooKeeper = deserializeZooKeeper(it)
       // linking the 2
-      fabrics[modelFabricName] = fabric
-
-      if(fabric.zooKeeperCluster)
-        throw new IllegalArgumentException("zooKeeperCluster for [${modelFabricName}] already set to [${fabric.zooKeeperCluster.name}] (trying to set it to [${zooKeeperCluster.name}])")
-      fabric.zooKeeperCluster = zooKeeperCluster
+      zooKeeper.zooKeeperCluster = zooKeeperCluster
+      zooKeepers << zooKeeper
     }
+    zooKeeperCluster.zooKeepers = zooKeepers
 
-    zooKeeperCluster.configs = getConfigsFromModel(zooKeeperClusterModel)
-
-    zooKeeperCluster.fabrics = Collections.unmodifiableMap(fabrics)
+    zooKeeperClusters[zooKeeperCluster.name] = zooKeeperCluster
   }
 
   /**
@@ -201,71 +195,21 @@ public class GluMetaModelBuilder
   }
 
   /**
-   * Deserializes a config
-   */
-  ConfigMetaModelImpl deserializeConfig(Map configModel)
-  {
-    ConfigMetaModelImpl config = new ConfigMetaModelImpl(name: configModel.name)
-
-    config.to = new URI(configModel.to.toString())
-    config.from = deserializeConfigSource(configModel.from)
-
-    if(!config.name)
-      throw new IllegalArgumentException("missing name for config [${configModel}]")
-
-    if(configs.containsKey(config.name))
-      throw new IllegalArgumentException("duplicate config [${config.name}]")
-
-    configs[config.name] = config
-
-    return config
-  }
-
-  ConfigMetaModelImpl.ConfigSourceImpl deserializeConfigSource(def from)
-  {
-    if(from instanceof Map)
-    {
-      return new ConfigMetaModelImpl.TemplateConfigSourceImpl(template: new URI(from.template),
-                                                              tokens: from.tokens ?: [:])
-    }
-    else
-      return new ConfigMetaModelImpl.URIConfigSourceImpl(uri: new URI(from.toString()))
-  }
-
-  /**
    * @return a fabric (never <code>null</code>)
    */
-  private FabricMetaModelImpl findOrCreateFabric(String modelFabricName, String fabricName = null)
+  private FabricMetaModelImpl findOrCreateFabric(String modelFabricName)
   {
-    fabricName = computeFabricName(modelFabricName, fabricName)
-
-    FabricMetaModelImpl fabric = fabrics[fabricName]
+    FabricMetaModelImpl fabric = fabrics[modelFabricName]
 
     if(!fabric)
     {
-      fabric = new FabricMetaModelImpl(name: fabricName,
+      fabric = new FabricMetaModelImpl(name: modelFabricName,
                                        agents: [:])
 
-      fabrics[fabricName] = fabric
+      fabrics[modelFabricName] = fabric
     }
 
     return fabric
-  }
-
-  /**
-   * Make sure that if a fabric name is provided it is compatible
-   */
-  public String computeFabricName(String modelFabricName, String fabricName)
-  {
-    String fn = modelFabricName ?: fabricName
-
-    if(!fn)
-      throw new IllegalArgumentException("fabric is required")
-
-    if(fabricName && fn != fabricName)
-      throw new IllegalArgumentException("fabric mismatch ${fabricName} != ${fn}")
-
-    return fn
   }
 
   /**
@@ -283,44 +227,17 @@ public class GluMetaModelBuilder
       ports[ServerMetaModelImpl.MAIN_PORT_KEY] = serverModel.port
     if(impl.ports)
       ports.putAll(impl.ports)
-    impl.ports = ports
-    impl.configs = getConfigsFromModel(serverModel)
+    impl.ports = Collections.unmodifiableMap(ports)
+    impl.configTokens = deserializeConfigTokens(serverModel.configTokens)
 
     return impl
   }
 
-  /**
-   * Get config in the model
-   */
-  Map<String, ConfigMetaModel> getConfigsFromModel(Map model)
+  private Map<String, String> deserializeConfigTokens(Map configTokens)
   {
-    if(model.config)
-      return getSingleConfig(model.config)
-
-    if(model.configs)
-      return getMultipleConfigs(model.configs)
-
-    return [:]
-  }
-
-  /**
-   * Get config (single)
-   */
-  Map<String, ConfigMetaModel> getSingleConfig(String name)
-  {
-    getMultipleConfigs([name])
-  }
-
-  Map<String, ConfigMetaModel> getMultipleConfigs(Collection<String> names)
-  {
-    def res = GluGroovyCollectionUtils.toMapKey(names) { String name ->
-      def config = configs[name]
-      if(!config)
-        throw new IllegalArgumentException("config [${name}] not defined")
-      return config
-    }
-
-    return Collections.unmodifiableMap(res)
+    if(configTokens == null)
+      return null
+    return Collections.unmodifiableMap(configTokens)
   }
 
   HostMetaModelImpl deserializeHostMetaModel(def host)
@@ -331,13 +248,46 @@ public class GluMetaModelBuilder
       throw new IllegalArgumentException("unsupported host type [${host}]")
   }
 
+  KeysMetaModelImpl deserializeKeys(Map keysModel)
+  {
+    KeysMetaModelImpl keysMetaModel = new KeysMetaModelImpl()
+
+    [
+      'agentKeyStore',
+      'agentTrustStore',
+      'consoleKeyStore',
+      'consoleTrustStore'
+    ].each { storeName ->
+      keysMetaModel."${storeName}" = deserializeKeyStore(keysModel[storeName])
+    }
+
+    return keysMetaModel
+  }
+
+  KeyStoreMetaModelImpl deserializeKeyStore(Map keyStoreModel)
+  {
+    if(keyStoreModel == null)
+      return null
+
+    new KeyStoreMetaModelImpl(uri: new URI(keyStoreModel.uri),
+                              checksum: keyStoreModel.checksum,
+                              storePassword: keyStoreModel.storePassword,
+                              keyPassword: keyStoreModel.keyPassword)
+  }
+
   GluMetaModel toGluMetaModel()
   {
     def newFabrics = fabrics.collectEntries { name, fabric ->
       fabric.agents = Collections.unmodifiableMap(fabric.agents)
       [name, fabric]
     }
-    return new GluMetaModelImpl(fabrics: Collections.unmodifiableMap(newFabrics),
-                                configs: Collections.unmodifiableMap(configs))
+    consoles.values().each { console ->
+      console.fabrics = Collections.unmodifiableMap(console.fabrics)
+    }
+    zooKeeperClusters.values().each { zooKeeperCluster ->
+      zooKeeperCluster.fabrics = Collections.unmodifiableMap(zooKeeperCluster.fabrics)
+      zooKeeperCluster.zooKeepers = Collections.unmodifiableList(zooKeeperCluster.zooKeepers)
+    }
+    return new GluMetaModelImpl(fabrics: Collections.unmodifiableMap(newFabrics))
   }
 }

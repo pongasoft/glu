@@ -16,8 +16,8 @@
 
 package org.pongasoft.glu.provisioner.core.metamodel.impl
 
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.ConfigMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.FabricMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
@@ -30,7 +30,6 @@ public class GluMetaModelImpl implements GluMetaModel
   public static final String META_MODEL_VERSION = '1.0.0'
 
   Map<String, FabricMetaModel> fabrics
-  Map<String, ConfigMetaModel> configs
   String metaModelVersion = META_MODEL_VERSION
 
   @Override
@@ -94,17 +93,15 @@ public class GluMetaModelImpl implements GluMetaModel
   }
 
   @Override
-  ConfigMetaModel findConfig(String configName)
-  {
-    configs[configName]
-  }
-
-  @Override
   Object toExternalRepresentation()
   {
     def res =[
       metaModelVersion: metaModelVersion
     ]
+
+    if(fabrics)
+      res.fabrics = fabrics.collectEntries { k, v ->
+        [k, GluGroovyCollectionUtils.xorMap(v.toExternalRepresentation(), ['name'])] }
 
     if(agents)
       res.agents = agents.collect { it.toExternalRepresentation() }
@@ -114,9 +111,6 @@ public class GluMetaModelImpl implements GluMetaModel
 
     if(zooKeeperClusters)
       res.zooKeeperClusters = zooKeeperClusters.values().collect { it.toExternalRepresentation() }
-
-    if(configs)
-      res.configs = configs.values().collect { it.toExternalRepresentation() }
 
     return res
   }

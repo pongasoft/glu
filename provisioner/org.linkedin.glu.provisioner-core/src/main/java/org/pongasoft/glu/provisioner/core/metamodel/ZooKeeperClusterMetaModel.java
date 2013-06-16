@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * @author yan@pongasoft.com
  */
-public interface ZooKeeperClusterMetaModel extends Externable, Configurable
+public interface ZooKeeperClusterMetaModel extends Externable
 {
   String getName();
 

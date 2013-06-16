@@ -23,6 +23,5 @@ import java.util.Map;
  */
 public interface Configurable
 {
-  Map<String, ConfigMetaModel> getConfigs();
-  ConfigMetaModel findConfig(String configName);
+  Map<String, String> getConfigTokens();
 }

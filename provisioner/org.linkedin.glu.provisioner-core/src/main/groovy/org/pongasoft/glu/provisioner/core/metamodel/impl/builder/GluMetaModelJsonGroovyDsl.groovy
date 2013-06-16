@@ -25,11 +25,10 @@ public class GluMetaModelJsonGroovyDsl
   public static Map parseJsonGroovy(String text)
   {
     def binding = new GluMetaModelBinding(metaModelVersion: GluMetaModelImpl.META_MODEL_VERSION,
-                                          fabric: null,
+                                          fabrics: [:],
                                           agents: [],
                                           consoles: [],
                                           zooKeeperClusters: [],
-                                          configs: [],
                                           out: System.out)
 
     def shell = new GroovyShell(binding)

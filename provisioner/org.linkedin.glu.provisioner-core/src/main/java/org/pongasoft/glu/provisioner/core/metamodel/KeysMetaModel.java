@@ -18,29 +18,13 @@ package org.pongasoft.glu.provisioner.core.metamodel;
 
 import org.linkedin.glu.utils.core.Externable;
 
-import java.net.URI;
-import java.util.Map;
-
 /**
  * @author yan@pongasoft.com
  */
-public interface ConfigMetaModel extends Externable
+public interface KeysMetaModel extends Externable
 {
-  interface ConfigSource extends Externable {}
-
-  interface URIConfigSource extends ConfigSource
-  {
-    URI getUri();
-  }
-
-  interface TemplateConfigSource extends ConfigSource
-  {
-    URI getTemplate();
-    Map<String, String> getTokens();
-  }
-
-  String getName();
-
-  ConfigSource getFrom();
-  URI getTo();
+  KeyStoreMetaModel getAgentKeyStore();
+  KeyStoreMetaModel getAgentTrustStore();
+  KeyStoreMetaModel getConsoleKeyStore();
+  KeyStoreMetaModel getConsoleTrustStore();
 }

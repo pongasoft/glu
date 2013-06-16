@@ -44,7 +44,6 @@ public class ConsoleMetaModelImpl extends ServerMetaModelImpl implements Console
     def ext = super.toExternalRepresentation()
 
     ext.name = name
-    ext.fabrics = fabrics.keySet().collect { it }
 
     return ext
   }

@@ -23,6 +23,8 @@ import org.linkedin.glu.utils.core.Externable;
  */
 public interface AgentMetaModel extends ServerMetaModel, Externable
 {
+  public static final int DEFAULT_PORT = 12906;
+
   String getName();
 
   FabricMetaModel getFabric();
