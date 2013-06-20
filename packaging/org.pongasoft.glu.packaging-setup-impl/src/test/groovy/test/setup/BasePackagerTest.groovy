@@ -30,6 +30,8 @@ public abstract class BasePackagerTest extends GroovyTestCase
 {
   public static final Object DIRECTORY = new Object()
 
+  public static final int CONFIG_TEMPLATES_COUNT = 8
+
   public static final String GLU_VERSION = 'g.v.0'
   public static final String ZOOKEEPER_VERSION = 'z.v.1'
 
@@ -54,10 +56,14 @@ public abstract class BasePackagerTest extends GroovyTestCase
     new File('../org.linkedin.glu.packaging-all/src/cmdline/resources/conf/tutorial/glu-meta-model.json.groovy').canonicalFile
   }
 
-  protected File getConfigsRoot(String name)
+  protected File getConfigsRoot()
   {
-    new File('../org.linkedin.glu.packaging-setup/src/cmdline/resources/configs',
-             name).canonicalFile
+    new File('../org.linkedin.glu.packaging-setup/src/cmdline/resources/configs').canonicalFile
+  }
+
+  protected Resource getConfigsRootResource()
+  {
+    rootShell.toResource(configsRoot)
   }
 
   protected File getKeysRootDir()
@@ -70,11 +76,6 @@ public abstract class BasePackagerTest extends GroovyTestCase
     rootShell.toResource(keysRootDir)
   }
 
-  protected Resource getConfigsRootResource(String name)
-  {
-    rootShell.toResource(getConfigsRoot(name))
-  }
-
   protected PackagerContext createPackagerContext(Shell shell)
   {
     new PackagerContext(shell: shell,
@@ -84,18 +85,15 @@ public abstract class BasePackagerTest extends GroovyTestCase
   /**
    * Copy all the configs from the config root
    */
-  protected Resource copyConfigs(String fromName,
-                                 Resource toConfigRoot,
-                                 int expectedNumberOfConfigFiles)
+  protected Resource copyConfigs(Resource toConfigRoot)
   {
-    toConfigRoot = toConfigRoot.createRelative(fromName)
-    Resource dir = rootShell.cp(getConfigsRootResource(fromName), toConfigRoot)
+    Resource dir = rootShell.cp(configsRootResource, toConfigRoot)
     int configFilesCount = 0
     rootShell.eachChildRecurse(dir) { Resource r ->
       if(!r.isDirectory())
         configFilesCount++
     }
-    assertEquals(expectedNumberOfConfigFiles, configFilesCount)
+    assertEquals(CONFIG_TEMPLATES_COUNT, configFilesCount)
     return toConfigRoot
   }
 
@@ -122,7 +120,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
         assertEquals(expectedValue, r.file.text)
     }
 
-    assertTrue("${expectedResources} is not empty", expectedResources.isEmpty())
+    assertTrue("${expectedResources.keySet()} is not empty", expectedResources.isEmpty())
   }
 
 }

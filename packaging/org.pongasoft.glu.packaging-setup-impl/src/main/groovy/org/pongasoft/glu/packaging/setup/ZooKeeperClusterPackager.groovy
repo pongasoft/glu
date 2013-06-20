@@ -10,7 +10,6 @@ import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperMetaModel
  * @author yan@pongasoft.com  */
 public class ZooKeeperClusterPackager extends BasePackager
 {
-  Resource clusterConfigRoot
   ZooKeeperClusterMetaModel metaModel
 
   def createPackage()
@@ -69,11 +68,13 @@ public class ZooKeeperClusterPackager extends BasePackager
       tokens[CONFIG_TOKENS_KEY].zkRoot = metaModel.gluMetaModel.zooKeeperRoot
       tokens[CONFIG_TOKENS_KEY].fabric = fabricMetaModel.name
 
+      processConfigs('zookeeper-cluster/fabrics', tokens, packagePath)
+
       fabricMetaModel.agents.values().each { AgentMetaModel agentMetaModel ->
         tokens.agentMetaModel = agentMetaModel
         tokens[CONFIG_TOKENS_KEY].agent = agentMetaModel.name
 
-        processConfigs(clusterConfigRoot, tokens, packagePath)
+        processConfigs('zookeeper-cluster/agents', tokens, packagePath)
       }
     }
 
@@ -92,7 +93,7 @@ public class ZooKeeperClusterPackager extends BasePackager
     tokens[PACKAGER_CONTEXT_KEY] = packagerContext
     tokens[CONFIG_TOKENS_KEY] = zk.configTokens
 
-    processConfigs(tokens, packagePath)
+    processConfigs('zookeeper-server', tokens, packagePath)
 
     return packagePath
   }

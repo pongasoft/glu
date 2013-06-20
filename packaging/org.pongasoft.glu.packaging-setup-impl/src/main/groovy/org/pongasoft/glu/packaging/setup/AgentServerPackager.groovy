@@ -124,7 +124,7 @@ public class AgentServerPackager extends BasePackager
     tokens[CONFIG_TOKENS_KEY].GLU_ZOOKEEPER =
       metaModel.fabric.zooKeeperCluster.zooKeeperConnectionString
 
-    processConfigs(tokens, serverRoot)
+    processConfigs('agent-server', tokens, serverRoot)
 
     return packagePath
   }

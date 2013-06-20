@@ -59,7 +59,12 @@ public class BasePackager
     return destination
   }
 
-  void processConfigs(Resource fromFolder = configRoot, Map tokens, Resource toFolder)
+  void processConfigs(String fromFolder, Map tokens, Resource toFolder)
+  {
+    processConfigs(configRoot.createRelative(fromFolder), tokens, toFolder)
+  }
+
+  void processConfigs(Resource fromFolder, Map tokens, Resource toFolder)
   {
     if(fromFolder?.exists())
     {

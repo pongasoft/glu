@@ -22,12 +22,7 @@ public class TestZooKeeperClusterPackager extends BasePackagerTest
         new ZooKeeperClusterPackager(packagerContext: createPackagerContext(shell),
                                      outputFolder: shell.mkdirs('/out'),
                                      inputPackage: inputPackage,
-                                     configRoot: copyConfigs('zookeeper-server',
-                                                             shell.mkdirs('/configs/zookeeper-server'),
-                                                             2),
-                                     clusterConfigRoot: copyConfigs('zookeeper-cluster',
-                                                                    shell.mkdirs('/configs/zookeeper-cluster'),
-                                                                    4),
+                                     configRoot: copyConfigs(shell.toResource('/configs')),
                                      metaModel: testModel.zooKeeperClusters['tutorialZooKeeperCluster'])
 
       def pkg = packager.createPackage()

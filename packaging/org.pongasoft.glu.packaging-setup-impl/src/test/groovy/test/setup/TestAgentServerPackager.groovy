@@ -106,9 +106,7 @@ glu.agent.configURL=zookeeper:\${glu.agent.zookeeper.root}/agents/fabrics/\${glu
       def packager = new AgentServerPackager(packagerContext: createPackagerContext(shell),
                                              outputFolder: shell.mkdirs('/out'),
                                              inputPackage: inputPackage,
-                                             configRoot: copyConfigs('agent-server',
-                                                                     shell.mkdirs('/configs'),
-                                                                     2),
+                                             configRoot: copyConfigs(shell.toResource('/configs')),
                                              metaModel: testModel.agents[0])
 
       PackagedArtifact artifact = packager.createPackage()
