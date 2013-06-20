@@ -17,12 +17,13 @@
 package org.pongasoft.glu.packaging.setup
 
 import org.linkedin.util.io.resource.Resource
+import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 
 /**
  * @author yan@pongasoft.com  */
 public class AgentServerPackager extends BasePackager
 {
-  public static final int DEFAULT_AGENT_PORT = 12906
   public static final String DEFAULT_AGENT_HOST = '*' // any host
 
   public static final def ENV_PROPERTY_NAMES = [
@@ -57,43 +58,29 @@ public class AgentServerPackager extends BasePackager
     "MAIN_CLASS_ARGS",
   ]
 
-  public static final def CONFIG_PROPERTY_NAMES = [
-    // from agentConfig.properties
-    "glu.agent.scriptRootDir",
-    "glu.agent.dataDir",
-    "glu.agent.logDir",
-    "glu.agent.tempDir",
-    "glu.agent.scriptStateDir",
-    "glu.agent.rest.nonSecure.port",
-    "glu.agent.persistent.properties",
-    "glu.agent.features.commands.enabled",
-    "glu.agent.commands.storageType",
-    "glu.agent.commands.filesystem.dir",
-    "glu.agent.zkSessionTimeout",
-    "glu.agent.zkProperties",
-    "glu.agent.configURL",
+  AgentMetaModel metaModel
 
-    // from zookeeper config (usually defined by glu.agent.configURL)
-    "glu.agent.sslEnabled",
-    "glu.agent.keystorePath",
-    "glu.agent.keystoreChecksum",
-    "glu.agent.keystorePassword",
-    "glu.agent.keyPassword",
-    "glu.agent.truststorePath",
-    "glu.agent.truststoreChecksum",
-    "glu.agent.truststorePassword",
-    "glu.agent.ivySettings"
-  ]
-
-  def opts = [:]
+  Map<String, String> getConfigTokens()
+  {
+    metaModel.configTokens
+  }
 
   PackagedArtifact createPackage()
   {
-    String agentName = opts.GLU_AGENT_NAME
-    int agentPort = (opts.GLU_AGENT_PORT ?: DEFAULT_AGENT_PORT) as int
+    def tokens = [
+      agentMetaModel: metaModel,
+      envPropertyNames: ENV_PROPERTY_NAMES,
+    ]
+
+    tokens[PACKAGER_CONTEXT_KEY] = packagerContext
+    tokens[CONFIG_TOKENS_KEY] = [*:configTokens]
+
+    String agentName = metaModel.name
+    int agentPort = metaModel.mainPort
 
     def agentHost
-    switch(opts.GLU_AGENT_HOSTNAME_FACTORY)
+
+    switch(configTokens.GLU_AGENT_HOSTNAME_FACTORY)
     {
       case ':ip':
       case ':canonical':
@@ -102,7 +89,7 @@ public class AgentServerPackager extends BasePackager
         break;
 
       default:
-        agentHost = opts.GLU_AGENT_HOSTNAME_FACTORY
+        agentHost = configTokens.GLU_AGENT_HOSTNAME_FACTORY
     }
 
     def parts = [packageName]
@@ -110,39 +97,34 @@ public class AgentServerPackager extends BasePackager
       parts << agentName
     if(agentHost != DEFAULT_AGENT_HOST)
       parts << agentHost
-    if(agentPort != DEFAULT_AGENT_PORT)
+    if(agentPort != AgentMetaModel.DEFAULT_PORT)
       parts << agentPort
-    if(opts.GLU_AGENT_FABRIC)
-      parts << opts.GLU_AGENT_FABRIC
+    if(configTokens.GLU_AGENT_FABRIC)
+      parts << configTokens.GLU_AGENT_FABRIC
     String newPackageName = parts.join('-')
+
+    if(metaModel.gluMetaModel.zooKeeperRoot != GluMetaModel.DEFAULT_ZOOKEEPER_ROOT)
+      tokens[CONFIG_TOKENS_KEY].GLU_AGENT_ZOOKEEPER_ROOT = metaModel.gluMetaModel.zooKeeperRoot
 
     Resource packagePath = outputFolder.createRelative(newPackageName)
     copyInputPackage(packagePath)
-    configure(packagePath)
+    configure(packagePath, tokens)
     return new PackagedArtifact(location: packagePath,
-                                host: agentHost,
+                                host: metaModel.host.resolveHostAddress(),
                                 port: agentPort)
   }
 
-  Resource configure(Resource packagePath)
+  Resource configure(Resource packagePath, Map tokens)
   {
     String version = packagePath.createRelative('version.txt').file.text
 
     Resource serverRoot = packagePath.createRelative(version)
 
-    def tokens = [
-      envPropertyNames: ENV_PROPERTY_NAMES,
-      opts: opts
-    ]
+    // Define which zookeeper to use
+    tokens[CONFIG_TOKENS_KEY].GLU_ZOOKEEPER =
+      metaModel.fabric.zooKeeperCluster.zooKeeperConnectionString
 
-    Resource confDir = shell.mkdirs(serverRoot.createRelative('conf'))
-
-    // optionally process templates
-    ['agentConfig.properties', 'pre_master_conf.sh', 'post_master_conf.sh'].each { file ->
-      ['.xtmpl', '.gtmpl', ''].each { extension ->
-        processOptionalTemplate("/${file}${extension}", confDir, tokens)
-      }
-    }
+    processConfigs(tokens, serverRoot)
 
     return packagePath
   }

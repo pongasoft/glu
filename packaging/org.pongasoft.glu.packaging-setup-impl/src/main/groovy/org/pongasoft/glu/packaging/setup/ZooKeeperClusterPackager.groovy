@@ -1,63 +1,98 @@
 package org.pongasoft.glu.packaging.setup
 
 import org.linkedin.util.io.resource.Resource
+import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.FabricMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperMetaModel
 
 /**
  * @author yan@pongasoft.com  */
 public class ZooKeeperClusterPackager extends BasePackager
 {
-  // collection of maps (host, clientPort, quorumPort, leaderElectionPort)
-  def zookeperServers = []
+  Resource clusterConfigRoot
+  ZooKeeperClusterMetaModel metaModel
 
-  def opts = [
-    clientPort: 2181,
-  ]
-
-  Collection<PackagedArtifact> createPackages()
+  def createPackage()
   {
-    int serverIndex = 1
-    zookeperServers.collect { def zk ->
-      createPackage(serverIndex++, zk)
+    Resource packagePath =
+      configure(outputFolder.createRelative("zookeeper-cluster-${metaModel.name}"))
+
+    def zooKeepers = createPackages(packagePath)
+
+    return [
+      zooKeeperCluster: new PackagedArtifact(location: packagePath),
+      zooKeepers: zooKeepers
+    ]
+  }
+
+  Collection<PackagedArtifact> createPackages(Resource clusterPackagePath)
+  {
+    metaModel.zooKeepers.collect { ZooKeeperMetaModel zk ->
+      createPackage(clusterPackagePath, zk)
     }
   }
 
-  PackagedArtifact createPackage(int serverIndex, def zk)
+  PackagedArtifact createPackage(Resource clusterPackagePath, ZooKeeperMetaModel zk)
   {
     String host = zk.host ?: 'localhost'
-    int port = (zk.clientPort ?: opts.clientPort) as int
-    def newPackageName = "${packageName}-${host}-${port}"
-    Resource packagePath = outputFolder.createRelative(newPackageName)
+    int port = zk.clientPort
+
+    def parts = [packageName]
+    parts << host
+
+    if(port != ZooKeeperMetaModel.DEFAULT_CLIENT_PORT)
+      parts << port
+    String newPackageName = parts.join('-')
+    Resource packagePath = clusterPackagePath.createRelative(newPackageName)
     copyInputPackage(packagePath)
-    configure(packagePath, serverIndex, zk)
+    configure(packagePath, zk)
     return new PackagedArtifact(location: packagePath,
                                 host: host,
                                 port: port)
   }
 
-  Resource configure(Resource packagePath, int serverIndex, def zk)
+  /**
+   * Configure the cluster itself
+   */
+  Resource configure(Resource packagePath)
   {
-    def allServers = []
+    metaModel.fabrics.values().each { FabricMetaModel fabricMetaModel ->
+      def tokens = [
+        zooKeeperClusterMetaModel: metaModel,
+        fabricMetaModel: fabricMetaModel,
+      ]
 
-    if(zookeperServers.size() > 1)
-    {
-      // adding the id of the server
-      processTemplate("/myid.gtmpl",
-                      shell.mkdirs(packagePath.createRelative('data')),
-                      [id: serverIndex])
-      allServers = zookeperServers
+      tokens[PACKAGER_CONTEXT_KEY] = packagerContext
+      tokens[CONFIG_TOKENS_KEY] = [*:metaModel.configTokens]
+
+      tokens[CONFIG_TOKENS_KEY].zkRoot = metaModel.gluMetaModel.zooKeeperRoot
+      tokens[CONFIG_TOKENS_KEY].fabric = fabricMetaModel.name
+
+      fabricMetaModel.agents.values().each { AgentMetaModel agentMetaModel ->
+        tokens.agentMetaModel = agentMetaModel
+        tokens[CONFIG_TOKENS_KEY].agent = agentMetaModel.name
+
+        processConfigs(clusterConfigRoot, tokens, packagePath)
+      }
     }
 
-    // adding zoo.cfg
+    return packagePath
+  }
+
+  /**
+   * Configure an individual ZooKeeper server in the cluster
+   */
+  Resource configure(Resource packagePath, ZooKeeperMetaModel zk)
+  {
     def tokens = [
-      opts: opts,
-      zk: zk,
-      // if only 1 server => no server section at the bottom
-      allServers: allServers
+      zooKeeperMetaModel: zk,
     ]
 
-    processTemplate("/zoo.cfg.gtmpl",
-                    shell.mkdirs(packagePath.createRelative('conf')),
-                    tokens)
+    tokens[PACKAGER_CONTEXT_KEY] = packagerContext
+    tokens[CONFIG_TOKENS_KEY] = zk.configTokens
+
+    processConfigs(tokens, packagePath)
 
     return packagePath
   }

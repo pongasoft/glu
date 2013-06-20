@@ -653,6 +653,52 @@ line 3 abcdef
     }
   }
 
+  void testCodeTemplate()
+  {
+    ShellImpl.createTempShell { Shell shell ->
+
+      def templates = shell.mkdirs('/templates')
+
+      def inputFile = shell.toResource('/in/file.bin')
+
+      shell.withOutputStream('/in/file.bin') { OutputStream out ->
+        (0..10).each { b -> out.write(b) }
+      }
+
+      def tokens = [token1: 'foo', token2: 'bar', inputFile: inputFile.file.path]
+
+      def templateCode = """
+println "starting copy...\${token1}"
+shell.withInputStream(inputFile) { inputStream ->
+  bout << inputStream
+}
+println "done copy...\${token2}"
+"""
+
+      Resource templateCodeResource = shell.saveContent(templates.createRelative('foo.ctmpl'),
+                                                        templateCode)
+
+      // 1. in a file
+      def p1 = shell.processTemplate(templateCodeResource, '/out1/foo', tokens)
+      assertEquals('/out1/foo', p1.path)
+
+      shell.withInputStream(p1) { InputStream stream ->
+        (0..10).each { assertEquals(it, stream.read()) }
+        assertEquals(-1, stream.read())
+      }
+
+      // 2. in a directory
+      shell.mkdirs('/out2')
+      def p2 = shell.processTemplate(templateCodeResource, '/out2/foo', tokens)
+      assertEquals('/out2/foo', p2.path)
+
+      shell.withInputStream(p2) { InputStream stream ->
+        (0..10).each { assertEquals(it, stream.read()) }
+        assertEquals(-1, stream.read())
+      }
+    }
+  }
+
   private def leavesPaths(Resource root)
   {
     new TreeSet(GroovyIOUtils.findAll(root) { !it.isDirectory() }.collect { it.path })

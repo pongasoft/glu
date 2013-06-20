@@ -19,36 +19,84 @@ package test.setup
 import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
 import org.linkedin.groovy.util.io.GroovyIOUtils
-import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.util.io.resource.Resource
-
-import java.nio.file.Files
+import org.pongasoft.glu.packaging.setup.PackagerContext
+import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.impl.builder.GluMetaModelBuilder
 
 /**
  * @author yan@pongasoft.com  */
 public abstract class BasePackagerTest extends GroovyTestCase
 {
-  public static Object DIRECTORY = new Object()
+  public static final Object DIRECTORY = new Object()
 
-  protected File getTemplatesRoot(String name)
+  public static final String GLU_VERSION = 'g.v.0'
+  public static final String ZOOKEEPER_VERSION = 'z.v.1'
+
+  Shell rootShell = ShellImpl.createRootShell()
+  GluMetaModel testModel
+
+  @Override
+  protected void setUp() throws Exception
   {
-    new File('../org.linkedin.glu.packaging-setup/src/cmdline/resources/templates', name)
+    super.setUp()
+    GluMetaModelBuilder builder = new GluMetaModelBuilder()
+    builder.deserializeFromJson(rootShell.replaceTokens(testModelFile.text,
+                                                        [
+                                                          'glu.version': GLU_VERSION,
+                                                          'zooKeeper.version': ZOOKEEPER_VERSION
+                                                        ]))
+    testModel = builder.toGluMetaModel()
   }
 
-  protected int copyTemplates(Shell shell, String name)
+  protected File getTestModelFile()
   {
-    Shell templateShell = new ShellImpl(fileSystem: new FileSystemImpl(getTemplatesRoot(name)))
+    new File('../org.linkedin.glu.packaging-all/src/cmdline/resources/conf/tutorial/glu-meta-model.json.groovy').canonicalFile
+  }
 
-    def templates = shell.mkdirs('/templates')
+  protected File getConfigsRoot(String name)
+  {
+    new File('../org.linkedin.glu.packaging-setup/src/cmdline/resources/configs',
+             name).canonicalFile
+  }
 
-    int count = 0
+  protected File getKeysRootDir()
+  {
+    new File('../../dev-keys').canonicalFile
+  }
 
-    templateShell.root.list().each { template ->
-      Files.copy(template.file.toPath(), templates.createRelative(template.filename).file.toPath())
-      count++
+  protected Resource getKeysRootResource()
+  {
+    rootShell.toResource(keysRootDir)
+  }
+
+  protected Resource getConfigsRootResource(String name)
+  {
+    rootShell.toResource(getConfigsRoot(name))
+  }
+
+  protected PackagerContext createPackagerContext(Shell shell)
+  {
+    new PackagerContext(shell: shell,
+                        keysRootDir: keysRootResource)
+  }
+
+  /**
+   * Copy all the configs from the config root
+   */
+  protected Resource copyConfigs(String fromName,
+                                 Resource toConfigRoot,
+                                 int expectedNumberOfConfigFiles)
+  {
+    toConfigRoot = toConfigRoot.createRelative(fromName)
+    Resource dir = rootShell.cp(getConfigsRootResource(fromName), toConfigRoot)
+    int configFilesCount = 0
+    rootShell.eachChildRecurse(dir) { Resource r ->
+      if(!r.isDirectory())
+        configFilesCount++
     }
-
-    return count
+    assertEquals(expectedNumberOfConfigFiles, configFilesCount)
+    return toConfigRoot
   }
 
   protected void checkContent(String expectedContent, Shell shell, String templateName, def tokens)
@@ -60,6 +108,9 @@ public abstract class BasePackagerTest extends GroovyTestCase
 
   protected void checkPackageContent(def expectedResources, Resource pkgRoot)
   {
+    // GString -> String conversion for proper map key handling
+    expectedResources = expectedResources.collectEntries {k,v -> [k.toString(), v]}
+
     GroovyIOUtils.eachChildRecurse(pkgRoot.chroot('.')) { Resource r ->
       def expectedValue = expectedResources.remove(r.path)
       if(expectedValue == null)

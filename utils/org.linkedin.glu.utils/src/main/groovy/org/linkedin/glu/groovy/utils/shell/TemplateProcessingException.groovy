@@ -14,28 +14,30 @@
  * the License.
  */
 
-package org.pongasoft.glu.provisioner.core.metamodel;
-
-import org.linkedin.glu.utils.core.Externable;
-
-import java.util.Map;
+package org.linkedin.glu.groovy.utils.shell
 
 /**
- * @author yan@pongasoft.com
- */
-public interface FabricMetaModel extends Externable
+ * @author yan@pongasoft.com  */
+public class TemplateProcessingException extends Exception
 {
-  String getName();
+  private static final long serialVersionUID = 1L;
 
-  Map<String, AgentMetaModel> getAgents();
+  TemplateProcessingException()
+  {
+  }
 
-  AgentMetaModel findAgent(String agentName);
+  TemplateProcessingException(String s)
+  {
+    super(s)
+  }
 
-  ZooKeeperClusterMetaModel getZooKeeperCluster();
+  TemplateProcessingException(String s, Throwable throwable)
+  {
+    super(s, throwable)
+  }
 
-  ConsoleMetaModel getConsole();
-
-  KeysMetaModel getKeys();
-
-  GluMetaModel getGluMetaModel();
+  TemplateProcessingException(Throwable throwable)
+  {
+    super(throwable)
+  }
 }

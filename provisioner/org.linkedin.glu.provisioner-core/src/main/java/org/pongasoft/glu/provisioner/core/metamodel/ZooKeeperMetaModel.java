@@ -23,6 +23,10 @@ import org.linkedin.glu.utils.core.Externable;
  */
 public interface ZooKeeperMetaModel extends ServerMetaModel, Externable
 {
+  public static final int DEFAULT_CLIENT_PORT = 2181;
+  public static final int DEFAULT_QUORUM_PORT = 2888;
+  public static final int DEFAULT_LEADER_ELECTION_PORT = 3888;
+
   int getClientPort();
   int getQuorumPort();
   int getLeaderElectionPort();

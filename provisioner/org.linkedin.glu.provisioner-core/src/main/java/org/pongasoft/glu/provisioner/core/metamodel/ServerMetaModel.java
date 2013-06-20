@@ -36,4 +36,6 @@ public interface ServerMetaModel extends Externable, Configurable
   int getDefaultPort();
 
   int getPort(String portName);
+
+  GluMetaModel getGluMetaModel();
 }

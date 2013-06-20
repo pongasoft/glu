@@ -38,6 +38,7 @@ import org.pongasoft.glu.provisioner.core.metamodel.impl.ZooKeeperMetaModelImpl
  * @author yan@pongasoft.com  */
 public class GluMetaModelBuilder
 {
+  GluMetaModelImpl gluMetaModel = new GluMetaModelImpl()
   Map<String, FabricMetaModelImpl> fabrics = [:]
   Map<String, ConsoleMetaModelImpl> consoles = [:]
   Map<String, ZooKeeperClusterMetaModelImpl> zooKeeperClusters = [:]
@@ -89,6 +90,10 @@ public class GluMetaModelBuilder
 
     // zookeeperClusters
     jsonModel.zooKeeperClusters?.each { deserializeZooKeeperCluster(it) }
+
+    // zooKeeperRoot ?
+    if(jsonModel.zooKeeperRoot)
+      gluMetaModel.zooKeeperRoot = jsonModel.zooKeeperRoot
 
     // fabrics
     jsonModel.fabrics?.each { name, fabricModel -> deserializeFabric(name, fabricModel)}
@@ -171,7 +176,8 @@ public class GluMetaModelBuilder
   {
     ZooKeeperClusterMetaModelImpl zooKeeperCluster =
       new ZooKeeperClusterMetaModelImpl(name: zooKeeperClusterModel.name ?: 'default',
-                                        fabrics: [:])
+                                        fabrics: [:],
+                                        gluMetaModel: gluMetaModel)
 
     // handle the zookeepers making up the cluster
     def zooKeepers = []
@@ -182,6 +188,7 @@ public class GluMetaModelBuilder
       zooKeepers << zooKeeper
     }
     zooKeeperCluster.zooKeepers = zooKeepers
+    zooKeeperCluster.configTokens = deserializeConfigTokens(zooKeeperClusterModel.configTokens)
 
     zooKeeperClusters[zooKeeperCluster.name] = zooKeeperCluster
   }
@@ -204,7 +211,8 @@ public class GluMetaModelBuilder
     if(!fabric)
     {
       fabric = new FabricMetaModelImpl(name: modelFabricName,
-                                       agents: [:])
+                                       agents: [:],
+                                       gluMetaModel: gluMetaModel)
 
       fabrics[modelFabricName] = fabric
     }
@@ -220,6 +228,7 @@ public class GluMetaModelBuilder
   private <T extends ServerMetaModelImpl> T deserializeServer(Map serverModel, T impl)
   {
     impl.version = serverModel.version
+    impl.gluMetaModel = gluMetaModel
     impl.host = deserializeHostMetaModel(serverModel.host ?: 'localhost')
 
     Map<String, Integer> ports = [:]
@@ -236,7 +245,7 @@ public class GluMetaModelBuilder
   private Map<String, String> deserializeConfigTokens(Map configTokens)
   {
     if(configTokens == null)
-      return null
+      configTokens = [:]
     return Collections.unmodifiableMap(configTokens)
   }
 
@@ -288,6 +297,8 @@ public class GluMetaModelBuilder
       zooKeeperCluster.fabrics = Collections.unmodifiableMap(zooKeeperCluster.fabrics)
       zooKeeperCluster.zooKeepers = Collections.unmodifiableList(zooKeeperCluster.zooKeepers)
     }
-    return new GluMetaModelImpl(fabrics: Collections.unmodifiableMap(newFabrics))
+    gluMetaModel.fabrics = Collections.unmodifiableMap(newFabrics)
+
+    return gluMetaModel
   }
 }

@@ -18,6 +18,7 @@
 
 package org.linkedin.glu.agent.impl.capabilities
 
+import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.glu.agent.api.ScriptFailedException
 import org.linkedin.glu.agent.api.Shell
 import org.linkedin.glu.agent.impl.storage.AgentProperties
@@ -36,7 +37,7 @@ def class ShellImpl extends org.linkedin.glu.groovy.utils.shell.ShellImpl implem
   AgentProperties agentProperties
 
   @Override
-  ShellImpl newShell(fileSystem)
+  ShellImpl newShell(FileSystem fileSystem)
   {
     return new ShellImpl(fileSystem: fileSystem,
                          agentProperties: agentProperties,

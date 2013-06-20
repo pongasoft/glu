@@ -82,6 +82,14 @@ def class ShellImpl implements Shell
     }
   }
 
+  /**
+   * @return a shell where the file system is root (/)
+   */
+  static Shell createRootShell()
+  {
+    new ShellImpl(fileSystem: new FileSystemImpl(new File('/')))
+  }
+
   Clock clock = SystemClock.instance()
 
   // will delegate all the calls to fileSystem
@@ -108,12 +116,17 @@ def class ShellImpl implements Shell
     _submitter = submitter
   }
 
-  Shell newShell(fileSystem)
+  Shell newShell(FileSystem fileSystem)
   {
     return new ShellImpl(fileSystem: fileSystem,
                          charset: charset,
                          clock: clock,
                          submitter: _submitter)
+  }
+
+  Shell newShell(def file)
+  {
+    newShell(newFileSystem(file))
   }
 
   Collection<String> getMimeTypes(file)
@@ -986,6 +999,8 @@ def class ShellImpl implements Shell
     if(input == null)
       return null
 
+    tokens = GluGroovyCollectionUtils.flatten(tokens)
+
     ReplaceTokens rt = new ReplaceTokens(new StringReader(input))
     tokens?.each { k,v ->
       rt.addConfiguredToken(new Token(key: k, value: v))
@@ -1008,6 +1023,8 @@ def class ShellImpl implements Shell
   {
     to = toResource(to)
 
+    tokens = GluGroovyCollectionUtils.flatten(tokens)
+
     withWriter(to) { Writer writer ->
       withReader(from) { Reader reader ->
         ReplaceTokens rt = new ReplaceTokens(reader)
@@ -1021,41 +1038,70 @@ def class ShellImpl implements Shell
     return to
   }
 
+  /**
+   * @{inheritDoc}
+   */
   Resource processTemplate(def template, def to, Map tokens)
   {
     Resource templateResource = toResource(template)
 
-    boolean toIsDirectory = to.toString().endsWith('/')
-    Resource toResource = toResource(to)
-    toIsDirectory = toIsDirectory || toResource.isDirectory()
-
-    if(templateResource.filename.endsWith(".gtmpl"))
+    try
     {
-      def groovyTemplate = new GStringTemplateEngine().createTemplate(cat(templateResource))
-      def processedTemplate = groovyTemplate.make(tokens)
+      boolean toIsDirectory = to.toString().endsWith('/')
+      Resource toResource = toResource(to)
+      toIsDirectory = toIsDirectory || toResource.isDirectory()
 
-      if(toIsDirectory)
-        toResource = toResource.createRelative(templateResource.filename - '.gtmpl')
+      switch(GluGroovyIOUtils.getFileExtension(templateResource))
+      {
+        case 'gtmpl':
+          def groovyTemplate = new GStringTemplateEngine().createTemplate(cat(templateResource))
+          def processedTemplate = groovyTemplate.make(tokens)
 
-      withWriter(toResource) { Writer writer -> processedTemplate.writeTo(writer) }
+          if(toIsDirectory)
+            toResource = toResource.createRelative(templateResource.filename - '.gtmpl')
+
+          withWriter(toResource) { Writer writer -> processedTemplate.writeTo(writer) }
+          break
+
+        case 'ctmpl':
+          def binding = new Binding([*:tokens])
+
+          if(toIsDirectory)
+            toResource = toResource.createRelative(templateResource.filename - '.ctmpl')
+
+          withOutputStream(toResource) { OutputStream bout ->
+            binding.out = tokens.out ?: System.out
+            binding.shell = tokens.shell ?: this
+            binding.bout = bout
+
+            def groovyShell = new GroovyShell(binding)
+            withReader(templateResource) { Reader templateReader ->
+              groovyShell.evaluate(templateReader, templateResource.path)
+            }
+          }
+
+          break
+
+        case 'xtmpl':
+          if(toIsDirectory)
+            toResource = toResource.createRelative(templateResource.filename - '.xtmpl')
+          replaceTokens(templateResource, toResource, tokens)
+          break
+
+        default:
+          if(toIsDirectory)
+            toResource = toResource.createRelative(templateResource.filename)
+          replaceTokens(templateResource, toResource, tokens)
+          break
+      }
+
+      return toResource
     }
-    else
+    catch(Throwable th)
     {
-      if(templateResource.filename.endsWith(".xtmpl"))
-      {
-        if(toIsDirectory)
-          toResource = toResource.createRelative(templateResource.filename - '.xtmpl')
-      }
-      else
-      {
-        if(toIsDirectory)
-          toResource = toResource.createRelative(templateResource.filename)
-      }
-
-      replaceTokens(templateResource, toResource, tokens)
+      throw new TemplateProcessingException("Exception while processing template [${templateResource.toURI()}]",
+                                            th)
     }
-
-    return toResource
   }
 
   /**

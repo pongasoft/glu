@@ -17,6 +17,7 @@
 package org.pongasoft.glu.provisioner.core.metamodel.impl
 
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.HostMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ServerMetaModel
 
@@ -30,6 +31,7 @@ public class ServerMetaModelImpl implements ServerMetaModel
   HostMetaModel host
   Map<String, Integer> ports
   Map<String, String> configTokens
+  GluMetaModel gluMetaModel
 
   @Override
   int getMainPort()

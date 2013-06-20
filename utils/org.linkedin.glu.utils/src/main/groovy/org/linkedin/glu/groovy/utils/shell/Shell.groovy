@@ -487,9 +487,13 @@ def interface Shell extends FileSystem
    * <ul>
    *   <li>if the template ends with <code>.gtmpl</code> it will be processed through the groovy
    *       template engine</li>
+   *   <li>if the template ends with <code>.ctmpl</code> it will be treated as groovy script with
+   *       all tokens variables provided, as well as <code>shell</code> (this class),
+   *       <code>out</code> (<code>System.out</code>) and <code>bout</code> (the
+   *       <code>OutputStream</code> representing <code>to</code></li>
    *   <li>if the template ends with <code>.xtmpl</code> it will be processed through the
    *       {@link #replaceTokens(java.lang.String, java.util.Map)} mechanism</li>
-   *   <li>if the template has no extension, the the replaceTokens mechanism will be called</li>
+   *   <li>if the template has no extension, the replaceTokens mechanism will be called</li>
    * </ul>
    *
    * @param template ({@see #toResource(Object)} for possible values)
@@ -532,4 +536,17 @@ def interface Shell extends FileSystem
    *         return <code>null</code> (and log the exception as a debug message)
    */
   def noException(Closure closure)
+
+  /**
+   * Create a new shell using the provided file system (equivalent
+   * to unix chroot)
+   */
+  Shell newShell(FileSystem fileSystem)
+
+  /**
+   * Create a new shell using the provided file as the root of the new file system (equivalent
+   * to unix chroot)
+   */
+  Shell newShell(def file)
+
 }

@@ -6,5 +6,4 @@ package org.pongasoft.glu.packaging.setup
  * @author yan@pongasoft.com  */
 public class SetupUtils
 {
-
 }

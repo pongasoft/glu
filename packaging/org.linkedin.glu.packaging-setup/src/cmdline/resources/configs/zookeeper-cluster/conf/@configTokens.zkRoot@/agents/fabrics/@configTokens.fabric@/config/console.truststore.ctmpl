@@ -14,28 +14,8 @@
  * the License.
  */
 
-package org.pongasoft.glu.provisioner.core.metamodel;
-
-import org.linkedin.glu.utils.core.Externable;
-
-import java.util.Map;
-
-/**
- * @author yan@pongasoft.com
- */
-public interface FabricMetaModel extends Externable
-{
-  String getName();
-
-  Map<String, AgentMetaModel> getAgents();
-
-  AgentMetaModel findAgent(String agentName);
-
-  ZooKeeperClusterMetaModel getZooKeeperCluster();
-
-  ConsoleMetaModel getConsole();
-
-  KeysMetaModel getKeys();
-
-  GluMetaModel getGluMetaModel();
+def relativeKeyStoreFile = fabricMetaModel.keys.consoleTrustStore.uri.toString()
+def keyStore = packagerContext.keysRootDir.createRelative(relativeKeyStoreFile)
+keyStore.inputStream.withStream { InputStream stream ->
+  bout << stream
 }

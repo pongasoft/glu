@@ -19,6 +19,7 @@ package org.pongasoft.glu.provisioner.core.metamodel.impl
 import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.FabricMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.KeysMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
 
@@ -31,6 +32,7 @@ public class FabricMetaModelImpl implements FabricMetaModel
   Map<String, AgentMetaModel> agents
   ZooKeeperClusterMetaModel zooKeeperCluster
   ConsoleMetaModel console
+  GluMetaModel gluMetaModel
 
   @Override
   AgentMetaModel findAgent(String agentName)

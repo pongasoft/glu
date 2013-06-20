@@ -26,6 +26,8 @@ import java.util.Map;
  */
 public interface GluMetaModel extends Externable
 {
+  public static final String DEFAULT_ZOOKEEPER_ROOT = "/org/glu";
+
   Map<String, FabricMetaModel> getFabrics();
   FabricMetaModel findFabric(String fabricName);
 
@@ -37,6 +39,8 @@ public interface GluMetaModel extends Externable
 
   Map<String, ZooKeeperClusterMetaModel> getZooKeeperClusters();
   ZooKeeperClusterMetaModel findZooKeeperCluster(String zooKeeperClusterName);
+
+  String getZooKeeperRoot();
 
   /**
    * This is the version of the meta model, NOT the version of glu

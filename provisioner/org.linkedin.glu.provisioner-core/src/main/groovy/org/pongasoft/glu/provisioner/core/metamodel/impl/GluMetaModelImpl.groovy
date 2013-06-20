@@ -31,6 +31,7 @@ public class GluMetaModelImpl implements GluMetaModel
 
   Map<String, FabricMetaModel> fabrics
   String metaModelVersion = META_MODEL_VERSION
+  String zooKeeperRoot = DEFAULT_ZOOKEEPER_ROOT
 
   @Override
   FabricMetaModel findFabric(String fabricName)
@@ -111,6 +112,9 @@ public class GluMetaModelImpl implements GluMetaModel
 
     if(zooKeeperClusters)
       res.zooKeeperClusters = zooKeeperClusters.values().collect { it.toExternalRepresentation() }
+
+    if(zooKeeperRoot != DEFAULT_ZOOKEEPER_ROOT)
+      res.zooKeeperRoot = zooKeeperRoot
 
     return res
   }

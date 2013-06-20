@@ -10,6 +10,34 @@ import org.pongasoft.glu.packaging.setup.ZooKeeperClusterPackager
  * @author yan@pongasoft.com  */
 public class TestZooKeeperClusterPackager extends BasePackagerTest
 {
+  public void testTutorialModel()
+  {
+    ShellImpl.createTempShell { Shell shell ->
+      def inputPackage = shell.mkdirs("/dist/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}")
+
+      shell.saveContent(inputPackage.createRelative('README.md'), "this is the readme")
+      shell.saveContent(inputPackage.createRelative('lib/acme.jar'), "this is the jar")
+
+      def packager =
+        new ZooKeeperClusterPackager(packagerContext: createPackagerContext(shell),
+                                     outputFolder: shell.mkdirs('/out'),
+                                     inputPackage: inputPackage,
+                                     configRoot: copyConfigs('zookeeper-server',
+                                                             shell.mkdirs('/configs/zookeeper-server'),
+                                                             2),
+                                     clusterConfigRoot: copyConfigs('zookeeper-cluster',
+                                                                    shell.mkdirs('/configs/zookeeper-cluster'),
+                                                                    4),
+                                     metaModel: testModel.zooKeeperClusters['tutorialZooKeeperCluster'])
+
+      def pkg = packager.createPackage()
+
+      println pkg.zooKeeperCluster.location.path
+
+      println pkg
+    }
+  }
+
   /**
    * A single package */
   public void testCreatePackage1()
@@ -25,7 +53,7 @@ public class TestZooKeeperClusterPackager extends BasePackagerTest
 
 
       def packager = new ZooKeeperClusterPackager(shell: shell,
-                                                  templatesRoot: createZooKeeperTemplates(shell),
+                                                  configRoot: createZooKeeperTemplates(shell),
                                                   zookeperServers: [[host: 'h2']],
                                                   inputPackage: zkDistPackage,
                                                   outputFolder: shell.mkdirs('/out'))
@@ -65,7 +93,7 @@ public class TestZooKeeperClusterPackager extends BasePackagerTest
 
 
       def packager = new ZooKeeperClusterPackager(shell: shell,
-                                                  templatesRoot: createZooKeeperTemplates(shell),
+                                                  configRoot: createZooKeeperTemplates(shell),
                                                   zookeperServers: [[host: 'h2'], [clientPort: 2183, quorumPort: 2889, leaderElectionPort: 3889]],
                                                   inputPackage: zkDistPackage,
                                                   outputFolder: shell.mkdirs('/out'))
@@ -119,7 +147,7 @@ public class TestZooKeeperClusterPackager extends BasePackagerTest
   {
     ShellImpl.createTempShell { Shell shell ->
 
-      assertEquals(2, copyTemplates(shell, 'zookeeper'))
+      assertEquals(2, copyConfigs(shell, 'zookeeper'))
 
       def out = shell.mkdirs('/out')
 
@@ -181,12 +209,12 @@ server.2=h2:12889:13889
 
   private Resource createZooKeeperTemplates(Shell shell)
   {
-    def templates = shell.mkdirs('/templates')
+    def templates = shell.mkdirs('/configs')
 
     // YP Note: those are groovy templates hence the single quote!
 
-    shell.saveContent(templates.createRelative("/myid.gtmpl"), '${id}')
-    shell.saveContent(templates.createRelative("/zoo.cfg.gtmpl"), '${opts};${zk};${allServers}')
+    shell.saveContent(templates.createRelative("/conf/myid.gtmpl"), '${id}')
+    shell.saveContent(templates.createRelative("/conf/zoo.cfg.gtmpl"), '${opts};${zk};${allServers}')
 
     return templates
   }

@@ -1,0 +1,15 @@
+# The number of milliseconds of each tick
+tickTime=${configTokens.tickTime ?: 2000}
+# The number of ticks that the initial
+# synchronization phase can take
+initLimit=${configTokens.initLimit ?: 10}
+# The number of ticks that can pass between
+# sending a request and getting an acknowledgement
+syncLimit=${configTokens.syncLimit ?: 5}
+# the directory where the snapshot is stored.
+dataDir=${configTokens.dataDir ?: 'data'}
+# the port at which the clients will connect
+clientPort=${zooKeeperMetaModel.clientPort}
+<% zooKeeperMetaModel.zooKeeperCluster.zooKeepers.each { zk -> %>
+server.${zk.serverIdx}=${zk.host ?: 'localhost'}:${zk.quorumPort}:${zk.leaderElectionPort}
+<% } %>

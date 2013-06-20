@@ -30,6 +30,7 @@ import javax.crypto.Cipher
 import javax.crypto.CipherInputStream
 import javax.crypto.CipherOutputStream
 import javax.crypto.spec.SecretKeySpec
+import java.nio.file.Path
 
 /**
  * @author yan@pongasoft.com */
@@ -154,6 +155,48 @@ public class GluGroovyIOUtils extends GroovyIOUtils
         return exitValueAsString
       }
     }
+  }
+
+  /**
+   * @return the file extension of the resource or <code>null</code> if none
+   */
+  public static String getFileExtension(Resource resource)
+  {
+    doGetFileExtension(resource?.filename)
+  }
+
+  /**
+   * @return the file extension of the file or <code>null</code> if none
+   */
+  public static String getFileExtension(File file)
+  {
+    doGetFileExtension(file?.name)
+  }
+
+  /**
+   * @return the file extension of the path or <code>null</code> if none
+   */
+  public static String getFileExtension(Path path)
+  {
+    doGetFileExtension(path?.fileName?.toString())
+  }
+
+  /**
+   * @return the file extension of the resource or <code>null</code> if none
+   */
+  private static String doGetFileExtension(String path)
+  {
+    if(path == null)
+      return null
+
+    int idx = path.lastIndexOf('.')
+
+    // this accounts for no extension, a file starting with . (like .cshrc) or a file ending with .
+    if(idx <= 0 || idx == path.size() -1)
+      return null
+
+    return path[idx+1..-1]
+
   }
 
 }

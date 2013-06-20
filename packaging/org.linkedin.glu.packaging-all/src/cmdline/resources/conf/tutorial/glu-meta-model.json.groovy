@@ -24,28 +24,28 @@ def zooKeeperVersion = '@zooKeeper.version@'
 fabrics[fabric] = [
   keys: [
     agentKeyStore: [
-      uri: 'keys/agent.keystore',
+      uri: 'agent.keystore',
       checksum: 'JSHZAn5IQfBVp1sy0PgA36fT_fD',
       storePassword: 'nacEn92x8-1',
       keyPassword: 'nWVxpMg6Tkv'
     ],
 
     agentTrustStore: [
-      uri: 'keys/agent.keystore',
+      uri: 'agent.keystore',
       checksum: 'JSHZAn5IQfBVp1sy0PgA36fT_fD',
       storePassword: 'nacEn92x8-1',
       keyPassword: 'nWVxpMg6Tkv'
     ],
 
     consoleKeyStore: [
-      uri: 'keys/console.keystore',
+      uri: 'console.keystore',
       checksum: 'JSHZAn5IQfBVp1sy0PgA36fT_fD',
       storePassword: 'nacEn92x8-1',
       keyPassword: 'nWVxpMg6Tkv'
     ],
 
     consoleTrustStore: [
-      uri: 'keys/console.truststore',
+      uri: 'console.truststore',
       checksum: 'qUFMIePiJhz8i7Ow9lZmN5pyZjl',
       storePassword: 'nacEn92x8-1',
     ],

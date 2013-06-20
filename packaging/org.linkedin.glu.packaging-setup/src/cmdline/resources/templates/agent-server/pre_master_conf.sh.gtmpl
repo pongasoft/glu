@@ -1,3 +1,0 @@
-<% envPropertyNames.findAll { env -> opts[env] }.each { env -> %>
-${env}="${opts[env]}"
-<% } %>
