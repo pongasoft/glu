@@ -143,17 +143,17 @@ public class GluMetaModelBuilder
     AgentMetaModelImpl agent =
       deserializeServer(agentModel, new AgentMetaModelImpl(name: agentModel.name))
 
-    if(!agent.name)
-      throw new IllegalArgumentException("missing agent name for ${agentModel}")
+    if(!agent.resolvedName)
+      throw new IllegalArgumentException("missing agent name or host for ${agentModel}")
 
     def fabric = findOrCreateFabric(agentModel.fabric)
 
-    if(fabric.agents.containsKey(agent.name))
-      throw new IllegalArgumentException("duplicate agent name [${agent.name}] for fabric [${fabric.name}]")
+    if(fabric.agents.containsKey(agent.resolvedName))
+      throw new IllegalArgumentException("duplicate agent name [${agent.resolvedName}] for fabric [${fabric.name}]")
 
     // linking the 2
     agent.fabric = fabric
-    fabric.agents[agent.name] = agent
+    fabric.agents[agent.resolvedName] = agent
   }
 
   /**
@@ -234,8 +234,8 @@ public class GluMetaModelBuilder
     Map<String, Integer> ports = [:]
     if(serverModel.port)
       ports[ServerMetaModelImpl.MAIN_PORT_KEY] = serverModel.port
-    if(impl.ports)
-      ports.putAll(impl.ports)
+    if(serverModel.ports)
+      ports.putAll(serverModel.ports)
     impl.ports = Collections.unmodifiableMap(ports)
     impl.configTokens = deserializeConfigTokens(serverModel.configTokens)
 

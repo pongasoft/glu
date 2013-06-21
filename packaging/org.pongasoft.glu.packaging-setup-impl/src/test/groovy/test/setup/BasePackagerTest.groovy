@@ -48,6 +48,37 @@ public abstract class BasePackagerTest extends GroovyTestCase
   public static final String GLU_VERSION = 'g.v.0'
   public static final String ZOOKEEPER_VERSION = 'z.v.1'
 
+  public static final String DEFAULT_KEYS = """
+  keys: [
+    agentKeyStore: [
+      uri: 'agent.keystore',
+      checksum: 'JSHZAn5IQfBVp1sy0PgA36fT_fD',
+      storePassword: 'nacEn92x8-1',
+      keyPassword: 'nWVxpMg6Tkv'
+    ],
+
+    agentTrustStore: [
+      uri: 'agent.truststore',
+      checksum: 'CvFUauURMt-gxbOkkInZ4CIV50y',
+      storePassword: 'nacEn92x8-1',
+      keyPassword: 'nWVxpMg6Tkv'
+    ],
+
+    consoleKeyStore: [
+      uri: 'console.keystore',
+      checksum: 'wxiKSyNAHN2sOatUG2qqIpuVYxb',
+      storePassword: 'nacEn92x8-1',
+      keyPassword: 'nWVxpMg6Tkv'
+    ],
+
+    consoleTrustStore: [
+      uri: 'console.truststore',
+      checksum: 'qUFMIePiJhz8i7Ow9lZmN5pyZjl',
+      storePassword: 'nacEn92x8-1',
+    ],
+  ]
+"""
+
   Shell rootShell = ShellImpl.createRootShell()
   GluMetaModel testModel
 

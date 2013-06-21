@@ -33,7 +33,25 @@ public class AgentMetaModelImpl extends ServerMetaModelImpl implements AgentMeta
   }
 
   @Override
+  int getAgentPort()
+  {
+    return getMainPort()
+  }
+
+  @Override
+  int getConfigPort()
+  {
+    return getPort('configPort', agentPort + 1)
+  }
+
+  @Override
   String getName()
+  {
+    return name
+  }
+
+  @Override
+  String getResolvedName()
   {
     if(!name)
       host.resolveHostAddress()

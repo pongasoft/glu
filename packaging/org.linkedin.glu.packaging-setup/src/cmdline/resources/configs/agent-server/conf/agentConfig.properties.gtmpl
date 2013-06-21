@@ -32,7 +32,7 @@ glu.agent.tempDir=${configTokens.tempDir ?: '${glu.agent.dataDir}/tmp'}
 glu.agent.scriptStateDir=${configTokens.scriptStateDir ?: '${glu.agent.dataDir}/scripts/state'}
 
 # the port which exports the REST api (used for bootstrap only)
-glu.agent.rest.nonSecure.port=${configTokens.'res.nonSecure.port' ?: 12907}
+glu.agent.rest.nonSecure.port=${configTokens.'rest.nonSecure.port' ?: agentMetaModel.configPort}
 
 # this file will store the properties used so that they become 'default' values for the next run
 glu.agent.persistent.properties=${configTokens.'persistent.properties' ?: '${glu.agent.dataDir}/config/agent.properties'}

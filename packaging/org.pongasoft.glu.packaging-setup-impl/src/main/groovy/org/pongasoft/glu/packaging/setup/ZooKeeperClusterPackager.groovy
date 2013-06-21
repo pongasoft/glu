@@ -74,7 +74,7 @@ public class ZooKeeperClusterPackager extends BasePackager
 
       fabricMetaModel.agents.values().each { AgentMetaModel agentMetaModel ->
         tokens.agentMetaModel = agentMetaModel
-        tokens[CONFIG_TOKENS_KEY].agent = agentMetaModel.name
+        tokens[CONFIG_TOKENS_KEY].agent = agentMetaModel.resolvedName
 
         processConfigs('zookeeper-cluster/agents', tokens, packagePath)
       }

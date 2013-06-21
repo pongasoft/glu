@@ -78,7 +78,7 @@ public class AgentServerPackager extends BasePackager
     tokens[CONFIG_TOKENS_KEY] = [*:configTokens]
 
     String agentName = metaModel.name
-    int agentPort = metaModel.mainPort
+    int agentPort = metaModel.agentPort
 
     def agentHost
 
@@ -96,11 +96,17 @@ public class AgentServerPackager extends BasePackager
 
     def parts = [packageName]
     if(agentName)
+    {
       parts << agentName
+      tokens[CONFIG_TOKENS_KEY].GLU_AGENT_NAME = agentName
+    }
     if(agentHost != DEFAULT_AGENT_HOST)
       parts << agentHost
     if(agentPort != AgentMetaModel.DEFAULT_PORT)
+    {
       parts << agentPort
+      tokens[CONFIG_TOKENS_KEY].GLU_AGENT_PORT = agentPort
+    }
     if(configTokens.GLU_AGENT_FABRIC)
       parts << configTokens.GLU_AGENT_FABRIC
     String newPackageName = parts.join('-')

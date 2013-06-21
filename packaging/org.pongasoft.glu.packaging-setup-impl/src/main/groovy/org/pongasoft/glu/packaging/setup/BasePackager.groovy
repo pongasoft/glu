@@ -60,7 +60,8 @@ public class BasePackager
       location = shell.cp(inputPackage, parent)
     }
 
-    shell.mv(location, destination)
+    if(location != destination)
+      shell.mv(location, destination)
 
     return destination
   }

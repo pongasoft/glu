@@ -128,34 +128,7 @@ server.1=127.0.0.1:2888:3888
 
       def metaModel = """
 fabrics['f1'] = [
-  keys: [
-    agentKeyStore: [
-      uri: 'agent.keystore',
-      checksum: 'JSHZAn5IQfBVp1sy0PgA36fT_fD',
-      storePassword: 'nacEn92x8-1',
-      keyPassword: 'nWVxpMg6Tkv'
-    ],
-
-    agentTrustStore: [
-      uri: 'agent.truststore',
-      checksum: 'CvFUauURMt-gxbOkkInZ4CIV50y',
-      storePassword: 'nacEn92x8-1',
-      keyPassword: 'nWVxpMg6Tkv'
-    ],
-
-    consoleKeyStore: [
-      uri: 'console.keystore',
-      checksum: 'wxiKSyNAHN2sOatUG2qqIpuVYxb',
-      storePassword: 'nacEn92x8-1',
-      keyPassword: 'nWVxpMg6Tkv'
-    ],
-
-    consoleTrustStore: [
-      uri: 'console.truststore',
-      checksum: 'qUFMIePiJhz8i7Ow9lZmN5pyZjl',
-      storePassword: 'nacEn92x8-1',
-    ],
-  ],
+  ${DEFAULT_KEYS},
   zooKeeperCluster: 'zkc'
 ]
 
@@ -163,11 +136,11 @@ zooKeeperClusters << [
   name: 'zkc',
   zooKeepers: [
     [
-      version: 'z.v.1',
+      version: '${ZOOKEEPER_VERSION}',
       host: 'h1'
     ],
     [
-      version: 'z.v.1',
+      version: '${ZOOKEEPER_VERSION}',
       host: 'h2'
     ]
   ],

@@ -25,7 +25,7 @@ import org.pongasoft.glu.provisioner.core.metamodel.ServerMetaModel
  * @author yan@pongasoft.com  */
 public class ServerMetaModelImpl implements ServerMetaModel
 {
-  public static final String MAIN_PORT_KEY = 'main'
+  public static final String MAIN_PORT_KEY = 'mainPort'
 
   String version
   HostMetaModel host

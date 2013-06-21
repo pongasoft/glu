@@ -144,10 +144,99 @@ glu.agent.configURL=zookeeper:\${glu.agent.zookeeper.root}/agents/fabrics/\${glu
 
 GLU_ZOOKEEPER="127.0.0.1:2181"
 
+GLU_AGENT_NAME="agent-1"
+
 """,
         ]
 
       checkPackageContent(expectedResources, artifact.location)
     }
+  }
+
+  public void testPorts()
+  {
+    ShellImpl.createTempShell { Shell shell ->
+      def inputPackage = shell.mkdirs("/dist/org.linkedin.glu.agent-server-${GLU_VERSION}")
+      shell.saveContent(inputPackage.createRelative('version.txt'), GLU_VERSION)
+      shell.saveContent(inputPackage.createRelative("${GLU_VERSION}/lib/acme.jar"), "this is the jar")
+
+      def metaModel = """
+fabrics['f1'] = [
+  ${DEFAULT_KEYS},
+  zooKeeperCluster: 'zkc'
+]
+
+agents << [
+  host: 'ha',
+  fabric: 'f1',
+  ports: [
+    mainPort: 12345,
+    configPort: 54321
+  ],
+  version: '${GLU_VERSION}'
+]
+
+zooKeeperClusters << [
+  name: 'zkc',
+  zooKeepers: [
+    [
+      version: '${ZOOKEEPER_VERSION}',
+      host: 'hz',
+      port: 23456
+    ]
+  ],
+]
+
+"""
+
+      def packager = new AgentServerPackager(packagerContext: createPackagerContext(shell),
+                                             outputFolder: shell.mkdirs('/out'),
+                                             inputPackage: inputPackage,
+                                             configRoot: copyConfigs(shell.toResource('/configs')),
+                                             metaModel: toGluMetaModel(metaModel).agents[0])
+
+      PackagedArtifact artifact = packager.createPackage()
+
+      assertEquals(shell.toResource("/out/org.linkedin.glu.agent-server-${GLU_VERSION}-12345"), artifact.location)
+      assertEquals('ha', artifact.host)
+      assertEquals(12345, artifact.port)
+
+      def expectedResources =
+        [
+          '/version.txt': GLU_VERSION,
+          "/${GLU_VERSION}": DIRECTORY,
+          "/${GLU_VERSION}/lib": DIRECTORY,
+          "/${GLU_VERSION}/lib/acme.jar": 'this is the jar',
+          "/${GLU_VERSION}/conf": DIRECTORY,
+          "/${GLU_VERSION}/conf/agentConfig.properties": DEFAULT_AGENT_CONFIG_PROPERTIES.replace('glu.agent.rest.nonSecure.port=12907', 'glu.agent.rest.nonSecure.port=54321'),
+          "/${GLU_VERSION}/conf/pre_master_conf.sh": """#!/bin/bash
+
+#
+# Copyright (c) 2013 Yan Pujante
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+#
+
+
+GLU_ZOOKEEPER="hz:23456"
+
+GLU_AGENT_PORT="12345"
+
+""",
+        ]
+
+      checkPackageContent(expectedResources, artifact.location)
+    }
+
   }
 }
