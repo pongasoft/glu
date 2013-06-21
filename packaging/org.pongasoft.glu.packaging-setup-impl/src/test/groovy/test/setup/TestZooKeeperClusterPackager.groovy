@@ -2,19 +2,51 @@ package test.setup
 
 import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
-import org.linkedin.util.io.resource.Resource
-import org.pongasoft.glu.packaging.setup.PackagedArtifact
 import org.pongasoft.glu.packaging.setup.ZooKeeperClusterPackager
 
 /**
  * @author yan@pongasoft.com  */
 public class TestZooKeeperClusterPackager extends BasePackagerTest
 {
+  public static final String TUTORIAL_AGENT_CONFIG_PROPERTIES = """#
+# Copyright (c) 2010-2010 LinkedIn, Inc
+# Portions Copyright (c) 2013 Yan Pujante
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+#
+
+################################
+# Security:
+glu.agent.sslEnabled=true
+
+
+glu.agent.keystorePath=zookeeper:\${glu.agent.zookeeper.root}/agents/fabrics/\${glu.agent.fabric}/config/agent.keystore
+glu.agent.keystoreChecksum=JSHZAn5IQfBVp1sy0PgA36fT_fD
+glu.agent.keystorePassword=nacEn92x8-1
+glu.agent.keyPassword=nWVxpMg6Tkv
+
+glu.agent.truststorePath=zookeeper:\${glu.agent.zookeeper.root}/agents/fabrics/\${glu.agent.fabric}/config/console.truststore
+glu.agent.truststoreChecksum=qUFMIePiJhz8i7Ow9lZmN5pyZjl
+glu.agent.truststorePassword=nacEn92x8-1
+
+
+
+"""
+
   public void testTutorialModel()
   {
     ShellImpl.createTempShell { Shell shell ->
       def inputPackage = shell.mkdirs("/dist/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}")
-
       shell.saveContent(inputPackage.createRelative('README.md'), "this is the readme")
       shell.saveContent(inputPackage.createRelative('lib/acme.jar'), "this is the jar")
 
@@ -27,129 +59,31 @@ public class TestZooKeeperClusterPackager extends BasePackagerTest
 
       def pkg = packager.createPackage()
 
-      println pkg.zooKeeperCluster.location.path
-
-      println pkg
-    }
-  }
-
-  /**
-   * A single package */
-  public void testCreatePackage1()
-  {
-    ShellImpl.createTempShell { Shell shell ->
-      def dist = shell.mkdirs('/dist')
-
-      // building a package with a readme at the root and a another file in a subdirectory..
-      // we will make sure that the packaging process does not affect anything else
-      def zkDistPackage = dist.createRelative('org.linkedin.zookeeper-server-x.y.z')
-      shell.saveContent(zkDistPackage.createRelative('README.md'), "this is the readme")
-      shell.saveContent(zkDistPackage.createRelative('lib/acme.jar'), "this is the jar")
-
-
-      def packager = new ZooKeeperClusterPackager(shell: shell,
-                                                  configRoot: createZooKeeperTemplates(shell),
-                                                  zookeperServers: [[host: 'h2']],
-                                                  inputPackage: zkDistPackage,
-                                                  outputFolder: shell.mkdirs('/out'))
-
-      Collection<PackagedArtifact> zkps = packager.createPackages()
-
-      assertEquals(1, zkps.size())
-      PackagedArtifact zkp = zkps.iterator().next()
-
-      assertEquals("/out/org.linkedin.zookeeper-server-x.y.z-h2-2181", zkp.location.path)
-      assertEquals('h2', zkp.host)
-      assertEquals(2181, zkp.port)
-
       def expectedResources =
         [
-          '/README.md': 'this is the readme',
-          '/lib': DIRECTORY,
-          '/lib/acme.jar': 'this is the jar',
+          // zookeeper cluster config
           '/conf': DIRECTORY,
-          '/conf/zoo.cfg': '[clientPort:2181];[host:h2];[]'
-        ]
+          '/conf/org': DIRECTORY,
+          '/conf/org/glu': DIRECTORY,
+          '/conf/org/glu/agents': DIRECTORY,
+          '/conf/org/glu/agents/names': DIRECTORY,
+          '/conf/org/glu/agents/names/agent-1': DIRECTORY,
+          '/conf/org/glu/agents/names/agent-1/fabric': 'glu-dev-1',
+          '/conf/org/glu/agents/fabrics': DIRECTORY,
+          '/conf/org/glu/agents/fabrics/glu-dev-1': DIRECTORY,
+          '/conf/org/glu/agents/fabrics/glu-dev-1/config': DIRECTORY,
+          '/conf/org/glu/agents/fabrics/glu-dev-1/config/config.properties': TUTORIAL_AGENT_CONFIG_PROPERTIES,
+          '/conf/org/glu/agents/fabrics/glu-dev-1/config/agent.keystore': toBinaryResource(keysRootResource.createRelative('agent.keystore')),
+          '/conf/org/glu/agents/fabrics/glu-dev-1/config/console.truststore': toBinaryResource(keysRootResource.createRelative('console.truststore')),
 
-      checkPackageContent(expectedResources, zkp.location)
-    }
-  }
-
-  public void testCreatePackage2()
-  {
-    ShellImpl.createTempShell { Shell shell ->
-      def dist = shell.mkdirs('/dist')
-
-      // building a package with a readme at the root and a another file in a subdirectory..
-      // we will make sure that the packaging process does not affect anything else
-      def zkDistPackage = dist.createRelative('org.linkedin.zookeeper-server-x.y.z')
-      shell.saveContent(zkDistPackage.createRelative('README.md'), "this is the readme")
-      shell.saveContent(zkDistPackage.createRelative('lib/acme.jar'), "this is the jar")
-
-
-      def packager = new ZooKeeperClusterPackager(shell: shell,
-                                                  configRoot: createZooKeeperTemplates(shell),
-                                                  zookeperServers: [[host: 'h2'], [clientPort: 2183, quorumPort: 2889, leaderElectionPort: 3889]],
-                                                  inputPackage: zkDistPackage,
-                                                  outputFolder: shell.mkdirs('/out'))
-
-      List<PackagedArtifact> zkps = packager.createPackages() as List
-      assertEquals(2, zkps.size())
-
-      // server 1 -> h2-2181
-      PackagedArtifact zkp = zkps[0]
-
-      assertEquals("/out/org.linkedin.zookeeper-server-x.y.z-h2-2181", zkp.location.path)
-      assertEquals('h2', zkp.host)
-      assertEquals(2181, zkp.port)
-
-      def expectedResources =
-        [
-          '/README.md': 'this is the readme',
-          '/data': DIRECTORY,
-          '/data/myid': '1',
-          '/lib': DIRECTORY,
-          '/lib/acme.jar': 'this is the jar',
-          '/conf': DIRECTORY,
-          '/conf/zoo.cfg': '[clientPort:2181];[host:h2];[[host:h2], [clientPort:2183, quorumPort:2889, leaderElectionPort:3889]]'
-        ]
-
-      checkPackageContent(expectedResources, zkp.location)
-
-      // server 2 -> localhost-2183
-      zkp = zkps[1]
-
-      assertEquals("/out/org.linkedin.zookeeper-server-x.y.z-localhost-2183", zkp.location.path)
-      assertEquals('localhost', zkp.host)
-      assertEquals(2183, zkp.port)
-
-      expectedResources =
-        [
-          '/README.md': 'this is the readme',
-          '/data': DIRECTORY,
-          '/data/myid': '2',
-          '/lib': DIRECTORY,
-          '/lib/acme.jar': 'this is the jar',
-          '/conf': DIRECTORY,
-          '/conf/zoo.cfg': '[clientPort:2181];[clientPort:2183, quorumPort:2889, leaderElectionPort:3889];[[host:h2], [clientPort:2183, quorumPort:2889, leaderElectionPort:3889]]'
-        ]
-
-      checkPackageContent(expectedResources, zkp.location)
-    }
-  }
-
-  public void testActualTemplates()
-  {
-    ShellImpl.createTempShell { Shell shell ->
-
-      assertEquals(2, copyConfigs(shell, 'zookeeper'))
-
-      def out = shell.mkdirs('/out')
-
-      assertEquals("12", shell.cat(shell.processTemplate('/templates/myid.gtmpl', out, [id: 12])))
-
-      def defaultContent = """
-# The number of milliseconds of each tick
+          // zookeeper server config
+          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1": DIRECTORY,
+          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/README.md": 'this is the readme',
+          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/lib": DIRECTORY,
+          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/lib/acme.jar": 'this is the jar',
+          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/conf": DIRECTORY,
+          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/conf/myid": '1',
+          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/conf/zoo.cfg": """# The number of milliseconds of each tick
 tickTime=2000
 # The number of ticks that the initial
 # synchronization phase can take
@@ -161,19 +95,119 @@ syncLimit=5
 dataDir=data
 # the port at which the clients will connect
 clientPort=2181
-"""
-      checkContent(defaultContent, shell, 'zoo.cfg.gtmpl',
-                   [
-                     opts: [:],
-                     zk: [:],
-                     // if only 1 server => no server section at the bottom
-                     allServers: []
-                   ]
-      )
 
-      def contentWith2Servers = """
-# The number of milliseconds of each tick
-tickTime=4000
+server.1=127.0.0.1:2888:3888
+""",
+        ]
+
+      assertEquals(shell.toResource("/out/zookeeper-cluster-tutorialZooKeeperCluster"),
+                   pkg.zooKeeperCluster.location)
+
+      checkPackageContent(expectedResources, pkg.zooKeeperCluster.location)
+
+      assertEquals(1, pkg.zooKeepers.size())
+
+      def zk = (pkg.zooKeepers as List)[0]
+
+      assertEquals(shell.toResource("/out/zookeeper-cluster-tutorialZooKeeperCluster/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1"),
+                   zk.location)
+      assertEquals('127.0.0.1', zk.host)
+      assertEquals(2181, zk.port)
+    }
+  }
+
+  /**
+   * Test for more than 1 node in the cluster
+   */
+  public void testCreatePackage2()
+  {
+    ShellImpl.createTempShell { Shell shell ->
+      def inputPackage = shell.mkdirs("/dist/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}")
+      shell.saveContent(inputPackage.createRelative('README.md'), "this is the readme")
+      shell.saveContent(inputPackage.createRelative('lib/acme.jar'), "this is the jar")
+
+      def metaModel = """
+fabrics['f1'] = [
+  keys: [
+    agentKeyStore: [
+      uri: 'agent.keystore',
+      checksum: 'JSHZAn5IQfBVp1sy0PgA36fT_fD',
+      storePassword: 'nacEn92x8-1',
+      keyPassword: 'nWVxpMg6Tkv'
+    ],
+
+    agentTrustStore: [
+      uri: 'agent.truststore',
+      checksum: 'CvFUauURMt-gxbOkkInZ4CIV50y',
+      storePassword: 'nacEn92x8-1',
+      keyPassword: 'nWVxpMg6Tkv'
+    ],
+
+    consoleKeyStore: [
+      uri: 'console.keystore',
+      checksum: 'wxiKSyNAHN2sOatUG2qqIpuVYxb',
+      storePassword: 'nacEn92x8-1',
+      keyPassword: 'nWVxpMg6Tkv'
+    ],
+
+    consoleTrustStore: [
+      uri: 'console.truststore',
+      checksum: 'qUFMIePiJhz8i7Ow9lZmN5pyZjl',
+      storePassword: 'nacEn92x8-1',
+    ],
+  ],
+  zooKeeperCluster: 'zkc'
+]
+
+zooKeeperClusters << [
+  name: 'zkc',
+  zooKeepers: [
+    [
+      version: 'z.v.1',
+      host: 'h1'
+    ],
+    [
+      version: 'z.v.1',
+      host: 'h2'
+    ]
+  ],
+]
+"""
+
+      def packager =
+        new ZooKeeperClusterPackager(packagerContext: createPackagerContext(shell),
+                                     outputFolder: shell.mkdirs('/out'),
+                                     inputPackage: inputPackage,
+                                     configRoot: copyConfigs(shell.toResource('/configs')),
+                                     metaModel: toGluMetaModel(metaModel).zooKeeperClusters['zkc'])
+
+      def pkg = packager.createPackage()
+
+      assertEquals(shell.toResource("/out/zookeeper-cluster-zkc"),
+                   pkg.zooKeeperCluster.location)
+
+      def expectedResources = [
+        // zookeeper cluster config
+        '/conf': DIRECTORY,
+        '/conf/org': DIRECTORY,
+        '/conf/org/glu': DIRECTORY,
+        '/conf/org/glu/agents': DIRECTORY,
+        '/conf/org/glu/agents/fabrics': DIRECTORY,
+        '/conf/org/glu/agents/fabrics/f1': DIRECTORY,
+        '/conf/org/glu/agents/fabrics/f1/config': DIRECTORY,
+        '/conf/org/glu/agents/fabrics/f1/config/config.properties': TUTORIAL_AGENT_CONFIG_PROPERTIES,
+          '/conf/org/glu/agents/fabrics/f1/config/agent.keystore': toBinaryResource(keysRootResource.createRelative('agent.keystore')),
+          '/conf/org/glu/agents/fabrics/f1/config/console.truststore': toBinaryResource(keysRootResource.createRelative('console.truststore')),
+
+        // zookeeper server config for h1
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1": DIRECTORY,
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/README.md": 'this is the readme',
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/lib": DIRECTORY,
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/lib/acme.jar": 'this is the jar',
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/conf": DIRECTORY,
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/conf/myid": '1',
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/conf/zoo.cfg": """# The number of milliseconds of each tick
+tickTime=2000
 # The number of ticks that the initial
 # synchronization phase can take
 initLimit=10
@@ -183,35 +217,56 @@ syncLimit=5
 # the directory where the snapshot is stored.
 dataDir=data
 # the port at which the clients will connect
-clientPort=2282
+clientPort=2181
 
-server.1=h1:12888:13888
+server.1=h1:2888:3888
 
-server.2=h2:12889:13889
-"""
+server.2=h2:2888:3888
+""",
 
-      checkContent(contentWith2Servers, shell, 'zoo.cfg.gtmpl',
-                   [
-                     opts: [tickTime: 4000],
-                     zk: [clientPort: 2282],
-                     // if only 1 server => no server section at the bottom
-                     allServers: [[clientPort: 2282, host: 'h1', quorumPort: 12888, leaderElectionPort: 13888],
-                       [clientPort: 2282, host: 'h2', quorumPort: 12889, leaderElectionPort: 13889]]
-                   ]
-      )
+        // zookeeper server config for h2
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2": DIRECTORY,
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/README.md": 'this is the readme',
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/lib": DIRECTORY,
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/lib/acme.jar": 'this is the jar',
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/conf": DIRECTORY,
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/conf/myid": '2',
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/conf/zoo.cfg": """# The number of milliseconds of each tick
+tickTime=2000
+# The number of ticks that the initial
+# synchronization phase can take
+initLimit=10
+# The number of ticks that can pass between
+# sending a request and getting an acknowledgement
+syncLimit=5
+# the directory where the snapshot is stored.
+dataDir=data
+# the port at which the clients will connect
+clientPort=2181
+
+server.1=h1:2888:3888
+
+server.2=h2:2888:3888
+""",
+      ]
+
+      checkPackageContent(expectedResources, pkg.zooKeeperCluster.location)
+
+      assertEquals(2, pkg.zooKeepers.size())
+
+      def zk1 = (pkg.zooKeepers as List)[0]
+
+      assertEquals(shell.toResource("/out/zookeeper-cluster-zkc/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1"),
+                   zk1.location)
+      assertEquals('h1', zk1.host)
+      assertEquals(2181, zk1.port)
+
+      def zk2 = (pkg.zooKeepers as List)[1]
+
+      assertEquals(shell.toResource("/out/zookeeper-cluster-zkc/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2"),
+                   zk2.location)
+      assertEquals('h2', zk2.host)
+      assertEquals(2181, zk2.port)
     }
   }
-
-  private Resource createZooKeeperTemplates(Shell shell)
-  {
-    def templates = shell.mkdirs('/configs')
-
-    // YP Note: those are groovy templates hence the single quote!
-
-    shell.saveContent(templates.createRelative("/conf/myid.gtmpl"), '${id}')
-    shell.saveContent(templates.createRelative("/conf/zoo.cfg.gtmpl"), '${opts};${zk};${allServers}')
-
-    return templates
-  }
-
 }

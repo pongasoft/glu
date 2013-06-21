@@ -31,15 +31,15 @@ fabrics[fabric] = [
     ],
 
     agentTrustStore: [
-      uri: 'agent.keystore',
-      checksum: 'JSHZAn5IQfBVp1sy0PgA36fT_fD',
+      uri: 'agent.truststore',
+      checksum: 'CvFUauURMt-gxbOkkInZ4CIV50y',
       storePassword: 'nacEn92x8-1',
       keyPassword: 'nWVxpMg6Tkv'
     ],
 
     consoleKeyStore: [
       uri: 'console.keystore',
-      checksum: 'JSHZAn5IQfBVp1sy0PgA36fT_fD',
+      checksum: 'wxiKSyNAHN2sOatUG2qqIpuVYxb',
       storePassword: 'nacEn92x8-1',
       keyPassword: 'nWVxpMg6Tkv'
     ],

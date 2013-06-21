@@ -34,6 +34,8 @@ public class ZooKeeperClusterPackager extends BasePackager
 
   PackagedArtifact createPackage(Resource clusterPackagePath, ZooKeeperMetaModel zk)
   {
+    ensureVersion(zk.version)
+
     String host = zk.host ?: 'localhost'
     int port = zk.clientPort
 

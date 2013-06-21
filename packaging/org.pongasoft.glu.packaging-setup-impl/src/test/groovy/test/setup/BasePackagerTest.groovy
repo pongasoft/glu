@@ -30,6 +30,19 @@ public abstract class BasePackagerTest extends GroovyTestCase
 {
   public static final Object DIRECTORY = new Object()
 
+  public static class BinaryResource
+  {
+    Resource resource
+  }
+
+  /**
+   * Convenient call from subclasses
+   */
+  public static BinaryResource toBinaryResource(Resource resource)
+  {
+    new BinaryResource(resource: resource)
+  }
+
   public static final int CONFIG_TEMPLATES_COUNT = 8
 
   public static final String GLU_VERSION = 'g.v.0'
@@ -49,6 +62,15 @@ public abstract class BasePackagerTest extends GroovyTestCase
                                                           'zooKeeper.version': ZOOKEEPER_VERSION
                                                         ]))
     testModel = builder.toGluMetaModel()
+  }
+
+  protected GluMetaModel toGluMetaModel(String gluMetaModelString)
+  {
+    GluMetaModelBuilder builder = new GluMetaModelBuilder()
+
+    builder.deserializeFromJson(gluMetaModelString)
+
+    return builder.toGluMetaModel()
   }
 
   protected File getTestModelFile()
@@ -117,7 +139,13 @@ public abstract class BasePackagerTest extends GroovyTestCase
       if(expectedValue.is(DIRECTORY))
         assertTrue("${r} is directory", r.isDirectory())
       else
-        assertEquals(expectedValue, r.file.text)
+      {
+        if(expectedValue instanceof BinaryResource)
+          assertEquals("binary content differ for ${r}",
+                       rootShell.sha1(expectedValue.resource), rootShell.sha1(r))
+        else
+          assertEquals(expectedValue, r.file.text)
+      }
     }
 
     assertTrue("${expectedResources.keySet()} is not empty", expectedResources.isEmpty())

@@ -67,6 +67,8 @@ public class AgentServerPackager extends BasePackager
 
   PackagedArtifact createPackage()
   {
+    ensureVersion(metaModel.version)
+
     def tokens = [
       agentMetaModel: metaModel,
       envPropertyNames: ENV_PROPERTY_NAMES,

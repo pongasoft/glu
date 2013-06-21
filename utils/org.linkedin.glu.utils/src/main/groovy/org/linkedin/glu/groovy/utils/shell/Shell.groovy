@@ -529,6 +529,13 @@ def interface Shell extends FileSystem
   def withWriter(file, Closure closure)
 
   /**
+   * Computes the sha1 of a file/resource. Returns it as an hex string (40 chars)
+   *
+   * @return as an hex string (40 chars)
+   */
+  String sha1(file)
+
+  /**
    * Runs the closure in a protected block that will not throw an exception but will return
    * <code>null</code> in the case one happens
    *

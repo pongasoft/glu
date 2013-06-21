@@ -49,6 +49,7 @@ import javax.management.ObjectName
 import javax.management.remote.JMXConnectorFactory
 import javax.management.remote.JMXServiceURL
 import java.nio.file.Files
+import java.security.MessageDigest
 import java.util.concurrent.TimeoutException
 import java.util.regex.Pattern
 import org.slf4j.Logger
@@ -63,6 +64,8 @@ def class ShellImpl implements Shell
 {
   public static final String MODULE = ShellImpl.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
+
+  public static final MemorySize FILE_BUFFER_SIZE = MemorySize.parse('1m')
 
   static {
     MimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
@@ -1136,6 +1139,24 @@ def class ShellImpl implements Shell
     withOutputStream(file) { OutputStream os ->
       os.withWriter(charset, closure)
     }
+  }
+
+  /**
+   * Computes the sha1 of a file/resource. Returns it as an hex string (40 chars)
+   *
+   * @return as an hex string (40 chars)
+   */
+  String sha1(file)
+  {
+    def md = MessageDigest.getInstance('SHA1')
+
+    withInputStream(file) { InputStream stream ->
+      stream.eachByte(FILE_BUFFER_SIZE.sizeInBytes as int) { byte[] buf, int bytesRead ->
+        md.update(buf, 0, bytesRead);
+      }
+    }
+
+    new BigInteger(1, md.digest()).toString(16).padLeft(40, '0')
   }
 
   /**

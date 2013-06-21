@@ -699,6 +699,14 @@ println "done copy...\${token2}"
     }
   }
 
+  void testSha1()
+  {
+    ShellImpl.createTempShell { Shell shell ->
+      assertEquals('03cfd743661f07975fa2f1220c5194cbaff48451',
+                   shell.sha1(shell.saveContent('/foo.txt', 'abc\n')))
+    }
+  }
+
   private def leavesPaths(Resource root)
   {
     new TreeSet(GroovyIOUtils.findAll(root) { !it.isDirectory() }.collect { it.path })

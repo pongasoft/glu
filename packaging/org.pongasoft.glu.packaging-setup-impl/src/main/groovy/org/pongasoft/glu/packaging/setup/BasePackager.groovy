@@ -23,6 +23,12 @@ public class BasePackager
   Resource inputPackage
   Resource configRoot
 
+  void ensureVersion(String version)
+  {
+    if(!inputPackage.filename.endsWith("-${version}"))
+      throw new IllegalArgumentException("input package [${inputPackage.filename}] mismatch version [${version}]")
+  }
+
   Shell getShell()
   {
     packagerContext.shell
