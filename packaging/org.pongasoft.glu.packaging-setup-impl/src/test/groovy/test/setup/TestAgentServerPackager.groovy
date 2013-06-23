@@ -94,7 +94,6 @@ GLU_AGENT_NAME="agent-1"
 
       def metaModel = """
 fabrics['f1'] = [
-  ${DEFAULT_KEYS},
   zooKeeperCluster: 'zkc'
 ]
 

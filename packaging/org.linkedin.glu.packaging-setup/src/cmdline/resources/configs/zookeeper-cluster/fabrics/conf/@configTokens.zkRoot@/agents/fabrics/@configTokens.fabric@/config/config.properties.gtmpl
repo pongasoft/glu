@@ -17,9 +17,9 @@
 
 ################################
 # Security:
-glu.agent.sslEnabled=${configTokens.'glu.agent.sslEnabled' ?: 'true'}
+<% if(fabricMetaModel.keys) { %>
+glu.agent.sslEnabled=true
 
-<% if(configTokens.'glu.agent.sslEnabled' ?: 'true' == 'true') { %>
 glu.agent.keystorePath=${configTokens.'glu.agent.keystorePath' ?: 'zookeeper:${glu.agent.zookeeper.root}/agents/fabrics/${glu.agent.fabric}/config/agent.keystore'}
 glu.agent.keystoreChecksum=${fabricMetaModel.keys.agentKeyStore.checksum}
 glu.agent.keystorePassword=${fabricMetaModel.keys.agentKeyStore.storePassword}
@@ -28,7 +28,9 @@ glu.agent.keyPassword=${fabricMetaModel.keys.agentKeyStore.keyPassword}
 glu.agent.truststorePath=${configTokens.'glu.agent.truststorePath' ?: 'zookeeper:${glu.agent.zookeeper.root}/agents/fabrics/${glu.agent.fabric}/config/console.truststore'}
 glu.agent.truststoreChecksum=${fabricMetaModel.keys.consoleTrustStore.checksum}
 glu.agent.truststorePassword=${fabricMetaModel.keys.consoleTrustStore.storePassword}
-<% } /* if(configTokens.'glu.agent.sslEnabled' ?: 'true' == 'true') */ %>
+<% } else { %>
+glu.agent.sslEnabled=false
+<% } %>
 
 <% if(configTokens.'glu.agent.ivySettings') { %>
 ################################
