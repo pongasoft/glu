@@ -116,3 +116,16 @@ cmdline {
     }
   }
 }
+
+File basePackage = project.convention.plugins.cmdline.assemblePackageFile
+
+/********************************************************
+ * task: package-assemble
+ * customizing package-assemble task to include jetty
+ ********************************************************/
+project.'package-assemble'.doFirst {
+  // fetch/untar jetty distribution
+  ant.untar(src: configurations.jetty.resolve().toList()[0],
+            dest: basePackage,
+            compression: 'gzip')
+}

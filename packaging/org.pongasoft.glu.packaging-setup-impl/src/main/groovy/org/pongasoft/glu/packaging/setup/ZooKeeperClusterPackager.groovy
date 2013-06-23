@@ -14,8 +14,13 @@ public class ZooKeeperClusterPackager extends BasePackager
 
   def createPackage()
   {
+    def parts = ['zookeeper-cluster']
+
+    if(metaModel.name != 'default')
+      parts << metaModel.name
+
     Resource packagePath =
-      configure(outputFolder.createRelative("zookeeper-cluster-${metaModel.name}"))
+      configure(outputFolder.createRelative(parts.join('-')))
 
     def zooKeepers = createPackages(packagePath)
 

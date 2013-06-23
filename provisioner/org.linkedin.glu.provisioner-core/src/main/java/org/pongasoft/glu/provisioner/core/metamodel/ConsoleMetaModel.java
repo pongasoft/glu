@@ -18,6 +18,8 @@ package org.pongasoft.glu.provisioner.core.metamodel;
 
 import org.linkedin.glu.utils.core.Externable;
 
+import java.net.URI;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -25,9 +27,23 @@ import java.util.Map;
  */
 public interface ConsoleMetaModel extends ServerMetaModel, Externable
 {
+  public static final int DEFAULT_PORT = 8080;
+  public static final String DEFAULT_PATH = "/console";
+
   String getName();
 
   Map<String, FabricMetaModel> getFabrics();
   FabricMetaModel findFabric(String fabricName);
 
+  int getExternalPort();
+
+  String getExternalHost();
+
+  String getInternalPath();
+
+  String getExternalPath();
+
+  Collection<String> getPlugins();
+
+  URI getDataSourceDriverUri();
 }

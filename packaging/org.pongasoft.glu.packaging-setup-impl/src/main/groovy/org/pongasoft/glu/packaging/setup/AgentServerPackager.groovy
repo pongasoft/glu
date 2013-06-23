@@ -109,12 +109,11 @@ public class AgentServerPackager extends BasePackager
     }
     if(configTokens.GLU_AGENT_FABRIC)
       parts << configTokens.GLU_AGENT_FABRIC
-    String newPackageName = parts.join('-')
 
     if(metaModel.gluMetaModel.zooKeeperRoot != GluMetaModel.DEFAULT_ZOOKEEPER_ROOT)
       tokens[CONFIG_TOKENS_KEY].GLU_AGENT_ZOOKEEPER_ROOT = metaModel.gluMetaModel.zooKeeperRoot
 
-    Resource packagePath = outputFolder.createRelative(newPackageName)
+    Resource packagePath = outputFolder.createRelative(parts.join('-'))
     copyInputPackage(packagePath)
     configure(packagePath, tokens)
     return new PackagedArtifact(location: packagePath,

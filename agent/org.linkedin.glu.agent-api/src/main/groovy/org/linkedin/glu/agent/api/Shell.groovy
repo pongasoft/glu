@@ -746,8 +746,7 @@ def interface Shell
    *       template engine</li>
    *   <li>if the template ends with <code>.ctmpl</code> it will be treated as groovy script with
    *       all tokens variables provided, as well as <code>shell</code> (this class),
-   *       <code>out</code> (<code>System.out</code>) and <code>bout</code> (the
-   *       <code>OutputStream</code> representing <code>to</code></li>
+   *       and <code>toResource</code> (the <code>Resource</code> representing <code>to</code>)</li>
    *   <li>if the template ends with <code>.xtmpl</code> it will be processed through the
    *       {@link #replaceTokens(java.lang.String, java.util.Map)} mechanism</li>
    *   <li>if the template has no extension, the replaceTokens mechanism will be called</li>

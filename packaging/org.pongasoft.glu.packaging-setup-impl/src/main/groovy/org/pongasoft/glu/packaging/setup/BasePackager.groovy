@@ -79,28 +79,26 @@ public class BasePackager
         if(!templateOrFile.isDirectory())
         {
           Resource to =
-            (toFolder ?: outputFolder).createRelative(templateOrFile.parentResource.path)
+            (toFolder ?: outputFolder).createRelative(templateOrFile.path)
 
           if(to.path.contains('@'))
             to = shell.toResource(shell.replaceTokens(to.path, tokens))
-
-          // make sure the destination folder exists first
-          shell.mkdirs(to)
 
           switch(GluGroovyIOUtils.getFileExtension(templateOrFile))
           {
             case 'gtmpl':
             case 'xtmpl':
             case 'ctmpl':
+              to = to.parentResource.createRelative(to.filename[0..-7])
               log.debug("processing config templateOrFile: ${templateOrFile}")
               // process templateOrFile (token replacement)
               shell.processTemplate(templateOrFile, to, tokens)
               break
 
             default:
-            // not a templateOrFile => simply copy
-            log.debug("copying config file: ${templateOrFile}")
-            shell.cp(templateOrFile, to)
+              // not a templateOrFile => simply copy
+              log.debug("copying config file: ${templateOrFile}")
+              shell.cp(templateOrFile, to)
               break
           }
         }

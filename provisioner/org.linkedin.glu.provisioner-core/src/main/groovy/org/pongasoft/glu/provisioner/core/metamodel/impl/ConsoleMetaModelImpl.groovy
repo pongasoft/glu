@@ -25,11 +25,40 @@ public class ConsoleMetaModelImpl extends ServerMetaModelImpl implements Console
 {
   String name
   Map<String, FabricMetaModel> fabrics
+  String externalHost
+  Collection<String> plugins
+  URI dataSourceDriverUri
+  String internalPath
+  String externalPath
 
   @Override
   int getDefaultPort()
   {
-    return 8080;
+    return DEFAULT_PORT;
+  }
+
+  @Override
+  int getExternalPort()
+  {
+    getPort('externalPort', mainPort)
+  }
+
+  @Override
+  String getExternalHost()
+  {
+    externalHost ?: host.resolveHostAddress()
+  }
+
+  @Override
+  String getInternalPath()
+  {
+    internalPath ?: DEFAULT_PATH
+  }
+
+  @Override
+  String getExternalPath()
+  {
+    externalPath ?: DEFAULT_PATH
   }
 
   @Override
@@ -44,6 +73,21 @@ public class ConsoleMetaModelImpl extends ServerMetaModelImpl implements Console
     def ext = super.toExternalRepresentation()
 
     ext.name = name
+
+    if(externalHost)
+      ext.externalHost = externalHost
+
+    if(internalPath)
+      ext.internalPath = internalPath
+
+    if(externalPath)
+      ext.externalPath = externalPath
+
+    if(plugins)
+      ext.plugins = plugins
+
+    if(dataSourceDriverUri)
+      ext.dataSourceDriverUri = dataSourceDriverUri.toString()
 
     return ext
   }

@@ -19,46 +19,47 @@
 
 BASEDIR=`cd $(dirname $0)/.. ; pwd`
 cd $BASEDIR
+CONF_DIR=$BASEDIR/conf
 
 JETTY_DISTRIBUTION=$BASEDIR/@jetty.distribution@
 
-if [ ! -d $JETTY_DISTRIBUTION ]; then
-  echo "Setting up jetty..."
-  gunzip -c $BASEDIR/glu/repository/tgzs/@jetty.archive@ | tar -xf -
-  rm -rf $JETTY_DISTRIBUTION/contexts/*
-  rm -rf $JETTY_DISTRIBUTION/webapps/*
-  cp $BASEDIR/conf/*-jetty-context.xml $JETTY_DISTRIBUTION/contexts
-  touch $JETTY_DISTRIBUTION/logs/console.log
-  chmod +x $JETTY_DISTRIBUTION/bin/*.sh
+# log dir
+LOG_DIR=$JETTY_DISTRIBUTION/logs
+
+if [ ! -d $LOG_DIR ]; then
+  mkdir $LOG_DIR
+  touch $LOG_DIR/console.log
 fi
 
-if [ -z "$PLUGINS_DIR"]; then
-  PLUGINS_DIR=$BASEDIR/glu/repository/plugins
+# Files referenced in the script
+GC_LOG=$LOG_DIR/gc.log
+
+# hook for custom configuration
+if [ -z "$GLU_USER_CONFIG_DIR" ]; then
+  GLU_USER_CONFIG_DIR=$CONF_DIR
 fi
 
-# this will make $PLUGINS_DIR/*.jar returns empty string
-shopt -s nullglob
-
-# Add all plugins from the plugins directory to the plugins classpath
-if [ -d $PLUGINS_DIR ]; then
-  for file in $PLUGINS_DIR/*.jar
-  do
-    if [ -z "$PLUGINS_CLASSPATH" ]; then
-      PLUGINS_CLASSPATH="$file"
-    else
-      PLUGINS_CLASSPATH="$PLUGINS_CLASSPATH;$file"
-    fi
-  done
+# Load Configuration Files - $GLU_USER_CONFIG_DIR/pre_master_conf.sh first (if exists)
+if [ -f $GLU_USER_CONFIG_DIR/pre_master_conf.sh ]; then
+  echo "Loading config [$GLU_USER_CONFIG_DIR/pre_master_conf.sh]..."
+  source $GLU_USER_CONFIG_DIR/pre_master_conf.sh
 fi
 
-if [ -z "$JVM_SIZE" ]; then
-  JVM_SIZE="-Xmx512m -XX:MaxPermSize=384m"
+# Load Configuration Files - master_conf.sh (comes bundled)
+if [ -f $GLU_USER_CONFIG_DIR/master_conf.sh ]; then
+  echo "Loading config [$GLU_USER_CONFIG_DIR/master_conf.sh]..."
+  source $GLU_USER_CONFIG_DIR/master_conf.sh
 fi
 
-if [ -z "$JAVA_OPTIONS" ]; then
-  JAVA_OPTIONS=""
+# Load Configuration Files - $GLU_USER_CONFIG_DIR/post_master_conf.sh last (if exists)
+if [ -f $GLU_USER_CONFIG_DIR/post_master_conf.sh ]; then
+  echo "Loading config [$GLU_USER_CONFIG_DIR/post_master_conf.sh]..."
+  source $GLU_USER_CONFIG_DIR/post_master_conf.sh
 fi
 
-JAVA_OPTIONS="$JAVA_OPTIONS $JVM_SIZE -Dorg.linkedin.app.name=org.linkedin.glu.console-webapp -Dorg.linkedin.glu.console.config.location=$BASEDIR/conf/glu-console-webapp.groovy -Dorg.linkedin.glu.console.keys.dir=$BASEDIR/keys -Dorg.linkedin.glu.console.plugins.classpath=$PLUGINS_CLASSPATH -Dorg.linkedin.glu.console.root=$BASEDIR"
+# Java Tuning Options (heap & generations sizes; GC tuning)
+JVM_TUNING_OPTIONS="$JVM_SIZE $JVM_SIZE_NEW $JVM_SIZE_PERM $JVM_GC_TYPE $JVM_GC_OPTS $JVM_GC_LOG"
 
-JAVA_OPTIONS="$JAVA_OPTIONS" $JETTY_DISTRIBUTION/bin/jetty.sh "$@"
+JAVA_OPTIONS="$JAVA_OPTIONS $JVM_TUNING_OPTIONS -Dorg.linkedin.glu.console.config.location=$BASEDIR/conf/glu-console-webapp.groovy -Dorg.linkedin.glu.console.keys.dir=$BASEDIR/keys -Dorg.linkedin.glu.console.plugins.classpath=$PLUGINS_CLASSPATH -Dorg.linkedin.glu.console.root=$BASEDIR"
+
+JAVA="$JAVA_CMD" JAVA_OPTIONS="$JAVA_OPTIONS" $JETTY_CMD "$@"

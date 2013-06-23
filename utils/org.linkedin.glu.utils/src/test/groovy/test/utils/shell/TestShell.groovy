@@ -665,14 +665,14 @@ line 3 abcdef
         (0..10).each { b -> out.write(b) }
       }
 
-      def tokens = [token1: 'foo', token2: 'bar', inputFile: inputFile.file.path]
+      def out = []
+
+      def tokens = [token1: 'foo', token2: 'bar', inputFile: inputFile.file.path, out: out]
 
       def templateCode = """
-println "starting copy...\${token1}"
-shell.withInputStream(inputFile) { inputStream ->
-  bout << inputStream
-}
-println "done copy...\${token2}"
+out << "starting copy...\${token1}"
+shell.cp(inputFile, toResource)
+out << "done copy...\${token2}"
 """
 
       Resource templateCodeResource = shell.saveContent(templates.createRelative('foo.ctmpl'),
@@ -681,6 +681,7 @@ println "done copy...\${token2}"
       // 1. in a file
       def p1 = shell.processTemplate(templateCodeResource, '/out1/foo', tokens)
       assertEquals('/out1/foo', p1.path)
+      assertEquals(['starting copy...foo', 'done copy...bar'], out)
 
       shell.withInputStream(p1) { InputStream stream ->
         (0..10).each { assertEquals(it, stream.read()) }
@@ -688,9 +689,11 @@ println "done copy...\${token2}"
       }
 
       // 2. in a directory
+      out.clear()
       shell.mkdirs('/out2')
       def p2 = shell.processTemplate(templateCodeResource, '/out2/foo', tokens)
       assertEquals('/out2/foo', p2.path)
+      assertEquals(['starting copy...foo', 'done copy...bar'], out)
 
       shell.withInputStream(p2) { InputStream stream ->
         (0..10).each { assertEquals(it, stream.read()) }

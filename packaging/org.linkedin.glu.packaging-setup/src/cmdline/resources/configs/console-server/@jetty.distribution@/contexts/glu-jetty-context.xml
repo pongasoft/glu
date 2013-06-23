@@ -16,7 +16,7 @@
   ~ License for the specific language governing permissions and limitations under
   ~ the License.
   -->
-  
+
 <Configure class="org.eclipse.jetty.server.handler.ContextHandler">
   <Call class="org.eclipse.jetty.util.log.Log" name="debug"><Arg>Configure glu-jetty-context.xml</Arg></Call>
   <Set name="contextPath">/glu</Set>

@@ -38,4 +38,29 @@ public class KeysMetaModelImpl implements KeysMetaModel
       consoleTrustStore: consoleTrustStore.toExternalRepresentation()
     ]
   }
+
+  boolean equals(o)
+  {
+    if(this.is(o)) return true
+    if(!(o instanceof KeysMetaModelImpl)) return false
+
+    KeysMetaModelImpl that = (KeysMetaModelImpl) o
+
+    if(agentKeyStore != that.agentKeyStore) return false
+    if(agentTrustStore != that.agentTrustStore) return false
+    if(consoleKeyStore != that.consoleKeyStore) return false
+    if(consoleTrustStore != that.consoleTrustStore) return false
+
+    return true
+  }
+
+  int hashCode()
+  {
+    int result
+    result = (agentKeyStore != null ? agentKeyStore.hashCode() : 0)
+    result = 31 * result + (agentTrustStore != null ? agentTrustStore.hashCode() : 0)
+    result = 31 * result + (consoleKeyStore != null ? consoleKeyStore.hashCode() : 0)
+    result = 31 * result + (consoleTrustStore != null ? consoleTrustStore.hashCode() : 0)
+    return result
+  }
 }

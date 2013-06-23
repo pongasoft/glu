@@ -64,7 +64,14 @@ agents << [
 consoles << [
   name: 'tutorialConsole',
   host: 'localhost',
-  version: gluVersion
+  plugins: ['org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin'],
+  version: gluVersion,
+  configTokens: [
+    dataSource: """
+dataSource.dbCreate ='update'
+dataSource.url="jdbc:hsqldb:file:\${System.properties['user.dir']}/database/prod;shutdown=true"
+""",
+  ]
 ]
 
 zooKeeperClusters << [

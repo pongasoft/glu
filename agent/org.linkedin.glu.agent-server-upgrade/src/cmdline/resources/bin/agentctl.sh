@@ -295,9 +295,9 @@ if [ -f $GLU_USER_CONFIG_DIR/pre_master_conf.sh ]; then
 fi
 
 # Load Configuration Files - master_conf.sh (comes bundled)
-if [ -f $CONF_DIR/master_conf.sh ]; then
-  echo "Loading config [$CONF_DIR/master_conf.sh]..."
-  source $CONF_DIR/master_conf.sh
+if [ -f $GLU_USER_CONFIG_DIR/master_conf.sh ]; then
+  echo "Loading config [$GLU_USER_CONFIG_DIR/master_conf.sh]..."
+  source $GLU_USER_CONFIG_DIR/master_conf.sh
 fi
 
 # Load Configuration Files - $GLU_USER_CONFIG_DIR/post_master_conf.sh last (if exists)

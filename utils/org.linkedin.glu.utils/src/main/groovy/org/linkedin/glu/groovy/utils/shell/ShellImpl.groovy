@@ -1072,15 +1072,12 @@ def class ShellImpl implements Shell
           if(toIsDirectory)
             toResource = toResource.createRelative(templateResource.filename - '.ctmpl')
 
-          withOutputStream(toResource) { OutputStream bout ->
-            binding.out = tokens.out ?: System.out
-            binding.shell = tokens.shell ?: this
-            binding.bout = bout
+          binding.shell = tokens.shell ?: this
+          binding.toResource = toResource
 
-            def groovyShell = new GroovyShell(binding)
-            withReader(templateResource) { Reader templateReader ->
-              groovyShell.evaluate(templateReader, templateResource.path)
-            }
+          def groovyShell = new GroovyShell(binding)
+          withReader(templateResource) { Reader templateReader ->
+            groovyShell.evaluate(templateReader, templateResource.path)
           }
 
           break

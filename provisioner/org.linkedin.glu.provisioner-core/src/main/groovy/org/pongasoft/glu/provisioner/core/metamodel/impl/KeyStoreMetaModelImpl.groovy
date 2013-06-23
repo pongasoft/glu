@@ -37,4 +37,29 @@ public class KeyStoreMetaModelImpl implements KeyStoreMetaModel
       keyPassword: keyPassword
     ]
   }
+
+  boolean equals(o)
+  {
+    if(this.is(o)) return true
+    if(!(o instanceof KeyStoreMetaModelImpl)) return false
+
+    KeyStoreMetaModelImpl that = (KeyStoreMetaModelImpl) o
+
+    if(checksum != that.checksum) return false
+    if(keyPassword != that.keyPassword) return false
+    if(storePassword != that.storePassword) return false
+    if(uri != that.uri) return false
+
+    return true
+  }
+
+  int hashCode()
+  {
+    int result
+    result = (uri != null ? uri.hashCode() : 0)
+    result = 31 * result + (checksum != null ? checksum.hashCode() : 0)
+    result = 31 * result + (storePassword != null ? storePassword.hashCode() : 0)
+    result = 31 * result + (keyPassword != null ? keyPassword.hashCode() : 0)
+    return result
+  }
 }

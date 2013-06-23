@@ -14,18 +14,7 @@
  * the License.
  */
 
-def uri = fabricMetaModel.keys?.consoleTrustStore?.uri
-
-if(uri)
-{
-  if(uri.isAbsolute())
-  {
-    packagerContext.shell.fetch(uri, toResource)
-  }
-  else
-  {
-    def relativeKeyStoreFile = uri.toString()
-    def keyStore = packagerContext.keysRootDir.createRelative(relativeKeyStoreFile)
-    packagerContext.shell.fetch(keyStore, toResource)
-  }
+// download/fetch the URI
+if(consoleMetaModel.dataSourceDriverUri) {
+  packagerContext.shell.fetch(consoleMetaModel.dataSourceDriverUri, toResource)
 }

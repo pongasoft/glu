@@ -16,6 +16,7 @@
 
 package test.setup
 
+import junit.framework.AssertionFailedError
 import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
 import org.linkedin.groovy.util.io.GroovyIOUtils
@@ -43,7 +44,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
     new BinaryResource(resource: resource)
   }
 
-  public static final int CONFIG_TEMPLATES_COUNT = 8
+  public static final int CONFIG_TEMPLATES_COUNT = 16
 
   public static final String GLU_VERSION = 'g.v.0'
   public static final String ZOOKEEPER_VERSION = 'z.v.1'
@@ -157,29 +158,61 @@ public abstract class BasePackagerTest extends GroovyTestCase
   }
 
 
-  protected void checkPackageContent(def expectedResources, Resource pkgRoot)
+  protected void checkPackageContent(def expectedResources, Resource pkgRoot, boolean bulkFailure = true)
   {
     // GString -> String conversion for proper map key handling
     expectedResources = expectedResources.collectEntries {k,v -> [k.toString(), v]}
 
-    GroovyIOUtils.eachChildRecurse(pkgRoot.chroot('.')) { Resource r ->
-      def expectedValue = expectedResources.remove(r.path)
-      if(expectedValue == null)
-        fail("unexpected resource ${r}")
+    List<AssertionFailedError> errors = []
 
-      if(expectedValue.is(DIRECTORY))
-        assertTrue("${r} is directory", r.isDirectory())
-      else
+    GroovyIOUtils.eachChildRecurse(pkgRoot.chroot('.')) { Resource r ->
+      try
       {
-        if(expectedValue instanceof BinaryResource)
-          assertEquals("binary content differ for ${r}",
-                       rootShell.sha1(expectedValue.resource), rootShell.sha1(r))
+        def expectedValue = expectedResources.remove(r.path)
+        if(expectedValue == null)
+          fail("unexpected resource ${r}")
+
+        if(expectedValue.is(DIRECTORY))
+          assertTrue("${r} is directory", r.isDirectory())
         else
-          assertEquals(expectedValue, r.file.text)
+        {
+          if(expectedValue instanceof BinaryResource)
+            assertEquals("binary content differ for ${r}",
+                         rootShell.sha1(expectedValue.resource), rootShell.sha1(r))
+          else
+            assertEquals("mismatch content for ${r}", expectedValue, r.file.text)
+        }
+      }
+      catch(AssertionFailedError ex)
+      {
+        if(bulkFailure)
+          errors << ex
+        else
+          throw ex
       }
     }
 
-    assertTrue("${expectedResources.keySet()} is not empty", expectedResources.isEmpty())
+    try
+    {
+      assertTrue("${expectedResources.keySet()} is not empty", expectedResources.isEmpty())
+    }
+    catch(AssertionFailedError ex)
+    {
+      if(bulkFailure)
+        errors << ex
+      else
+        throw ex
+    }
+
+    if(errors.size() == 1)
+      throw errors[0]
+
+    if(errors.size() > 1)
+    {
+      def ex = new AssertionFailedError("${errors.size()} detected")
+      errors.each { ex.addSuppressed(it) }
+      throw ex
+    }
   }
 
 }

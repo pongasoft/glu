@@ -22,6 +22,7 @@ import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.KeysMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.impl.AgentMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.ConsoleMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.FabricMetaModelImpl
@@ -164,7 +165,14 @@ public class GluMetaModelBuilder
     ConsoleMetaModelImpl console =
       deserializeServer(consoleModel,
                         new ConsoleMetaModelImpl(name: consoleModel.name ?: 'default',
-                                                 fabrics: [:]))
+                                                 fabrics: [:],
+                                                 plugins: consoleModel.plugins ?: [],
+                                                 externalHost: consoleModel.externalHost,
+                                                 internalPath: consoleModel.internalPath,
+                                                 externalPath: consoleModel.externalPath))
+
+    if(consoleModel.dataSourceDriverUri)
+      console.dataSourceDriverUri = new URI(consoleModel.dataSourceDriverUri)
 
     consoles[console.name] = console
   }
@@ -259,6 +267,9 @@ public class GluMetaModelBuilder
 
   KeysMetaModelImpl deserializeKeys(Map keysModel)
   {
+    if(keysModel == null)
+      return null
+
     KeysMetaModelImpl keysMetaModel = new KeysMetaModelImpl()
 
     [
@@ -292,6 +303,15 @@ public class GluMetaModelBuilder
     }
     consoles.values().each { console ->
       console.fabrics = Collections.unmodifiableMap(console.fabrics)
+      // sanity check (only one set of keys per console... may change in the future...)
+      if(console.fabrics.size() > 1)
+      {
+        Map<String, KeysMetaModel> allKeys = console.fabrics.collectEntries { k, v -> [k, v.keys] }
+        def fabricsWithDifferentKeys =
+          allKeys.groupBy { k, v -> v }.find { it.value.size() > 1}?.value*.key
+        if(fabricsWithDifferentKeys)
+          throw new IllegalArgumentException("only one set of keys supported (at this time) in a given console [${console.name}]: those fabrics [${fabricsWithDifferentKeys}] have different keys")
+      }
     }
     zooKeeperClusters.values().each { zooKeeperCluster ->
       zooKeeperCluster.fabrics = Collections.unmodifiableMap(zooKeeperCluster.fabrics)
