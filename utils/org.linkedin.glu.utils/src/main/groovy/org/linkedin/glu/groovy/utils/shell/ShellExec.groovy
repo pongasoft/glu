@@ -375,7 +375,7 @@ class ShellExec
     else
     {
       if(command.startsWith('file:'))
-        command -= 'file'
+        command -= 'file:'
     }
 
     _commandLine = command

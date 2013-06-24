@@ -96,7 +96,7 @@ public class TestConsoleServerPackager extends BasePackagerTest
   {
     ShellImpl.createTempShell { Shell shell ->
 
-      def driverResource = shell.saveContent('/drivers/db.driver', 'this is the driver')
+      def driverResource = shell.saveContent('/drivers/db-driver.jar', 'this is the driver')
 
       def metaModel = """
 fabrics['f1'] = [
@@ -258,7 +258,7 @@ JVM_SIZE="-Xmx555m"
           "/${jettyDistribution}/contexts/glu-jetty-context.xml": DEFAULT_GLU_JETTY_CONTEXT,
           "/${jettyDistribution}/lib": DIRECTORY,
           "/${jettyDistribution}/lib/ext": DIRECTORY,
-          "/${jettyDistribution}/lib/ext/db.driver": "this is the driver",
+          "/${jettyDistribution}/lib/ext/db-driver.jar": "this is the driver",
           "/${jettyDistribution}/lib/acme.jar": 'this is the jar',
         ]
 

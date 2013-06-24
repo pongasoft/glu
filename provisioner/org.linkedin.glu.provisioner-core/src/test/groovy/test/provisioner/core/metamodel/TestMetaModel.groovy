@@ -64,8 +64,14 @@ public class TestMetaModel extends GroovyTestCase
   ],
   "consoles": [
     {
+      "configTokens": {
+        "dataSource": "\\ndataSource.dbCreate ='update'\\ndataSource.url=\\"jdbc:hsqldb:file:\${System.properties['user.dir']}/database/prod;shutdown=true\\"\\n"
+      },
       "host": "localhost",
       "name": "tutorialConsole",
+      "plugins": [
+        "org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin"
+      ],
       "version": "@glu.version@"
     }
   ],
@@ -77,24 +83,24 @@ public class TestMetaModel extends GroovyTestCase
           "checksum": "JSHZAn5IQfBVp1sy0PgA36fT_fD",
           "keyPassword": "nWVxpMg6Tkv",
           "storePassword": "nacEn92x8-1",
-          "uri": "keys/agent.keystore"
+          "uri": "agent.keystore"
         },
         "agentTrustStore": {
-          "checksum": "JSHZAn5IQfBVp1sy0PgA36fT_fD",
+          "checksum": "CvFUauURMt-gxbOkkInZ4CIV50y",
           "keyPassword": "nWVxpMg6Tkv",
           "storePassword": "nacEn92x8-1",
-          "uri": "keys/agent.keystore"
+          "uri": "agent.truststore"
         },
         "consoleKeyStore": {
-          "checksum": "JSHZAn5IQfBVp1sy0PgA36fT_fD",
+          "checksum": "wxiKSyNAHN2sOatUG2qqIpuVYxb",
           "keyPassword": "nWVxpMg6Tkv",
           "storePassword": "nacEn92x8-1",
-          "uri": "keys/console.keystore"
+          "uri": "console.keystore"
         },
         "consoleTrustStore": {
           "checksum": "qUFMIePiJhz8i7Ow9lZmN5pyZjl",
           "storePassword": "nacEn92x8-1",
-          "uri": "keys/console.truststore"
+          "uri": "console.truststore"
         }
       },
       "zooKeeperCluster": "tutorialZooKeeperCluster"
