@@ -23,6 +23,10 @@ import org.linkedin.util.codec.CodecUtils
 import org.linkedin.util.codec.OneWayCodec
 import org.linkedin.util.codec.OneWayMessageDigestCodec
 import org.linkedin.util.io.resource.Resource
+import org.pongasoft.glu.provisioner.core.metamodel.KeyStoreMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.KeysMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.impl.KeyStoreMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.KeysMetaModelImpl
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -42,6 +46,7 @@ public class KeysGenerator
   String masterPassword
   String sha1Password = 'gluos1way1'
   String encryptingKey = 'gluos2way'
+  boolean generateRelativeKeyStoreUri = false
 
   def opts =
     [
@@ -56,7 +61,7 @@ public class KeysGenerator
       ],
     ]
 
-  def keys = [:]
+  KeysMetaModelImpl keys
   def passwords = [:]
 
   def passwordGenerator = { String name ->
@@ -69,12 +74,12 @@ public class KeysGenerator
     if(!passwords)
     {
       passwords = [
-        'agentKeystore',
+        'agentKeyStore',
         'agentKey',
-        'agentTruststore',
-        'consoleKeystore',
+        'agentTrustStore',
+        'consoleKeyStore',
         'consoleKey',
-        'consoleTruststore'
+        'consoleTrustStore'
       ].collectEntries { p -> [p, passwordGenerator("${p}.password")] }
     }
 
@@ -83,14 +88,15 @@ public class KeysGenerator
   /**
    * Generate all the keys, keystores and truststores
    */
-  def generateKeys()
+  KeysMetaModel generateKeys()
   {
     if(!keys)
     {
-      keys.agentKeystore = generateAgentKeystore()
-      keys.agentTruststore = generateAgentTruststore(keys.agentKeystore)
-      keys.consoleKeystore = generateConsoleKeystore()
-      keys.consoleTruststore = generateConsoleTruststore(keys.consoleKeystore)
+      keys = new KeysMetaModelImpl()
+      keys.agentKeyStore = generateAgentKeyStore()
+      keys.agentTrustStore = generateAgentTrustStore(keys.agentKeyStore)
+      keys.consoleKeyStore = generateConsoleKeyStore()
+      keys.consoleTrustStore = generateConsoleTrustStore(keys.consoleKeyStore)
     }
 
     return keys
@@ -130,16 +136,16 @@ public class KeysGenerator
    *
    * @return the resource to the keystore
    */
-  Resource generateAgentKeystore()
+  KeyStoreMetaModel generateAgentKeyStore()
   {
-    createResourceInOutputFolder('agent.keystore') { Resource agentKeystore ->
+    def resource = createResourceInOutputFolder('agent.keystore') { Resource agentKeyStore ->
       def cmd = [
         'keytool',
         '-noprompt',
         '-genkey',
         '-alias', 'agent',
-        '-keystore', agentKeystore.file.canonicalPath,
-        '-storepass', getPasswords().agentKeystore,
+        '-keystore', agentKeyStore.file.canonicalPath,
+        '-storepass', getPasswords().agentKeyStore,
         '-keypass', getPasswords().agentKey,
         '-keyalg', opts.keyalg,
         '-keysize', opts.keysize,
@@ -153,8 +159,13 @@ public class KeysGenerator
       if(res)
         log.info res.toString()
 
-      return agentKeystore
+      return agentKeyStore
     }
+
+    return new KeyStoreMetaModelImpl(uri: computeKeyStoreUri(resource),
+                                     checksum: computeChecksum(resource),
+                                     storePassword: getEncryptedPasswords().agentKeyStore,
+                                     keyPassword: getEncryptedPasswords().agentKey)
   }
 
   /**
@@ -162,9 +173,9 @@ public class KeysGenerator
    *
    * @return the resource to the truststore
    */
-  Resource generateAgentTruststore(Resource agentKeystore)
+  KeyStoreMetaModel generateAgentTrustStore(KeyStoreMetaModel agentKeyStore)
   {
-    createResourceInOutputFolder('agent.truststore') { Resource agentTruststore ->
+    def resource = createResourceInOutputFolder('agent.truststore') { Resource agentTrustStore ->
 
       createResourceInOutputFolder('agent.cert.temp', false) { Resource tempFile ->
         try
@@ -173,8 +184,8 @@ public class KeysGenerator
             'keytool',
             '-noprompt',
             '-export',
-            '-keystore', agentKeystore.file.canonicalPath,
-            '-storepass', getPasswords().agentKeystore,
+            '-keystore', toCanonicalPath(agentKeyStore),
+            '-storepass', getPasswords().agentKeyStore,
             '-alias', 'agent',
             '-file', tempFile.file.canonicalPath
           ]
@@ -190,8 +201,8 @@ public class KeysGenerator
             '-noprompt',
             '-import',
             '-alias', 'agent',
-            '-keystore', agentTruststore.file.canonicalPath,
-            '-storepass', getPasswords().agentTruststore,
+            '-keystore', agentTrustStore.file.canonicalPath,
+            '-storepass', getPasswords().agentTrustStore,
             '-file', tempFile.file.canonicalPath
           ]
 
@@ -210,8 +221,12 @@ public class KeysGenerator
         return tempFile
       }
 
-      return agentTruststore
+      return agentTrustStore
     }
+
+    return new KeyStoreMetaModelImpl(uri: computeKeyStoreUri(resource),
+                                     checksum: computeChecksum(resource),
+                                     storePassword: getEncryptedPasswords().agentTrustStore)
   }
 
   /**
@@ -219,16 +234,16 @@ public class KeysGenerator
    *
    * @return the resource to the keystore
    */
-  Resource generateConsoleKeystore()
+  KeyStoreMetaModel generateConsoleKeyStore()
   {
-    createResourceInOutputFolder('console.keystore') { Resource consoleKeystore ->
+    def resource = createResourceInOutputFolder('console.keystore') { Resource consoleKeyStore ->
       def cmd = [
         'keytool',
         '-noprompt',
         '-genkey',
         '-alias', 'console',
-        '-keystore', consoleKeystore.file.canonicalPath,
-        '-storepass', getPasswords().consoleKeystore,
+        '-keystore', consoleKeyStore.file.canonicalPath,
+        '-storepass', getPasswords().consoleKeyStore,
         '-keypass', getPasswords().consoleKey,
         '-keyalg', opts.keyalg,
         '-keysize', opts.keysize,
@@ -242,8 +257,13 @@ public class KeysGenerator
       if(res)
         log.info res
 
-      return consoleKeystore
+      return consoleKeyStore
     }
+
+    return new KeyStoreMetaModelImpl(uri: computeKeyStoreUri(resource),
+                                     checksum: computeChecksum(resource),
+                                     storePassword: getEncryptedPasswords().consoleKeyStore,
+                                     keyPassword: getEncryptedPasswords().consoleKey)
 
   }
 
@@ -252,9 +272,9 @@ public class KeysGenerator
    *
    * @return the resource to the truststore
    */
-  Resource generateConsoleTruststore(Resource consoleKeystore)
+  KeyStoreMetaModel generateConsoleTrustStore(KeyStoreMetaModel consoleKeyStore)
   {
-    createResourceInOutputFolder('console.truststore') { Resource consoleTruststore ->
+    def resource = createResourceInOutputFolder('console.truststore') { Resource consoleTruststore ->
 
       createResourceInOutputFolder('console.cert.temp', false) { Resource tempFile ->
         try
@@ -263,8 +283,8 @@ public class KeysGenerator
             'keytool',
             '-noprompt',
             '-export',
-            '-keystore', consoleKeystore.file.canonicalPath,
-            '-storepass', getPasswords().consoleKeystore,
+            '-keystore', toCanonicalPath(consoleKeyStore),
+            '-storepass', getPasswords().consoleKeyStore,
             '-alias', 'console',
             '-file', tempFile.file.canonicalPath
           ]
@@ -281,7 +301,7 @@ public class KeysGenerator
             '-import',
             '-alias', 'console',
             '-keystore', consoleTruststore.file.canonicalPath,
-            '-storepass', getPasswords().consoleTruststore,
+            '-storepass', getPasswords().consoleTrustStore,
             '-file', tempFile.file.canonicalPath
           ]
 
@@ -302,11 +322,23 @@ public class KeysGenerator
 
       return consoleTruststore
     }
+
+    return new KeyStoreMetaModelImpl(uri: computeKeyStoreUri(resource),
+                                     checksum: computeChecksum(resource),
+                                     storePassword: getEncryptedPasswords().consoleTrustStore)
+  }
+
+  private String toCanonicalPath(KeyStoreMetaModel keyStore)
+  {
+    if(keyStore.uri.isAbsolute())
+      keyStore.uri.path
+    else
+      outputFolder.createRelative(keyStore.uri.toString()).file.canonicalPath
   }
 
   private Resource createResourceInOutputFolder(String name,
-                                            boolean callClosureOnlyIfFileDoesNotExist = true,
-                                            Closure<Resource> closure)
+                                                boolean callClosureOnlyIfFileDoesNotExist = true,
+                                                Closure<Resource> closure)
   {
     if(!outputFolder.exists())
       shell.mkdirs(outputFolder)
@@ -316,4 +348,11 @@ public class KeysGenerator
     return resource
   }
 
+  private URI computeKeyStoreUri(Resource resource)
+  {
+    if(generateRelativeKeyStoreUri)
+      new URI(resource.filename)
+    else
+      resource.toURI()
+  }
 }

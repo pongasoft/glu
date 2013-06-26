@@ -20,6 +20,7 @@ import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.packaging.setup.KeysGenerator
+import org.pongasoft.glu.provisioner.core.metamodel.KeysMetaModel
 
 /**
  * @author yan@pongasoft.com  */
@@ -31,32 +32,49 @@ public class TestKeysGenerator extends GroovyTestCase
 
       def generator = new KeysGenerator(shell: shell,
                                         outputFolder: shell.toResource('/keys'),
-                                        masterPassword: "abcdefgh")
+                                        masterPassword: "abcdefgh",
+                                        generateRelativeKeyStoreUri: true)
 
-      def keys = generator.generateKeys()
-      assertEquals(4, keys.size())
-      assertNull(keys.values().find { Resource resource ->
-        !resource.exists()
-      })
+      KeysMetaModel keys = generator.generateKeys()
+
+      assertEquals(new URI('agent.keystore'), keys.agentKeyStore.uri)
+      assertTrue(shell.toResource("/keys/agent.keystore").exists())
+      assertEquals('xR1LJ-60iik2MlmaurcY3--26ykW6_9AtrEG', keys.agentKeyStore.storePassword)
+      assertEquals('W_Wat--Y5p9t6_e7Ji0T6oSTunffoeUj98rV', keys.agentKeyStore.keyPassword)
+
+      assertEquals(new URI('agent.truststore'), keys.agentTrustStore.uri)
+      assertTrue(shell.toResource("/keys/agent.truststore").exists())
+      assertEquals('R_W-DrLAD_fntTE-A_9Z9p-59na_65Nfiet8', keys.agentTrustStore.storePassword)
+      assertNull(keys.agentTrustStore.keyPassword)
+
+      assertEquals(new URI('console.keystore'), keys.consoleKeyStore.uri)
+      assertTrue(shell.toResource("/keys/console.keystore").exists())
+      assertEquals('R5MdZn7bZk70orkl9_EcbR6vZy9YMrE23i7-', keys.consoleKeyStore.storePassword)
+      assertEquals('W_1Y69ElZo9y3_ktW8eCDrEai9HY6ljaZ_kd', keys.consoleKeyStore.keyPassword)
+
+      assertEquals(new URI('console.truststore'), keys.consoleTrustStore.uri)
+      assertTrue(shell.toResource("/keys/console.truststore").exists())
+      assertEquals('3lwjxeUbZgWgb5MBiobaJR-vW0k7WR-j95Np', keys.consoleTrustStore.storePassword)
+      assertNull(keys.consoleTrustStore.keyPassword)
 
       def expectedPasswords = [
-        agentKeystore: "85ZPMe2MD0f36AIISE4wwnlbgWn",
-        agentKey: "2aVH_Oql860q6M1aMrMu_xY6yDF",
-        agentTruststore: "c1xkQpjD413jQzV8UV3dYtp0R8V",
-        consoleKeystore: "3kbzrLeQNG6zU_0VseJZE2l-uCy",
-        consoleKey: "cAj9rr8_QyFxJmFMAJC5igVq8KF",
-        consoleTruststore: "5KIsE2sjCRhCRsDoI6sDyiLXMM0"
+        agentKeyStore: 'bF4PErQ1pkYJxJ8ypvkAQ4W2-km',
+        agentKey: '2aVH_Oql860q6M1aMrMu_xY6yDF',
+        agentTrustStore: 'fSS1xqdnTWyWZEBef7FLzPKxeDZ',
+        consoleKeyStore: 'eHIkFtx5h0gaiFVgALtXhXhhcwY',
+        consoleKey: 'cAj9rr8_QyFxJmFMAJC5igVq8KF',
+        consoleTrustStore: '7xUHiEaAGpi196Qowas4kX_oHrJ'
       ]
 
       assertEquals(expectedPasswords, generator.passwords)
 
       def expectedEncryptedPasswords = [
-        agentKeystore: "x-Mlb8fFMp60W9tw3irTJTbvWr0VEieARdiY",
-        agentKey: "W_Wat--Y5p9t6_e7Ji0T6oSTunffoeUj98rV",
-        agentTruststore: "9d73JKm0RRAg9-iY9lcWZdJftrWO6kk2Dykd",
-        consoleKeystore: "DiteqRvVW9cCE5tRJkU9DdEKo-k-oKwPb81g",
-        consoleKey: "W_1Y69ElZo9y3_ktW8eCDrEai9HY6ljaZ_kd",
-        consoleTruststore: "JretRrfcDiWgt_-BWKt3AT73ATcgJ_9g3i1e"
+        agentKeyStore: 'xR1LJ-60iik2MlmaurcY3--26ykW6_9AtrEG',
+        agentKey: 'W_Wat--Y5p9t6_e7Ji0T6oSTunffoeUj98rV',
+        agentTrustStore: 'R_W-DrLAD_fntTE-A_9Z9p-59na_65Nfiet8',
+        consoleKeyStore: 'R5MdZn7bZk70orkl9_EcbR6vZy9YMrE23i7-',
+        consoleKey: 'W_1Y69ElZo9y3_ktW8eCDrEai9HY6ljaZ_kd',
+        consoleTrustStore: '3lwjxeUbZgWgb5MBiobaJR-vW0k7WR-j95Np'
       ]
 
       assertEquals(expectedEncryptedPasswords, generator.encryptedPasswords)

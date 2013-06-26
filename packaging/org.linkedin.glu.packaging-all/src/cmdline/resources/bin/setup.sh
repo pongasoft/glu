@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright (c) 2011 Yan Pujante
+# Copyright (c) 2013 Yan Pujante
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -17,5 +17,4 @@
 #
 
 BASEDIR=`cd $(dirname $0)/.. ; pwd`
-cd $BASEDIR/setup
-./bin/setup-agent.sh "$@"
+$BASEDIR/packages/org.linkedin.glu.packaging-setup-5.0.0-SNAPSHOT/bin/setup.sh "$@"

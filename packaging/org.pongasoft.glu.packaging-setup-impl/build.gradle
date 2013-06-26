@@ -22,6 +22,8 @@ dependencies {
   compile project(':provisioner:org.linkedin.glu.provisioner-core')
   compile spec.external.groovy
 
+  runtime spec.external.commonsCli
+
   testCompile spec.external.junit
 
   testRuntime project(':utils:org.linkedin.glu.utils.log4j-test-config')

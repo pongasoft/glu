@@ -26,13 +26,14 @@ configurations {
 
 dependencies {
   zookeeperPackages spec.external.utilsZookeeperServerPackage
+  zookeeperPackages spec.external.utilsZookeeperCliPackage
 }
 
 def dependentClis = [
   ':agent:org.linkedin.glu.agent-server': 'agent-server',
-  ':agent:org.linkedin.glu.agent-cli': 'agent-cli',
+//  ':agent:org.linkedin.glu.agent-cli': 'agent-cli',
   ':console:org.linkedin.glu.console-server': 'console-server',
-  ':console:org.linkedin.glu.console-cli': 'console-cli',
+//  ':console:org.linkedin.glu.console-cli': 'console-cli',
   ':packaging:org.linkedin.glu.packaging-setup': 'setup'
 ]
 
@@ -42,8 +43,21 @@ cmdline {
   resources << packageIncludes
 
   replacementTokens = [
+    'glu.version': project.version,
     'jetty.distribution': "jetty-distribution-${spec.versions.jetty}",
     'zookeeper.version': spec.versions.utilsZookeeper
+  ]
+    // keys
+  resources << [
+    from: agentKeys,
+    into: new File(assemblePackageFile, 'conf/tutorial/keys'),
+    replaceTokens: false
+  ]
+
+  resources << [
+    from: consoleKeys,
+    into: new File(assemblePackageFile, 'conf/tutorial/keys'),
+    replaceTokens: false
   ]
 }
 
@@ -56,11 +70,11 @@ def dependentProjects = dependentClis.keySet().collect { evaluationDependsOn(it)
 // customizing package-assemble task to add agent cli, agent server and war
 project.'package-assemble'.doFirst {
   File basePackage = project.convention.plugins.cmdline.assemblePackageFile
-  File dist = new File(basePackage, "dist")
-  dist.mkdirs()
+  File packages = new File(basePackage, "packages")
+  packages.mkdirs()
 
   dependentProjects.each { dp ->
-    File destDir = new File(dist, dp.convention.plugins.cmdline.assemblePackageFile.name)
+    File destDir = new File(packages, dp.convention.plugins.cmdline.assemblePackageFile.name)
     copy {
       from dp.convention.plugins.cmdline.assemblePackageFile
       into destDir
@@ -74,7 +88,7 @@ project.'package-assemble'.doFirst {
   configurations.zookeeperPackages.resolve().each { zkp ->
     copy {
       from tarTree(zkp)
-      into dist
+      into packages
     }
   }
 }

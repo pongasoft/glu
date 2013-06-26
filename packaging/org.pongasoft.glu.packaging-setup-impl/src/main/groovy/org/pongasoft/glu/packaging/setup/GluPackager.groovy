@@ -32,6 +32,7 @@ public class GluPackager
   Resource configsFolder
   Resource distDir
   Resource outputFolder
+  Resource keysRootDir
 
   void packageAgents()
   {
