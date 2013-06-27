@@ -17,4 +17,4 @@
 #
 
 BASEDIR=`cd $(dirname $0)/.. ; pwd`
-$BASEDIR/packages/org.linkedin.glu.packaging-setup-5.0.0-SNAPSHOT/bin/setup.sh "$@"
+$BASEDIR/packages/org.linkedin.glu.packaging-setup-@glu.version@/bin/setup.sh "$@"

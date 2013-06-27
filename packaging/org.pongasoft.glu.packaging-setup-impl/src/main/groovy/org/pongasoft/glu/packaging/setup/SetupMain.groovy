@@ -33,6 +33,8 @@ public class SetupMain
   protected Resource outputFolder
   protected Shell shell = ShellImpl.createRootShell()
 
+  private int exitValue = 0
+
   SetupMain()
   {
     JulToSLF4jBridge.installBridge()
@@ -112,25 +114,34 @@ public class SetupMain
   def gen_keys = {
     println "Generating keys..."
     char[] masterPassword = System.console().readPassword("Enter a master password:")
-    def kmm = new KeysGenerator(shell: shell,
-                                outputFolder: outputFolder.createRelative('keys'),
-                                masterPassword: new String(masterPassword)).generateKeys().toExternalRepresentation()
-    println "Keys have been generated in the following folder: ${outputFolder.path}"
+    def km = new KeysGenerator(shell: shell,
+                               outputFolder: outputFolder.createRelative('keys'),
+                               masterPassword: new String(masterPassword))
+    try
+    {
+      def kmm = km.generateKeys().toExternalRepresentation()
 
-    println "Copy the following section in your meta model (see comment in meta model)"
+      println "Keys have been generated in the following folder: ${outputFolder.path}"
 
-    println "//" * 20
+      println "Copy the following section in your meta model (see comment in meta model)"
 
-    println "keys: ["
-    kmm.each { storeName, store ->
-      println "  ${storeName}: ["
-      println store.findAll {k, v -> v != null}.collect { k, v -> "    ${k}: '${v}'"}.join(',\n')
-      println "  ],"
+      println "//" * 20
+
+      println "def keys = ["
+      kmm.each { storeName, store ->
+        println "  ${storeName}: ["
+        println store.findAll {k, v -> v != null}.collect { k, v -> "    ${k}: '${v}'"}.join(',\n')
+        println "  ],"
+      }
+      println "]"
+
+      println "//" * 20
     }
-    println "]"
-
-    println "//" * 20
-
+    catch(IllegalStateException e)
+    {
+      exitValue = 1
+      println "${e.message} => if you want to generate new keys, either provide another folder or delete them first"
+    }
   }
 
   public static void main(String[] args)
@@ -150,6 +161,8 @@ public class SetupMain
         clientMain.cli.usage()
       }
     }
+
+    System.exit(clientMain.exitValue)
   }
 
   protected def getConfig(cli, options)

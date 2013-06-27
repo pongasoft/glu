@@ -63,6 +63,7 @@ public class KeysGenerator
 
   KeysMetaModelImpl keys
   def passwords = [:]
+  def encryptedPasswords = [:]
 
   def passwordGenerator = { String name ->
     OneWayCodec codec  = OneWayMessageDigestCodec.createSHA1Instance(masterPassword, base64Codec)
@@ -104,11 +105,16 @@ public class KeysGenerator
 
   def getEncryptedPasswords()
   {
-    Base64Codec codec = new Base64Codec(encryptingKey);
+    if(!encryptedPasswords)
+    {
+      Base64Codec codec = new Base64Codec(encryptingKey);
 
-    passwords.collectEntries { k, v ->
-      [k, CodecUtils.encodeString(codec, v.toString())]
+      encryptedPasswords = getPasswords().collectEntries { k, v ->
+        [k, CodecUtils.encodeString(codec, v.toString())]
+      }
     }
+
+    return encryptedPasswords
   }
 
   String computeChecksum(Resource resource)
@@ -337,14 +343,19 @@ public class KeysGenerator
   }
 
   private Resource createResourceInOutputFolder(String name,
-                                                boolean callClosureOnlyIfFileDoesNotExist = true,
+                                                boolean failOnFileAlreadyExists = true,
                                                 Closure<Resource> closure)
   {
     if(!outputFolder.exists())
       shell.mkdirs(outputFolder)
     Resource resource = outputFolder.createRelative(name)
-    if(!callClosureOnlyIfFileDoesNotExist || !resource.exists())
+    if(!failOnFileAlreadyExists || !resource.exists())
+    {
+      shell.rm(resource)
       resource = closure(resource)
+    }
+    else
+      throw new IllegalStateException("${resource} already exists")
     return resource
   }
 
