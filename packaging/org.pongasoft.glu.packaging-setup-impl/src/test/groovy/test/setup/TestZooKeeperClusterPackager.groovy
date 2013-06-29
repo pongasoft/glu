@@ -19,7 +19,7 @@ public class TestZooKeeperClusterPackager extends BasePackagerTest
         new ZooKeeperClusterPackager(packagerContext: createPackagerContext(shell),
                                      outputFolder: shell.mkdirs('/out'),
                                      inputPackage: inputPackage,
-                                     configRoot: copyConfigs(shell.toResource('/configs')),
+                                     configsRoot: copyConfigs(shell.toResource('/configs')),
                                      metaModel: testModel.zooKeeperClusters['tutorialZooKeeperCluster'])
 
       def pkg = packager.createPackage()
@@ -116,7 +116,7 @@ zooKeeperClusters << [
         new ZooKeeperClusterPackager(packagerContext: createPackagerContext(shell),
                                      outputFolder: shell.mkdirs('/out'),
                                      inputPackage: inputPackage,
-                                     configRoot: copyConfigs(shell.toResource('/configs')),
+                                     configsRoot: copyConfigs(shell.toResource('/configs')),
                                      metaModel: toGluMetaModel(metaModel).zooKeeperClusters['zkc'])
 
       def pkg = packager.createPackage()
@@ -252,7 +252,7 @@ zooKeeperClusters << [
         new ZooKeeperClusterPackager(packagerContext: createPackagerContext(shell),
                                      outputFolder: shell.mkdirs('/out'),
                                      inputPackage: inputPackage,
-                                     configRoot: copyConfigs(shell.toResource('/configs')),
+                                     configsRoot: copyConfigs(shell.toResource('/configs')),
                                      metaModel: toGluMetaModel(metaModel).zooKeeperClusters['zkc'])
 
       def pkg = packager.createPackage()

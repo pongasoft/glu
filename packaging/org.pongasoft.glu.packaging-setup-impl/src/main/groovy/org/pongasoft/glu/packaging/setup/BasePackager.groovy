@@ -21,7 +21,7 @@ public class BasePackager
 
   Resource outputFolder
   Resource inputPackage
-  Resource configRoot
+  Resource configsRoot
 
   void ensureVersion(String version)
   {
@@ -68,7 +68,7 @@ public class BasePackager
 
   void processConfigs(String fromFolder, Map tokens, Resource toFolder)
   {
-    processConfigs(configRoot.createRelative(fromFolder), tokens, toFolder)
+    processConfigs(configsRoot.createRelative(fromFolder), tokens, toFolder)
   }
 
   void processConfigs(Resource fromFolder, Map tokens, Resource toFolder)

@@ -133,7 +133,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
   protected PackagerContext createPackagerContext(Shell shell)
   {
     new PackagerContext(shell: shell,
-                        keysRootDir: keysRootResource)
+                        keysRoot: keysRootResource)
   }
 
   /**

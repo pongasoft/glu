@@ -26,7 +26,7 @@ if(uri)
   else
   {
     def relativeKeyStoreFile = uri.toString()
-    def keyStore = packagerContext.keysRootDir.createRelative(relativeKeyStoreFile)
+    def keyStore = packagerContext.keysRoot.createRelative(relativeKeyStoreFile)
     packagerContext.shell.fetch(keyStore, toResource)
   }
 }

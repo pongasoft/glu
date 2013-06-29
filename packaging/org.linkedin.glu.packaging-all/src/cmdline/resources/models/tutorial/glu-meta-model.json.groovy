@@ -19,7 +19,7 @@ metaModelVersion = '1.0.0'
 def fabric = 'glu-dev-1'
 
 def gluVersion = '@glu.version@'
-def zooKeeperVersion = '@zooKeeper.version@'
+def zooKeeperVersion = '@zookeeper.version@'
 
 def keys = [
   agentKeyStore: [

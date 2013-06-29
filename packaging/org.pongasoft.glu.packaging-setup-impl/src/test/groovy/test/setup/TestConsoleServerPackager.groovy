@@ -42,7 +42,7 @@ public class TestConsoleServerPackager extends BasePackagerTest
       def packager = new ConsoleServerPackager(packagerContext: createPackagerContext(shell),
                                                outputFolder: shell.mkdirs('/out'),
                                                inputPackage: inputPackage,
-                                               configRoot: copyConfigs(shell.toResource('/configs')),
+                                               configsRoot: copyConfigs(shell.toResource('/configs')),
                                                metaModel: testModel.consoles['tutorialConsole'])
 
       PackagedArtifact artifact = packager.createPackage()
@@ -139,7 +139,7 @@ consoles << [
       def packager = new ConsoleServerPackager(packagerContext: createPackagerContext(shell),
                                                outputFolder: shell.mkdirs('/out'),
                                                inputPackage: inputPackage,
-                                               configRoot: copyConfigs(shell.toResource('/configs')),
+                                               configsRoot: copyConfigs(shell.toResource('/configs')),
                                                metaModel: toGluMetaModel(metaModel).consoles['default'])
 
       PackagedArtifact artifact = packager.createPackage()

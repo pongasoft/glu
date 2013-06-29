@@ -11,5 +11,5 @@ import org.linkedin.util.io.resource.Resource
 public class PackagerContext
 {
   Shell shell
-  Resource keysRootDir
+  Resource keysRoot
 }

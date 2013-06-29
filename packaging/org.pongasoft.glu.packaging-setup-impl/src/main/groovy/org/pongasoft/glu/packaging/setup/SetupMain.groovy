@@ -22,18 +22,29 @@ import org.linkedin.groovy.util.config.MissingConfigParameterException
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.util.io.resource.FileResource
 import org.linkedin.util.io.resource.Resource
+import org.linkedin.util.io.resource.ResourceChain
+import org.pongasoft.glu.provisioner.core.metamodel.impl.builder.GluMetaModelBuilder
 
 /**
  * @author yan@pongasoft.com  */
 public class SetupMain
 {
+  public static class AbortException extends Exception
+  {
+    int exitValue = 0
+
+    AbortException(String message, int exitValue)
+    {
+      super(message)
+      this.exitValue = exitValue
+    }
+  }
+
   protected def config
   protected CliBuilder cli
   protected boolean quiet = false
   protected Resource outputFolder
   protected Shell shell = ShellImpl.createRootShell()
-
-  private int exitValue = 0
 
   SetupMain()
   {
@@ -43,9 +54,16 @@ public class SetupMain
   protected def init(args)
   {
     cli = new CliBuilder(usage: './bin/setup.sh [-h]')
-    cli._(longOpt: 'gen-keys', 'generate the keys', args: 0, required: false)
-    cli._(longOpt: 'out', 'output directory', args: 1, required: false)
+    cli.d(longOpt: 'gen-dist', 'generate the distribution', args: 0, required: false)
+    cli.k(longOpt: 'gen-keys', 'generate the keys', args: 0, required: false)
+    cli.m(longOpt: 'meta-model', 'location of the meta model (multiple allowed)', args: 1, required: false)
+    cli._(longOpt: 'configs-root', "location of the configs (multiple allowed) [default: ${defaultConfigsResource}]", args: 1, required: false)
+    cli._(longOpt: 'packages-root', "location of the packages [default: ${defaultPackagesRootResource}]", args: 1, required: false)
+    cli._(longOpt: 'keys-root', "location of the keys (if relative) [default: <outputFolder>/keys]", args: 1, required: false)
+    cli._(longOpt: 'glu-root', "location of glu distribution [default: ${gluRootResource}]", args: 1, required: false)
+    cli.o(longOpt: 'outputFolder', 'output folder', args: 1, required: false)
     cli._(longOpt: 'quiet', 'do not ask any question (use defaults)', args: 0, required: false)
+    cli.f(longOpt: 'setupConfigFile', 'the setup config file', args: 1, required: false)
     cli.h(longOpt: 'help', 'display help')
 
     def options = cli.parse(args)
@@ -84,22 +102,51 @@ public class SetupMain
     }
   }
 
+  protected Resource getGluRootResource()
+  {
+    def gluRoot = Config.getOptionalString(config,
+                                           'glu-root',
+                                           userDirResource.createRelative('../..').file.canonicalPath)
+
+    FileResource.create(gluRoot)
+  }
+
+  protected String getUserDir()
+  {
+    System.getProperty('user.dir')
+  }
+
+  protected Resource getUserDirResource()
+  {
+    FileResource.create(userDir)
+  }
+
+  protected Resource getDefaultConfigsResource()
+  {
+    userDirResource.createRelative('configs')
+  }
+
+  protected Resource getDefaultPackagesRootResource()
+  {
+    gluRootResource.createRelative('packages')
+  }
+
   public void start()
   {
     quiet = config.containsKey('quiet')
 
-    String out = Config.getOptionalString(config, 'out', null)
+    String out = Config.getOptionalString(config, 'outputFolder', null)
 
     if(!out)
     {
       out = promptForValue("Enter the output directory",
-                           System.getProperty('user.pwd', System.getProperty('user.dir')))
+                           System.getProperty('user.pwd', userDir))
     }
 
     outputFolder = FileResource.create(new File(out))
 
     def actions = [
-      'gen-keys'].findAll {
+      'gen-keys', 'gen-dist'].findAll {
       Config.getOptionalString(config, it, null)
     }
 
@@ -139,9 +186,53 @@ public class SetupMain
     }
     catch(IllegalStateException e)
     {
-      exitValue = 1
-      println "${e.message} => if you want to generate new keys, either provide another folder or delete them first"
+      throw new AbortException("${e.message} => if you want to generate new keys, either provide another folder or delete them first",
+                               1)
     }
+  }
+
+  def gen_dist = {
+    println "Generating distributions"
+
+    // meta model
+    def metaModels = config.'meta-models'
+    if(!metaModels)
+      throw new AbortException("--meta-model <arg> required", 2)
+
+    GluMetaModelBuilder builder = new GluMetaModelBuilder()
+    metaModels.each { String metaModel ->
+      builder.deserializeFromJsonResource(FileResource.create(metaModel))
+    }
+
+    // configsRoots
+    def configsRoots = config.'configs-roots' ?: ['<default>']
+    configsRoots = configsRoots.collect { String configRoot ->
+      if(configRoot == '<default>')
+        defaultConfigsResource
+      else
+        FileResource.create(configRoot)
+    }
+    configsRoots = ResourceChain.create(configsRoots)
+
+    // packagesRoot
+    def packagesRoot = Config.getOptionalString(config,
+                                                'packages-root',
+                                                defaultPackagesRootResource.file.canonicalPath)
+
+    // keysRoot
+    def keysRoot = Config.getOptionalString(config,
+                                            'keys-root',
+                                            outputFolder.createRelative('keys').file.canonicalPath)
+
+    def packager = new GluPackager(shell: shell,
+                                   configsRoot: configsRoots,
+                                   packagesRoot: FileResource.create(packagesRoot),
+                                   outputFolder: outputFolder,
+                                   keysRoot: FileResource.create(keysRoot),
+                                   gluMetaModel: builder.toGluMetaModel())
+
+    packager.packageAll()
+
   }
 
   public static void main(String[] args)
@@ -160,9 +251,14 @@ public class SetupMain
         println e
         clientMain.cli.usage()
       }
+      catch(AbortException e)
+      {
+        System.err.println(e.message)
+        System.exit(e.exitValue)
+      }
     }
 
-    System.exit(clientMain.exitValue)
+    System.exit(0)
   }
 
   protected def getConfig(cli, options)
@@ -180,6 +276,10 @@ public class SetupMain
       if(options.hasOption(option.longOpt))
       {
         properties[option.longOpt] = options[option.longOpt]
+        def collectionOptionName = "${option.longOpt}s".toString()
+        def array = options."${collectionOptionName}"
+        if(array)
+          properties[collectionOptionName] = array
       }
     }
 

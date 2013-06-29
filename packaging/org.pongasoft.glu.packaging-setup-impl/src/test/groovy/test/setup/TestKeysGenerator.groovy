@@ -18,7 +18,6 @@ package test.setup
 
 import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
-import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.packaging.setup.KeysGenerator
 import org.pongasoft.glu.provisioner.core.metamodel.KeysMetaModel
 

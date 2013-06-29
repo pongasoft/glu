@@ -50,13 +50,13 @@ cmdline {
     // keys
   resources << [
     from: agentKeys,
-    into: new File(assemblePackageFile, 'conf/tutorial/keys'),
+    into: new File(assemblePackageFile, 'models/tutorial/keys'),
     replaceTokens: false
   ]
 
   resources << [
     from: consoleKeys,
-    into: new File(assemblePackageFile, 'conf/tutorial/keys'),
+    into: new File(assemblePackageFile, 'models/tutorial/keys'),
     replaceTokens: false
   ]
 }
