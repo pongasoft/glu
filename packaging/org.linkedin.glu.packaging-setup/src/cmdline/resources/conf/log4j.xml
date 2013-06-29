@@ -25,6 +25,10 @@
     </layout>
   </appender>
 
+  <logger name="org.apache.zookeeper">
+    <level value="warn"/>
+  </logger>
+
   <root>
     <priority value="info"/>
     <appender-ref ref="ConsoleAppender"/>

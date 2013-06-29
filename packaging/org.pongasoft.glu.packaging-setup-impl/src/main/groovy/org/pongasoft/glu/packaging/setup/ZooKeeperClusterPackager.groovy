@@ -51,8 +51,11 @@ public class ZooKeeperClusterPackager extends BasePackager
       parts << port
     String newPackageName = parts.join('-')
     Resource packagePath = clusterPackagePath.createRelative(newPackageName)
-    copyInputPackage(packagePath)
-    configure(packagePath, zk)
+    if(!dryMode)
+    {
+      copyInputPackage(packagePath)
+      configure(packagePath, zk)
+    }
     return new PackagedArtifact(location: packagePath,
                                 host: host,
                                 port: port)
@@ -63,25 +66,28 @@ public class ZooKeeperClusterPackager extends BasePackager
    */
   Resource configure(Resource packagePath)
   {
-    metaModel.fabrics.values().each { FabricMetaModel fabricMetaModel ->
-      def tokens = [
-        zooKeeperClusterMetaModel: metaModel,
-        fabricMetaModel: fabricMetaModel,
-      ]
+    if(!dryMode)
+    {
+      metaModel.fabrics.values().each { FabricMetaModel fabricMetaModel ->
+        def tokens = [
+          zooKeeperClusterMetaModel: metaModel,
+          fabricMetaModel: fabricMetaModel,
+        ]
 
-      tokens[PACKAGER_CONTEXT_KEY] = packagerContext
-      tokens[CONFIG_TOKENS_KEY] = [*:metaModel.configTokens]
+        tokens[PACKAGER_CONTEXT_KEY] = packagerContext
+        tokens[CONFIG_TOKENS_KEY] = [*:metaModel.configTokens]
 
-      tokens[CONFIG_TOKENS_KEY].zkRoot = metaModel.gluMetaModel.zooKeeperRoot
-      tokens[CONFIG_TOKENS_KEY].fabric = fabricMetaModel.name
+        tokens[CONFIG_TOKENS_KEY].zkRoot = metaModel.gluMetaModel.zooKeeperRoot
+        tokens[CONFIG_TOKENS_KEY].fabric = fabricMetaModel.name
 
-      processConfigs('zookeeper-cluster/fabrics', tokens, packagePath)
+        processConfigs('zookeeper-cluster/fabrics', tokens, packagePath)
 
-      fabricMetaModel.agents.values().each { AgentMetaModel agentMetaModel ->
-        tokens.agentMetaModel = agentMetaModel
-        tokens[CONFIG_TOKENS_KEY].agent = agentMetaModel.resolvedName
+        fabricMetaModel.agents.values().each { AgentMetaModel agentMetaModel ->
+          tokens.agentMetaModel = agentMetaModel
+          tokens[CONFIG_TOKENS_KEY].agent = agentMetaModel.resolvedName
 
-        processConfigs('zookeeper-cluster/agents', tokens, packagePath)
+          processConfigs('zookeeper-cluster/agents', tokens, packagePath)
+        }
       }
     }
 

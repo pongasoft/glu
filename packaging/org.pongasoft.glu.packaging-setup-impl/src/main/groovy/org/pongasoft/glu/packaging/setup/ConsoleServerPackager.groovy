@@ -77,8 +77,11 @@ public class ConsoleServerPackager extends BasePackager
       parts << metaModel.name
 
     Resource packagePath =outputFolder.createRelative(parts.join('-'))
-    copyInputPackage(packagePath)
-    configure(packagePath, tokens)
+    if(!dryMode)
+    {
+      copyInputPackage(packagePath)
+      configure(packagePath, tokens)
+    }
     return new PackagedArtifact(location: packagePath,
                                 host: metaModel.host.resolveHostAddress(),
                                 port: metaModel.mainPort)

@@ -19,11 +19,19 @@ import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
 import org.linkedin.groovy.util.config.Config
 import org.linkedin.groovy.util.config.MissingConfigParameterException
+import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
+import org.linkedin.util.clock.Timespan
 import org.linkedin.util.io.resource.FileResource
 import org.linkedin.util.io.resource.Resource
 import org.linkedin.util.io.resource.ResourceChain
+import org.linkedin.zookeeper.cli.commands.UploadCommand
+import org.linkedin.zookeeper.client.ZKClient
+import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.impl.builder.GluMetaModelBuilder
+
+import java.util.concurrent.TimeoutException
 
 /**
  * @author yan@pongasoft.com  */
@@ -54,16 +62,20 @@ public class SetupMain
   protected def init(args)
   {
     cli = new CliBuilder(usage: './bin/setup.sh [-h]')
-    cli.d(longOpt: 'gen-dist', 'generate the distribution', args: 0, required: false)
+    cli.d(longOpt: 'gen-dist', 'generate the distributions', args: 0, required: false)
     cli.k(longOpt: 'gen-keys', 'generate the keys', args: 0, required: false)
+    cli.z(longOpt: 'configure-zookeeper-clusters', 'configure all zookeeper clusters', args: 0, required: false)
     cli.m(longOpt: 'meta-model', 'location of the meta model (multiple allowed)', args: 1, required: false)
     cli._(longOpt: 'configs-root', "location of the configs (multiple allowed) [default: ${defaultConfigsResource}]", args: 1, required: false)
     cli._(longOpt: 'packages-root', "location of the packages [default: ${defaultPackagesRootResource}]", args: 1, required: false)
     cli._(longOpt: 'keys-root', "location of the keys (if relative) [default: <outputFolder>/keys]", args: 1, required: false)
     cli._(longOpt: 'glu-root', "location of glu distribution [default: ${gluRootResource}]", args: 1, required: false)
-    cli.o(longOpt: 'outputFolder', 'output folder', args: 1, required: false)
+    cli._(longOpt: 'agents-only', "generate distribution for agents only", args: 0, required: false)
+    cli._(longOpt: 'consoles-only', "generate distribution for consoles only", args: 0, required: false)
+    cli._(longOpt: 'zookeeper-clusters-only', "generate distribution for ZooKeeper clusters only", args: 0, required: false)
+    cli.o(longOpt: 'output-folder', 'output folder', args: 1, required: false)
     cli._(longOpt: 'quiet', 'do not ask any question (use defaults)', args: 0, required: false)
-    cli.f(longOpt: 'setupConfigFile', 'the setup config file', args: 1, required: false)
+    cli.f(longOpt: 'setup-config-file', 'the setup config file', args: 1, required: false)
     cli.h(longOpt: 'help', 'display help')
 
     def options = cli.parse(args)
@@ -135,7 +147,7 @@ public class SetupMain
   {
     quiet = config.containsKey('quiet')
 
-    String out = Config.getOptionalString(config, 'outputFolder', null)
+    String out = Config.getOptionalString(config, 'output-folder', null)
 
     if(!out)
     {
@@ -146,7 +158,7 @@ public class SetupMain
     outputFolder = FileResource.create(new File(out))
 
     def actions = [
-      'gen-keys', 'gen-dist'].findAll {
+      'gen-keys', 'gen-dist', 'configure-zookeeper-clusters'].findAll {
       Config.getOptionalString(config, it, null)
     }
 
@@ -158,6 +170,9 @@ public class SetupMain
 
   }
 
+  /**
+   * --gen-keys command
+   */
   def gen_keys = {
     println "Generating keys..."
     char[] masterPassword = System.console().readPassword("Enter a master password:")
@@ -191,10 +206,88 @@ public class SetupMain
     }
   }
 
+  /**
+   * --gen-dist command
+   */
   def gen_dist = {
     println "Generating distributions"
 
-    // meta model
+    def packager = buildPackager(false)
+
+    if(Config.getOptionalBoolean(config, 'agents-only', false) ||
+       Config.getOptionalBoolean(config, 'consoles-only', false) ||
+       Config.getOptionalBoolean(config, 'zookeeper-clusters-only', false))
+    {
+      if(Config.getOptionalBoolean(config, 'agents-only', false))
+        packager.packageAgents()
+      if(Config.getOptionalBoolean(config, 'consoles-only', false))
+        packager.packageConsoles()
+      if(Config.getOptionalBoolean(config, 'zookeeper-clusters-only', false))
+        packager.packageZooKeeperClusters()
+    }
+    else
+    {
+      packager.packageAll()
+    }
+  }
+
+  /**
+   * --configure-zookeeper-clusters command
+   */
+  def configure_zookeeper_clusters = {
+    println "Configuring ZooKeeper clusters"
+
+    def packager = buildPackager(true)
+
+    packager.packageZooKeeperClusters()
+
+    def artifacts =
+      packager.packagedArtifacts.findAll { k, v -> k instanceof ZooKeeperClusterMetaModel}
+
+    artifacts.each { ZooKeeperClusterMetaModel model, def pas ->
+      configureZooKeeperCluster(model, pas.zooKeeperCluster.location)
+    }
+
+  }
+
+  protected void configureZooKeeperCluster(ZooKeeperClusterMetaModel model,
+                                           Resource location)
+  {
+    println "Configuring ZooKeeper cluster [${model.name}]"
+
+    def zkClient = new ZKClient(model.zooKeeperConnectionString,
+                                Timespan.parse("5s"),
+                                null)
+
+    zkClient.start()
+
+    try
+    {
+      zkClient.waitForStart(Timespan.parse('10s'))
+
+      GroovyIOUtils.eachChildRecurse(location.createRelative('conf').chroot('.')) { Resource child ->
+        if(!child.isDirectory())
+        {
+          println "uploading ${child.path} to ${model.zooKeeperConnectionString}"
+          UploadCommand cmd = new UploadCommand()
+          if(cmd.execute(zkClient, ['-f', child.file.canonicalPath, child.path]) != 0)
+            throw new AbortException("Error while uploading to ZooKeeper cluster [${model.zooKeeperConnectionString}]", 3)
+        }
+      }
+    }
+    catch(TimeoutException ignored)
+    {
+      throw new AbortException("could not connect to ZooKeeper [${model.zooKeeperConnectionString}]", 4)
+    }
+    finally
+    {
+      zkClient.destroy()
+    }
+
+  }
+
+  protected GluMetaModel loadGluMetaModel()
+  {
     def metaModels = config.'meta-models'
     if(!metaModels)
       throw new AbortException("--meta-model <arg> required", 2)
@@ -203,6 +296,14 @@ public class SetupMain
     metaModels.each { String metaModel ->
       builder.deserializeFromJsonResource(FileResource.create(metaModel))
     }
+
+    builder.toGluMetaModel()
+  }
+
+  protected GluPackager buildPackager(boolean dryMode)
+  {
+    // meta model
+    GluMetaModel gluMetaModel = loadGluMetaModel()
 
     // configsRoots
     def configsRoots = config.'configs-roots' ?: ['<default>']
@@ -224,16 +325,15 @@ public class SetupMain
                                             'keys-root',
                                             outputFolder.createRelative('keys').file.canonicalPath)
 
-    def packager = new GluPackager(shell: shell,
-                                   configsRoot: configsRoots,
-                                   packagesRoot: FileResource.create(packagesRoot),
-                                   outputFolder: outputFolder,
-                                   keysRoot: FileResource.create(keysRoot),
-                                   gluMetaModel: builder.toGluMetaModel())
-
-    packager.packageAll()
-
+    new GluPackager(shell: shell,
+                    configsRoot: configsRoots,
+                    packagesRoot: FileResource.create(packagesRoot),
+                    outputFolder: outputFolder,
+                    keysRoot: FileResource.create(keysRoot),
+                    gluMetaModel: gluMetaModel,
+                    dryMode: dryMode)
   }
+
 
   public static void main(String[] args)
   {

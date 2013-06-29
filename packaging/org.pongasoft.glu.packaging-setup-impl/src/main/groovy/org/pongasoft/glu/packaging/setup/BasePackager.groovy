@@ -23,6 +23,8 @@ public class BasePackager
   Resource inputPackage
   Resource configsRoot
 
+  boolean dryMode = false
+
   void ensureVersion(String version)
   {
     if(!inputPackage.filename.endsWith("-${version}"))

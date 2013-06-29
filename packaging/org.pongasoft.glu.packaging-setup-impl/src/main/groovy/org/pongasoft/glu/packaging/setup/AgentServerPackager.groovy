@@ -114,8 +114,11 @@ public class AgentServerPackager extends BasePackager
       tokens[CONFIG_TOKENS_KEY].GLU_AGENT_ZOOKEEPER_ROOT = metaModel.gluMetaModel.zooKeeperRoot
 
     Resource packagePath = outputFolder.createRelative(parts.join('-'))
-    copyInputPackage(packagePath)
-    configure(packagePath, tokens)
+    if(!dryMode)
+    {
+      copyInputPackage(packagePath)
+      configure(packagePath, tokens)
+    }
     return new PackagedArtifact(location: packagePath,
                                 host: metaModel.host.resolveHostAddress(),
                                 port: agentPort)

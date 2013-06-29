@@ -36,27 +36,49 @@ public class GluPackager
   Resource outputFolder
   Resource keysRoot
 
+  def packagedArtifacts = [:]
+
+  boolean dryMode = false
+
   void packageAll()
   {
     packageAgents()
+    packageConsoles()
+    packageZooKeeperClusters()
   }
 
   void packageAgents()
   {
-    gluMetaModel.agents.each {
-      PackagedArtifact pa = packageAgent(it)
-      println "Generated agent ${pa.location} ${pa.host}:${pa.port}"
+    gluMetaModel.agents.each { AgentMetaModel model ->
+      PackagedArtifact pa = packageAgent(model)
+      packagedArtifacts[model] = pa
+      if(!dryMode)
+        println "Generated agent ${pa.location} ${pa.host}:${pa.port}"
     }
-    gluMetaModel.consoles.values().each {
-      PackagedArtifact pa = packageConsole(it)
-      println "Generated console ${pa.location} ${pa.host}:${pa.port}"
+  }
+
+  void packageConsoles()
+  {
+    gluMetaModel.consoles.values().each { ConsoleMetaModel model ->
+      PackagedArtifact pa = packageConsole(model)
+      packagedArtifacts[model] = pa
+      if(!dryMode)
+        println "Generated console ${pa.location} ${pa.host}:${pa.port}"
     }
-    gluMetaModel.zooKeeperClusters.values().each {
-      def pas = packageZooKeeperCluster(it)
-      pas.zooKeepers.each { zki ->
-        println "Generated ZooKeeper instance ${zki.location} ${zki.host}:${zki.port}"
+  }
+
+  void packageZooKeeperClusters()
+  {
+    gluMetaModel.zooKeeperClusters.values().each { ZooKeeperClusterMetaModel model ->
+      def pas = packageZooKeeperCluster(model)
+      packagedArtifacts[model] = pas
+      if(!dryMode)
+      {
+        pas.zooKeepers.each { zki ->
+          println "Generated ZooKeeper instance ${zki.location} ${zki.host}:${zki.port}"
+        }
+        println "Generated ZooKeeper cluster ${pas.zooKeeperCluster.location} ${model.zooKeeperConnectionString}"
       }
-      println "Generated ZooKeeper cluster ${pas.zooKeeperCluster.location} ${it.zooKeeperConnectionString}"
     }
   }
 
@@ -69,7 +91,8 @@ public class GluPackager
                               inputPackage: getInputPackage('org.linkedin.glu.agent-server',
                                                             agentMetaModel.version),
                               configsRoot: configsRoot,
-                              metaModel: agentMetaModel)
+                              metaModel: agentMetaModel,
+                              dryMode: dryMode)
     packager.createPackage()
   }
 
@@ -82,7 +105,8 @@ public class GluPackager
                                 inputPackage: getInputPackage('org.linkedin.glu.console-server',
                                                               consoleMetaModel.version),
                                 configsRoot: configsRoot,
-                                metaModel: consoleMetaModel)
+                                metaModel: consoleMetaModel,
+                                dryMode: dryMode)
     packager.createPackage()
   }
 
@@ -95,7 +119,8 @@ public class GluPackager
                                    inputPackage: getInputPackage('org.linkedin.zookeeper-server',
                                                                  zooKeeperClusterMetaModel.zooKeepers[0].version),
                                    configsRoot: configsRoot,
-                                   metaModel: zooKeeperClusterMetaModel)
+                                   metaModel: zooKeeperClusterMetaModel,
+                                   dryMode: dryMode)
     packager.createPackage()
   }
 
