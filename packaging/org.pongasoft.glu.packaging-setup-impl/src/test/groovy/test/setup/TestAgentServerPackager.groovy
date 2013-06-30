@@ -34,6 +34,8 @@ public class TestAgentServerPackager extends BasePackagerTest
 
       shell.saveContent(inputPackage.createRelative('version.txt'), GLU_VERSION)
       shell.saveContent(inputPackage.createRelative("${GLU_VERSION}/lib/acme.jar"), "this is the jar")
+      def shellScript = shell.saveContent(inputPackage.createRelative("${GLU_VERSION}/bin/acme.sh"), "this is the shell script")
+      shell.chmodPlusX(shellScript) // make executable
 
       def packager = new AgentServerPackager(packagerContext: createPackagerContext(shell),
                                              outputFolder: shell.mkdirs('/out'),
@@ -51,6 +53,8 @@ public class TestAgentServerPackager extends BasePackagerTest
         [
           '/version.txt': GLU_VERSION,
           "/${GLU_VERSION}": DIRECTORY,
+          "/${GLU_VERSION}/bin": DIRECTORY,
+          "/${GLU_VERSION}/bin/acme.sh": "this is the shell script",
           "/${GLU_VERSION}/lib": DIRECTORY,
           "/${GLU_VERSION}/lib/acme.jar": 'this is the jar',
           "/${GLU_VERSION}/conf": DIRECTORY,

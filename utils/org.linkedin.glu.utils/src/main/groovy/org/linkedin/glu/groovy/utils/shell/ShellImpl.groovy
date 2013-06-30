@@ -1095,6 +1095,9 @@ def class ShellImpl implements Shell
           break
       }
 
+      if(Files.isExecutable(templateResource.file.toPath()))
+        chmodPlusX(toResource)
+
       return toResource
     }
     catch(Throwable th)

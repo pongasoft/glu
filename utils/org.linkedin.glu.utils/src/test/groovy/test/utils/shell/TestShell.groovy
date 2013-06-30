@@ -620,12 +620,22 @@ line 3 abcdef
       def p1 = shell.processTemplate(t1, '/out1/foo', [token1: 'foo', token2: 'bar'])
       assertEquals('/out1/foo', p1.path)
       assertEquals('abc foo efg bar hij foo', shell.cat(p1))
+      assertFalse(Files.isExecutable(p1.file.toPath()))
 
       shell.mkdirs('/out')
       // in an existing dir
       def p2 = shell.processTemplate(t1, '/out', [token1: 'foo', token2: 'bar'])
       assertEquals('/out/foo', p2.path)
       assertEquals('abc foo efg bar hij foo', shell.cat(p2))
+      assertFalse(Files.isExecutable(p2.file.toPath()))
+
+      // make it executable
+      shell.chmodPlusX(t1)
+
+      def p1x = shell.processTemplate(t1, '/out1x/foo', [token1: 'foo', token2: 'bar'])
+      assertEquals('/out1x/foo', p1x.path)
+      assertEquals('abc foo efg bar hij foo', shell.cat(p1x))
+      assertTrue(Files.isExecutable(p1x.file.toPath()))
 
       // .gtmpl
       def t2 = shell.saveContent(templates.createRelative('/foo.gtmpl'),

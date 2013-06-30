@@ -25,6 +25,8 @@ import org.pongasoft.glu.packaging.setup.PackagerContext
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.impl.builder.GluMetaModelBuilder
 
+import java.nio.file.Files
+
 /**
  * @author yan@pongasoft.com  */
 public abstract class BasePackagerTest extends GroovyTestCase
@@ -107,7 +109,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
 
   protected File getTestModelFile()
   {
-    new File('../org.linkedin.glu.packaging-all/src/cmdline/resources/conf/tutorial/glu-meta-model.json.groovy').canonicalFile
+    new File('../org.linkedin.glu.packaging-all/src/cmdline/resources/models/tutorial/glu-meta-model.json.groovy').canonicalFile
   }
 
   protected File getConfigsRoot()
@@ -181,6 +183,9 @@ public abstract class BasePackagerTest extends GroovyTestCase
                          rootShell.sha1(expectedValue.resource), rootShell.sha1(r))
           else
             assertEquals("mismatch content for ${r}", expectedValue, r.file.text)
+
+          if(r.path.endsWith('.sh'))
+            assertTrue("${r} is executable", Files.isExecutable(r.file.toPath()))
         }
       }
       catch(AssertionFailedError ex)
