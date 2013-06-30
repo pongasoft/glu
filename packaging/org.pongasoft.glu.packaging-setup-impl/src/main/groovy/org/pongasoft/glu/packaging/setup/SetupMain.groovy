@@ -50,7 +50,7 @@ public class SetupMain
 
   protected def config
   protected CliBuilder cli
-  protected boolean quiet = false
+  protected boolean acceptDefaults = false
   protected Resource outputFolder
   protected Shell shell = ShellImpl.createRootShell()
 
@@ -65,6 +65,7 @@ public class SetupMain
     cli.d(longOpt: 'gen-dist', 'generate the distributions', args: 0, required: false)
     cli.k(longOpt: 'gen-keys', 'generate the keys', args: 0, required: false)
     cli.z(longOpt: 'configure-zookeeper-clusters', 'configure all zookeeper clusters', args: 0, required: false)
+    cli._(longOpt: 'zookeeper-cluster-name', 'name of the ZooKeeper cluster to configure (multiple allowed)', args: 1, required: false)
     cli.m(longOpt: 'meta-model', 'location of the meta model (multiple allowed)', args: 1, required: false)
     cli._(longOpt: 'configs-root', "location of the configs (multiple allowed) [default: ${defaultConfigsResource}]", args: 1, required: false)
     cli._(longOpt: 'packages-root', "location of the packages [default: ${defaultPackagesRootResource}]", args: 1, required: false)
@@ -74,7 +75,7 @@ public class SetupMain
     cli._(longOpt: 'consoles-only', "generate distribution for consoles only", args: 0, required: false)
     cli._(longOpt: 'zookeeper-clusters-only', "generate distribution for ZooKeeper clusters only", args: 0, required: false)
     cli.o(longOpt: 'output-folder', 'output folder', args: 1, required: false)
-    cli._(longOpt: 'quiet', 'do not ask any question (use defaults)', args: 0, required: false)
+    cli._(longOpt: 'accept-defaults', 'accept defaults values', args: 0, required: false)
     cli.f(longOpt: 'setup-config-file', 'the setup config file', args: 1, required: false)
     cli.h(longOpt: 'help', 'display help')
 
@@ -95,11 +96,11 @@ public class SetupMain
 
   /**
    * Prompts for a value (with a default value... if enter is hit then the default value
-   * is returned. If quiet mode, do not prompt.
+   * is returned. If acceptDefaults mode, do not prompt.
    */
   public String promptForValue(String message, def defaultValue)
   {
-    if(quiet)
+    if(acceptDefaults)
     {
       println "${message} [${defaultValue}]: ${defaultValue}"
       return defaultValue?.toString()
@@ -145,7 +146,7 @@ public class SetupMain
 
   public void start()
   {
-    quiet = config.containsKey('quiet')
+    quiet = config.containsKey('accept-defaults')
 
     String out = Config.getOptionalString(config, 'output-folder', null)
 
@@ -244,12 +245,17 @@ public class SetupMain
     def artifacts =
       packager.packagedArtifacts.findAll { k, v -> k instanceof ZooKeeperClusterMetaModel}
 
-    artifacts.each { ZooKeeperClusterMetaModel model, def pas ->
-      configureZooKeeperCluster(model, pas.zooKeeperCluster.location)
-    }
+    def zooKeeperClusterNames = (config.'zookeeper-cluster-names' ?: []) as Set
 
+    artifacts.each { ZooKeeperClusterMetaModel model, def pas ->
+      if(!zooKeeperClusterNames || zooKeeperClusterNames.contains(model.name))
+        configureZooKeeperCluster(model, pas.zooKeeperCluster.location)
+    }
   }
 
+  /**
+   * Simply uploads every file under conf to ZooKeeper
+   */
   protected void configureZooKeeperCluster(ZooKeeperClusterMetaModel model,
                                            Resource location)
   {
@@ -286,6 +292,9 @@ public class SetupMain
 
   }
 
+  /**
+   * Load the glu meta model from the --meta-models config property
+   */
   protected GluMetaModel loadGluMetaModel()
   {
     def metaModels = config.'meta-models'
