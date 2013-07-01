@@ -13,7 +13,9 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
-// delete the subfolder contexts and webapps since they come prepopulated with values we do not want
-packagerContext.shell.rmdirs(toResource.parentResource.createRelative('contexts'))
-packagerContext.shell.rmdirs(toResource.parentResource.createRelative('webapps'))
+ 
+// myid exists only if "real" cluster (meaning more than 1 server)
+if(zooKeeperMetaModel.zooKeeperCluster.zooKeepers.size() > 1)
+{
+  packagerContext.shell.saveContent(toResource, "${zooKeeperMetaModel.serverIdx}")
+}

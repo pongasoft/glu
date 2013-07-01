@@ -46,7 +46,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
     new BinaryResource(resource: resource)
   }
 
-  public static final int CONFIG_TEMPLATES_COUNT = 16
+  public static final int CONFIG_TEMPLATES_COUNT = 17
 
   public static final String GLU_VERSION = 'g.v.0'
   public static final String ZOOKEEPER_VERSION = 'z.v.1'
@@ -93,7 +93,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
     builder.deserializeFromJson(rootShell.replaceTokens(testModelFile.text,
                                                         [
                                                           'glu.version': GLU_VERSION,
-                                                          'zooKeeper.version': ZOOKEEPER_VERSION
+                                                          'zookeeper.version': ZOOKEEPER_VERSION
                                                         ]))
     testModel = builder.toGluMetaModel()
   }

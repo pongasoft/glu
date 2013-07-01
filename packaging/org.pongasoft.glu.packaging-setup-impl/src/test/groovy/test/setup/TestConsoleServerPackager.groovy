@@ -218,7 +218,7 @@ console.commandsService.commandExecutionIOStorage.memory.maxNumberOfElements = 2
 // By default (undefined), it is unlimited
 // console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 100
 
-
+<log4j config>
 
 // ldap configuration
 <ldap config>
@@ -409,6 +409,39 @@ console.commandsService.commandExecutionIOStorage.memory.maxNumberOfElements = 2
 // By default (undefined), it is unlimited
 // console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 100
 
+
+log4j = {
+    appenders {
+    file name:'file',
+      file:'logs/console.log',
+      layout:pattern(conversionPattern: '%d{yyyy/MM/dd HH:mm:ss.SSS} %p [%c{1}] %m%n')
+    }
+
+    root {
+      info 'file'
+      additivity = false
+    }
+
+    error  'org.codehaus.groovy.grails.web.servlet',  //  controllers
+           'org.codehaus.groovy.grails.web.pages', //  GSP
+           'org.codehaus.groovy.grails.web.sitemesh', //  layouts
+           'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
+           'org.codehaus.groovy.grails.web.mapping', // URL mapping
+           'org.codehaus.groovy.grails.commons', // core / classloading
+           'org.codehaus.groovy.grails.plugins', // plugins
+           'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
+           'org.springframework',
+           'org.hibernate'
+
+    info 'grails',
+         'org.linkedin'
+
+    //debug 'com.linkedin.glu.agent.tracker', 'com.linkedin.glu.zookeeper.client'
+
+    //trace 'org.hibernate.SQL', 'org.hibernate.type'
+
+    warn   'org.mortbay.log', 'org.restlet.Component.LogService', 'org.restlet'
+}
 
 
 // ldap configuration

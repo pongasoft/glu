@@ -10,6 +10,7 @@ syncLimit=${configTokens.syncLimit ?: 5}
 dataDir=${configTokens.dataDir ?: 'data'}
 # the port at which the clients will connect
 clientPort=${zooKeeperMetaModel.clientPort}
-<% zooKeeperMetaModel.zooKeeperCluster.zooKeepers.each { zk -> %>
+<% if(zooKeeperMetaModel.zooKeeperCluster.zooKeepers.size() > 1) {
+     zooKeeperMetaModel.zooKeeperCluster.zooKeepers.each { zk -> %>
 server.${zk.serverIdx}=${zk.host ?: 'localhost'}:${zk.quorumPort}:${zk.leaderElectionPort}
-<% } %>
+<% } /* each */ } /* if */ %>

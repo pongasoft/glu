@@ -44,10 +44,11 @@ public class TestZooKeeperClusterPackager extends BasePackagerTest
           // zookeeper server config
           "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1": DIRECTORY,
           "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/README.md": 'this is the readme',
+          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/bin": DIRECTORY,
+          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
           "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/lib": DIRECTORY,
           "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/lib/acme.jar": 'this is the jar',
           "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/conf": DIRECTORY,
-          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/conf/myid": '1',
           "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/conf/zoo.cfg": """# The number of milliseconds of each tick
 tickTime=2000
 # The number of ticks that the initial
@@ -60,8 +61,6 @@ syncLimit=5
 dataDir=data
 # the port at which the clients will connect
 clientPort=2181
-
-server.1=127.0.0.1:2888:3888
 """,
         ]
 
@@ -134,12 +133,14 @@ zooKeeperClusters << [
         '/conf/org/glu/agents/fabrics/f1': DIRECTORY,
         '/conf/org/glu/agents/fabrics/f1/config': DIRECTORY,
         '/conf/org/glu/agents/fabrics/f1/config/config.properties': TUTORIAL_AGENT_CONFIG_PROPERTIES,
-          '/conf/org/glu/agents/fabrics/f1/config/agent.keystore': toBinaryResource(keysRootResource.createRelative('agent.keystore')),
-          '/conf/org/glu/agents/fabrics/f1/config/console.truststore': toBinaryResource(keysRootResource.createRelative('console.truststore')),
+        '/conf/org/glu/agents/fabrics/f1/config/agent.keystore': toBinaryResource(keysRootResource.createRelative('agent.keystore')),
+        '/conf/org/glu/agents/fabrics/f1/config/console.truststore': toBinaryResource(keysRootResource.createRelative('console.truststore')),
 
         // zookeeper server config for h1
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1": DIRECTORY,
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/README.md": 'this is the readme',
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/bin": DIRECTORY,
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/lib": DIRECTORY,
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/lib/acme.jar": 'this is the jar',
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/conf": DIRECTORY,
@@ -165,6 +166,8 @@ server.2=h2:2888:3888
         // zookeeper server config for h2
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2": DIRECTORY,
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/README.md": 'this is the readme',
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/bin": DIRECTORY,
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/lib": DIRECTORY,
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/lib/acme.jar": 'this is the jar',
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/conf": DIRECTORY,
@@ -230,9 +233,7 @@ zooKeeperClusters << [
       version: '${ZOOKEEPER_VERSION}',
       host: 'h1',
       ports: [
-        mainPort: 1234,
-        quorumPort: 2345,
-        leaderElectionPort: 3456
+        mainPort: 1234
       ],
       configTokens: [
         tickTime: '<tickTime>',
@@ -302,10 +303,11 @@ glu.agent.ivySettings=<ivy settings>
         // zookeeper server config for h1
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234": DIRECTORY,
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/README.md": 'this is the readme',
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/bin": DIRECTORY,
+        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/lib": DIRECTORY,
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/lib/acme.jar": 'this is the jar',
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/conf": DIRECTORY,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/conf/myid": '1',
         "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/conf/zoo.cfg": """# The number of milliseconds of each tick
 tickTime=<tickTime>
 # The number of ticks that the initial
@@ -318,8 +320,6 @@ syncLimit=<syncLimit>
 dataDir=<dataDir>
 # the port at which the clients will connect
 clientPort=1234
-
-server.1=h1:2345:3456
 """,
 
       ]
@@ -372,5 +372,35 @@ glu.agent.truststorePassword=nacEn92x8-1
 
 
 """
+
+  public static final String ZOOKEEPERCTL_SH = '''#!/bin/bash
+
+#
+# Copyright (c) 2013 Yan Pujante
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+#
+
+# from http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+BASEDIR="$( cd -P "$( dirname "$SOURCE" )/.." && pwd )"
+cd $BASEDIR
+./bin/zkServer.sh "$@"
+'''
 
 }

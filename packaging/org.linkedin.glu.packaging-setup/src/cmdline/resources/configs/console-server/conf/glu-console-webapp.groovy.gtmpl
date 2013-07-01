@@ -83,7 +83,7 @@ console.commandsService.commandExecutionIOStorage.memory.maxNumberOfElements = 2
 // By default (undefined), it is unlimited
 // console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 100
 
-<%
+<%=
 configTokens.log4j ?: """
 log4j = {
     appenders {

@@ -61,12 +61,20 @@ public class SetupMain
 
   protected def init(args)
   {
-    cli = new CliBuilder(usage: './bin/setup.sh [-h]')
-    cli.d(longOpt: 'gen-dist', 'generate the distributions', args: 0, required: false)
-    cli.k(longOpt: 'gen-keys', 'generate the keys', args: 0, required: false)
-    cli.z(longOpt: 'configure-zookeeper-clusters', 'configure all zookeeper clusters', args: 0, required: false)
+    cli = new CliBuilder(usage: './bin/setup.sh [-h] [-K] [-D] [-Z] [meta-model]*',
+                         width: 80,
+                         header: 'Options:',
+                         footer: '''
+Typical usage:
+./bin/setup.sh -h               // help
+./bin/setup.sh -K               // generate keys (step 1)
+./bin/setup.sh -D <meta-model>+ // generate the distribution (step 2)
+./bin/setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
+''')
+    cli.D(longOpt: 'gen-dist', 'generate the distributions', args: 0, required: false)
+    cli.K(longOpt: 'gen-keys', 'generate the keys', args: 0, required: false)
+    cli.Z(longOpt: 'configure-zookeeper-clusters', 'configure all zookeeper clusters', args: 0, required: false)
     cli._(longOpt: 'zookeeper-cluster-name', 'name of the ZooKeeper cluster to configure (multiple allowed)', args: 1, required: false)
-    cli.m(longOpt: 'meta-model', 'location of the meta model (multiple allowed)', args: 1, required: false)
     cli._(longOpt: 'configs-root', "location of the configs (multiple allowed) [default: ${defaultConfigsResource}]", args: 1, required: false)
     cli._(longOpt: 'packages-root', "location of the packages [default: ${defaultPackagesRootResource}]", args: 1, required: false)
     cli._(longOpt: 'keys-root', "location of the keys (if relative) [default: <outputFolder>/keys]", args: 1, required: false)
@@ -87,6 +95,12 @@ public class SetupMain
 
     if(options.h)
     {
+      println '''usage:
+ ./bin/setup.sh -h                              // help
+ ./bin/setup.sh -K                              // generate keys (step 1)
+ ./bin/setup.sh -D [meta-model] [meta-model]... // generate the distribution (step 2)
+ ./bin/setup.sh -Z [meta-model] [meta-model]... // configure ZooKeeper clusters (step 3)
+'''
       cli.usage()
       return null
     }
@@ -146,7 +160,7 @@ public class SetupMain
 
   public void start()
   {
-    quiet = config.containsKey('accept-defaults')
+    acceptDefaults = config.containsKey('accept-defaults')
 
     String out = Config.getOptionalString(config, 'output-folder', null)
 
@@ -293,13 +307,13 @@ public class SetupMain
   }
 
   /**
-   * Load the glu meta model from the --meta-models config property
+   * Load the glu meta model from the arguments
    */
   protected GluMetaModel loadGluMetaModel()
   {
-    def metaModels = config.'meta-models'
+    def metaModels = config.arguments
     if(!metaModels)
-      throw new AbortException("--meta-model <arg> required", 2)
+      throw new AbortException("missing meta model(s)", 2)
 
     GluMetaModelBuilder builder = new GluMetaModelBuilder()
     metaModels.each { String metaModel ->
@@ -372,27 +386,32 @@ public class SetupMain
 
   protected def getConfig(cli, options)
   {
-    Properties properties = new Properties()
+    def config = [:]
 
     if(options.f)
     {
       new File(options.f).withInputStream {
-        properties.load(it)
+        Properties p = new Properties()
+        p.load(it)
+        config.putAll(p)
       }
     }
 
     cli.options.options.each { option ->
       if(options.hasOption(option.longOpt))
       {
-        properties[option.longOpt] = options[option.longOpt]
+        config[option.longOpt] = options[option.longOpt]
         def collectionOptionName = "${option.longOpt}s".toString()
         def array = options."${collectionOptionName}"
         if(array)
-          properties[collectionOptionName] = array
+          config[collectionOptionName] = array
       }
     }
 
-    return properties
+    if(options.arguments())
+      config.arguments = options.arguments()
+
+    return config
   }
 
 }
