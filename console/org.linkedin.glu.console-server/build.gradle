@@ -77,10 +77,16 @@ cmdline {
   // licenses
   resources << [ packageIncludes ]
 
-  // console.war
+  // jetty
   resources << [
-    from: consoleWebapp,
-    into: new File(assemblePackageFile, 'glu/repository/wars'),
+    from: tarTree(jettyArchive),
+    replaceTokens: false
+  ]
+
+  // exploded console
+  resources << [
+    from: zipTree(consoleWebapp),
+    into: new File(assemblePackageFile, "glu/repository/exploded-wars/${consoleWebappProject.name}-${consoleWebappProject.version}"),
     replaceTokens: false
   ]
 
@@ -88,13 +94,6 @@ cmdline {
   resources << [
     from: sampleWebapp,
     into: new File(assemblePackageFile, 'glu/repository/wars'),
-    replaceTokens: false
-  ]
-
-  // keys
-  resources << [
-    from: consoleKeys,
-    into: new File(assemblePackageFile, 'keys'),
     replaceTokens: false
   ]
 
@@ -115,17 +114,4 @@ cmdline {
       ]
     }
   }
-}
-
-File basePackage = project.convention.plugins.cmdline.assemblePackageFile
-
-/********************************************************
- * task: package-assemble
- * customizing package-assemble task to include jetty
- ********************************************************/
-project.'package-assemble'.doFirst {
-  // fetch/untar jetty distribution
-  ant.untar(src: configurations.jetty.resolve().toList()[0],
-            dest: basePackage,
-            compression: 'gzip')
 }

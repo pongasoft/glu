@@ -323,7 +323,7 @@ JVM_SIZE="-Xmx555m"
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
   <Call class="org.eclipse.jetty.util.log.Log" name="debug"><Arg>Configure console-jetty-context.xml</Arg></Call>
   <Set name="contextPath">/console</Set>
-  <Set name="war"><SystemProperty name="org.linkedin.glu.console.root"/>/glu/repository/wars/org.linkedin.glu.console-webapp-${GLU_VERSION}.war</Set>
+  <Set name="war"><SystemProperty name="org.linkedin.glu.console.root"/>/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-${GLU_VERSION}</Set>
   <Set name="tempDirectory"><SystemProperty name="org.linkedin.glu.console.root"/>/tmp</Set>
   <Set name="extraClasspath"><SystemProperty name="org.linkedin.glu.console.plugins.classpath"/></Set>
 </Configure>
