@@ -24,7 +24,6 @@ import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.util.clock.Timespan
 import org.linkedin.util.io.resource.FileResource
 import org.linkedin.util.io.resource.Resource
-import org.linkedin.util.io.resource.ResourceChain
 import org.linkedin.zookeeper.cli.commands.UploadCommand
 import org.linkedin.zookeeper.client.ZKClient
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
@@ -336,7 +335,6 @@ Typical usage:
       else
         FileResource.create(configRoot)
     }
-    configsRoots = ResourceChain.create(configsRoots)
 
     // packagesRoot
     def packagesRoot = Config.getOptionalString(config,
@@ -349,7 +347,7 @@ Typical usage:
                                             outputFolder.createRelative('keys').file.canonicalPath)
 
     new GluPackager(shell: shell,
-                    configsRoot: configsRoots,
+                    configsRoots: configsRoots,
                     packagesRoot: FileResource.create(packagesRoot),
                     outputFolder: outputFolder,
                     keysRoot: FileResource.create(keysRoot),

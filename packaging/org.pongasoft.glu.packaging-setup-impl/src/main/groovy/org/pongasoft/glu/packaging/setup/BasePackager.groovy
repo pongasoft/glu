@@ -21,9 +21,11 @@ public class BasePackager
 
   Resource outputFolder
   Resource inputPackage
-  Resource configsRoot
+  Collection<Resource> configsRoots
 
   boolean dryMode = false
+
+  protected def _sha1s = [:].withDefault { Resource r -> shell.sha1(r) }
 
   void ensureVersion(String version)
   {
@@ -49,28 +51,48 @@ public class BasePackager
   {
     Resource parent = shell.mkdirs(destination.parentResource)
 
-    def fileName = inputPackage.filename
-    Resource location
-    if(fileName.endsWith(".tgz"))
-    {
-      location = shell.untar(inputPackage, parent)
-      // should contain 1 directory
-      location = location.list()[0]
-    }
-    else
-    {
-      location = shell.cp(inputPackage, parent)
-    }
+    Resource location = shell.cp(inputPackage, parent)
 
     if(location != destination)
       shell.mv(location, destination)
+
+    resolveLinks(destination)
 
     return destination
   }
 
   void processConfigs(String fromFolder, Map tokens, Resource toFolder)
   {
-    processConfigs(configsRoot.createRelative(fromFolder), tokens, toFolder)
+    configsRoots.each { configsRoot ->
+      processConfigs(configsRoot.createRelative(fromFolder), tokens, toFolder)
+    }
+  }
+
+  void resolveLinks(Resource destination)
+  {
+    GroovyIOUtils.eachChildRecurse(inputPackage) { Resource file ->
+      if(file.filename.endsWith('.jar.lnk'))
+        resolveLink(destination, file)
+    }
+  }
+
+  void resolveLink(Resource destination, Resource link)
+  {
+    Resource linkFolder = link.parentResource
+
+    def (linkSourceRelativePath, sha1) = link.file.readLines()
+
+    def linkSource = linkFolder.createRelative(linkSourceRelativePath)
+
+    if(sha1 && sha1 != _sha1s[linkSource])
+      throw new IllegalArgumentException("mismatch sha1 for ${linkSource} (expecting ${sha1}, got ${_sha1s[linkSource]})")
+
+    String destinationPath =
+      inputPackage.file.toPath().relativize(linkFolder.file.toPath()).toString()
+
+    shell.cp(linkSource, destination.createRelative(destinationPath))
+
+    shell.rm(destination.createRelative(destinationPath).createRelative(link.filename))
   }
 
   void processConfigs(Resource fromFolder, Map tokens, Resource toFolder)

@@ -31,7 +31,7 @@ public class GluPackager
 
   Shell shell
 
-  Resource configsRoot
+  Collection<Resource> configsRoots
   Resource packagesRoot
   Resource outputFolder
   Resource keysRoot
@@ -90,7 +90,7 @@ public class GluPackager
                               outputFolder: out,
                               inputPackage: getInputPackage('org.linkedin.glu.agent-server',
                                                             agentMetaModel.version),
-                              configsRoot: configsRoot,
+                              configsRoots: configsRoots,
                               metaModel: agentMetaModel,
                               dryMode: dryMode)
     packager.createPackage()
@@ -104,7 +104,7 @@ public class GluPackager
                                 outputFolder: out,
                                 inputPackage: getInputPackage('org.linkedin.glu.console-server',
                                                               consoleMetaModel.version),
-                                configsRoot: configsRoot,
+                                configsRoots: configsRoots,
                                 metaModel: consoleMetaModel,
                                 dryMode: dryMode)
     packager.createPackage()
@@ -118,7 +118,7 @@ public class GluPackager
                                    outputFolder: out,
                                    inputPackage: getInputPackage('org.linkedin.zookeeper-server',
                                                                  zooKeeperClusterMetaModel.zooKeepers[0].version),
-                                   configsRoot: configsRoot,
+                                   configsRoots: configsRoots,
                                    metaModel: zooKeeperClusterMetaModel,
                                    dryMode: dryMode)
     packager.createPackage()

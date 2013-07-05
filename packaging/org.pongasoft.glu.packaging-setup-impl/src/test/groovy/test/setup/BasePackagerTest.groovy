@@ -141,7 +141,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
   /**
    * Copy all the configs from the config root
    */
-  protected Resource copyConfigs(Resource toConfigRoot)
+  protected Collection<Resource> copyConfigs(Resource toConfigRoot)
   {
     Resource dir = rootShell.cp(configsRootResource, toConfigRoot)
     int configFilesCount = 0
@@ -150,7 +150,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
         configFilesCount++
     }
     assertEquals(CONFIG_TEMPLATES_COUNT, configFilesCount)
-    return toConfigRoot
+    return [toConfigRoot]
   }
 
   protected void checkContent(String expectedContent, Shell shell, String templateName, def tokens)

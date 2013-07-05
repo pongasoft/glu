@@ -32,15 +32,19 @@ public class TestAgentServerPackager extends BasePackagerTest
 
       def inputPackage = shell.mkdirs("/dist/org.linkedin.glu.agent-server-${GLU_VERSION}")
 
+      def acme2 = shell.saveContent('/lib/acme-2.jar', 'this is the jar (2)')
+
       shell.saveContent(inputPackage.createRelative('version.txt'), GLU_VERSION)
       shell.saveContent(inputPackage.createRelative("${GLU_VERSION}/lib/acme.jar"), "this is the jar")
+      shell.saveContent(inputPackage.createRelative("${GLU_VERSION}/lib/acme-2.jar.lnk"),
+                        "../../../../lib/acme-2.jar\n${shell.sha1(acme2)}")
       def shellScript = shell.saveContent(inputPackage.createRelative("${GLU_VERSION}/bin/acme.sh"), "this is the shell script")
       shell.chmodPlusX(shellScript) // make executable
 
       def packager = new AgentServerPackager(packagerContext: createPackagerContext(shell),
                                              outputFolder: shell.mkdirs('/out'),
                                              inputPackage: inputPackage,
-                                             configsRoot: copyConfigs(shell.toResource('/configs')),
+                                             configsRoots: copyConfigs(shell.toResource('/configs')),
                                              metaModel: testModel.agents[0])
 
       PackagedArtifact artifact = packager.createPackage()
@@ -57,6 +61,7 @@ public class TestAgentServerPackager extends BasePackagerTest
           "/${GLU_VERSION}/bin/acme.sh": "this is the shell script",
           "/${GLU_VERSION}/lib": DIRECTORY,
           "/${GLU_VERSION}/lib/acme.jar": 'this is the jar',
+          "/${GLU_VERSION}/lib/acme-2.jar": 'this is the jar (2)',
           "/${GLU_VERSION}/conf": DIRECTORY,
           "/${GLU_VERSION}/conf/agentConfig.properties": DEFAULT_AGENT_CONFIG_PROPERTIES,
           "/${GLU_VERSION}/conf/pre_master_conf.sh": """#!/bin/bash
@@ -127,7 +132,7 @@ zooKeeperClusters << [
       def packager = new AgentServerPackager(packagerContext: createPackagerContext(shell),
                                              outputFolder: shell.mkdirs('/out'),
                                              inputPackage: inputPackage,
-                                             configsRoot: copyConfigs(shell.toResource('/configs')),
+                                             configsRoots: copyConfigs(shell.toResource('/configs')),
                                              metaModel: toGluMetaModel(metaModel).agents[0])
 
       PackagedArtifact artifact = packager.createPackage()

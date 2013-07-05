@@ -24,6 +24,15 @@ cd $BASEDIR
 
 LIB_DIR=lib
 
+shopt -s nullglob
+
+# first time... 'resolve' the links
+for file in $LIB_DIR/*.jar.lnk
+do
+  ln -s `head -n 1 $file` $LIB_DIR
+  rm $file
+done
+
 for file in `ls -1 $LIB_DIR/*.jar `; do
   if [ -z "$JVM_CLASSPATH" ]; then
     JVM_CLASSPATH="-classpath $JAVA_HOME/lib/tools.jar:$file"
