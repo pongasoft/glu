@@ -49,6 +49,7 @@ import javax.management.ObjectName
 import javax.management.remote.JMXConnectorFactory
 import javax.management.remote.JMXServiceURL
 import java.nio.file.Files
+import java.nio.file.NotDirectoryException
 import java.security.MessageDigest
 import java.util.concurrent.TimeoutException
 import java.util.regex.Pattern
@@ -1166,6 +1167,84 @@ def class ShellImpl implements Shell
   def noException(Closure closure)
   {
     GluGroovyLangUtils.noException(closure)
+  }
+
+  /**
+   * Copy from to to...
+   * TODO MED YP: overriding filesystem method for speed issue
+   *
+   * @return to as a resource
+   */
+  Resource cp(from, to)
+  {
+    copyOrMove(from, to, _copyAction)
+  }
+
+  /**
+   * Move from to to... (rename if file)
+   * TODO MED YP: overriding filesystem method for speed issue
+   *
+   * @return to as a resource
+   */
+  Resource mv(from, to)
+  {
+    copyOrMove(from, to, _moveAction)
+  }
+
+  private def _copyAction = { Resource from, Resource to ->
+    exec(command: ['cp', '-R', from.file.canonicalPath, to.file.canonicalPath])
+  }
+
+  private def _moveAction = { Resource from, Resource to ->
+    exec(command: ['mv', from.file.canonicalPath, to.file.canonicalPath])
+  }
+
+  /**
+   * Copy or move... same code except ant action
+   *
+   * @return to as a resource
+   */
+  Resource copyOrMove(from, to, Closure action)
+  {
+    from = toResource(from)
+
+    if(!from.exists())
+      throw new FileNotFoundException(from.toString())
+
+    def toIsDirectory = to.toString().endsWith('/')
+    to = toResource(to)
+    toIsDirectory = toIsDirectory || to.isDirectory()
+
+    if(from.isDirectory())
+    {
+      // handle case when 'from' is a directory
+
+      // to is an existing file => error
+      // cp -R foo foo4
+      // cp: foo4: Not a directory
+      if(!toIsDirectory && to.exists())
+        throw new NotDirectoryException(to.toString())
+    }
+    else
+    {
+      // handle case when 'from' is a file
+
+      // to is a non existent directory => error
+      // cp foo4 foo8/
+      // cp: directory foo8 does not exist
+      if(toIsDirectory && !to.exists())
+        throw new FileNotFoundException(to.toString())
+    }
+
+    // to is an existent directory => copy inside directory
+    if(toIsDirectory)
+      to = to.createRelative(from.filename)
+
+    mkdirs(to.parentResource)
+
+    action(from, to)
+
+    return to
   }
 }
 

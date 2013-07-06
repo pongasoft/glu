@@ -70,13 +70,27 @@ public class BasePackager
 
   void resolveLinks(Resource destination)
   {
+    def out = []
     GroovyIOUtils.eachChildRecurse(inputPackage) { Resource file ->
       if(file.filename.endsWith('.jar.lnk'))
-        resolveLink(destination, file)
+        resolveLink(destination, file, out)
+    }
+
+    if(out)
+    {
+      // optimization => cp forks and makes the process slow => forking once...
+      def content = """#!/bin/bash
+${out.join('\n')}
+"""
+
+      shell.withTempFile { Resource f ->
+        shell.saveContent(f, content)
+        shell.exec(f)
+      }
     }
   }
 
-  void resolveLink(Resource destination, Resource link)
+  void resolveLink(Resource destination, Resource link, def out)
   {
     Resource linkFolder = link.parentResource
 
@@ -90,9 +104,11 @@ public class BasePackager
     String destinationPath =
       inputPackage.file.toPath().relativize(linkFolder.file.toPath()).toString()
 
-    shell.cp(linkSource, destination.createRelative(destinationPath))
+    //shell.cp(linkSource, destination.createRelative(destinationPath))
+    out << "cp -R ${linkSource.file.canonicalPath} ${destination.createRelative(destinationPath).file.canonicalPath}"
 
-    shell.rm(destination.createRelative(destinationPath).createRelative(link.filename))
+    //shell.rm(destination.createRelative(destinationPath).createRelative(link.filename))
+    out << "rm ${destination.createRelative(destinationPath).createRelative(link.filename).file.canonicalPath}"
   }
 
   void processConfigs(Resource fromFolder, Map tokens, Resource toFolder)
