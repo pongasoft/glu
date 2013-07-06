@@ -27,10 +27,19 @@ public class BasePackager
 
   protected def _sha1s = [:].withDefault { Resource r -> shell.sha1(r) }
 
-  void ensureVersion(String version)
+  /**
+   * Make sure the package name ends with the proper version
+   *
+   * @return the package name (without the version)
+   */
+  String ensureVersion(String version)
   {
-    if(!inputPackage.filename.endsWith("-${version}"))
+    String fullPackageName = inputPackage.filename
+
+    if(!fullPackageName.endsWith("-${version}"))
       throw new IllegalArgumentException("input package [${inputPackage.filename}] mismatch version [${version}]")
+
+    fullPackageName - "-${version}"
   }
 
   Shell getShell()
@@ -38,18 +47,13 @@ public class BasePackager
     packagerContext.shell
   }
 
-  String getPackageName()
-  {
-    def fileName = inputPackage.filename
-    if(fileName.endsWith(".tgz"))
-      return fileName[0..-5]
-    else
-      return fileName
-  }
-
   Resource copyInputPackage(Resource destination)
   {
     Resource parent = shell.mkdirs(destination.parentResource)
+
+    // make sure do not exist...
+    shell.delete(destination)
+    shell.delete(parent.createRelative(inputPackage.filename))
 
     Resource location = shell.cp(inputPackage, parent)
 

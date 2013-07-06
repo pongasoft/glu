@@ -47,7 +47,7 @@ public class TestConsoleServerPackager extends BasePackagerTest
 
       PackagedArtifact artifact = packager.createPackage()
 
-      assertEquals(shell.toResource("/out/org.linkedin.glu.console-server-${GLU_VERSION}-tutorialConsole"), artifact.location)
+      assertEquals(shell.toResource("/out/org.linkedin.glu.console-server-tutorialConsole-${GLU_VERSION}"), artifact.location)
       assertEquals('localhost', artifact.host)
       assertEquals(ConsoleMetaModel.DEFAULT_PORT, artifact.port)
 

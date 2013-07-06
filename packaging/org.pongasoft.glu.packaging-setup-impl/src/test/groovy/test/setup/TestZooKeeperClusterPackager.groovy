@@ -24,6 +24,8 @@ public class TestZooKeeperClusterPackager extends BasePackagerTest
 
       def pkg = packager.createPackage()
 
+      def zkPackageName = "org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}"
+
       def expectedResources =
         [
           // zookeeper cluster config
@@ -42,14 +44,14 @@ public class TestZooKeeperClusterPackager extends BasePackagerTest
           '/conf/org/glu/agents/fabrics/glu-dev-1/config/console.truststore': toBinaryResource(keysRootResource.createRelative('console.truststore')),
 
           // zookeeper server config
-          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1": DIRECTORY,
-          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/README.md": 'this is the readme',
-          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/bin": DIRECTORY,
-          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
-          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/lib": DIRECTORY,
-          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/lib/acme.jar": 'this is the jar',
-          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/conf": DIRECTORY,
-          "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1/conf/zoo.cfg": """# The number of milliseconds of each tick
+          "/${zkPackageName}": DIRECTORY,
+          "/${zkPackageName}/README.md": 'this is the readme',
+          "/${zkPackageName}/bin": DIRECTORY,
+          "/${zkPackageName}/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
+          "/${zkPackageName}/lib": DIRECTORY,
+          "/${zkPackageName}/lib/acme.jar": 'this is the jar',
+          "/${zkPackageName}/conf": DIRECTORY,
+          "/${zkPackageName}/conf/zoo.cfg": """# The number of milliseconds of each tick
 tickTime=2000
 # The number of ticks that the initial
 # synchronization phase can take
@@ -73,7 +75,7 @@ clientPort=2181
 
       def zk = (pkg.zooKeepers as List)[0]
 
-      assertEquals(shell.toResource("/out/zookeeper-cluster-tutorialZooKeeperCluster/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-127.0.0.1"),
+      assertEquals(shell.toResource("/out/zookeeper-cluster-tutorialZooKeeperCluster/${zkPackageName}"),
                    zk.location)
       assertEquals('127.0.0.1', zk.host)
       assertEquals(2181, zk.port)
@@ -123,6 +125,9 @@ zooKeeperClusters << [
       assertEquals(shell.toResource("/out/zookeeper-cluster-zkc"),
                    pkg.zooKeeperCluster.location)
 
+      def zk1PackageName = "org.linkedin.zookeeper-server-h1-${ZOOKEEPER_VERSION}"
+      def zk2PackageName = "org.linkedin.zookeeper-server-h2-${ZOOKEEPER_VERSION}"
+
       def expectedResources = [
         // zookeeper cluster config
         '/conf': DIRECTORY,
@@ -137,15 +142,15 @@ zooKeeperClusters << [
         '/conf/org/glu/agents/fabrics/f1/config/console.truststore': toBinaryResource(keysRootResource.createRelative('console.truststore')),
 
         // zookeeper server config for h1
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1": DIRECTORY,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/README.md": 'this is the readme',
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/bin": DIRECTORY,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/lib": DIRECTORY,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/lib/acme.jar": 'this is the jar',
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/conf": DIRECTORY,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/conf/myid": '1',
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1/conf/zoo.cfg": """# The number of milliseconds of each tick
+        "/${zk1PackageName}": DIRECTORY,
+        "/${zk1PackageName}/README.md": 'this is the readme',
+        "/${zk1PackageName}/bin": DIRECTORY,
+        "/${zk1PackageName}/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
+        "/${zk1PackageName}/lib": DIRECTORY,
+        "/${zk1PackageName}/lib/acme.jar": 'this is the jar',
+        "/${zk1PackageName}/conf": DIRECTORY,
+        "/${zk1PackageName}/conf/myid": '1',
+        "/${zk1PackageName}/conf/zoo.cfg": """# The number of milliseconds of each tick
 tickTime=2000
 # The number of ticks that the initial
 # synchronization phase can take
@@ -164,15 +169,15 @@ server.2=h2:2888:3888
 """,
 
         // zookeeper server config for h2
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2": DIRECTORY,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/README.md": 'this is the readme',
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/bin": DIRECTORY,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/lib": DIRECTORY,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/lib/acme.jar": 'this is the jar',
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/conf": DIRECTORY,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/conf/myid": '2',
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2/conf/zoo.cfg": """# The number of milliseconds of each tick
+        "/${zk2PackageName}": DIRECTORY,
+        "/${zk2PackageName}/README.md": 'this is the readme',
+        "/${zk2PackageName}/bin": DIRECTORY,
+        "/${zk2PackageName}/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
+        "/${zk2PackageName}/lib": DIRECTORY,
+        "/${zk2PackageName}/lib/acme.jar": 'this is the jar',
+        "/${zk2PackageName}/conf": DIRECTORY,
+        "/${zk2PackageName}/conf/myid": '2',
+        "/${zk2PackageName}/conf/zoo.cfg": """# The number of milliseconds of each tick
 tickTime=2000
 # The number of ticks that the initial
 # synchronization phase can take
@@ -197,14 +202,14 @@ server.2=h2:2888:3888
 
       def zk1 = (pkg.zooKeepers as List)[0]
 
-      assertEquals(shell.toResource("/out/zookeeper-cluster-zkc/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1"),
+      assertEquals(shell.toResource("/out/zookeeper-cluster-zkc/${zk1PackageName}"),
                    zk1.location)
       assertEquals('h1', zk1.host)
       assertEquals(2181, zk1.port)
 
       def zk2 = (pkg.zooKeepers as List)[1]
 
-      assertEquals(shell.toResource("/out/zookeeper-cluster-zkc/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h2"),
+      assertEquals(shell.toResource("/out/zookeeper-cluster-zkc/${zk2PackageName}"),
                    zk2.location)
       assertEquals('h2', zk2.host)
       assertEquals(2181, zk2.port)
@@ -261,6 +266,8 @@ zooKeeperClusters << [
       assertEquals(shell.toResource("/out/zookeeper-cluster-zkc"),
                    pkg.zooKeeperCluster.location)
 
+      def zkPackageName = "org.linkedin.zookeeper-server-1234-${ZOOKEEPER_VERSION}"
+
       def expectedResources = [
         // zookeeper cluster config
         '/conf': DIRECTORY,
@@ -301,14 +308,14 @@ glu.agent.ivySettings=<ivy settings>
 ''',
 
         // zookeeper server config for h1
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234": DIRECTORY,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/README.md": 'this is the readme',
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/bin": DIRECTORY,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/lib": DIRECTORY,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/lib/acme.jar": 'this is the jar',
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/conf": DIRECTORY,
-        "/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234/conf/zoo.cfg": """# The number of milliseconds of each tick
+        "/${zkPackageName}": DIRECTORY,
+        "/${zkPackageName}/README.md": 'this is the readme',
+        "/${zkPackageName}/bin": DIRECTORY,
+        "/${zkPackageName}/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
+        "/${zkPackageName}/lib": DIRECTORY,
+        "/${zkPackageName}/lib/acme.jar": 'this is the jar',
+        "/${zkPackageName}/conf": DIRECTORY,
+        "/${zkPackageName}/conf/zoo.cfg": """# The number of milliseconds of each tick
 tickTime=<tickTime>
 # The number of ticks that the initial
 # synchronization phase can take
@@ -330,7 +337,7 @@ clientPort=1234
 
       def zk1 = (pkg.zooKeepers as List)[0]
 
-      assertEquals(shell.toResource("/out/zookeeper-cluster-zkc/org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}-h1-1234"),
+      assertEquals(shell.toResource("/out/zookeeper-cluster-zkc/${zkPackageName}"),
                    zk1.location)
       assertEquals('h1', zk1.host)
       assertEquals(1234, zk1.port)

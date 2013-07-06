@@ -50,7 +50,7 @@ public class ConsoleServerPackager extends BasePackager
 
   PackagedArtifact createPackage()
   {
-    ensureVersion(metaModel.version)
+    String packageName = ensureVersion(metaModel.version)
 
     def jettyDistribution =
       shell.ls(inputPackage).find { it.filename.startsWith('jetty-distribution-') }?.filename
@@ -75,6 +75,8 @@ public class ConsoleServerPackager extends BasePackager
 
     if(metaModel.name != 'default')
       parts << metaModel.name
+
+    parts << metaModel.version
 
     Resource packagePath =outputFolder.createRelative(parts.join('-'))
     if(!dryMode)

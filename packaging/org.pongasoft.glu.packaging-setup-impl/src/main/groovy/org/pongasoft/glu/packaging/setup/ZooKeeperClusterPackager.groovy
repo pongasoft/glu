@@ -39,16 +39,22 @@ public class ZooKeeperClusterPackager extends BasePackager
 
   PackagedArtifact createPackage(Resource clusterPackagePath, ZooKeeperMetaModel zk)
   {
-    ensureVersion(zk.version)
+    String packageName = ensureVersion(zk.version)
 
     String host = zk.host ?: 'localhost'
     int port = zk.clientPort
 
     def parts = [packageName]
-    parts << host
+
+    // include host name only when 'real' cluster
+    if(zk.zooKeeperCluster.zooKeepers.size() > 1)
+      parts << host
 
     if(port != ZooKeeperMetaModel.DEFAULT_CLIENT_PORT)
       parts << port
+
+    parts << zk.version
+
     String newPackageName = parts.join('-')
     Resource packagePath = clusterPackagePath.createRelative(newPackageName)
     if(!dryMode)

@@ -65,9 +65,9 @@ public class AgentServerPackager extends BasePackager
     metaModel.configTokens
   }
 
-  PackagedArtifact createPackage()
+  def createPackage()
   {
-    ensureVersion(metaModel.version)
+    String packageName = ensureVersion(metaModel.version)
 
     def tokens = [
       agentMetaModel: metaModel,
@@ -110,18 +110,36 @@ public class AgentServerPackager extends BasePackager
     if(configTokens.GLU_AGENT_FABRIC)
       parts << configTokens.GLU_AGENT_FABRIC
 
+    def upgradeParts = [*parts]
+
+    upgradeParts << 'upgrade'
+
+    parts << metaModel.version
+    upgradeParts << metaModel.version
+
     if(metaModel.gluMetaModel.zooKeeperRoot != GluMetaModel.DEFAULT_ZOOKEEPER_ROOT)
       tokens[CONFIG_TOKENS_KEY].GLU_AGENT_ZOOKEEPER_ROOT = metaModel.gluMetaModel.zooKeeperRoot
 
     Resource packagePath = outputFolder.createRelative(parts.join('-'))
+    Resource upgradePackagePath = outputFolder.createRelative(upgradeParts.join('-'))
+
     if(!dryMode)
     {
       copyInputPackage(packagePath)
-      configure(packagePath, tokens)
+      Resource serverRoot = configure(packagePath, tokens)
+
+      shell.delete(upgradePackagePath)
+      shell.cp(serverRoot, upgradePackagePath)
     }
-    return new PackagedArtifact(location: packagePath,
-                                host: metaModel.host.resolveHostAddress(),
-                                port: agentPort)
+
+    return [
+      agentServer: new PackagedArtifact(location: packagePath,
+                                        host: metaModel.host.resolveHostAddress(),
+                                        port: agentPort),
+      agentServerUpgrade: new PackagedArtifact(location: upgradePackagePath,
+                                               host: metaModel.host.resolveHostAddress(),
+                                               port: agentPort),
+    ]
   }
 
   Resource configure(Resource packagePath, Map tokens)
@@ -136,6 +154,6 @@ public class AgentServerPackager extends BasePackager
 
     processConfigs('agent-server', tokens, serverRoot)
 
-    return packagePath
+    return serverRoot
   }
 }
