@@ -17,6 +17,11 @@
 package org.pongasoft.glu.packaging.setup
 
 import org.linkedin.glu.groovy.utils.shell.Shell
+import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.util.codec.CodecUtils
+import org.linkedin.util.codec.HexaCodec
+import org.linkedin.util.codec.OneWayCodec
+import org.linkedin.util.codec.OneWayMessageDigestCodec
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
@@ -27,6 +32,11 @@ import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
  * @author yan@pongasoft.com  */
 public class GluPackager
 {
+  public static final OneWayCodec SHA1 =
+    OneWayMessageDigestCodec.createSHA1Instance('', HexaCodec.INSTANCE)
+
+  private static final JACKSON_CANONICAL_MAPPER = JsonUtils.newJacksonMapper(true)
+
   GluMetaModel gluMetaModel
 
   Shell shell
@@ -49,11 +59,41 @@ public class GluPackager
 
   void packageAgents()
   {
+    def checksums = [:]
+
     gluMetaModel.agents.each { AgentMetaModel model ->
-      PackagedArtifact pa = packageAgent(model)
-      packagedArtifacts[model] = pa
-      if(!dryMode)
-        println "Generated agent ${pa.location} ${pa.host}:${pa.port}"
+      AgentServerPackager packager = buildPackager(model)
+
+      def pas = packager.computePackagedArtifacts()
+
+      def checksum = computeChecksum(pas.agentServer)
+
+      def packageName = pas.agentServer.location.filename
+      def previousChecksum = checksums[packageName]
+
+      if(previousChecksum)
+      {
+        if(previousChecksum != checksum)
+          throw new IllegalStateException("Sanity check failed... same package name [${packageName}], " +
+                                          "different checksums [${previousChecksum} != ${checksum}]")
+        else
+        {
+          // no need to generate the package!
+          if(!dryMode)
+          {
+            println "Skipped agent package ${pas.agentServer.location} ${pas.agentServer.host}:${pas.agentServer.port}"
+          }
+        }
+      }
+      else
+      {
+        packager.createPackage()
+        if(!dryMode)
+          println "Generated agent package ${pas.agentServer.location} ${pas.agentServer.host}:${pas.agentServer.port}"
+        checksums[packageName] = checksum
+      }
+
+      packagedArtifacts[model] = pas
     }
   }
 
@@ -63,7 +103,7 @@ public class GluPackager
       PackagedArtifact pa = packageConsole(model)
       packagedArtifacts[model] = pa
       if(!dryMode)
-        println "Generated console ${pa.location} ${pa.host}:${pa.port}"
+        println "Generated console package ${pa.location} ${pa.host}:${pa.port}"
     }
   }
 
@@ -82,7 +122,7 @@ public class GluPackager
     }
   }
 
-  protected PackagedArtifact packageAgent(AgentMetaModel agentMetaModel)
+  protected AgentServerPackager buildPackager(AgentMetaModel agentMetaModel)
   {
     def out = shell.mkdirs(outputFolder.createRelative('agents'))
     def packager =
@@ -93,7 +133,7 @@ public class GluPackager
                               configsRoots: configsRoots,
                               metaModel: agentMetaModel,
                               dryMode: dryMode)
-    packager.createPackage()
+    return packager
   }
 
   protected PackagedArtifact packageConsole(ConsoleMetaModel consoleMetaModel)
@@ -143,4 +183,14 @@ public class GluPackager
     return inputPackage
   }
 
+  protected String computeChecksum(PackagedArtifact packagedArtifact)
+  {
+    if(packagedArtifact.tokens != null)
+    {
+      def json = JACKSON_CANONICAL_MAPPER.writeValueAsString(packagedArtifact.tokens)
+      return CodecUtils.encodeString(SHA1, json)
+    }
+    else
+      return null
+  }
 }

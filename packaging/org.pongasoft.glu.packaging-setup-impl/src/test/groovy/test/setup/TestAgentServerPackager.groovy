@@ -51,7 +51,7 @@ public class TestAgentServerPackager extends BasePackagerTest
 
       PackagedArtifact artifact = pkg.agentServer
 
-      assertEquals(shell.toResource("/out/org.linkedin.glu.agent-server-agent-1-${GLU_VERSION}"), artifact.location)
+      assertEquals(shell.toResource("/out/org.linkedin.glu.agent-server-agent-1-tutorialZooKeeperCluster-${GLU_VERSION}"), artifact.location)
       assertEquals('localhost', artifact.host)
       assertEquals(AgentMetaModel.DEFAULT_PORT, artifact.port)
 
@@ -97,7 +97,7 @@ GLU_AGENT_NAME="agent-1"
       // now check for upgrade
       artifact = pkg.agentServerUpgrade
 
-      assertEquals(shell.toResource("/out/org.linkedin.glu.agent-server-agent-1-upgrade-${GLU_VERSION}"), artifact.location)
+      assertEquals(shell.toResource("/out/org.linkedin.glu.agent-server-agent-1-tutorialZooKeeperCluster-upgrade-${GLU_VERSION}"), artifact.location)
       assertEquals('localhost', artifact.host)
       assertEquals(AgentMetaModel.DEFAULT_PORT, artifact.port)
 
@@ -155,7 +155,7 @@ zooKeeperClusters << [
 
       PackagedArtifact artifact = pkg.agentServer
 
-      assertEquals(shell.toResource("/out/org.linkedin.glu.agent-server-12345-${GLU_VERSION}"), artifact.location)
+      assertEquals(shell.toResource("/out/org.linkedin.glu.agent-server-12345-zkc-${GLU_VERSION}"), artifact.location)
       assertEquals('ha', artifact.host)
       assertEquals(12345, artifact.port)
 
@@ -198,7 +198,7 @@ GLU_AGENT_PORT="12345"
       // now check for upgrade
       artifact = pkg.agentServerUpgrade
 
-      assertEquals(shell.toResource("/out/org.linkedin.glu.agent-server-12345-upgrade-${GLU_VERSION}"), artifact.location)
+      assertEquals(shell.toResource("/out/org.linkedin.glu.agent-server-12345-zkc-upgrade-${GLU_VERSION}"), artifact.location)
       assertEquals('ha', artifact.host)
       assertEquals(12345, artifact.port)
 

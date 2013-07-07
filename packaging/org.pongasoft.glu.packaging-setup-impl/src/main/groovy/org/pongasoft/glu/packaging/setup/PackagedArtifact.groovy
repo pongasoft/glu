@@ -25,4 +25,5 @@ public class PackagedArtifact
   Resource location
   String host
   int port
+  Map<String, String> tokens
 }

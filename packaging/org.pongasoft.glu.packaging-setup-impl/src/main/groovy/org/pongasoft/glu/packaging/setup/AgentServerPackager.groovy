@@ -60,14 +60,93 @@ public class AgentServerPackager extends BasePackager
 
   AgentMetaModel metaModel
 
+  private def _packagedArtifacts = null
+  private Map<String, String> _tokens = null
+
   Map<String, String> getConfigTokens()
   {
     metaModel.configTokens
   }
 
+  def computePackagedArtifacts()
+  {
+    if(!_packagedArtifacts)
+    {
+      String packageName = ensureVersion(metaModel.version)
+
+      _tokens = [*:configTokens]
+
+      String agentName = metaModel.name
+      int agentPort = metaModel.agentPort
+
+      def agentHost
+
+      switch(configTokens.GLU_AGENT_HOSTNAME_FACTORY)
+      {
+        case ':ip':
+        case ':canonical':
+        case null:
+          agentHost = '*'
+          break;
+
+        default:
+          agentHost = configTokens.GLU_AGENT_HOSTNAME_FACTORY
+      }
+
+      def parts = [packageName]
+      if(agentName)
+      {
+        parts << agentName
+        _tokens.GLU_AGENT_NAME = agentName
+      }
+      if(agentHost != DEFAULT_AGENT_HOST)
+        parts << agentHost
+      if(agentPort != AgentMetaModel.DEFAULT_PORT)
+      {
+        parts << agentPort
+        _tokens.GLU_AGENT_PORT = agentPort
+      }
+      if(configTokens.GLU_AGENT_FABRIC)
+        parts << configTokens.GLU_AGENT_FABRIC
+
+      if(metaModel.gluMetaModel.zooKeeperRoot != GluMetaModel.DEFAULT_ZOOKEEPER_ROOT)
+        _tokens.GLU_AGENT_ZOOKEEPER_ROOT = metaModel.gluMetaModel.zooKeeperRoot
+
+      // Define which zookeeper to use
+      _tokens.GLU_ZOOKEEPER =
+        metaModel.fabric.zooKeeperCluster.zooKeeperConnectionString
+
+      parts << metaModel.fabric.zooKeeperCluster.name
+
+      def upgradeParts = [*parts]
+
+      upgradeParts << 'upgrade'
+
+
+      parts << metaModel.version
+      upgradeParts << metaModel.version
+
+      Resource packagePath = outputFolder.createRelative(parts.join('-'))
+      Resource upgradePackagePath = outputFolder.createRelative(upgradeParts.join('-'))
+
+      _packagedArtifacts = [
+        agentServer: new PackagedArtifact(location: packagePath,
+                                          host: metaModel.host.resolveHostAddress(),
+                                          port: agentPort,
+                                          tokens: _tokens),
+        agentServerUpgrade: new PackagedArtifact(location: upgradePackagePath,
+                                                 host: metaModel.host.resolveHostAddress(),
+                                                 port: agentPort,
+                                                 tokens: _tokens),
+      ]
+    }
+
+    return _packagedArtifacts
+  }
+
   def createPackage()
   {
-    String packageName = ensureVersion(metaModel.version)
+    def packagedArtifacts = computePackagedArtifacts()
 
     def tokens = [
       agentMetaModel: metaModel,
@@ -75,71 +154,18 @@ public class AgentServerPackager extends BasePackager
     ]
 
     tokens[PACKAGER_CONTEXT_KEY] = packagerContext
-    tokens[CONFIG_TOKENS_KEY] = [*:configTokens]
-
-    String agentName = metaModel.name
-    int agentPort = metaModel.agentPort
-
-    def agentHost
-
-    switch(configTokens.GLU_AGENT_HOSTNAME_FACTORY)
-    {
-      case ':ip':
-      case ':canonical':
-      case null:
-        agentHost = '*'
-        break;
-
-      default:
-        agentHost = configTokens.GLU_AGENT_HOSTNAME_FACTORY
-    }
-
-    def parts = [packageName]
-    if(agentName)
-    {
-      parts << agentName
-      tokens[CONFIG_TOKENS_KEY].GLU_AGENT_NAME = agentName
-    }
-    if(agentHost != DEFAULT_AGENT_HOST)
-      parts << agentHost
-    if(agentPort != AgentMetaModel.DEFAULT_PORT)
-    {
-      parts << agentPort
-      tokens[CONFIG_TOKENS_KEY].GLU_AGENT_PORT = agentPort
-    }
-    if(configTokens.GLU_AGENT_FABRIC)
-      parts << configTokens.GLU_AGENT_FABRIC
-
-    def upgradeParts = [*parts]
-
-    upgradeParts << 'upgrade'
-
-    parts << metaModel.version
-    upgradeParts << metaModel.version
-
-    if(metaModel.gluMetaModel.zooKeeperRoot != GluMetaModel.DEFAULT_ZOOKEEPER_ROOT)
-      tokens[CONFIG_TOKENS_KEY].GLU_AGENT_ZOOKEEPER_ROOT = metaModel.gluMetaModel.zooKeeperRoot
-
-    Resource packagePath = outputFolder.createRelative(parts.join('-'))
-    Resource upgradePackagePath = outputFolder.createRelative(upgradeParts.join('-'))
+    tokens[CONFIG_TOKENS_KEY] = [*:_tokens]
 
     if(!dryMode)
     {
-      copyInputPackage(packagePath)
-      Resource serverRoot = configure(packagePath, tokens)
+      copyInputPackage(packagedArtifacts.agentServer.location)
+      Resource serverRoot = configure(packagedArtifacts.agentServer.location, tokens)
 
-      shell.delete(upgradePackagePath)
-      shell.cp(serverRoot, upgradePackagePath)
+      shell.delete(packagedArtifacts.agentServerUpgrade.location)
+      shell.cp(serverRoot, packagedArtifacts.agentServerUpgrade.location)
     }
 
-    return [
-      agentServer: new PackagedArtifact(location: packagePath,
-                                        host: metaModel.host.resolveHostAddress(),
-                                        port: agentPort),
-      agentServerUpgrade: new PackagedArtifact(location: upgradePackagePath,
-                                               host: metaModel.host.resolveHostAddress(),
-                                               port: agentPort),
-    ]
+    return packagedArtifacts
   }
 
   Resource configure(Resource packagePath, Map tokens)
@@ -147,10 +173,6 @@ public class AgentServerPackager extends BasePackager
     String version = packagePath.createRelative('version.txt').file.text
 
     Resource serverRoot = packagePath.createRelative(version)
-
-    // Define which zookeeper to use
-    tokens[CONFIG_TOKENS_KEY].GLU_ZOOKEEPER =
-      metaModel.fabric.zooKeeperCluster.zooKeeperConnectionString
 
     processConfigs('agent-server', tokens, serverRoot)
 
