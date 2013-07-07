@@ -174,6 +174,7 @@ consoles << [
 console.sslEnabled=false
 
 
+console.trackerService.zookeeperRoot = '/org/glu'
 
 // dataSource configuration
 <datasource>
@@ -363,6 +364,7 @@ console.truststorePath="${keysDir}/agent.truststore"
 console.truststorePassword = 'nacEn92x8-1'
 
 
+console.trackerService.zookeeperRoot = '/org/glu'
 
 // dataSource configuration
 

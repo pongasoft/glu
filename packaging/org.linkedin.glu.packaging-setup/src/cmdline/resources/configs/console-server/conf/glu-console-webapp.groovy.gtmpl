@@ -33,6 +33,7 @@ console.truststorePassword = '${keys.agentTrustStore.storePassword}'
 console.sslEnabled=false
 <% } %>
 
+console.trackerService.zookeeperRoot = '${consoleMetaModel.gluMetaModel.zooKeeperRoot}'
 
 // dataSource configuration
 <%= configTokens.dataSource ?: """
