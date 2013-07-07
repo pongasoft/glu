@@ -30,6 +30,7 @@ public class GluMetaModelImpl implements GluMetaModel
   public static final String META_MODEL_VERSION = '1.0.0'
 
   Map<String, FabricMetaModel> fabrics
+  String gluVersion
   String metaModelVersion = META_MODEL_VERSION
   String zooKeeperRoot = DEFAULT_ZOOKEEPER_ROOT
 
@@ -97,7 +98,8 @@ public class GluMetaModelImpl implements GluMetaModel
   Object toExternalRepresentation()
   {
     def res =[
-      metaModelVersion: metaModelVersion
+      metaModelVersion: metaModelVersion,
+      gluVersion: gluVersion
     ]
 
     if(fabrics)

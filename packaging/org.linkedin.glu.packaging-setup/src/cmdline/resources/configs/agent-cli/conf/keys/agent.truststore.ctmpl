@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2013 Yan Pujante
+ * Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,12 +14,19 @@
  * the License.
  */
 
-apply plugin: 'org.linkedin.cmdline'
+// only one set of keys per console at the moment...
+def uri = (gluMetaModel.fabrics.values() as List)[0].keys?.agentTrustStore?.uri
 
-dependencies {
-  lib project(':agent:org.linkedin.glu.agent-cli-impl')
-}
-
-cmdline {
-  resources << packageIncludes
+if(uri)
+{
+  if(uri.isAbsolute())
+  {
+    packagerContext.shell.fetch(uri, toResource)
+  }
+  else
+  {
+    def relativeKeyStoreFile = uri.toString()
+    def keyStore = packagerContext.keysRoot.createRelative(relativeKeyStoreFile)
+    packagerContext.shell.fetch(keyStore, toResource)
+  }
 }

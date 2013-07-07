@@ -25,6 +25,7 @@ public class GluMetaModelJsonGroovyDsl
   public static Map parseJsonGroovy(String text)
   {
     def binding = new GluMetaModelBinding(metaModelVersion: GluMetaModelImpl.META_MODEL_VERSION,
+                                          gluVersion: null,
                                           fabrics: [:],
                                           agents: [],
                                           consoles: [],

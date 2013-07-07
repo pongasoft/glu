@@ -15,10 +15,10 @@
  */
 
 metaModelVersion = '1.0.0'
+gluVersion = '@glu.version@'
 
 def fabric = 'glu-dev-1'
 
-def gluVersion = '@glu.version@'
 def zooKeeperVersion = '@zookeeper.version@'
 
 def keys = [
@@ -59,15 +59,13 @@ fabrics[fabric] = [
 agents << [
   name: 'agent-1',
   host: 'localhost',
-  fabric: fabric,
-  version: gluVersion
+  fabric: fabric
 ]
 
 consoles << [
   name: 'tutorialConsole',
   host: 'localhost',
   plugins: ['org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin'],
-  version: gluVersion,
   configTokens: [
     dataSource: """
 dataSource.dbCreate ='update'

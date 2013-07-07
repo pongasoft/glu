@@ -1,5 +1,6 @@
 #
 # Copyright (c) 2010-2010 LinkedIn, Inc
+# Portions Copyright (c) 2013 Yan Pujante
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -19,9 +20,17 @@ url=https://localhost:12906/
 
 ################################
 # Security:
+<% def keys = (gluMetaModel.fabrics.values() as List)[0].keys %>
+<% if(keys) { %>
+sslEnabled=true
+
 keystorePath=./conf/keys/console.keystore
-keystorePassword=nacEn92x8-1
-keyPassword=nWVxpMg6Tkv
+keystorePassword=${keys.consoleKeyStore.storePassword}
+keyPassword=${keys.consoleKeyStore.keyPassword}
 
 truststorePath=./conf/keys/agent.truststore
-truststorePassword=nacEn92x8-1
+truststorePassword=${keys.agentTrustStore.storePassword}
+
+<% } else { %>
+sslEnabled=false
+<% } %>

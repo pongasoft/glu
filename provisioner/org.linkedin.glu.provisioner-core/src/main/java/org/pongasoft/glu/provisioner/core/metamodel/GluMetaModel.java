@@ -43,6 +43,11 @@ public interface GluMetaModel extends Externable
   String getZooKeeperRoot();
 
   /**
+   * This is the version of glu
+   */
+  String getGluVersion();
+
+  /**
    * This is the version of the meta model, NOT the version of glu
    */
   String getMetaModelVersion();

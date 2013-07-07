@@ -62,13 +62,20 @@ public class ServerMetaModelImpl implements ServerMetaModel
     return -1
   }
 
+  String getVersion()
+  {
+    version ?: gluMetaModel.gluVersion
+  }
+
   @Override
   Object toExternalRepresentation()
   {
     def res = [
-      version: version,
       host: host.toExternalRepresentation(),
     ]
+
+    if(version)
+      res.version = version
 
     if(mainPort != defaultPort)
       res.port = mainPort

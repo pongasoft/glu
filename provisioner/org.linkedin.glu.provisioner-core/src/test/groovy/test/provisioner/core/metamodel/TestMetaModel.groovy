@@ -50,7 +50,7 @@ public class TestMetaModel extends GroovyTestCase
    */
   public void testTutorialGluMetaModel()
   {
-    def model = new File("../../packaging/org.linkedin.glu.packaging-all/src/cmdline/resources/conf/tutorial/glu-meta-model.json.groovy").text
+    def model = new File("../../packaging/org.linkedin.glu.packaging-all/src/cmdline/resources/models/tutorial/glu-meta-model.json.groovy").text
 
     def expectedModel = """
 {
@@ -58,8 +58,7 @@ public class TestMetaModel extends GroovyTestCase
     {
       "fabric": "glu-dev-1",
       "host": "localhost",
-      "name": "agent-1",
-      "version": "@glu.version@"
+      "name": "agent-1"
     }
   ],
   "consoles": [
@@ -71,8 +70,7 @@ public class TestMetaModel extends GroovyTestCase
       "name": "tutorialConsole",
       "plugins": [
         "org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin"
-      ],
-      "version": "@glu.version@"
+      ]
     }
   ],
   "fabrics": {
@@ -106,6 +104,7 @@ public class TestMetaModel extends GroovyTestCase
       "zooKeeperCluster": "tutorialZooKeeperCluster"
     }
   },
+  "gluVersion": "@glu.version@",
   "metaModelVersion": "1.0.0",
   "zooKeeperClusters": [
     {
@@ -116,7 +115,7 @@ public class TestMetaModel extends GroovyTestCase
       "zooKeepers": [
         {
           "host": "127.0.0.1",
-          "version": "@zooKeeper.version@"
+          "version": "@zookeeper.version@"
         }
       ]
     }

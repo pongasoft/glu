@@ -83,6 +83,8 @@ public class GluMetaModelBuilder
     if(metaModelVersion != GluMetaModelImpl.META_MODEL_VERSION)
       throw new IllegalArgumentException("unsupported meta model version ${metaModelVersion}")
 
+    gluMetaModel.gluVersion = jsonModel.gluVersion
+
     // agents
     jsonModel.agents?.each { deserializeAgent(it) }
 
