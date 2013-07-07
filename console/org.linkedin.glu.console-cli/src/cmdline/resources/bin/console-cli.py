@@ -44,7 +44,7 @@ from optparse import OptionParser
 logging.basicConfig(
     format='%(asctime)s [%(levelname)s] - %(name)s - %(message)s')
 
-bin_path = os.path.abspath((os.path.dirname(sys.argv[0])))
+bin_path = os.path.abspath((os.path.dirname(os.path.realpath(__file__))))
 lib_path = os.path.join(os.path.dirname(bin_path), 'lib', 'python')
 site.addsitedir(lib_path)
 site.addsitedir(os.path.join(lib_path, 'site-packages'))

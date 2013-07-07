@@ -21,7 +21,7 @@ import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 
 /**
  * @author yan@pongasoft.com  */
-public class AgentCliPackager extends BasePackager
+public class ConsoleCliPackager extends BasePackager
 {
   GluMetaModel metaModel
 
@@ -47,7 +47,7 @@ public class AgentCliPackager extends BasePackager
 
   Resource configure(Resource packagePath, Map tokens)
   {
-    processConfigs('agent-cli', tokens, packagePath)
+    processConfigs('console-cli', tokens, packagePath)
     return packagePath
   }
 }

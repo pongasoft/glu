@@ -14,15 +14,12 @@
  * the License.
  */
 
-
 package test.setup
 
 import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
 import org.pongasoft.glu.packaging.setup.AgentCliPackager
-import org.pongasoft.glu.packaging.setup.ConsoleServerPackager
 import org.pongasoft.glu.packaging.setup.PackagedArtifact
-import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 
 /**
  * @author yan@pongasoft.com  */
@@ -33,6 +30,8 @@ public class TestAgentCliPackager extends BasePackagerTest
     ShellImpl.createTempShell { Shell shell ->
 
       def inputPackage = shell.mkdirs("/dist/org.linkedin.glu.agent-cli-${GLU_VERSION}")
+      shell.saveContent(inputPackage.createRelative('README.md'), "this is the readme")
+      shell.saveContent(inputPackage.createRelative('lib/acme.jar'), "this is the jar")
 
       def packager = new AgentCliPackager(packagerContext: createPackagerContext(shell),
                                           outputFolder: shell.mkdirs('/out'),
@@ -48,6 +47,9 @@ public class TestAgentCliPackager extends BasePackagerTest
 
       def expectedResources =
         [
+          "/README.md": 'this is the readme',
+          "/lib": DIRECTORY,
+          "/lib/acme.jar": 'this is the jar',
           "/conf": DIRECTORY,
           "/conf/clientConfig.properties": """#
 # Copyright (c) 2010-2010 LinkedIn, Inc
@@ -104,6 +106,9 @@ fabrics['f1'] = [ : ]
 
       def inputPackage = shell.mkdirs("/dist/org.linkedin.glu.agent-cli-${GLU_VERSION}")
 
+      shell.saveContent(inputPackage.createRelative('README.md'), "this is the readme")
+      shell.saveContent(inputPackage.createRelative('lib/acme.jar'), "this is the jar")
+
       def packager = new AgentCliPackager(packagerContext: createPackagerContext(shell),
                                           outputFolder: shell.mkdirs('/out'),
                                           inputPackage: inputPackage,
@@ -118,6 +123,9 @@ fabrics['f1'] = [ : ]
 
       def expectedResources =
         [
+          "/README.md": 'this is the readme',
+          "/lib": DIRECTORY,
+          "/lib/acme.jar": 'this is the jar',
           "/conf": DIRECTORY,
           "/conf/clientConfig.properties": """#
 # Copyright (c) 2010-2010 LinkedIn, Inc

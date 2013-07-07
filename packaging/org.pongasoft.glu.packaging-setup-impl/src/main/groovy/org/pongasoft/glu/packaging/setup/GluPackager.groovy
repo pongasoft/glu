@@ -56,6 +56,7 @@ public class GluPackager
     packageConsoles()
     packageZooKeeperClusters()
     packageAgentCli()
+    packageConsoleCli()
   }
 
   void packageAgents()
@@ -186,6 +187,31 @@ public class GluPackager
 
     if(!dryMode)
       println "Generated agent-cli package ${pa.location}"
+
+    return pa
+  }
+
+  protected PackagedArtifact packageConsoleCli()
+  {
+    def out = shell.mkdirs(outputFolder.createRelative('console-cli'))
+    def packager =
+      new ConsoleCliPackager(packagerContext: createPackagerContext(),
+                             outputFolder: out,
+                             inputPackage: getInputPackage('org.linkedin.glu.console-cli',
+                                                           gluMetaModel.gluVersion),
+                             configsRoots: configsRoots,
+                             metaModel: gluMetaModel,
+                             dryMode: dryMode)
+
+    PackagedArtifact pa = packager.createPackage()
+
+    if(!packagedArtifacts[gluMetaModel])
+      packagedArtifacts[gluMetaModel] = [:]
+
+    packagedArtifacts[gluMetaModel].consoleCli = pa
+
+    if(!dryMode)
+      println "Generated console-cli package ${pa.location}"
 
     return pa
   }
