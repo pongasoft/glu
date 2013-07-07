@@ -69,24 +69,23 @@ public class GluGroovyIOUtils extends GroovyIOUtils
   static Resource compileAndJar(FileSystem fs, def sources, def jar, def classpath = null)
   {
     def cc = new CompilerConfiguration()
-    cc.targetDirectory = fs.createTempDir().file
-    if(classpath)
-      cc.classpathList = classpath.collect { toFile(it).canonicalPath }
-    CompilationUnit cu = new CompilationUnit(cc)
-    sources.each {
-      cu.addSource(toFile(it))
+    fs.withTempFile { Resource targetDirectory ->
+      cc.targetDirectory = fs.mkdirs(targetDirectory).file
+      if(classpath)
+        cc.classpathList = classpath.collect { toFile(it).canonicalPath }
+      CompilationUnit cu = new CompilationUnit(cc)
+      sources.each {
+        cu.addSource(toFile(it))
+      }
+      cu.compile()
+
+      Resource jarFile = fs.toResource(jar)
+
+      AntUtils.withBuilder { ant ->
+        ant.jar(destfile: jarFile.file, basedir: cc.targetDirectory)
+      }
+      return jarFile
     }
-    cu.compile()
-
-    Resource jarFile = fs.toResource(jar)
-
-    AntUtils.withBuilder { ant ->
-      ant.jar(destfile: jarFile.file, basedir: cc.targetDirectory)
-    }
-
-    fs.rmdirs(cc.targetDirectory)
-
-    return jarFile
   }
 
 

@@ -46,6 +46,62 @@ public class TestMetaModel extends GroovyTestCase
   }
 
   /**
+   * Test that system wide global values work
+   */
+  public void testGlobalValues()
+  {
+    def model = """{
+  "gluVersion": "x.y.z",
+  "zooKeeperRoot": "/acme",
+  "stateMachine": {
+    "defaultTransitions": {
+      "NONE": [{"to": "s1", "action": "noneTOs1"}],
+      "s1": [{"to": "NONE", "action": "s1TOnone"}, {"to": "s2", "action": "s1TOs2"}],
+      "s2": [{"to": "s1", "action": "s2TOs1"}]
+    },
+    "defaultEntryState": "s2"
+  }
+}"""
+
+    def expectedModel = """
+{
+  "gluVersion": "x.y.z",
+  "metaModelVersion": "1.0.0",
+  "stateMachine": {
+    "defaultEntryState": "s2",
+    "defaultTransitions": {
+      "NONE": [
+        {
+          "action": "noneTOs1",
+          "to": "s1"
+        }
+      ],
+      "s1": [
+        {
+          "action": "s1TOnone",
+          "to": "NONE"
+        },
+        {
+          "action": "s1TOs2",
+          "to": "s2"
+        }
+      ],
+      "s2": [
+        {
+          "action": "s2TOs1",
+          "to": "s1"
+        }
+      ]
+    }
+  },
+  "zooKeeperRoot": "/acme"
+}
+"""
+
+    checkJson(model, expectedModel)
+  }
+
+  /**
    * This represents a model similar to the tutorial
    */
   public void testTutorialGluMetaModel()

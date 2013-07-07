@@ -32,6 +32,7 @@ import java.nio.file.Files
 public abstract class BasePackagerTest extends GroovyTestCase
 {
   public static final Object DIRECTORY = new Object()
+  public static final Object FILE = new Object()
 
   public static class BinaryResource
   {
@@ -182,7 +183,17 @@ public abstract class BasePackagerTest extends GroovyTestCase
             assertEquals("binary content differ for ${r}",
                          rootShell.sha1(expectedValue.resource), rootShell.sha1(r))
           else
-            assertEquals("mismatch content for ${r}", expectedValue, r.file.text)
+            if(expectedValue instanceof Closure)
+            {
+              expectedValue(r)
+            }
+            else
+            {
+              if(expectedValue.is(FILE))
+                assertTrue("${r} is file", !r.isDirectory())
+              else
+                assertEquals("mismatch content for ${r}", expectedValue, r.file.text)
+            }
 
           if(r.path.endsWith('.sh'))
             assertTrue("${r} is executable", Files.isExecutable(r.file.toPath()))

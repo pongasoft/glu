@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonParseException
 import org.codehaus.groovy.control.CompilationFailedException
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.groovy.util.state.StateMachineImpl
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.KeysMetaModel
@@ -32,6 +33,7 @@ import org.pongasoft.glu.provisioner.core.metamodel.impl.KeyStoreMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.KeysMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.PhysicalHostMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.ServerMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.StateMachineMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.ZooKeeperClusterMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.ZooKeeperMetaModelImpl
 
@@ -98,8 +100,26 @@ public class GluMetaModelBuilder
     if(jsonModel.zooKeeperRoot)
       gluMetaModel.zooKeeperRoot = jsonModel.zooKeeperRoot
 
+    // state machine?
+    gluMetaModel.stateMachine = deserializeStateMachine(jsonModel.stateMachine)
+
     // fabrics
     jsonModel.fabrics?.each { name, fabricModel -> deserializeFabric(name, fabricModel)}
+  }
+
+  StateMachineMetaModelImpl deserializeStateMachine(Map stateMachineModel)
+  {
+    if(stateMachineModel)
+    {
+      StateMachineImpl stateMachine =
+        new StateMachineImpl(transitions: stateMachineModel.defaultTransitions)
+
+      return new StateMachineMetaModelImpl(defaultTransitions: stateMachine,
+                                           defaultEntryState: stateMachineModel.defaultEntryState)
+
+    }
+    else
+      return null
   }
 
   /**

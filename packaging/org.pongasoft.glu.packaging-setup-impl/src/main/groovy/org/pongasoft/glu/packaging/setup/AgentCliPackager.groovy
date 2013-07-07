@@ -40,6 +40,9 @@ public class AgentCliPackager extends BasePackager
     {
       copyInputPackage(packagePath)
       configure(packagePath, tokens)
+      if(metaModel.stateMachine)
+        generateStateMachineJarFile(metaModel.stateMachine,
+                                    packagePath.createRelative('lib'))
     }
 
     return new PackagedArtifact(location: packagePath)

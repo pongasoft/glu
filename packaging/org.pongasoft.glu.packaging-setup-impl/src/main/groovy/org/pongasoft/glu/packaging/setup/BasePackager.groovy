@@ -2,8 +2,10 @@ package org.pongasoft.glu.packaging.setup
 
 import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
 import org.linkedin.glu.groovy.utils.shell.Shell
+import org.linkedin.groovy.util.ant.AntUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.util.io.resource.Resource
+import org.pongasoft.glu.provisioner.core.metamodel.StateMachineMetaModel
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -147,6 +149,44 @@ ${out.join('\n')}
           }
         }
       }
+    }
+  }
+
+  protected Resource generateStateMachineJarFile(StateMachineMetaModel stateMachineMetaModel,
+                                                 Resource toFolder)
+  {
+    shell.withTempFile { Resource r ->
+
+      def lines = []
+
+      stateMachineMetaModel.defaultTransitions.transitions.each { state, transitions ->
+        transitions = transitions
+          .collect { transition -> "[to: '${transition.to}', action: '${transition.action}']"}
+          .join(', ')
+        lines << "  '${state}': [${transitions}]"
+      }
+
+      def content = """
+defaultTransitions =
+[
+${lines.join(',\n')}
+]
+
+defaultEntryState = '${stateMachineMetaModel.defaultEntryState}'
+"""
+
+      shell.saveContent(r.createRelative('glu/DefaultStateMachine.groovy'), content)
+
+      shell.mkdirs(toFolder)
+
+      Resource jarFile = toFolder.createRelative('glu-state-machine.jar')
+
+      shell.ant { ant ->
+        ant.jar(destfile: jarFile.file,
+                basedir: r.file)
+      }
+
+      return jarFile
     }
   }
 }

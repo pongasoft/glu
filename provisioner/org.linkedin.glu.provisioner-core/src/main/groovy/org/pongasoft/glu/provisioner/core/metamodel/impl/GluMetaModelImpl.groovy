@@ -21,6 +21,7 @@ import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.FabricMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.StateMachineMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
 
 /**
@@ -30,6 +31,7 @@ public class GluMetaModelImpl implements GluMetaModel
   public static final String META_MODEL_VERSION = '1.0.0'
 
   Map<String, FabricMetaModel> fabrics
+  StateMachineMetaModel stateMachine
   String gluVersion
   String metaModelVersion = META_MODEL_VERSION
   String zooKeeperRoot = DEFAULT_ZOOKEEPER_ROOT
@@ -101,6 +103,9 @@ public class GluMetaModelImpl implements GluMetaModel
       metaModelVersion: metaModelVersion,
       gluVersion: gluVersion
     ]
+
+    if(stateMachine)
+      res.stateMachine = stateMachine.toExternalRepresentation()
 
     if(fabrics)
       res.fabrics = fabrics.collectEntries { k, v ->

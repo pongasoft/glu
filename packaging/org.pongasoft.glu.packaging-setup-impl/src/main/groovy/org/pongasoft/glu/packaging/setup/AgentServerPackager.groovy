@@ -161,6 +161,10 @@ public class AgentServerPackager extends BasePackager
       copyInputPackage(packagedArtifacts.agentServer.location)
       Resource serverRoot = configure(packagedArtifacts.agentServer.location, tokens)
 
+      if(metaModel.gluMetaModel.stateMachine)
+        generateStateMachineJarFile(metaModel.gluMetaModel.stateMachine,
+                                    serverRoot.createRelative('lib'))
+
       shell.delete(packagedArtifacts.agentServerUpgrade.location)
       shell.cp(serverRoot, packagedArtifacts.agentServerUpgrade.location)
     }

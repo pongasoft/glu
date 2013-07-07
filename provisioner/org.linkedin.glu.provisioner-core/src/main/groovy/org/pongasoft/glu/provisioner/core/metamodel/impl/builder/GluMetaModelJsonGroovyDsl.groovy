@@ -26,6 +26,8 @@ public class GluMetaModelJsonGroovyDsl
   {
     def binding = new GluMetaModelBinding(metaModelVersion: GluMetaModelImpl.META_MODEL_VERSION,
                                           gluVersion: null,
+                                          stateMachine: null,
+                                          zooKeeperRoot: null,
                                           fabrics: [:],
                                           agents: [],
                                           consoles: [],

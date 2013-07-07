@@ -18,6 +18,7 @@ package test.setup
 
 import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
+import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.packaging.setup.AgentCliPackager
 import org.pongasoft.glu.packaging.setup.PackagedArtifact
 
@@ -102,6 +103,16 @@ truststorePassword=nacEn92x8-1
       def metaModel = """
 fabrics['f1'] = [ : ]
 
+stateMachine = [
+  defaultTransitions: [
+    NONE: [[to: 's1', action: 'noneTOs1']],
+    s1: [[to: 'NONE', action: 's1TOnone'], [to: 's2', action: 's1TOs2']],
+    s2: [[to: 's1', action: 's2TOs1']]
+  ],
+
+  defaultEntryState: 's2'
+]
+
 """
 
       def inputPackage = shell.mkdirs("/dist/org.linkedin.glu.agent-cli-${GLU_VERSION}")
@@ -126,6 +137,27 @@ fabrics['f1'] = [ : ]
           "/README.md": 'this is the readme',
           "/lib": DIRECTORY,
           "/lib/acme.jar": 'this is the jar',
+          "/lib/glu-state-machine.jar": { Resource r ->
+            shell.withTempFile { Resource t ->
+              shell.unzip(r, t)
+              def er2 = [
+                '/META-INF': DIRECTORY,
+                '/META-INF/MANIFEST.MF': FILE,
+                '/glu': DIRECTORY,
+                '/glu/DefaultStateMachine.groovy': """
+defaultTransitions =
+[
+  'NONE': [[to: 's1', action: 'noneTOs1']],
+  's1': [[to: 'NONE', action: 's1TOnone'], [to: 's2', action: 's1TOs2']],
+  's2': [[to: 's1', action: 's2TOs1']]
+]
+
+defaultEntryState = 's2'
+"""
+              ]
+              checkPackageContent(er2, t)
+            }
+          },
           "/conf": DIRECTORY,
           "/conf/clientConfig.properties": """#
 # Copyright (c) 2010-2010 LinkedIn, Inc
@@ -159,4 +191,6 @@ sslEnabled=false
       checkPackageContent(expectedResources, artifact.location)
     }
   }
+
+
 }

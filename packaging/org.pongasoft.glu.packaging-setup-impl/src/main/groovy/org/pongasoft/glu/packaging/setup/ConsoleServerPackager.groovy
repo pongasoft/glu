@@ -78,11 +78,14 @@ public class ConsoleServerPackager extends BasePackager
 
     parts << metaModel.version
 
-    Resource packagePath =outputFolder.createRelative(parts.join('-'))
+    Resource packagePath = outputFolder.createRelative(parts.join('-'))
     if(!dryMode)
     {
       copyInputPackage(packagePath)
       configure(packagePath, tokens)
+      if(metaModel.gluMetaModel.stateMachine)
+        generateStateMachineJarFile(metaModel.gluMetaModel.stateMachine,
+                                    packagePath.createRelative('glu/repository/plugins'))
     }
     return new PackagedArtifact(location: packagePath,
                                 host: metaModel.host.resolveHostAddress(),

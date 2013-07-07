@@ -43,6 +43,11 @@ public interface GluMetaModel extends Externable
   String getZooKeeperRoot();
 
   /**
+   * If you need to redefine the standard state machine (not a typical use case!)
+   */
+  StateMachineMetaModel getStateMachine();
+
+  /**
    * This is the version of glu
    */
   String getGluVersion();
