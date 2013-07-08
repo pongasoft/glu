@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,6 +24,10 @@ import org.linkedin.glu.utils.core.Externable
 /**
  * Represents the script definition (does not change over the life of the script)
  *
+ * YP Note: as of glu 4.7.1, this class is no longer serialized. Instead
+ * {@link #toExternalRepresentation()} is called. For backward compatibility with prior
+ * releases, it is kept serializable
+ *
  * @author ypujante@linkedin.com
  */
 class ScriptDefinition implements Serializable, Externable
@@ -31,52 +36,53 @@ class ScriptDefinition implements Serializable, Externable
 
   final MountPoint mountPoint
   final MountPoint parent
-  final ScriptFactory scriptFactory
+  final ScriptFactory scriptFactory = null // set to null always so that it does not get serialized
   final def initParameters
   final def _scriptFactoryArgs
+  final transient ScriptFactory _scriptFactory // not serialized
 
   ScriptDefinition(MountPoint mountPoint,
                    MountPoint parent,
                    ScriptFactory scriptFactory,
                    initParameters)
   {
-    // parent is required unless mountpoint is root...
+    // parent is required unless mountPoint is root...
     assert parent != null || mountPoint == MountPoint.ROOT
 
     this.mountPoint = mountPoint
     this.parent = parent
-    this.scriptFactory = null
+    this._scriptFactory = scriptFactory
     this.initParameters = initParameters ?: [:]
     this._scriptFactoryArgs = scriptFactory.toExternalRepresentation()
   }
 
   def getScriptFactoryArgs()
   {
-    if(_scriptFactoryArgs == null)
-      return scriptFactory.toExternalRepresentation()
-    else
-      _scriptFactoryArgs
+    scriptFactory?.toExternalRepresentation() ?: // prior to 4.6.0, this field is not null!
+      _scriptFactory?.toExternalRepresentation() ?:
+        _scriptFactoryArgs
   }
 
-  ScriptFactory getScriptFactory(ScriptFactoryFactory scriptFactoryFactory)
+  ScriptFactory getScriptFactory()
   {
-    // for backward compatibility
-    if(_scriptFactoryArgs == null)
-      return scriptFactory
-    else
-      return scriptFactoryFactory.createScriptFactory(_scriptFactoryArgs)
+    return _scriptFactory
+  }
+
+  void setScriptFactory(ScriptFactory factory)
+  {
+    throw new UnsupportedOperationException("read only")
   }
 
   public String toString()
   {
-    return "[mountPoint: ${mountPoint}, parent: ${parent}, scriptFactory: ${scriptFactory}, scriptFactoryArgs: ${_scriptFactoryArgs}, initParameters: ${initParameters}]";
+    return "[mountPoint: ${mountPoint}, parent: ${parent}, scriptFactoryArgs: ${scriptFactoryArgs}, initParameters: ${initParameters}]";
   }
 
   def toExternalRepresentation()
   {
     return [mountPoint: mountPoint,
             parent: parent,
-            scriptFactory: scriptFactory?.toExternalRepresentation() ?: _scriptFactoryArgs,
+            scriptFactory: scriptFactoryArgs,
             initParameters: initParameters]
   }
 
@@ -90,7 +96,6 @@ class ScriptDefinition implements Serializable, Externable
 
     if(that.mountPoint != this.mountPoint) return false;
     if(that.parent != this.parent) return false;
-    if(that.scriptFactory != this.scriptFactory) return false;
     if(that._scriptFactoryArgs != this._scriptFactoryArgs) return false;
     if(that.initParameters != this.initParameters) return false;
 
@@ -103,8 +108,7 @@ class ScriptDefinition implements Serializable, Externable
 
     result = (mountPoint ? mountPoint.hashCode() : 0);
     result = 31 * result + (parent ? parent.hashCode() : 0);
-    result = 31 * result + (scriptFactory ? scriptFactory.hashCode() : 0);
-    result = 31 * result + (scriptFactoryArgs ? scriptFactoryArgs.hashCode() : 0);
+    result = 31 * result + (_scriptFactoryArgs ? _scriptFactoryArgs.hashCode() : 0);
     result = 31 * result + (initParameters ? initParameters.hashCode() : 0);
     return result;
   }

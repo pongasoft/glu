@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -20,10 +20,10 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   <meta name="layout" content="main"/>
   <title>Create New Encryption Key</title>
-  <link rel="stylesheet" href="${resource(dir:'css',file:'main.css')}"/>
+  <link rel="stylesheet" href="${resource(dir:'css',file:'main-glu.css')}"/>
 </head>
 <body>
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li><g:link action="list">List</g:link></li>
   <li class="active"><a href="#">New</a></li>
   <li><g:link action="encrypt">Encrypt/Decrypt</g:link></li>
@@ -32,7 +32,7 @@
   <h3>Create New Encryption Key</h3>
   <g:form action="ajaxSave" method="post">
     <div class="dialog">
-      <table class="bordered-table condensed-table noFullWidth">
+      <table class="table table-bordered table-condensed noFullWidth">
         <tbody>
 
         <tr class="prop">
@@ -44,7 +44,7 @@
         </tbody>
       </table>
     </div>
-    <g:submitToRemote class="btn primary" action="ajaxSave" update="status" value='Create'/>
+    <g:submitToRemote class="btn btn-primary" action="ajaxSave" update="status" value='Create'/>
   </g:form>
 
   <div id="status" class="info">Output Area</div>

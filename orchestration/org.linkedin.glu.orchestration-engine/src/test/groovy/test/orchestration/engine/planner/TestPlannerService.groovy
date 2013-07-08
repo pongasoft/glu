@@ -969,6 +969,41 @@ public class TestPlannerService extends GroovyTestCase
   }
 
   /**
+   * Test that when a transition on a child is requested, the parent is also part of the plan (when
+   * necessary) (glu-198)
+   */
+  public void testParentChildGlu198()
+  {
+    Plan<ActionDescriptor> p
+
+    // current model is empty... trying to transition child to 'installed' state
+    p = transitionPlan(Type.PARALLEL,
+                       m([agent: 'a1', mountPoint: 'p1', script: 's1'],
+                         [agent: 'a1', mountPoint: 'c1', parent: 'p1', script: 's1']).filterBy(childFilter),
+
+                       m(),
+                       "installed")
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="transition - PARALLEL">
+  <sequential name="transition - PARALLEL">
+    <parallel depth="0">
+      <leaf agent="a1" fabric="f1" mountPoint="p1" script="s1" scriptLifecycle="installScript" />
+    </parallel>
+    <parallel depth="1">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" parent="p1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a1" fabric="f1" mountPoint="p1" scriptAction="install" toState="installed" />
+    </parallel>
+    <parallel depth="2">
+      <leaf agent="a1" fabric="f1" mountPoint="c1" scriptAction="install" toState="installed" />
+    </parallel>
+  </sequential>
+</plan>
+""", p.toXml())
+    assertEquals(4, p.leafStepsCount)
+  }
+
+  /**
    * Test for stop plan when empty (issue #129)
    */
   public void testStopPlanWhenEmpty()
@@ -1090,6 +1125,167 @@ public class TestPlannerService extends GroovyTestCase
     assertEquals(7, p.leafStepsCount)
   }
 
+  /**
+   * Test for empty to installed state (glu-177)
+   */
+  public void testInstallScriptPlan()
+  {
+    SystemModel expectedModel =
+      m(
+        [agent: 'a2', mountPoint: '/m1', script: 's1'],
+      )
+
+    SystemModel currentSystemModel = m() // empty
+
+    Plan<ActionDescriptor> p = transitionPlan(Type.PARALLEL,
+                                              expectedModel,
+                                              currentSystemModel,
+                                              "installed")
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="transition - PARALLEL">
+  <parallel name="transition - PARALLEL">
+    <sequential agent="a2" mountPoint="/m1">
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" script="s1" scriptLifecycle="installScript" />
+      <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="install" toState="installed" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(2, p.leafStepsCount)
+  }
+
+  /**
+   * Test for start
+   */
+  public void testStartPlan()
+  {
+    SystemModel expectedModel =
+      m(
+        [agent: 'a1', mountPoint: '/m1', script: 's1'],
+        [agent: 'a1', mountPoint: '/m2', script: 's1', entryState: "stopped"],
+        [agent: 'a1', mountPoint: '/m3', script: 's1'],
+        [agent: 'a1', mountPoint: '/m4', script: 's1'],
+        [agent: 'a1', mountPoint: '/m5', script: 's1'],
+        [agent: 'a1', mountPoint: '/m6', script: 's1'],
+      )
+
+    SystemModel currentSystemModel =
+      m(
+        [agent: 'a1', mountPoint: '/m1', script: 's1', entryState: 'installed'],
+        [agent: 'a1', mountPoint: '/m2', script: 's1', entryState: 'stopped'],
+        [agent: 'a1', mountPoint: '/m3', script: 's1', entryState: 'stopped'],
+        [agent: 'a1', mountPoint: '/m4', script: 's1', entryState: 'stopped'],
+        [agent: 'a1', mountPoint: '/m5', script: 's1'],
+        )
+
+    Plan<ActionDescriptor> p = transitionPlan(Type.PARALLEL,
+                                              expectedModel,
+                                              currentSystemModel,
+                                              "running",
+                                              ["running"],
+                                              ["stopped"])
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="transition - PARALLEL">
+  <parallel name="transition - PARALLEL">
+    <sequential agent="a1" mountPoint="/m3">
+      <leaf agent="a1" fabric="f1" mountPoint="/m3" scriptAction="start" toState="running" />
+    </sequential>
+    <sequential agent="a1" mountPoint="/m4">
+      <leaf agent="a1" fabric="f1" mountPoint="/m4" scriptAction="start" toState="running" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(2, p.leafStepsCount)
+
+    // make sure that it still works when filtered out
+    expectedModel = expectedModel.filterBy("mountPoint='/m3'")
+    p = transitionPlan(Type.PARALLEL,
+                       expectedModel,
+                       currentSystemModel,
+                       "running",
+                       ["running"],
+                       ["stopped"])
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="transition - PARALLEL">
+  <parallel name="transition - PARALLEL">
+    <sequential agent="a1" mountPoint="/m3">
+      <leaf agent="a1" fabric="f1" mountPoint="/m3" scriptAction="start" toState="running" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(1, p.leafStepsCount)
+  }
+
+  /**
+   * Test for stop
+   */
+  public void testStopPlan()
+  {
+    SystemModel expectedModel =
+      m(
+        [agent: 'a1', mountPoint: '/m1', script: 's1'],
+        [agent: 'a1', mountPoint: '/m2', script: 's1', entryState: "stopped"],
+        [agent: 'a1', mountPoint: '/m3', script: 's1'],
+        [agent: 'a1', mountPoint: '/m4', script: 's1'],
+        [agent: 'a1', mountPoint: '/m5', script: 's1'],
+      )
+
+    SystemModel currentSystemModel =
+      m(
+        [agent: 'a1', mountPoint: '/m1', script: 's1', entryState: 'installed'],
+        [agent: 'a1', mountPoint: '/m2', script: 's1'],
+        [agent: 'a1', mountPoint: '/m3', script: 's1'],
+        [agent: 'a1', mountPoint: '/m4', script: 's1', entryState: 'stopped'],
+        )
+
+    Plan<ActionDescriptor> p = transitionPlan(Type.PARALLEL,
+                                              expectedModel,
+                                              currentSystemModel,
+                                              "stopped",
+                                              ["running", "stopped"],
+                                              ["running"])
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="transition - PARALLEL">
+  <parallel name="transition - PARALLEL">
+    <sequential agent="a1" mountPoint="/m2">
+      <leaf agent="a1" fabric="f1" mountPoint="/m2" scriptAction="stop" toState="stopped" />
+    </sequential>
+    <sequential agent="a1" mountPoint="/m3">
+      <leaf agent="a1" fabric="f1" mountPoint="/m3" scriptAction="stop" toState="stopped" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(2, p.leafStepsCount)
+
+    // make sure that it still works when filtered out
+    expectedModel = expectedModel.filterBy("mountPoint='/m3'")
+    p = transitionPlan(Type.PARALLEL,
+                       expectedModel,
+                       currentSystemModel,
+                       "stopped",
+                       ["running", "stopped"],
+                       ["running"])
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="transition - PARALLEL">
+  <parallel name="transition - PARALLEL">
+    <sequential agent="a1" mountPoint="/m3">
+      <leaf agent="a1" fabric="f1" mountPoint="/m3" scriptAction="stop" toState="stopped" />
+    </sequential>
+  </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(1, p.leafStepsCount)
+  }
+
+
   private Plan<ActionDescriptor> upgradePlan(Type type,
                                              SystemModel currentSystemModel,
                                              Collection<String> agents)
@@ -1149,9 +1345,19 @@ public class TestPlannerService extends GroovyTestCase
   private Plan<ActionDescriptor> transitionPlan(Type type,
                                                 SystemModel expectedSystemModel,
                                                 SystemModel currentSystemModel,
-                                                String state)
+                                                String state,
+                                                def expectedEntryStates = null,
+                                                def currentEntryStates = null)
   {
-    computePlan(type, expectedSystemModel, currentSystemModel, [name: 'transition', state: state])
+    computePlan(type,
+                expectedSystemModel,
+                currentSystemModel,
+                [
+                  name: 'transition',
+                  state: state,
+                  expectedEntryStates: expectedEntryStates,
+                  currentEntryStates: currentEntryStates
+                ])
   }
 
   private Plan<ActionDescriptor> computePlan(Type type,

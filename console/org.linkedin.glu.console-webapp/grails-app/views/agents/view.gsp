@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -15,7 +15,7 @@
   - the License.
   --}%
 
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="org.linkedin.glu.groovy.utils.jvm.JVMInfo" contentType="text/html;charset=UTF-8" %>
 <html>
 <head>
   <title>Agent [${model.agent?.agentName}]</title>
@@ -24,7 +24,7 @@
 </head>
 <body>
 <g:if test="${model}">
-  <ul class="tabs">
+  <ul class="nav nav-tabs">
     <li><g:link controller="agents" action="list">List</g:link></li>
     <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
     <li class="active"><a href="#">agent [${model.agent.agentName}]</a></li>
@@ -33,7 +33,7 @@
     <li><g:link action="ps" id="${model.agent.agentName}">All Processes</g:link></li>
   </ul>
   &nbsp;
-  <h1 class="${model.state}">${model.agent.agentName} (V${model.agent.version}) <cl:renderTags tags="${model.agent.tags}" linkable="${true}"/> </h1>
+  <h2 class="${model.state}">${model.agent.agentName} (V${model.agent.version}) <cl:renderTags tags="${model.agent.tags}" linkable="${true}"/> </h2>
   <ul class="summary">
     <li>Logs: <g:link action="tailLog" id="${model.agent.agentName}" params="[maxLine: 500]">main</g:link> |
       <g:link action="tailLog" id="${model.agent.agentName}" params="[log:'gc.log', maxLine: 500]">gc</g:link><g:if test="${model.agent.agentProperties['glu.agent.logDir']}"> |
@@ -46,14 +46,17 @@
       <g:link class="btn" action="sync" id="${model.agent.agentName}">ZooKeeper Sync</g:link></li>
   </ul>
   <div id="agent-details" class="hidden">
-    <cl:mapToTable class="bordered-table xtight-table noFullWidth" map="${model.agent.agentProperties.findAll { !it.key.startsWith('java.') }}"/>
+    <h4>Agent</h4>
+    <cl:mapToTable class="table table-bordered xtight-table noFullWidth" map="${model.agent.agentProperties.findAll { !it.key.startsWith('java.') }}"/>
+    <h4>JVM Info (Agent)</h4>
+    <cl:mapToTable class="table table-bordered xtight-table noFullWidth" map="${JVMInfo.getJVMInfo(model.agent.agentProperties) }"/>
   </div>
 
   <g:each in="${ConsoleUtils.sortBy(model.mountPoints.keySet(), 'path')}" var="key" status="idx">
     <g:set var="mountPoint" value="${model.mountPoints[key]}"/>
     <a name="${mountPoint.mountPoint}" id="${mountPoint.mountPoint}"></a>
-    <h2 class="${cl.mountPointState(mountPoint: mountPoint)}"><g:if test="${mountPoint.isCommand()}"><g:link action="commands" id="${model.agent.agentName}" params="[commandId: mountPoint.mountPoint.name]">${key.encodeAsHTML()}</g:link></g:if><g:else><cl:linkToFilteredDashboard systemFilter="mountPoint='${key}'" groupBy="mountPoint">${key.encodeAsHTML()}</cl:linkToFilteredDashboard></g:else> <cl:renderTags tags="${mountPoint.tags}" linkable="${true}"/>
-    </h2>
+    <h3 class="${cl.mountPointState(mountPoint: mountPoint)}"><g:if test="${mountPoint.isCommand()}"><g:link action="commands" id="${model.agent.agentName}" params="[commandId: mountPoint.mountPoint.name]">${key.encodeAsHTML()}</g:link></g:if><g:else><cl:linkToFilteredDashboard systemFilter="mountPoint='${key}'" groupBy="mountPoint">${key.encodeAsHTML()}</cl:linkToFilteredDashboard></g:else> <cl:renderTags tags="${mountPoint.tags}" linkable="${true}"/>
+    </h3>
     <ul class="summary">
       <cl:mountPointLogs agent="${model.agent.agentName}" mountPoint="${mountPoint}"/>
       <li><a href="#" class="btn" onclick="toggleShowHide('#mountPoint-details-${idx}');return false;">View Details</a>
@@ -95,12 +98,12 @@
   </g:each>
 </g:if>
 <g:else>
-  <ul class="tabs">
+  <ul class="nav nav-tabs">
     <li><g:link controller="agents" action="list">List</g:link></li>
     <li class="active"><a href="#">agent [${params.id}]</a></li>
     <cl:whenFeatureEnabled feature="commands"><li><g:link action="commands" id="${params.id}">Commands</g:link></li></cl:whenFeatureEnabled>
   </ul>
-  <h2>No such agent ${params.id} [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h2>
+  <h3>No such agent ${params.id} [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h3>
 </g:else>
 </body>
 </html>

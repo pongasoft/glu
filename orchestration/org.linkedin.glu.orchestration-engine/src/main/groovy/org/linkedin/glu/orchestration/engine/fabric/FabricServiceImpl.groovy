@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -51,7 +51,7 @@ class FabricServiceImpl implements FabricService, Destroyable
   String prefix = "glu"
 
   @Initializable
-  Timespan zkClientWaitForStartTimeout = Timespan.parse('5s')
+  Timespan zkClientWaitForStartTimeout = Timespan.parse('10s')
 
   /**
    * In memory cache of fabrics (small list, changes rarely...)
@@ -75,7 +75,7 @@ class FabricServiceImpl implements FabricService, Destroyable
     def agents = [:]
 
     loadFabrics().values().zkClient.each {
-      agents.putAll(getAgents(it))
+      agents.putAll(doGetAgents(it))
     }
 
     return agents
@@ -86,7 +86,7 @@ class FabricServiceImpl implements FabricService, Destroyable
    * @return a map where the key is the agent name and the value is the fabric the agent has been
    * assigned to or <code>null</code> if the agent has not been assigned to any fabric
    */
-  private Map<String, String> getAgents(IZKClient zkClient)
+  private Map<String, String> doGetAgents(IZKClient zkClient)
   {
     def agents = [:]
 

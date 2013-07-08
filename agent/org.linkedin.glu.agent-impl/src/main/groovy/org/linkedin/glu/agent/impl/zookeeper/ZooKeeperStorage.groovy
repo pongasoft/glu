@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,10 +23,13 @@ import org.apache.zookeeper.KeeperException
 import org.apache.zookeeper.ZooDefs.Ids
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.impl.storage.WriteOnlyStorage
+import org.linkedin.glu.groovy.utils.jvm.JVMInfo
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.lang.LangUtils
 import org.linkedin.zookeeper.client.IZKClient
 import org.linkedin.glu.agent.impl.storage.AgentProperties
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Implementation of the storage using zookeeper.
@@ -36,7 +39,7 @@ import org.linkedin.glu.agent.impl.storage.AgentProperties
 class ZooKeeperStorage implements WriteOnlyStorage
 {
   public static final String MODULE = ZooKeeperStorage.class.getName();
-  public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   private static def ACLs = Ids.OPEN_ACL_UNSAFE
 
@@ -72,11 +75,11 @@ class ZooKeeperStorage implements WriteOnlyStorage
       if(zk.isConnected())
         return closure(zk)
     }
-    catch(KeeperException.ConnectionLossException e)
+    catch(KeeperException.ConnectionLossException ignored)
     {
       log.warn("Call ignored ${closure.toString()} due to ConnectionLossException: zookeeper is not connected")
     }
-    catch(IllegalStateException e)
+    catch(IllegalStateException ignored)
     {
       log.warn("Call ignored ${closure.toString()} due to IllegalStateException: zookeeper is not connected")
     }
@@ -84,6 +87,11 @@ class ZooKeeperStorage implements WriteOnlyStorage
     {
       log.warn("Call ignored ${closure.toString()} due to unexpected exception", e)
     }
+
+    log.warn("Call ignored ${closure.toString()}: zookeeper is not connected")
+
+    if(log.isDebugEnabled())
+      log.debug("zkSafe => Call ignored due to zk not connected!", new Exception("where am I?"))
 
     return null
   }
@@ -145,7 +153,6 @@ class ZooKeeperStorage implements WriteOnlyStorage
         error = extractStackTrace(error, [])
         state.scriptState.stateMachine.error = error
       }
-      state.scriptDefinition = state.scriptDefinition?.toExternalRepresentation()
 
       state = JsonUtils.compactPrint(state)
 
@@ -159,12 +166,12 @@ class ZooKeeperStorage implements WriteOnlyStorage
   @Override
   AgentProperties saveAgentProperties(AgentProperties agentProperties)
   {
-    Map<String, String> props = agentProperties.exposedProperties
-
     // we filter out the properties
-    props = props.findAll { k, v ->
-      k.startsWith(prefix) || k.startsWith('java.vm')
-    }
+    Map<String, String> props =
+      agentProperties.exposedProperties.findAll { k, v ->
+        k.startsWith(prefix)
+      }
+    props.putAll(JVMInfo.getJVMInfo(agentProperties.exposedProperties))
 
     if(log.isDebugEnabled())
       log.debug "Creating/Updating agent ephemeral node: ${new TreeMap(props)}"

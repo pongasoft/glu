@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2012 Yan Pujante
+  - Copyright (c) 2012-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -31,13 +31,7 @@
     float: right;
   }
   .progress {
-    height: 14px;
     margin: 0;
-    padding: 0;
-    width: 100%;
-    display: inline-block;
-    background-image: url('${g.resource(dir: 'images', file: 'progress_24x12.gif')}');
-    background-repeat: repeat;
   }
   </style>
 <g:set var="offset" value="${params.offset ?: '0'}"/>
@@ -84,7 +78,7 @@ function showHide()
 </g:javascript>
 </head>
 <body onload="refresh();">
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li><g:link controller="agents" action="list">List</g:link></li>
   <li class="active"><a href="#">All Commands</a></li>
 </ul>

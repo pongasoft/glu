@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -23,7 +23,7 @@
   <title>Edit Fabric</title>
 </head>
 <body>
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li><g:link action="list">Fabric List</g:link></li>
   <li><g:link action="show" id="${fabricInstance.id}">Fabric [${fabricInstance.name}]</g:link></li>
   <li class="active"><a href="#">Edit</a></li>
@@ -38,7 +38,7 @@
     <input type="hidden" name="id" value="${fabricInstance?.id}"/>
     <input type="hidden" name="version" value="${fabricInstance?.version}"/>
     <div class="dialog">
-      <table class="bordered-table condensed-table noFullWidth">
+      <table class="table table-bordered table-condensed noFullWidth">
         <tbody>
 
         <tr class="prop">
@@ -81,7 +81,7 @@
       </table>
     </div>
     <div class="buttons">
-      <span class="button"><g:actionSubmit class="btn primary" value="Update"/></span>
+      <span class="button"><g:actionSubmit class="btn btn-primary" value="Update"/></span>
       <span class="button"><g:actionSubmit class="btn" onclick="return confirm('Are you sure?');" value="Delete"/></span>
     </div>
   </g:form>

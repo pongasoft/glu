@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2011 Yan Pujante
+  - Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -14,7 +14,7 @@
   - the License.
   --}%
 <%@ page import="org.linkedin.glu.console.controllers.PlanController; org.linkedin.glu.grails.utils.ConsoleConfig; org.linkedin.groovy.util.json.JsonUtils" %>
-<table class="bordered-table xtight-table">
+<table class="table table-bordered xtight-table">
   <tr>
     <th>Model</th>
     <td><cl:renderSystemId system="${request.system}"/></td>
@@ -24,7 +24,7 @@
 </table>
 <div id="select-plan">
   <g:form controller="plan" action="redirectView">
-    <table id="select-plan-radio" class="noFullWidth bordered-table tight-table">
+    <table id="select-plan-radio" class="noFullWidth table table-bordered tight-table">
       <tr>
         <th colspan="6">${title?.encodeAsHTML()}</th>
       </tr>
@@ -41,11 +41,13 @@
       </g:each>
       <tr>
         <td colspan="6" style="text-align: center;">
-          <input class="btn primary" type="submit" name="view" value="Select this plan" onClick="document.getElementById('planIdSelector').value=document.getElementById('planId').value;return true;">
+          <input class="btn btn-primary" type="submit" name="view" value="Select this plan" onClick="document.getElementById('planIdSelector').value=document.getElementById('planId').value;return true;">
           <g:if test="${missingAgents}">
-            <a class="btn danger" data-controls-modal="missing-agents" data-backdrop="true" data-keyboard="true" >Missing Agents</a>
-            <div id="missing-agents" class="modal hide">
-              <div class="modal-header">Missing agents [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]<a href="#" class="close">&times;</a></div>
+            <a href="#missingAgents" role="button" class="btn btn-danger" data-toggle="modal" data-backdrop="true" data-keyboard="true" >Missing Agents</a>
+            <div id="missingAgents" class="modal hide" role="dialog" aria-labelledby="possibleSources" aria-hidden="true">
+              <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+              <h4>Missing agents [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h4>
               <div class="modal-body">
                 <ul>
                   <g:each in="${missingAgents}" var="agentName">

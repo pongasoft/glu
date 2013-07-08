@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,47 +16,21 @@
 
 package org.linkedin.glu.agent.rest.resources
 
-import org.restlet.Response
-import org.restlet.Context
-import org.restlet.Request
-import org.restlet.representation.Representation
-import org.restlet.representation.Variant
+import org.linkedin.glu.utils.tags.TagsSerializer
 import org.linkedin.util.io.PathUtils
 import org.restlet.data.Method
-import org.restlet.representation.EmptyRepresentation
 import org.restlet.data.Status
-import org.linkedin.glu.utils.tags.TagsSerializer
+import org.restlet.representation.Representation
+import org.restlet.resource.Delete
+import org.restlet.resource.Get
+import org.restlet.resource.Post
+import org.restlet.resource.Put
 
 /**
  * @author yan@pongasoft.com */
 public class TagsResource extends BaseResource
 {
   public static final TagsSerializer TAGS_SERIALIZER = TagsSerializer.INSTANCE
-
-  TagsResource(Context context, Request request, Response response)
-  {
-    super(context, request, response);
-  }
-
-  public boolean allowPut()
-  {
-    return true
-  }
-
-  public boolean allowPost()
-  {
-    return true
-  }
-
-  public boolean allowDelete()
-  {
-    return true
-  }
-
-  public boolean allowGet()
-  {
-    return true
-  }
 
   /**
    * GET:  /tags => 200: json array of tags
@@ -65,13 +39,12 @@ public class TagsResource extends BaseResource
    * query string can contain: match=any (default if missing) or match=all for matching on all
    * of them
    */
-  public Representation represent(Variant variant)
+  @Get
+  public Representation getOrCheckTags()
   {
-    return noException {
+    noException {
       if(request.getMethod() == Method.HEAD)
       {
-        Representation res = new EmptyRepresentation()
-
         String match = request.originalRef.queryAsForm?.getValues('match') ?: 'any'
 
         Collection<String> tagsToCheck = tags
@@ -104,7 +77,7 @@ public class TagsResource extends BaseResource
             response.setStatus(Status.SUCCESS_NO_CONTENT)
         }
 
-        return res
+        return null
       }
       else
       {
@@ -114,35 +87,38 @@ public class TagsResource extends BaseResource
   }
 
   /**
-   * PUT set tags (ex: PUT /tags/fruit;vegetable)
+   * set tags (ex: PUT /tags/fruit;vegetable)
    */
-  public void storeRepresentation(Representation representation)
+  @Put
+  public Representation updateTags(Representation representation)
   {
     noException {
       agent.setTags(tags)
+      return null
     }
   }
 
   /**
-   * POST add tags (ex: POST /tags/fruit;vegetable)
+   * add tags (ex: POST /tags/fruit;vegetable)
    */
-  public void acceptRepresentation(Representation representation)
+  @Post
+  public Representation addTags(Representation representation)
   {
     noException {
-      response.setEntity(toRepresentation(agent.addTags(tags)))
+      toRepresentation(agent.addTags(tags))
     }
   }
 
   /**
    * DELETE remove tags (ex: DELETE /tags/fruit;vegetable)
    */
-  public void removeRepresentations()
+  @Delete
+  public Representation deleteTags()
   {
     noException {
-      response.setEntity(toRepresentation(agent.removeTags(tags)))
+      toRepresentation(agent.removeTags(tags))
     }
   }
-
 
   private Collection<String> getTags()
   {

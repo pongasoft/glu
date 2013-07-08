@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,9 +23,7 @@ import org.linkedin.glu.agent.tracker.AgentsTracker
 import org.linkedin.glu.agent.tracker.AgentsTrackerImpl
 import org.linkedin.glu.agent.tracker.TrackerEventsListener
 import org.apache.zookeeper.CreateMode
-import org.apache.zookeeper.WatchedEvent
 import org.apache.zookeeper.Watcher
-import org.apache.zookeeper.Watcher.Event.KeeperState
 import org.apache.zookeeper.ZooDefs.Ids
 import org.apache.zookeeper.ZooKeeper
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
@@ -59,8 +57,6 @@ class TestAgentsTracker extends GroovyTestCase
   StandaloneZooKeeperServer zookeeperServer
   IZKClient client
 
-  def private agentEvents = []
-
   private ZooKeeper _testableZooKeeper
   private boolean _failCreation = false
   private int _failedCount = 0
@@ -72,7 +68,10 @@ class TestAgentsTracker extends GroovyTestCase
       throw new InternalException('TestAgentsTracker', 'failing creation')
     }
 
-    _testableZooKeeper = new ZooKeeper('localhost:2121', (int) Timespan.parse('1m').durationInMilliseconds, watcher)
+    _testableZooKeeper = new ZooKeeper('127.0.0.1:2121',
+                                       (int) Timespan.parse('1m').durationInMilliseconds,
+                                       watcher)
+
     new ZooKeeperImpl(_testableZooKeeper)
   }
 
@@ -91,6 +90,27 @@ class TestAgentsTracker extends GroovyTestCase
     client.start()
     client.waitForStart(Timespan.parse('5s'))
   }
+
+  /**
+   * see FAQ about forcing expire session http://wiki.apache.org/hadoop/ZooKeeper/FAQ#A4
+   */
+  private void expireZooKeeperSession()
+  {
+    def factory = { Watcher watcher ->
+      new ZooKeeperImpl(new ZooKeeper('127.0.0.1:2121',
+                                      _testableZooKeeper.sessionTimeout,
+                                      watcher as Watcher,
+                                      _testableZooKeeper.sessionId, // session id
+                                      _testableZooKeeper.sessionPasswd)) // password
+    }
+
+    def zk = new ZKClient(factory as IZooKeeperFactory)
+    zk.start()
+    zk.waitForStart(Timespan.parse('10s'))
+    zk.close()
+  }
+
+
 
   protected void tearDown()
   {
@@ -326,8 +346,8 @@ class TestAgentsTracker extends GroovyTestCase
 
       // we force an expired event
       _failCreation = true
-      _testableZooKeeper.close()
-      client.process(new WatchedEvent(Watcher.Event.EventType.None, KeeperState.Expired, null))
+
+      expireZooKeeperSession()
 
       // should receive the disconnected event
       GroovyConcurrentUtils.waitForCondition(clock, '5s', '200') { !tracker.connected }
@@ -441,10 +461,5 @@ class TestAgentsTracker extends GroovyTestCase
   private String toPath(MountPoint mp)
   {
     return mp.path.replace('/', '_')
-  }
-
-  private MountPoint fromPath(String path)
-  {
-    return MountPoint.create(path.replace('_', '/'))
   }
 }

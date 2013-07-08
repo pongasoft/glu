@@ -56,4 +56,22 @@ abstract class LogicSystemFilterChain implements SystemFilter
   {
     return (filters != null ? filters.hashCode() : 0);
   }
+
+  static SystemFilter and(SystemFilter... filters)
+  {
+    and(filters as Set)
+  }
+
+  static SystemFilter and(Collection<SystemFilter> filters)
+  {
+    def f = filters?.findAll { it != null }
+
+    if(f == null || f.size() == 0)
+      return null
+    else
+      if(f.size() == 1)
+        return f.iterator().next()
+      else
+        new LogicAndSystemFilterChain(filters: f as Set)
+  }
 }

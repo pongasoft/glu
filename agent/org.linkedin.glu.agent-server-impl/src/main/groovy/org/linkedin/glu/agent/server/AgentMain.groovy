@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,6 +17,7 @@
 
 package org.linkedin.glu.agent.server
 
+import org.apache.zookeeper.KeeperException
 import org.hyperic.sigar.Sigar
 import org.hyperic.sigar.SigarException
 import org.linkedin.glu.agent.api.Agent
@@ -27,17 +28,21 @@ import org.linkedin.glu.agent.impl.storage.DualWriteStorage
 import org.linkedin.glu.agent.impl.storage.FileSystemStorage
 import org.linkedin.glu.agent.impl.storage.Storage
 import org.linkedin.glu.agent.impl.zookeeper.ZooKeeperStorage
+import org.linkedin.glu.agent.rest.common.RestServerFactoryImpl
 import org.linkedin.glu.agent.rest.resources.AgentResource
 import org.linkedin.glu.agent.rest.resources.FileResource
 import org.linkedin.glu.agent.rest.resources.HostResource
 import org.linkedin.glu.agent.rest.resources.LogResource
 import org.linkedin.glu.agent.rest.resources.MountPointResource
 import org.linkedin.glu.agent.rest.resources.ProcessResource
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
+import org.linkedin.glu.groovy.utils.jvm.JVMInfo
 import org.linkedin.groovy.util.ant.AntUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.groovy.util.ivy.IvyURLHandler
 import org.linkedin.groovy.util.net.GroovyNetUtils
+import org.linkedin.util.clock.Timespan
 import org.linkedin.util.codec.Base64Codec
 import org.linkedin.util.codec.Codec
 import org.linkedin.util.codec.CodecUtils
@@ -53,7 +58,6 @@ import org.restlet.util.Series
 import org.restlet.routing.Router
 import org.linkedin.groovy.util.config.Config
 import org.restlet.Component
-import org.restlet.data.Protocol
 import org.restlet.routing.Template
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.agent.rest.resources.TagsResource
@@ -78,6 +82,8 @@ import org.linkedin.glu.agent.impl.script.ScriptManager
 import org.linkedin.glu.groovy.utils.net.ReinitializableSingletonURLStreamHandlerFactory
 import org.linkedin.glu.agent.impl.script.AgentContextImpl
 import org.linkedin.glu.agent.impl.capabilities.MOPImpl
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * This is the main class to start the agent.
@@ -87,7 +93,7 @@ import org.linkedin.glu.agent.impl.capabilities.MOPImpl
 class AgentMain implements LifecycleListener, Configurable
 {
   public static final String MODULE = AgentMain.class.getName();
-  public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   private static final Codec TWO_WAY_CODEC
   private static final OneWayCodec ONE_WAY_CODEC
@@ -132,6 +138,7 @@ class AgentMain implements LifecycleListener, Configurable
   AgentMain()
   {
     JulToSLF4jBridge.installBridge()
+    log.info JVMInfo.getJVMInfoAsStringCollection().join(" | ")
   }
 
   def getUrlFactory()
@@ -455,6 +462,7 @@ class AgentMain implements LifecycleListener, Configurable
     _agentContext =
       new AgentContextImpl(shellForScripts: createShell(rootShell, "${prefix}.agent.scriptRootDir"),
                            shellForCommands: rootShell,
+                           rootShell: rootShell,
                            mop: new MOPImpl())
 
     _storage = createStorage()
@@ -491,6 +499,8 @@ class AgentMain implements LifecycleListener, Configurable
 
     if(withTerminationHandler)
       registerTerminationHandler()
+
+    startZooKeeperMonitor()
 
     log.info 'Agent started.'
   }
@@ -543,6 +553,7 @@ class AgentMain implements LifecycleListener, Configurable
   def startRestServer()
   {
     def port = Config.getOptionalInt(_config, "${prefix}.agent.port", 12906)
+    def address = Config.getOptionalString(_config, "${prefix}.agent.address", null)
 
     _restServer = new Component();
     def context = _restServer.getContext().createChildContext()
@@ -576,6 +587,8 @@ class AgentMain implements LifecycleListener, Configurable
     
     _restServer.getDefaultHost().attach(router);
 
+    def restServerFactory = new RestServerFactoryImpl()
+
     def secure = ''
 
     if(Config.getOptionalBoolean(_config, "${prefix}.agent.sslEnabled", true))
@@ -596,25 +609,28 @@ class AgentMain implements LifecycleListener, Configurable
       params.add('truststorePath', truststore.path)
       params.add('truststorePassword', getPassword(_config, "${prefix}.agent.truststorePassword"))
 
-      params.add('sslContextFactory', 'org.restlet.engine.security.DefaultSslContextFactory')
+      params.add('sslContextFactory', 'org.restlet.ext.ssl.DefaultSslContextFactory')
 
       params.add('needClientAuthentication', 'true')
 
       params.add('defaultThreads',
                  Config.getOptionalString(_config, "${prefix}.agent.rest.server.defaultThreads", '3'))
       
-      def server = _restServer.getServers().add(Protocol.HTTPS, port);
+      def server = restServerFactory.createRestServer(true, address, port)
       server.setContext(serverContext)
+      _restServer.getServers().add(server)
 
       secure = '(secure)'
     }
     else
     {
-      _restServer.getServers().add(Protocol.HTTP, port);
+      def server = restServerFactory.createRestServer(false, address, port)
+      _restServer.getServers().add(server)
+      secure = '(NON SECURE)'
     }
 
     _restServer.start()
-    log.info "Started REST service on ${secure} port: ${port}"
+    log.info "Started REST service${address ? ' @'+ address : ''} on ${secure} port: ${port}"
   }
 
   def awaitTermination()
@@ -791,6 +807,68 @@ class AgentMain implements LifecycleListener, Configurable
     return "${_zooKeeperRoot}/agents/fabrics/${_fabric}/instances/${_agentName}"
   }
 
+  /**
+   * The purpose of this code is to try to drill down on glu-210 (Agent not recreating ephemeral
+   * node after ZK outage)
+   */
+  protected void startZooKeeperMonitor()
+  {
+    if(_zkClient)
+    {
+      if(Config.getOptionalBoolean(_config, "${prefix}.agent.zkMonitor.enabled", true))
+      {
+        def log = LoggerFactory.getLogger(MODULE + ".zkMonitor")
+
+        def repeatFrequencyString =
+          Config.getOptionalString(_config, "${prefix}.agent.zkMonitor.repeatFrequency", "10s")
+        def repeatFrequency = Timespan.parse(repeatFrequencyString)
+        def agentEphemeralPath = computeAgentEphemeralPath()
+        boolean attemptToFixFailure =
+          Config.getOptionalBoolean(_config, "${prefix}.agent.zkMonitor.attemptToFixFailure", true)
+
+        Thread.startDaemon("zkMonitor") {
+          while(!_receivedShutdown)
+          {
+            Thread.sleep(repeatFrequency.durationInMilliseconds)
+            GluGroovyLangUtils.noException {
+              if(_zkClient?.isConnected())
+              {
+                try
+                {
+                  _zkClient.getStringData(agentEphemeralPath)
+                  if(log.isDebugEnabled())
+                    log.debug("ZooKeeper ok.")
+                }
+                catch(KeeperException ke)
+                {
+                  if(ke.code() == KeeperException.Code.NONODE)
+                  {
+                    log.warn("Detected missing agent ephemeral node: [${agentEphemeralPath}]")
+                    if(attemptToFixFailure)
+                    {
+                      log.info("Trying to fix...")
+                      _zkSync()
+                    }
+                  }
+                  else
+                    throw ke // will be handled by noException
+                }
+              }
+              else
+              {
+                log.warn("ZooKeeper not connected...")
+              }
+            }
+          }
+
+          log.info("Terminated.")
+        }
+
+        log.info("Started.")
+      }
+    }
+  }
+
   public void onDisconnected()
   {
     if(_zkClient)
@@ -834,8 +912,16 @@ class AgentMain implements LifecycleListener, Configurable
   static void main(args)
   {
     AgentMain agentMain = new AgentMain()
-    agentMain.init(args)
-    agentMain.startAndWait()
+    try
+    {
+      agentMain.init(args)
+      agentMain.startAndWait()
+    }
+    catch(Throwable th)
+    {
+      log.error("unexpected error... terminating", th)
+      System.exit(1)
+    }
   }
 
   protected def readConfig(url, Properties properties)

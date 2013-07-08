@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,20 +17,20 @@
 
 package org.linkedin.glu.console.domain
 
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import org.linkedin.glu.grails.config.GluGrailsCustomNamingStrategy
 
 class User
 {
   String username
 
   // commented out because of issue: http://jira.codehaus.org/browse/GRAILS-7175 as a workaround
-  // for https://github.com/linkedin/glu/issues#issue/19
+  // for https://github.com/pongasoft/glu/issues#issue/19
 //  static mapping = {
 //    roles fetch:'join'
 //  }
 
   static mapping = {
-    table ConfigurationHolder.config.console.datasource.table.user.mapping ?: 'user'
+    table GluGrailsCustomNamingStrategy.getTableName('user')
   }
 
   static hasMany = [ roles: Role, permissions: String ]
@@ -94,7 +95,7 @@ class User
    * Set the roles to be exactly what is provided: conceptually remove all the roles and add only
    * the new ones.
    */
-  def setRoles(newRoles)
+  def updateRoles(newRoles)
   {
     newRoles = newRoles?.collect { RoleName.valueOf(it.toString()) } ?: []
 

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2012 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +16,10 @@
  */
 
 package org.linkedin.glu.orchestration.engine.tracker
+
+import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
+import org.linkedin.util.clock.Clock
+import org.linkedin.util.clock.SystemClock
 
 import java.util.concurrent.TimeoutException
 import org.apache.zookeeper.WatchedEvent
@@ -52,6 +56,9 @@ class TrackerServiceImpl implements TrackerService, Destroyable
 
   @Initializable
   AgentInfoPropertyAccessor agentInfoPropertyAccessor = PrefixAgentInfoPropertyAccessor.DEFAULT
+
+  @Initializable
+  Clock clock = SystemClock.INSTANCE
 
   private final def _trackers = [:]
 
@@ -97,6 +104,48 @@ class TrackerServiceImpl implements TrackerService, Destroyable
     return clearAgentInfo(fabricService.findFabric(fabric), agentName)
   }
 
+  private final Object _mountPointEventsLock = new Object()
+
+  @Override
+  boolean waitForState(String fabric, String agentName, def mountPoint, String state, def timeout)
+  {
+    waitForState(fabricService.findFabric(fabric), agentName, mountPoint, state, timeout)
+  }
+
+  @Override
+  boolean waitForState(Fabric fabric, String agentName, def mountPoint, String state, def timeout)
+  {
+    try
+    {
+      GroovyConcurrentUtils.awaitFor(clock, timeout, _mountPointEventsLock) {
+        // this code is synchronized (see awaitFor documentation!)
+
+        def mpi = getMountPointInfo(fabric, agentName, mountPoint)
+
+        if(mpi?.error)
+          return true
+
+        return !mpi?.transitionState && mpi?.currentState == state
+      }
+    }
+    catch(TimeoutException ignore)
+    {
+      return false;
+    }
+
+    return true
+  }
+
+  private def mountPointEventsListener = { events ->
+    if(events)
+    {
+      synchronized(_mountPointEventsLock)
+      {
+        _mountPointEventsLock.notifyAll()
+      }
+    }
+  }
+
   private synchronized AgentsTracker getAgentsTrackerByFabric(Fabric fabric)
   {
     def fabricName = fabric.name
@@ -114,7 +163,7 @@ class TrackerServiceImpl implements TrackerService, Destroyable
     {
       if(fabric)
       {
-        fabricService.withZkClient(fabric.name) { IZKClient zkClient ->
+        fabricService.withZkClient(fabricName) { IZKClient zkClient ->
           tracker = new AgentsTrackerImpl(zkClient,
                                           "${zookeeperRoot}/agents/fabrics/${fabricName}".toString())
           tracker.agentInfoPropertyAccessor = agentInfoPropertyAccessor
@@ -146,6 +195,8 @@ class TrackerServiceImpl implements TrackerService, Destroyable
 
         tracker.registerErrorListener(errorListener as ErrorListener)
 
+        tracker.registerMountPointListener(mountPointEventsListener as TrackerEventsListener)
+
         tracker.start()
 
         def timeout = '10s'
@@ -156,7 +207,7 @@ class TrackerServiceImpl implements TrackerService, Destroyable
           tracker.waitForStart(timeout)
           log.info "Tracker for ${fabricName} successfully started in ${c.elapsedTimeAsHMS}"
         }
-        catch(TimeoutException e)
+        catch(TimeoutException ignore)
         {
           log.warn "Tracker for ${fabricName} still not started after ${timeout}... continuing..."
         }

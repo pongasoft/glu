@@ -1,4 +1,4 @@
-.. Copyright (c) 2011 Yan Pujante
+.. Copyright (c) 2011-2013 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -35,7 +35,7 @@ A glu script is a groovy class which contains a set of closures where the name o
 
 State machine
 -------------
-Each glu script is backed by a state machine which is an instance of ``org.linkedin.groovy.util.state.StateMachine`` (`StateMachine api <https://github.com/linkedin/linkedin-utils/blob/master/org.linkedin.util-groovy/src/main/groovy/org/linkedin/groovy/util/state/StateMachine.groovy>`_). The default state machine is the following:
+Each glu script is backed by a state machine which is an instance of ``org.linkedin.groovy.util.state.StateMachine`` (`StateMachine api <https://github.com/pongasoft/linkedin-utils/blob/master/org.linkedin.util-groovy/src/main/groovy/org/linkedin/groovy/util/state/StateMachine.groovy>`_). The default state machine is the following:
 
 .. image:: /images/state_machine_diagram.png
    :align: center
@@ -111,7 +111,7 @@ Capabilities
 As described in the section :ref:`agent-capabitites`, a glu script can use all the capabilities provided by the agent.
 
 .. tip:: 
-   Implicitely (at runtime), all glu scripts implement the `GluScript <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-impl/src/main/groovy/org/linkedin/glu/agent/impl/GluScript.groovy>`_ interface.
+   Implicitely (at runtime), all glu scripts implement the `GluScript <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-impl/src/main/groovy/org/linkedin/glu/agent/impl/GluScript.groovy>`_ interface.
 
 Table of all the properties usable from a ``GluScript``:
 
@@ -130,6 +130,8 @@ Table of all the properties usable from a ``GluScript``:
 |:ref:`parent <agent-capabilities-parent>`          |Access to the parent glu script                          |
 +---------------------------------------------------+---------------------------------------------------------+
 |:ref:`shell <agent-capabilities-shell>`            |Access to all shell like capabilities (mv, ls, etc...)   |
++---------------------------------------------------+---------------------------------------------------------+
+|:ref:`rootShell <agent-capabilities-root-shell>`   |Access to all shell like capabilities (mv, ls, etc...)   |
 +---------------------------------------------------+---------------------------------------------------------+
 |:ref:`shell.env <agent-capabilities-shell-env>`    |Access to environment variables set at agent boot time   |
 +---------------------------------------------------+---------------------------------------------------------+
@@ -216,11 +218,11 @@ An example of glu script
 
 Real life example
 -----------------
-You can find a real life example of a glu script called `JettyGluScript <https://github.com/linkedin/glu/blob/master/scripts/org.linkedin.glu.script-jetty/src/main/groovy/JettyGluScript.groovy>`_ which shows how to deploy a webapp container (jetty), install web applications in it and monitor it.
+You can find a real life example of a glu script called `JettyGluScript <https://github.com/pongasoft/glu/blob/master/scripts/org.linkedin.glu.script-jetty/src/main/groovy/JettyGluScript.groovy>`_ which shows how to deploy a webapp container (jetty), install web applications in it and monitor it.
 
 Developing and unit testing a glu script
 ----------------------------------------
-The glu script test framework allows you to develop and unit test your glu script without having to worry about setting up all the components. To write a unit test for a glu script, you can simply inherit from the `GluScriptBaseTest <https://github.com/linkedin/glu/blob/master/utils/org.linkedin.glu.scripts-test-fwk/src/main/groovy/org/linkedin/glu/scripts/testFwk/GluScriptBaseTest.groovy>`_, setup a couple of parameters and run the convenient methods provided by the framework::
+The glu script test framework allows you to develop and unit test your glu script without having to worry about setting up all the components. To write a unit test for a glu script, you can simply inherit from the `GluScriptBaseTest <https://github.com/pongasoft/glu/blob/master/utils/org.linkedin.glu.scripts-test-fwk/src/main/groovy/org/linkedin/glu/scripts/testFwk/GluScriptBaseTest.groovy>`_, setup a couple of parameters and run the convenient methods provided by the framework::
 
   class TestMyGluScript extends GluScriptBaseTest
   {
@@ -256,10 +258,10 @@ In order to compile the script and the unit test, you need the following depende
 
 .. tip:: For more information and examples, you can check the following:
 
-   * `GluScriptBaseTest <https://github.com/linkedin/glu/blob/master/utils/org.linkedin.glu.scripts-test-fwk/src/main/groovy/org/linkedin/glu/scripts/testFwk/GluScriptBaseTest.groovy>`_ to check what the framework has to offer (javadoc is fairly comprehensive)
-   * `TestJettyGluScript <https://github.com/linkedin/glu/blob/master/scripts/org.linkedin.glu.script-jetty/src/test/groovy/test/script/jetty/TestJettyGluScript.groovy>`_ for a real life example of unit testing a glu script
-   * `glu-scripts-contrib <https://github.com/linkedin/glu-scripts-contrib>`_ is the project that contains glu script contributed by the community as well as a sample
-   * `sample <https://github.com/linkedin/glu-scripts-contrib/tree/master/scripts/org.linkedin.glu-scripts-contrib.sample>`_ is a sample glu script and unit test with comprehensive documentation demonstrating several features about writing and unit testing a glu script
+   * `GluScriptBaseTest <https://github.com/pongasoft/glu/blob/master/utils/org.linkedin.glu.scripts-test-fwk/src/main/groovy/org/linkedin/glu/scripts/testFwk/GluScriptBaseTest.groovy>`_ to check what the framework has to offer (javadoc is fairly comprehensive)
+   * `TestJettyGluScript <https://github.com/pongasoft/glu/blob/master/scripts/org.linkedin.glu.script-jetty/src/test/groovy/test/script/jetty/TestJettyGluScript.groovy>`_ for a real life example of unit testing a glu script
+   * `glu-scripts-contrib <https://github.com/pongasoft/glu-scripts-contrib>`_ is the project that contains glu script contributed by the community as well as a sample
+   * `sample <https://github.com/pongasoft/glu-scripts-contrib/tree/master/scripts/org.linkedin.glu-scripts-contrib.sample>`_ is a sample glu script and unit test with comprehensive documentation demonstrating several features about writing and unit testing a glu script
 
 .. _glu-script-packaging:
 

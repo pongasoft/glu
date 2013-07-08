@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -25,18 +25,18 @@
 </head>
 <body>
 <div class="body">
-  <h1>Select your fabric</h1>
-  <table>
+  <h2>Select your fabric</h2>
+  <table class="table table-bordered noFullWidth">
     <tr>
       <th>Fabric</th>
     </tr>
     <g:each in="${fabrics}" var="fabric">
       <tr>
-        <td class="${request.fabric?.name == fabric.name ? 'current' : 'not-current'}"><g:link controller="fabric" action="select" id="${fabric.name.encodeAsHTML()}">${fabric.name.encodeAsHTML()}</g:link></td>
+        <td class="${request.fabric?.name == fabric.name ? 'current' : 'not-current'}"><g:link controller="dashboard" action="redelta" params="[fabric: fabric.name]">${fabric.name.encodeAsHTML()}</g:link> <span style="background-color: ${fabric.color}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+</td>
       </tr>
     </g:each>
   </table>
-
 </div>
 </body>
 </html>

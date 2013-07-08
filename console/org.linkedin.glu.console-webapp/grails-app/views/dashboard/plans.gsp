@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2011 Yan Pujante
+  - Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -36,7 +36,7 @@
   </style>
 </head>
 <body>
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li><g:link action="delta">${request.userSession.currentCustomDeltaDefinitionName.encodeAsHTML()}</g:link></li>
   <li class="active"><a href="#">Plans</a></li>
   <li><g:link controller="dashboard" action="customize">Customize</g:link></li>

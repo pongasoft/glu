@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -57,7 +57,7 @@ You currently do not have a GLU specific password and your LDAP password credent
     </tr>
   </table>
   <div class="buttons">
-    <span class="button"><input class="btn primary" type="submit" value="Save password"/></span>
+    <span class="button"><input class="btn btn-primary" type="submit" value="Save password"/></span>
   </div>
 </g:form>
 

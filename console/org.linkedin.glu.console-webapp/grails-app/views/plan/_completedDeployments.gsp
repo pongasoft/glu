@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -16,9 +16,9 @@
   --}%
 
 <%@ page import="org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus" %>
-<h2>Completed deployments [${deployments?.size()}] [<g:link action="archiveAllDeployments" controller="plan" onClick="return confirm('Are you sure you want to archive all deployments ?');">Archive All</g:link>]</h2>
+<h3>Completed deployments [${deployments?.size()}] [<g:link action="archiveAllDeployments" controller="plan" onClick="return confirm('Are you sure you want to archive all deployments ?');">Archive All</g:link>]</h3>
 <g:if test="${deployments}">
-  <table class="bordered-table condensed-table" id="completedDeployments">
+  <table class="table table-bordered table-condensed" id="completedDeployments">
     <tr>
       <th class="descriptionFilter">Description</th>
       <th class="usernameFilter">Username</th>
@@ -51,5 +51,5 @@
   </table>
 </g:if>
 <g:else>
-  <h3>No Completed deployments.</h3>
+  <h4>No Completed deployments.</h4>
 </g:else>

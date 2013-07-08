@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -277,14 +277,19 @@ def class TestAgentImpl extends GroovyTestCase
     // should be root in the state...
     assertEquals(1, ramStorage.size())
     def rootValues = [
-            scriptDefinition: new ScriptDefinition(MountPoint.ROOT,
-                                                   null,
-                                                   new FromClassNameScriptFactory(RootScript),
-                                                   [:]),
-            scriptState: [
-                    script: [rootPath: MountPoint.ROOT],
-                    stateMachine: [currentState: 'installed']
-            ]
+      scriptDefinition: [
+        mountPoint: MountPoint.ROOT,
+        parent: null,
+        scriptFactory: [
+          'class': FromClassNameScriptFactory.class.getName(),
+          className: RootScript.class.name
+        ],
+        initParameters: [:]
+      ],
+      scriptState: [
+        script: [rootPath: MountPoint.ROOT],
+        stateMachine: [currentState: 'installed']
+      ]
     ]
 
     // we check root
@@ -297,14 +302,20 @@ def class TestAgentImpl extends GroovyTestCase
                         scriptFactory: new FromClassNameScriptFactory(MyScriptTestAgentImpl3))
 
     def scriptValues = [
-            scriptDefinition: new ScriptDefinition(scriptMountPoint,
-                                                   MountPoint.ROOT,
-                                                   new FromClassNameScriptFactory(MyScriptTestAgentImpl3),
-                                                   [p1: 'v1']),
-            scriptState: [
-                    script: [:],
-                    stateMachine: [currentState: StateMachine.NONE],
-            ]
+      scriptDefinition: [
+        mountPoint: scriptMountPoint,
+        parent: MountPoint.ROOT,
+        scriptFactory: [
+          'class': FromClassNameScriptFactory.class.getName(),
+          className: MyScriptTestAgentImpl3.class.name
+        ],
+        initParameters: [p1: 'v1']
+      ],
+
+      scriptState: [
+        script: [:],
+        stateMachine: [currentState: StateMachine.NONE],
+      ]
     ]
 
     // we check root (to be sure) and /s
@@ -491,7 +502,7 @@ def class TestAgentImpl extends GroovyTestCase
             scriptFactory:
             [
                 'class': 'org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory',
-                className: 'test.agent.impl.MyScriptTestAgentImpl3'
+                className: MyScriptTestAgentImpl3.class.name
             ],
             initParameters: [p1: 'v1']
         ],
@@ -517,7 +528,7 @@ def class TestAgentImpl extends GroovyTestCase
             scriptFactory:
             [
                 'class': 'org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory',
-                className: 'test.agent.impl.MyScriptTestTimer'
+                className: MyScriptTestTimer.class.name
             ],
             initParameters: [p1: 'v1']
         ],
@@ -1038,126 +1049,127 @@ gc: 1000
       }
     }
   }
-}
 
-private def class MyScriptTestAgentImpl
-{
-  // YP Note: contrary to the test in TestScriptManager, the result is not returned (due to
-  // asynchronism), so we put the return value in args.res thus insuring that the closure
-  // is actually called...
-  def install = { args ->
-    GroovyTestCase.assertEquals(args.expectedMountPoint, mountPoint)
-    GroovyTestCase.assertEquals(args.expectedParentRootPath, parent.rootPath)
-    shell.mkdirs(mountPoint)
-    args.res.install = "${args.value}/${params.p1}".toString()
-  }
-}
-
-private def class MyScriptTestAgentImpl2
-{
-  def install = { args ->
-    args.tc.block('s1')
-    args.res.install = params.p1
-  }
-}
-
-private def class MyScriptTestAgentImpl3
-{
-  def vp1
-
-  def install = { args ->
-    vp1 = params.p1 + args.p
-  }
-
-  def configure = { args ->
-    if(args.exception)
-      throw new Exception('mine')
-    assert vp1 == args.value
-    return vp1
-  }
-
-  def unconfigure = { args ->
-    assert vp1 == args.value
-    return vp1
-  }
-}
-
-private def class MyScriptTestInterrupt
-{
-  def install = { args ->
-
-    args.tc.block('start')
-
-    try
-    {
-      shell.waitFor() { duration ->
-        return false
-      }
+  private static class MyScriptTestAgentImpl
+  {
+    // YP Note: contrary to the test in TestScriptManager, the result is not returned (due to
+    // asynchronism), so we put the return value in args.res thus insuring that the closure
+    // is actually called...
+    def install = { args ->
+      GroovyTestCase.assertEquals(args.expectedMountPoint, mountPoint)
+      GroovyTestCase.assertEquals(args.expectedParentRootPath, parent.rootPath)
+      shell.mkdirs(mountPoint)
+      args.res.install = "${args.value}/${params.p1}".toString()
     }
-    catch (InterruptedException e)
-    {
-      args.tc.block('exception')
-      args.res.exception = e
-      throw e
+  }
+
+  private static class MyScriptTestAgentImpl2
+  {
+    def install = { args ->
+      args.tc.block('s1')
+      args.res.install = params.p1
+    }
+  }
+
+  private static class MyScriptTestAgentImpl3
+  {
+    def vp1
+
+    def install = { args ->
+      vp1 = params.p1 + args.p
     }
 
-    // should never reach this line as an exception should be thrown!
-    args.res.notReached = true
-  }
-}
+    def configure = { args ->
+      if(args.exception)
+        throw new Exception('mine')
+      assert vp1 == args.value
+      return vp1
+    }
 
-private def class MyScriptTestTimer
-{
-  def timer1 = {
-    def args = TestAgentImpl.GLOBAL_TC.block('timer1.start')
-    try
-    {
-      if(args)
+    def unconfigure = { args ->
+      assert vp1 == args.value
+      return vp1
+    }
+  }
+
+  private static class MyScriptTestInterrupt
+  {
+    def install = { args ->
+
+      args.tc.block('start')
+
+      try
       {
-        stateManager.forceChangeState(args.currentState, args.error)
+        shell.waitFor() { duration ->
+          return false
+        }
+      }
+      catch (InterruptedException e)
+      {
+        args.tc.block('exception')
+        args.res.exception = e
+        throw e
+      }
+
+      // should never reach this line as an exception should be thrown!
+      args.res.notReached = true
+    }
+  }
+
+  private static class MyScriptTestTimer
+  {
+    def timer1 = {
+      def args = TestAgentImpl.GLOBAL_TC.block('timer1.start')
+      try
+      {
+        if(args)
+        {
+          stateManager.forceChangeState(args.currentState, args.error)
+        }
+      }
+      finally
+      {
+        TestAgentImpl.GLOBAL_TC.block('timer1.end')
       }
     }
-    finally
-    {
-      TestAgentImpl.GLOBAL_TC.block('timer1.end')
+
+    def install = { args ->
+      timers.schedule(timer: timer1, repeatFrequency: args.repeatFrequency)
+      return params.p1
+    }
+
+    def uninstall = {
+      timers.cancel(timer: timer1)
+    }
+
+    // this is a way to get the underlying script node
+    def getScriptNode = {
+      self
     }
   }
 
-  def install = { args ->
-    timers.schedule(timer: timer1, repeatFrequency: args.repeatFrequency)
-    return params.p1
+  private static class MyScriptTestShutdown
+  {
+    def install = { args ->
+      args.tc.block('shutdown')
+    }
   }
 
-  def uninstall = {
-    timers.cancel(timer: timer1)
+  private static class MyScriptTestDeadlockOnShutdown
+  {
+    def install = { args ->
+      args.tc.block('shutdown')
+      return stateManager.state // this causes a deadlock prior to fixing glu-52
+    }
   }
 
-  // this is a way to get the underlying script node
-  def getScriptNode = {
-    self
+  private static class MyScriptTestWaitForShutdownState
+  {
+    def install = { args ->
+      args.tc.block('beforeWait')
+      stateManager.waitForShutdownState()
+      args.tc.block('afterWait')
+    }
   }
 }
 
-private def class MyScriptTestShutdown
-{
-  def install = { args ->
-    args.tc.block('shutdown')
-  }
-}
-
-private def class MyScriptTestDeadlockOnShutdown
-{
-  def install = { args ->
-    args.tc.block('shutdown')
-    return stateManager.state // this causes a deadlock prior to fixing glu-52
-  }
-}
-
-private def class MyScriptTestWaitForShutdownState
-{
-  def install = { args ->
-    args.tc.block('beforeWait')
-    stateManager.waitForShutdownState()
-    args.tc.block('afterWait')
-  }
-}

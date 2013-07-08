@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -25,15 +25,17 @@ dependencies {
   compile project(':agent:org.linkedin.glu.agent-rest-client')
   compile project(':agent:org.linkedin.glu.agent-tracker')
   compile project(':orchestration:org.linkedin.glu.orchestration-engine')
-  compile spec.external.linkedinUtilsGroovy
-  compile spec.external.linkedinZookeeperImpl
+  compile spec.external.utilsMiscGroovy
+  compile spec.external.utilsZookeeperImpl
   compile spec.external.shiro
 
-  groovy spec.external.groovy
+  compile spec.external.groovy
 
-  runtime spec.external.slf4jLog4j
+  runtime spec.external.hsqldb
   runtime spec.external.log4j
 }
+
+def grailsExe = file("grailsw").canonicalPath
 
 def facets = """
 <component name="FacetManager">
@@ -55,13 +57,13 @@ def facets = """
 </component>
 """
 
-ideaModule {
-  whenConfigured { module ->
+idea.module.iml {
+  whenMerged { module ->
     ['grails-app/utils', 'grails-app/controllers', 'grails-app/domain', 'grails-app/services', 'grails-app/realms', 'grails-app/taglib', 'grails-app/conf'].each {
-      module.sourceFolders << new org.gradle.plugins.idea.model.Path("file://\$MODULE_DIR\$/${it}")
+      module.sourceFolders << new org.gradle.plugins.ide.idea.model.Path("file://\$MODULE_DIR\$/${it}")
     }
     ['test/unit', 'test/integration'].each {
-      module.testSourceFolders << new org.gradle.plugins.idea.model.Path("file://\$MODULE_DIR\$/${it}")
+      module.testSourceFolders << new org.gradle.plugins.ide.idea.model.Path("file://\$MODULE_DIR\$/${it}")
     }
   }
 
@@ -78,22 +80,18 @@ project.clean << {
   fileTree(dir: 'lib').each { it.delete() }
 }
 
-workaroundDir = new File(buildDir, "distributions/lib")
-
 task lib(dependsOn: jar) << {
   fileTree(dir: 'lib').each { it.delete() }
   copy {
     from configurations.runtime
     into 'lib'
+    // issue is that we end up with duplicate files (with slightly different names!) because grails
+    // add them!
+    exclude("spring-*.jar")
+    exclude("slf4j-log4j12-*.jar")
   }
-  // workaround against /org/apache/tools/ant/antlib.xml:37: Problem: failed to create 
-  // task or type componentdef
-  ant.move(file: file('lib/ant-1.8.1.jar'), todir: workaroundDir)
-  ant.move(file: file('lib/ant-launcher-1.8.1.jar'), todir: workaroundDir)
 
-  // issue is that we end up with duplicate files (with slightly different names!) because grails
-  // add them!
-  fileTree('lib').include('spring-*.jar').each { it.delete() }
+  //fileTree('lib').include('spring-*.jar').each { it.delete() }
 
   def keysDir = new File(rootDir, 'dev-keys')
   def secretKeyStoreDir = new File(buildDir, 'conf')
@@ -124,7 +122,7 @@ console.commandsService.commandExecutionIOStorage.filesystem.rootDir="${buildDir
 
 ['run-app', 'test-app'].each { taskName ->
   task "${taskName}"(dependsOn: lib) << {
-    ant.exec(dir: '.', executable: "grails", failonerror: true) {
+    ant.exec(dir: '.', executable: grailsExe, failonerror: true) {
       arg(line: "${taskName}")
     }
   }
@@ -133,12 +131,8 @@ console.commandsService.commandExecutionIOStorage.filesystem.rootDir="${buildDir
 def warFile = new File("${buildDir}/distributions/${project.name}-${project.version}.war")
 
 task war(dependsOn: lib) << {
-  ant.exec(dir: '.', executable: "grails") {
+  ant.exec(dir: '.', executable: grailsExe) {
     arg(line: "-Dgrails.project.war.file=${warFile} -Dbuild.version=${project.version} war")
-  }
-
-  ant.war(destfile: warFile, update: true) {
-    lib(dir: workaroundDir, includes: '*.jar')
   }
 }
 

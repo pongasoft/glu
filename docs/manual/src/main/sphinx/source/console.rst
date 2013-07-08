@@ -1,4 +1,4 @@
-.. Copyright (c) 2011-2012 Yan Pujante
+.. Copyright (c) 2011-2013 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -186,7 +186,7 @@ Here are the steps to follow in order to use MySql instead of HSQLDB (the steps 
             timeouts, or using the Connector/J connection property 'autoReconnect=true' to avoid 
             this problem
 
-          it has been `reported <https://github.com/linkedin/glu/issues/141>`_ that in order to fix the issue, you can add the following configuration properties in the glu configuration 
+          it has been `reported <https://github.com/pongasoft/glu/issues/141>`_ that in order to fix the issue, you can add the following configuration properties in the glu configuration
           file::
 
             dataSource.properties.validationQuery = "SELECT 1"
@@ -281,7 +281,7 @@ Here are some examples::
   // a REST call
   console.security.roles.'POST:/rest/v1/$fabric/model/static' = 'RELEASE'
 
-.. note:: You can check the `Config <https://github.com/linkedin/glu/blob/master/console/org.linkedin.glu.console-webapp/grails-app/conf/Config.groovy>`_ file for an exhaustive list of all the URLs and REST calls.
+.. note:: You can check the `Config <https://github.com/pongasoft/glu/blob/master/console/org.linkedin.glu.console-webapp/grails-app/conf/Config.groovy>`_ file for an exhaustive list of all the URLs and REST calls.
 
 .. tip:: If you have more than one entry to change, you can use a simpler 
          notation::
@@ -306,7 +306,7 @@ The plans page displays the list of deployments that have happened recently. Sin
   // set it to "0" if you want to disable auto archiving entirely
   console.deploymentService.autoArchiveTimeout = "30m"
 
-Limiting the number of paralell steps
+Limiting the number of parallel steps
 """""""""""""""""""""""""""""""""""""
 
 When running deployments in parallel, there is, by default, no limitation on how many steps can be executed at the same time. Depending on the size of your system, this may put a lot of stress on your infrastructure (like the network, binary repositories, etc...). In order to limit how many steps can run in parallel, you can define this property in the glu configuration file (``console-server/conf/glu-console-webapp.groovy``)::
@@ -314,6 +314,17 @@ When running deployments in parallel, there is, by default, no limitation on how
   // The following property limits how many (leaf) steps get executed in parallel during a deployment
   // By default (undefined), it is unlimited
   console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 500
+
+Plan
+^^^^
+
+Skipping missing agents
+"""""""""""""""""""""""
+
+By default, a missing agent generates a noop entry in the plan, or in other words it is skipped when the plan runs. If you want to change this behavior and generate an entry (which will fail on execution), then change the following property to ``false``::
+
+  // set to false if you want missing agents to not be skipped anymore in plan computation
+  console.plannerService.planner.skipMissingAgents = true
 
 UI configuration
 ^^^^^^^^^^^^^^^^

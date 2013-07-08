@@ -55,4 +55,8 @@ interface TrackerService
    * @throws IllegalStateException when the agent is still up!
    */
   boolean clearAgentInfo(String fabric, String agentName)
+
+  boolean waitForState(String fabric, String agentName, def mountPoint, String state, def timeout)
+
+  boolean waitForState(Fabric fabric, String agentName, def mountPoint, String state, def timeout)
 }

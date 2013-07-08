@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2012 Yan Pujante
+  - Copyright (c) 2012-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -26,13 +26,7 @@
     padding-bottom: 0.5em;
   }
   .progress {
-    height: 14px;
     margin: 0;
-    padding: 0;
-    width: 100%;
-    display: inline-block;
-    background-image: url('${g.resource(dir: 'images', file: 'progress_24x12.gif')}');
-    background-repeat: repeat;
   }
   </style>
 <g:render template="/commands/command_js"/>
@@ -79,7 +73,7 @@ function showHide()
 </g:javascript>
 </head>
 <body onload="refresh();">
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li><g:link controller="agents" action="list">List</g:link></li>
   <li><g:link controller="commands" action="list">All Commands</g:link></li>
   <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
@@ -89,12 +83,13 @@ function showHide()
 </ul>
 <div class="row">
   <div class="span20">
-    <g:form class="form-stacked" id="${params.id}" action="executeCommand" method="post">
+    <g:form class="form-inline" id="${params.id}" action="executeCommand" method="post">
       <fieldset>
         <div class="clearfix">
-          <g:textField name="command" value="" class="xxlarge"/>
-          2&gt;&amp;1 <cl:checkBoxInitFromParams name="redirectStderr" checkedByDefault="${false}"/>
-          <g:actionSubmit class="btn primary" action="executeCommand" value="Execute"/>
+          <g:textField name="command" value="" class="input-xxlarge"/>
+          <label class="checkbox"><cl:checkBoxInitFromParams name="redirectStderr" checkedByDefault="${false}"/> 2&gt;&amp;1 </label>
+
+          <g:actionSubmit class="btn btn-primary" action="executeCommand" value="Execute"/>
         </div>
       </fieldset>
     </g:form>

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -38,18 +39,20 @@ def class TestStateMachineFactory extends GroovyTestCase
     def stateMachine = StateMachineFactoryImpl.factory(script: new MyScriptTestStateMachineFactory2())
     assertEquals(MyScriptTestStateMachineFactory2.stateMachine, stateMachine.transitions)
   }
+
+  private static class MyScriptTestStateMachineFactory1
+  {
+  }
+
+  private static class MyScriptTestStateMachineFactory2
+  {
+    def static stateMachine =
+    [
+            NONE: [[to: 'installed', action: 'install']],
+            installed: [[to: 'NONE', action: 'uninstall']]
+
+    ]
+  }
+
 }
 
-private class MyScriptTestStateMachineFactory1
-{
-}
-
-private class MyScriptTestStateMachineFactory2
-{
-  def static stateMachine =
-  [
-          NONE: [[to: 'installed', action: 'install']],
-          installed: [[to: 'NONE', action: 'uninstall']]
-
-  ]
-}

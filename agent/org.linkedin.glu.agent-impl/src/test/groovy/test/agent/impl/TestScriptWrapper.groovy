@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -28,18 +29,28 @@ import org.linkedin.groovy.util.state.StateMachine
  */
 def class TestScriptWrapper extends GroovyTestCase
 {
+  private static class MyStateMachine implements StateMachine
+  {
+    @Delegate StateMachine stateMachine = [:] as StateMachine
+
+    @Override
+    def getAvailableActions()
+    {
+      return ['m1', 'm2']
+    }
+
+    @Override
+    def executeAction(action, closure)
+    {
+      return [stateMachine: closure()]
+    }
+  }
+
   void testScriptWrapper()
   {
     def shell = [wrap: {args -> return [shell: args]}]
 
-    def stateMachine = [
-            getAvailableActions: { ['m1', 'm2'] },
-            executeAction: { action, closure ->
-              return [stateMachine: closure()]
-            }
-    ] as StateMachine
-
-    def wrapper = new ScriptWrapperImpl()
+    def stateMachine = new MyStateMachine()
 
     def script = new MyScriptTestScriptWrapper()
     // we check that MyScriptTestScriptWrapper does not have any methods
@@ -75,29 +86,30 @@ def class TestScriptWrapper extends GroovyTestCase
       script.m2(p: 'p1', v: 'v1', e: e)        
     }
   }
+
+  private static class MyScriptTestScriptWrapper
+  {
+    // test shell variable
+    def m1 = { args ->
+      def res = shell.wrap(args)
+      assert res == [shell: args]
+      return res
+    }
+
+    // test params
+    def m2 = { args ->
+      assert params[args.p] == args.v
+      if(args.e)
+        throw args.e
+      return params[args.p]
+    }
+
+    // test non lifecycle method
+    def m3 = { args ->
+      assert shell != null
+      assert params != null
+      return args
+    }
+  }
 }
 
-private class MyScriptTestScriptWrapper
-{
-  // test shell variable
-  def m1 = { args ->
-    def res = shell.wrap(args)
-    assert res == [shell: args]
-    return res
-  }
-
-  // test params
-  def m2 = { args ->
-    assert params[args.p] == args.v
-    if(args.e)
-      throw args.e
-    return params[args.p]
-  }
-
-  // test non lifecycle method
-  def m3 = { args ->
-    assert shell != null
-    assert params != null
-    return args
-  }
-}

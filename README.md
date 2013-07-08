@@ -26,16 +26,16 @@ glu takes a very **declarative** approach, in which you describe/model what you 
 * ensure that it remains consistent over time
 * detect and alert you when there is a mismatch
 
-Check the rest of the [documentation](http://linkedin.github.com/glu/docs/latest/html/index.html) for more details (including  screenshots and diagrams).
+Check the rest of the [documentation](http://pongasoft.github.io/glu/docs/latest/html/index.html) for more details (including  screenshots and diagrams).
 
 Quick Links
 ===========
 
-1. [Download](https://github.com/linkedin/glu/downloads)
-2. [Documentation (latest)](http://linkedin.github.com/glu/docs/latest/html/index.html)
-3. [Tutorial (latest)](http://linkedin.github.com/glu/docs/latest/html/tutorial.html)
-4. [Source code](http://www.github.com/linkedin/glu)
+1. [Download](https://bintray.com/pkg/show/general/pongasoft/glu/releases)
+2. [Documentation (latest)](http://pongasoft.github.io/glu/docs/latest/html/index.html)
+3. [Tutorial (latest)](http://pongasoft.github.io/glu/docs/latest/html/tutorial.html)
+4. [Source code](http://www.github.com/pongasoft/glu)
 5. [Forum / Questions / Help](http://glu.977617.n3.nabble.com/)
 6. [Video (July 2011)](http://devops.com/2011/07/09/glu-deployment-automation-video/)
-7. [Issues / Tasks](https://github.com/linkedin/glu/issues)
-8. [Latest Changes](http://linkedin.github.com/glu/docs/latest/html/RELEASE.html)
+7. [Issues / Tasks](https://github.com/pongasoft/glu/issues)
+8. [Latest Changes](http://pongasoft.github.io/glu/docs/latest/html/RELEASE.html)

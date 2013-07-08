@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,78 +19,90 @@ buildscript {
   repositories {
     if(project.hasProperty('maven.buildscript.repository'))
     {
-      mavenRepo urls: new File(project.properties["maven.buildscript.repository"]).toURI()
+      mavenRepo url: new File(project.properties["maven.buildscript.repository"]).toURI()
     }
 
     if(project.hasProperty('ivy.buildscript.repository'))
     {
-      add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
-        name = "ivy.buildscript.repository"
-        addIvyPattern "${project.properties['ivy.buildscript.repository']}/[organisation]/[module]/[revision]/[module]-[revision].ivy"
-        addArtifactPattern "${project.properties['ivy.buildscript.repository']}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
-        m2compatible = true
-        checkmodified = true
+      ivy {
+        url = new File(project.properties['ivy.buildscript.repository'])
+        layout 'maven'
       }
     }
 
-    // if you want to disallow maven central
-    if(project.properties['no.maven.central'] != 'true')
-    {
-      mavenCentral()
-    }
-  }
+   // if you want to disallow jcenter
+   if(project.properties['no.jcenter'] != 'true')
+   {
+     mavenRepo(url: 'http://jcenter.bintray.com')
+   }
+
+   // if you want to disallow maven central
+   if(project.properties['no.maven.central'] != 'true')
+   {
+     mavenCentral()
+   }
+ }
 
   dependencies {
-    classpath 'org.linkedin:org.linkedin.gradle-plugins:1.5.0'
+    classpath 'org.pongasoft:org.linkedin.gradle-plugins:2.0.2'
   }
 }
 
 apply plugin: 'org.linkedin.userConfig'
 apply plugin: 'org.linkedin.spec'
 
-topBuildDir = userConfig.top.build.dir ?: "${rootDir}/out/build"
+ext {
+  topBuildDir = userConfig.top.build.dir ?: "${rootDir}/out/build"
+}
 
-apply plugin: 'org.linkedin.repository'
+ext {
+  consoleKeys = fileTree(dir: 'dev-keys',
+                         includes: ['console.keystore', 'agent.truststore', 'console.secretkeystore'])
+  agentKeys = fileTree(dir: 'dev-keys',
+                       includes: ['console.truststore', 'agent.keystore'])
 
-consoleKeys = fileTree(dir: 'dev-keys',
-                       includes: ['console.keystore', 'agent.truststore', 'console.secretkeystore'])
-agentKeys = fileTree(dir: 'dev-keys',
-                     includes: ['console.truststore', 'agent.keystore'])
-
-packageIncludesFiles = [
-  'LICENSE.txt',
-  'NOTICE.txt',
-  'README.md',
-  'RELEASE.rst',
-  'RESTLET-2.0.1-EPL-LICENSE.html',
-  'SIGAR-1.6.4-LICENSE.txt'
-]
-packageIncludes = fileTree(dir: rootDir, includes: packageIncludesFiles)
+  packageIncludesFiles = [
+    'LICENSE.txt',
+    'NOTICE.txt',
+    'README.md',
+    'RELEASE.rst',
+    'RESTLET-2.1.2-EPL-LICENSE.html',
+    'SIGAR-1.6.4-LICENSE.txt'
+  ]
+  packageIncludes = fileTree(dir: rootDir, includes: packageIncludesFiles)
+}
 
 allprojects {
   apply plugin: 'idea'
   group = spec.group
   version = spec.version
+
+  // this is to force JUnit to a consistent version (zookeeper is bringing a different one!)
+  configurations.all {
+    resolutionStrategy {
+      force spec.external.junit
+    }
+  }
 }
 
 def ideaCopyright = """
-<component name="CopyrightManager" default="LinkedIn Apache 2.0">
+<component name="CopyrightManager" default="Yan Pujante Apache 2.0">
   <copyright>
-    <option name="notice" value="Copyright (c) ${userConfig.copyright ?: '2010-&amp;#36;today.year LinkedIn, Inc'}&#10;&#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may not&#10;use this file except in compliance with the License. You may obtain a copy of&#10;the License at&#10;&#10;http://www.apache.org/licenses/LICENSE-2.0&#10;&#10;Unless required by applicable law or agreed to in writing, software&#10;distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT&#10;WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the&#10;License for the specific language governing permissions and limitations under&#10;the License." />
+    <option name="notice" value="Copyright (c) ${userConfig.copyright ?: '#36;today.year Yan Pujante'}&#10;&#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;); you may not&#10;use this file except in compliance with the License. You may obtain a copy of&#10;the License at&#10;&#10;http://www.apache.org/licenses/LICENSE-2.0&#10;&#10;Unless required by applicable law or agreed to in writing, software&#10;distributed under the License is distributed on an &quot;AS IS&quot; BASIS, WITHOUT&#10;WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the&#10;License for the specific language governing permissions and limitations under&#10;the License." />
     <option name="keyword" value="Copyright" />
     <option name="allowReplaceKeyword" value="" />
-    <option name="myName" value="LinkedIn Apache 2.0" />
+    <option name="myName" value="Yan Pujante Apache 2.0" />
     <option name="myLocal" value="true" />
   </copyright>
   <module2copyright>
-    <element module="All" copyright="LinkedIn Apache 2.0" />
+    <element module="All" copyright="Yan Pujante Apache 2.0" />
   </module2copyright>
 </component>
 """
 
 // customizing idea project
-ideaProject {
-  withXml { root ->
+idea.project {
+  ipr.withXml { root ->
     root = root.asNode()
     root.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
     def copyrightNode = root.component.find { it.@name == 'CopyrightManager'}
@@ -99,7 +111,8 @@ ideaProject {
   }
 }
 
-subprojects {
+subprojects { p ->
+  apply plugin: 'org.linkedin.repository'
   buildscript {
     allRepositories.buildscript.configure(repositories)
   }
@@ -107,18 +120,18 @@ subprojects {
 
   allRepositories.build.configure(repositories)
 
-  if(repositories.findByName('restlet'))
-  {
-    // this is required because of bad pom files :(
-    repositories.restlet.checkconsistency = false
+  afterEvaluate {
+    p.convention.plugins.java?.sourceCompatibility = spec.versions.jdk
+    p.convention.plugins.java?.targetCompatibility = spec.versions.jdk
   }
-
-  sourceCompatibility = '1.6'
-  targetCompatibility = '1.6'
 
   buildDir = "${topBuildDir}${project.path.replace(':','/')}".toString()
 }
 
 task clean(type: Delete) {
   delete topBuildDir
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '1.5'
 }

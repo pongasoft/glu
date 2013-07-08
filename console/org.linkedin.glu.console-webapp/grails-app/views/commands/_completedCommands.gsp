@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2012 Yan Pujante
+  - Copyright (c) 2012-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -21,7 +21,7 @@
     <g:paginate total="${count}" controller="commands" action="list"/>
   </g:else>
 </div>
-<table class="bordered-table xtight-table">
+<table class="table table-bordered xtight-table">
   <thead>
   <tr>
     <g:if test="${!params.agentId}"><th class="agentFilter">Agent</th></g:if>

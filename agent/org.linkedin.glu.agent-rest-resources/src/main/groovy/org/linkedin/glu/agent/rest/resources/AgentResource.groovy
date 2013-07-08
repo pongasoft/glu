@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,11 +18,9 @@
 
 package org.linkedin.glu.agent.rest.resources
 
-import org.restlet.Context
-import org.restlet.Request
-import org.restlet.Response
 import org.restlet.representation.Representation
-import org.restlet.representation.Variant
+import org.restlet.resource.Get
+import org.restlet.resource.Put
 
 /**
  * Handles resources to the agent directly (like the list of mount points)
@@ -30,39 +29,26 @@ import org.restlet.representation.Variant
  */
 class AgentResource extends BaseResource
 {
-
-  AgentResource(Context context, Request request, Response response)
-  {
-    super(context, request, response);
-  }
-
-  public boolean allowGet()
-  {
-    return true
-  }
-
-  public boolean allowPut()
-  {
-    return true
-  }
-
   /**
-   * GET: return the list of mount points
+   * return the list of mount points
    */
-  public Representation represent(Variant variant)
+  @Get
+  public Representation getMountPoints()
   {
-    return noException {
+    noException {
       return toRepresentation([mountPoints: agent.getMountPoints()])
     }
   }
 
   /**
-   * PUT: sync
+   * sync
    */
-  public void storeRepresentation(Representation representation)
+  @Put
+  public Representation sync(Representation representation)
   {
     noException {
       agent.sync()
+      return null
     }
   }
 

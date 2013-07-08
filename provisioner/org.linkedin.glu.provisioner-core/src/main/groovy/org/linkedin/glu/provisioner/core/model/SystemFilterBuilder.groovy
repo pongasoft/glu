@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -76,17 +76,25 @@ public class SystemFilterBuilder
 
     def builder = new SystemFilterBuilder(filter: new LogicAndSystemFilterChain())
 
-    Script script = new GroovyShell(new BindingBuilder(systemFilterBuilder: builder)).parse(dsl)
+    def shell = new GroovyShell(new BindingBuilder(systemFilterBuilder: builder))
+    try
+    {
+      Script script = shell.parse(dsl)
 
-    script.metaClass = createEMC(script.class) { ExpandoMetaClass emc ->
-      ['and', 'or', 'not', 'c'].each { method ->
-        emc."${method}" = { Closure cl ->
-          builder."${method}"(cl)
+      script.metaClass = createEMC(script.class) { ExpandoMetaClass emc ->
+        ['and', 'or', 'not', 'c'].each { method ->
+          emc."${method}" = { Closure cl ->
+            builder."${method}"(cl)
+          }
         }
       }
-    }
 
-    script.run()
+      script.run()
+    }
+    finally
+    {
+      shell.resetLoadedClasses()
+    }
 
     return builder.optimizeFilter(builder.filter)
   }
@@ -101,12 +109,12 @@ public class SystemFilterBuilder
 
   SystemFilter and(Closure cl)
   {
-    optimizeFilter(addNewFilter(new LogicAndSystemFilterChain(), cl))
+    optimizeFilter(doAddNewFilter(new LogicAndSystemFilterChain(), cl))
   }
 
   SystemFilter or(Closure cl)
   {
-    optimizeFilter(addNewFilter(new LogicOrSystemFilterChain(), cl))
+    optimizeFilter(doAddNewFilter(new LogicOrSystemFilterChain(), cl))
   }
 
   SystemFilter not(Closure cl)
@@ -155,7 +163,7 @@ public class SystemFilterBuilder
     return newFilter
   }
 
-  private SystemFilter addNewFilter(SystemFilter newFilter, Closure cl)
+  private SystemFilter doAddNewFilter(SystemFilter newFilter, Closure cl)
   {
     return executeClosure(addNewFilter(newFilter), cl)
   }
@@ -183,7 +191,7 @@ public class SystemFilterBuilder
   }
 }
 
-private class PropertySystemFilterBuilder
+class PropertySystemFilterBuilder
 {
   SystemFilterBuilder systemFilterBuilder
   String propertyName
@@ -229,7 +237,7 @@ private class PropertySystemFilterBuilder
   }
 }
 
-private class TagsSystemFilterBuilder
+class TagsSystemFilterBuilder
 {
   public static final TagsSerializer TAGS_SERIALIZER = TagsSerializer.INSTANCE
 
@@ -287,7 +295,7 @@ private class TagsSystemFilterBuilder
   }
 }
 
-private class BindingBuilder extends Binding
+class BindingBuilder extends Binding
 {
   SystemFilterBuilder systemFilterBuilder
 

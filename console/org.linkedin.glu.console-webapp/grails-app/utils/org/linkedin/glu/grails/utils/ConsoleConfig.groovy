@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,16 +17,26 @@
 
 package org.linkedin.glu.grails.utils
 
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-import org.codehaus.groovy.grails.commons.ApplicationHolder
+import org.codehaus.groovy.grails.commons.GrailsApplication
+import org.codehaus.groovy.grails.plugins.support.aware.GrailsApplicationAware
 
 /**
  * @author ypujante@linkedin.com */
-class ConsoleConfig
+class ConsoleConfig implements GrailsApplicationAware
 {
+  static ConsoleConfig INSTANCE = null
+
   static ConsoleConfig getInstance()
   {
-    ApplicationHolder.application.mainContext.servletContext.consoleConfig
+    if(INSTANCE == null)
+      throw new IllegalStateException("ConsoleConfig not initialized")
+
+    return INSTANCE
+  }
+
+  static void setInstance(ConsoleConfig config)
+  {
+    INSTANCE = config
   }
 
   /**
@@ -38,9 +49,10 @@ class ConsoleConfig
    */
   def config
 
-  ConsoleConfig()
+  @Override
+  void setGrailsApplication(GrailsApplication grailsApplication)
   {
-    config = ConfigurationHolder.config
+    config = grailsApplication.config
     defaults = config.console.defaults
   }
 

@@ -110,6 +110,12 @@ def class ScriptNode implements Shutdownable, Startable, GluScript
   }
 
   @Override
+  Shell getRootShell()
+  {
+    script."rootShell"
+  }
+
+  @Override
   Map getParams()
   {
     script."params"

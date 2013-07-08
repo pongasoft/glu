@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Yan Pujante
+ * Copyright (c) 2012-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,6 +17,8 @@
 package org.linkedin.glu.utils.core;
 
 import org.linkedin.glu.utils.exceptions.DisabledFeatureException;
+import org.linkedin.glu.utils.reflect.ObjectAwareInvocationHandler;
+import org.linkedin.util.lang.LangUtils;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -24,7 +26,7 @@ import java.lang.reflect.Method;
 /**
  * @author yan@pongasoft.com
  */
-public class DisabledFeatureProxy implements InvocationHandler
+public class DisabledFeatureProxy extends ObjectAwareInvocationHandler
 {
   private final String _feature;
 
@@ -37,7 +39,7 @@ public class DisabledFeatureProxy implements InvocationHandler
   }
 
   @Override
-  public Object invoke(Object o, Method method, Object[] objects) throws Throwable
+  public Object doInvoke(Object o, Method method, Object[] objects) throws Throwable
   {
     throw new DisabledFeatureException(_feature);
   }

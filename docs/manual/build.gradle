@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,11 +18,13 @@ apply plugin: 'base'
 
 import org.apache.tools.ant.filters.ReplaceTokens
 
-sphinxDir = new File(buildDir, "sphinx")
+def sphinxDir = new File(buildDir, "sphinx")
 
-htmlDocDir = new File(sphinxDir, "build/html")
+ext {
+  htmlDocDir = new File(sphinxDir, "build/html")
+}
 
-def syncDir = new File(userConfig.doc.sync.dir ?: "${rootDir}/../linkedin.github.com/glu/docs/latest/html").canonicalFile
+def syncDir = new File(userConfig.doc.sync.dir ?: "${rootDir}/../pongasoft.github.io/glu/docs/latest/html").canonicalFile
 
 /**
  * Copy the source in the sphinxDir because they need to be processed to inject the version
@@ -61,7 +63,7 @@ task doc << {
 }
 
 /**
- * Syncs the documentation to linkedin.github.com (does not push it!)
+ * Syncs the documentation to pongasoft.github.io (does not push it!)
  */
 task sync(dependsOn: doc) << {
   ant.sync(todir: syncDir) {

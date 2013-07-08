@@ -1,5 +1,6 @@
 /*
 * Copyright (c) 2010-2010 LinkedIn, Inc
+* Portions Copyright (c) 2013 Yan Pujante
 *
 * Licensed under the Apache License, Version 2.0 (the "License"); you may not
 * use this file except in compliance with the License. You may obtain a copy of
@@ -15,19 +16,20 @@
 */
 
 apply plugin: 'org.linkedin.cmdline'
-apply plugin: 'org.linkedin.release'
+
+allRepositories.utilsZookeeperDistribution.configure()
 
 configurations {
   zookeeperPackages
 }
 
 dependencies {
-  zookeeperPackages spec.external.linkedinZookeeperCliPackage
+  zookeeperPackages spec.external.utilsZookeeperCliPackage
 }
 
 cmdline {
   replacementTokens = [
-    'zookeeper.version': spec.versions.linkedinZookeeper
+    'zookeeper.version': spec.versions.utilsZookeeper
   ]
   folders = []
   resources << packageIncludes

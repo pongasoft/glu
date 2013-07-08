@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Yan Pujante
+ * Copyright (c) 2012-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -76,7 +76,7 @@ org.linkedin.app.version=test
 glu.agent.name=agent-1
 glu.agent.fabric=test-fabric
 glu.agent.port=${agentPort}
-glu.agent.zkConnectString=localhost:${zkClientPort}
+glu.agent.zkConnectString=127.0.0.1:${zkClientPort}
 glu.agent.zookeeper.root=/org/glu
 
 glu.agent.features.commands.enabled=true

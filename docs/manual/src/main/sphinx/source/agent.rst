@@ -1,4 +1,4 @@
-.. Copyright (c) 2011 Yan Pujante
+.. Copyright (c) 2011-2013 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -30,7 +30,7 @@ An agent belongs to one and only one :term:`fabric` (which is a group of agents)
 
 glu Script Engine
 -----------------
-The agent is a glu script engine: it knows how to install and execute a :term:`glu script`. You can check the `agent api <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-api/src/main/groovy/org/linkedin/glu/agent/api/Agent.groovy>`_ to view all the actions offered by the agent.
+The agent is a glu script engine: it knows how to install and execute a :term:`glu script`. You can check the `agent api <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-api/src/main/groovy/org/linkedin/glu/agent/api/Agent.groovy>`_ to view all the actions offered by the agent.
 
 .. _agent-install-glu-script:
 
@@ -193,7 +193,7 @@ Capabilities
 One of the main design goals in building the agent was the ability to write simple glu scripts. This is achieved with the fact that the agent enhances the glu scripts with capabilities that make it easier to write them. Most of the capabilities are made available to the glu scripts by 'injecting' properties that the glu scripts can simply reference (under the hood it uses groovy MOP capabilities).
 
 .. tip:: 
-   Implicitely (at runtime), all glu scripts implement the `GluScript <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-impl/src/main/groovy/org/linkedin/glu/agent/impl/GluScript.groovy>`_ interface.
+   Implicitely (at runtime), all glu scripts implement the `GluScript <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-impl/src/main/groovy/org/linkedin/glu/agent/impl/GluScript.groovy>`_ interface.
 
 .. _agent-capabilities-log:
 
@@ -247,7 +247,7 @@ This property contains a collection of ``GluScript`` of the children of this scr
 
 ``stateManager``
 """"""""""""""""
-An instance of ``org.linkedin.glu.agent.api.StateManager`` (`StateManager api <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-api/src/main/groovy/org/linkedin/glu/agent/api/StateManager.groovy>`_) which allows to access the state::
+An instance of ``org.linkedin.glu.agent.api.StateManager`` (`StateManager api <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-api/src/main/groovy/org/linkedin/glu/agent/api/StateManager.groovy>`_) which allows to access the state::
 
     def install = {
       log.info "current state is ${stateManager.state}"
@@ -267,9 +267,9 @@ Shortcut to ``stateManager.state``::
 
 ``shell``
 """""""""
-An instance of ``org.linkedin.glu.agent.api.Shell`` (`Shell api <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-api/src/main/groovy/org/linkedin/glu/agent/api/Shell.groovy>`_) which gives access to a lot of shell like capabilities
+An instance of ``org.linkedin.glu.agent.api.Shell`` (`Shell api <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-api/src/main/groovy/org/linkedin/glu/agent/api/Shell.groovy>`_) which gives access to a lot of shell like capabilities
 
-* file system (see ``org.linkedin.groovy.util.io.fs.FileSystem`` (`FileSystem api <https://github.com/linkedin/linkedin-utils/blob/master/org.linkedin.util-groovy/src/main/groovy/org/linkedin/groovy/util/io/fs/FileSystem.groovy>`_) like ``ls``, ``cp``, ``mv``, ``rm``, ``tail``...
+* file system (see ``org.linkedin.groovy.util.io.fs.FileSystem`` (`FileSystem api <https://github.com/pongasoft/linkedin-utils/blob/master/org.linkedin.util-groovy/src/main/groovy/org/linkedin/groovy/util/io/fs/FileSystem.groovy>`_) like ``ls``, ``cp``, ``mv``, ``rm``, ``tail``...
 * process (``fork``, ``exec``...)
 * ``fetch/untar`` to download and untar/unzip binaries (based on any URI)::
 
@@ -280,6 +280,23 @@ An instance of ``org.linkedin.glu.agent.api.Shell`` (`Shell api <https://github.
         }
 
   .. tip:: The agent handles ``zookeeper:/a/b/c`` style URIs and can be configured to handle ``ivy:/a/b/1.0`` style URIs.
+
+.. _agent-capabilities-root-shell:
+
+``rootShell``
+"""""""""""""
+The difference between ``rootShell`` and ``shell`` is where ``/`` is referring to. In the case
+of ``shell``, ``/`` refers to the application directory (see ``GLU_AGENT_APPS`` config property).
+In the case of ``rootShell``, ``/`` refers to the root of the filesystem.
+
+.. tip:: it is highly recommended to install your applications relative to ``shell`` using a
+         pattern like this::
+
+           def installRoot = shell.toResource(mountPoint)
+
+         glu will automatically clean after yourself on uninstall if you use this pattern.
+         Using ``rootShell`` is not recommended but still provided in the (hopefully rare) cases
+         when you need it.
 
 .. _agent-capabilities-shell-env:
 
@@ -297,7 +314,7 @@ in the configuration file (agent config) loaded in ZooKeeper for a given fabric 
 
 ``timers``
 """"""""""
-An instance of ``org.linkedin.glu.agent.api.Timers`` (`Timers api <https://github.com/linkedin/glu/blob/master/agent/org.linkedin.glu.agent-api/src/main/groovy/org/linkedin/glu/agent/api/Timers.groovy>`_) which allows you to set/remove a :term:`timer` (for monitoring for example)::
+An instance of ``org.linkedin.glu.agent.api.Timers`` (`Timers api <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-api/src/main/groovy/org/linkedin/glu/agent/api/Timers.groovy>`_) which allows you to set/remove a :term:`timer` (for monitoring for example)::
 
     def timer1 = {
       log.info "hello world"
@@ -313,7 +330,7 @@ An instance of ``org.linkedin.glu.agent.api.Timers`` (`Timers api <https://githu
     }
 
 .. tip:: 
-   The frequency for a timer is of type ``org.linkedin.util.clock.Timespan`` (`Timespan api <https://github.com/linkedin/linkedin-utils/blob/master/org.linkedin.util-core/src/main/java/org/linkedin/util/clock/Timespan.java>`_) and is expressed as a string::
+   The frequency for a timer is of type ``org.linkedin.util.clock.Timespan`` (`Timespan api <https://github.com/pongasoft/linkedin-utils/blob/master/org.linkedin.util-core/src/main/java/org/linkedin/util/clock/Timespan.java>`_) and is expressed as a string::
 
           15s // 15 seconds
           1m10s // 1 minute 10 seconds
@@ -533,6 +550,10 @@ Configuration properties
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 |NA                  |``GLU_AGENT_PORT``            |``glu.agent.port``                     |``12906``                                                                                  |The port the agent will listen  |
 |                    |                              |                                       |                                                                                           |on (REST api port)              |
+|                    |                              |                                       |                                                                                           |                                |
++--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
+|NA                  |``GLU_AGENT_ADDRESS``         |``glu.agent.address``                  |Undefined (optional)                                                                       |The address the agent will bind |
+|                    |                              |                                       |                                                                                           |to (REST api address)           |
 |                    |                              |                                       |                                                                                           |                                |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 |``-f``              |``GLU_AGENT_FABRIC``          |``glu.agent.fabric``                   |Undefined but required (see                                                                |The :term:`fabric` this agent   |

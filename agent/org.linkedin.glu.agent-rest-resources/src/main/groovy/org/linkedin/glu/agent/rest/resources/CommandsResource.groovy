@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Yan Pujante
+ * Copyright (c) 2012-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,32 +16,19 @@
 
 package org.linkedin.glu.agent.rest.resources
 
-import org.restlet.Context
-import org.restlet.Request
-import org.restlet.Response
 import org.restlet.representation.InputRepresentation
 import org.restlet.representation.Representation
+import org.restlet.resource.Post
 
 /**
  * @author yan@pongasoft.com */
 public class CommandsResource extends BaseResource
 {
-  CommandsResource(Context context, Request request, Response response)
-  {
-    super(context, request, response);
-  }
-
-  @Override
-  boolean allowPost()
-  {
-    return true
-  }
-
   /**
    * Handle POST
    */
-  @Override
-  public void acceptRepresentation(Representation representation)
+  @Post
+  public Representation executeCommand(Representation representation)
   {
     noException {
       def args = toArgs(request.originalRef.queryAsForm)
@@ -55,7 +42,7 @@ public class CommandsResource extends BaseResource
       if(args.type == "shell")
       {
         res = agent.executeShellCommand(args)
-        response.setEntity(toRepresentation(res: res))
+        toRepresentation(res: res)
       }
       else
         throw new UnsupportedOperationException("unknown command type [${args.toString()}]")

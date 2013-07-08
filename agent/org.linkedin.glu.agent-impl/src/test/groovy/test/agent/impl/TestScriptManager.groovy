@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
  * Portions Copyright (c) 2011 Andras Kovi
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,10 +23,12 @@ import org.linkedin.glu.agent.impl.capabilities.ShellImpl
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.api.DuplicateMountPointException
 import org.linkedin.glu.agent.api.NoSuchMountPointException
-import org.linkedin.glu.agent.impl.script.AgentContext
 import org.linkedin.glu.agent.impl.capabilities.MOPImpl
+import org.linkedin.glu.agent.impl.script.AgentContext
+import org.linkedin.glu.agent.impl.script.AgentContextImpl
 import org.linkedin.glu.agent.impl.script.ScriptManagerImpl
 import org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory
+import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
 import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.glu.agent.api.ScriptIllegalStateException
 import org.linkedin.util.io.ram.RAMDirectory
@@ -80,8 +82,11 @@ def class TestScriptManager extends GroovyTestCase
 
     shell = new ShellImpl(fileSystem: fileSystem)
 
+    def rootShell = new ShellImpl(fileSystem: new FileSystemImpl(new File("/")))
+
     def agentContext = [
       getShellForScripts: {shell},
+      getRootShell: { rootShell },
       getMop: {new MOPImpl()},
       getClock: { SystemClock.instance() }
     ] as AgentContext
@@ -415,17 +420,18 @@ class Dependency2
 
       // creating jar file with dependency classes
       Resource dependenciesJarFile =
-        compileAndJar(fs,
-                      [fs.saveContent("/src/classes/dependencies.groovy", dependencyClasses).file],
-                      fs.toResource('/out/jars/dependencies.jar'),
-                      null)
+        GluGroovyIOUtils.compileAndJar(fs,
+                                       [fs.saveContent("/src/classes/dependencies.groovy",
+                                                       dependencyClasses).file],
+                                       fs.toResource('/out/jars/dependencies.jar'))
 
       // creating jar file containing glu script
       Resource scriptJarFile =
-        compileAndJar(fs,
-                      [fs.saveContent("/src/classes/script.groovy", scriptClass).file],
-                      fs.toResource('/out/jars/script.jar'),
-                      [dependenciesJarFile])
+        GluGroovyIOUtils.compileAndJar(fs,
+                                       [fs.saveContent("/src/classes/script.groovy",
+                                                       scriptClass).file],
+                                       fs.toResource('/out/jars/script.jar'),
+                                       [dependenciesJarFile])
 
       def classpath = [dependenciesJarFile, scriptJarFile].collect { it.file.canonicalPath }
 
@@ -539,17 +545,18 @@ class SubScript extends BaseScript
 
       // creating jar file with base class
       Resource dependenciesJarFile =
-        compileAndJar(fs,
-                      [fs.saveContent("/src/classes/dependencies.groovy", baseScriptClass).file],
-                      fs.toResource('/out/jars/dependencies.jar'),
-                      null)
+        GluGroovyIOUtils.compileAndJar(fs,
+                                       [fs.saveContent("/src/classes/dependencies.groovy",
+                                                       baseScriptClass).file],
+                                       fs.toResource('/out/jars/dependencies.jar'))
 
       // creating jar file containing glu script (subclass)
       Resource scriptJarFile =
-        compileAndJar(fs,
-                      [fs.saveContent("/src/classes/script.groovy", subScriptClass).file],
-                      fs.toResource('/out/jars/script.jar'),
-                      [dependenciesJarFile])
+        GluGroovyIOUtils.compileAndJar(fs,
+                                       [fs.saveContent("/src/classes/script.groovy",
+                                                       subScriptClass).file],
+                                       fs.toResource('/out/jars/script.jar'),
+                                       [dependenciesJarFile])
 
       def classpath = [dependenciesJarFile, scriptJarFile].collect { it.file.canonicalPath }
 
@@ -596,99 +603,78 @@ class SubScript extends BaseScript
     }
   }
 
-  private Resource compileAndJar(FileSystem fs, def sources, def jar, def classpath)
+
+  private static class MyScriptTestScriptManager
   {
-    def cc = new CompilerConfiguration()
-    cc.targetDirectory = fs.createTempDir().file
-    if(classpath)
-      cc.classpathList = classpath.collect { it.file.canonicalPath }
-    CompilationUnit cu = new CompilationUnit(cc)
-    sources.each {
-      cu.addSource(GroovyIOUtils.toFile(it))
-    }
-    cu.compile()
+    def rootPath
 
-    Resource jarFile = fs.toResource(jar)
-
-    AntUtils.withBuilder { ant ->
-      ant.jar(destfile: jarFile.file, basedir: cc.targetDirectory)
+    def install = { args ->
+      rootPath = mountPoint
+      GroovyTestCase.assertEquals(args.expectedMountPoint, mountPoint)
+      GroovyTestCase.assertEquals(args.expectedParentRootPath, parent.rootPath)
+      GroovyTestCase.assertEquals("/", rootShell.toResource("/").file.canonicalPath)
+      shell.mkdirs(mountPoint)
+      return [install: "${args.value}/${params.p1}".toString()]
     }
 
-    fs.rmdirs(cc.targetDirectory)
+    def configure = { args ->
+      return "${parent.closure(p1: args.p1, p2: args.p2)}".toString()
+    }
 
-    return jarFile
-  }
-}
+    def createChild = { args ->
+      return args.script
+    }
 
-private def class MyScriptTestScriptManager
-{
-  def rootPath
+    def destroyChild = { args ->
+    }
 
-  def install = { args ->
-    rootPath = mountPoint
-    GroovyTestCase.assertEquals(args.expectedMountPoint, mountPoint)
-    GroovyTestCase.assertEquals(args.expectedParentRootPath, parent.rootPath)
-    shell.mkdirs(mountPoint)
-    return [install: "${args.value}/${params.p1}".toString()]
+    def closure = { args ->
+      return "closure:${mountPoint}: ${args.p1}/${args.p2}".toString()
+    }
   }
 
-  def configure = { args ->
-    return "${parent.closure(p1: args.p1, p2: args.p2)}".toString()
+  /**
+   * "Script" class for testing transient modifier support for fields.
+   */
+  private static class TransientFieldTestScript
+  {
+    def normalField
+    def nullField
+    def nonSerializableField
+    def serializableWithNonSerializableContent
+    def transient transientField
+    def boolean booleanField
+    def int intField
+    static staticField
+
+    def install = { args ->
+      normalField = args.normalValue
+      nullField = null
+      nonSerializableField = args.nonSerializableValue
+      serializableWithNonSerializableContent = args.serializableWithNonSerializableContent
+      transientField = args.transientValue
+
+      booleanField = args.booleanValue
+      intField = args.intValue
+
+      staticField = args.staticValue
+    }
   }
 
-  def createChild = { args ->
-    return args.script
-  }
+  private static class TransientFieldTestScript2
+  {
+    def Object keepOnChanging = "initValue";
 
-  def destroyChild = { args ->
-  }
+    def install = {
+      keepOnChanging = 3; // serializable... should be part of the state
+    }
 
-  def closure = { args ->
-    return "closure:${mountPoint}: ${args.p1}/${args.p2}".toString()
-  }
-}
+    def configure = {
+      keepOnChanging = new Object(); // non-serializable
+    }
 
-/**
- * "Script" class for testing transient modifier support for fields.
- */
-private def class TransientFieldTestScript
-{
-  def normalField
-  def nullField
-  def nonSerializableField
-  def serializableWithNonSerializableContent
-  def transient transientField
-  def boolean booleanField
-  def int intField
-  static staticField
-
-  def install = { args ->
-    normalField = args.normalValue
-    nullField = null
-    nonSerializableField = args.nonSerializableValue
-    serializableWithNonSerializableContent = args.serializableWithNonSerializableContent
-    transientField = args.transientValue
-
-    booleanField = args.booleanValue
-    intField = args.intValue
-
-    staticField = args.staticValue
-  }
-}
-
-private def class TransientFieldTestScript2
-{
-  def Object keepOnChanging = "initValue";
-
-  def install = {
-    keepOnChanging = 3; // serializable... should be part of the state
-  }
-
-  def configure = {
-    keepOnChanging = new Object(); // non-serializable
-  }
-
-  def start = {
-    keepOnChanging = 3; // serializable again
+    def start = {
+      keepOnChanging = 3; // serializable again
+    }
   }
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -20,6 +20,7 @@ package org.linkedin.glu.agent.impl.script
 
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.impl.storage.Storage
+import org.linkedin.groovy.util.lang.GroovyLangUtils
 
 /**
  * The purpose of this class is to keep track and record the state of the script manager
@@ -89,23 +90,25 @@ def class StateKeeperScriptManager implements ScriptManager
   private void restoreScript(state)
   {
     log.info "Restoring state: ${state}"
-    ScriptNode node
-    if(state.scriptDefinition.mountPoint == MountPoint.ROOT)
-    {
-      node = _scriptManager.installRootScript([:])
-    }
-    else
-    {
-      node = _scriptManager.installScript(state.scriptDefinition)
-    }
+    GroovyLangUtils.noExceptionWithMessage("Invalid state detected: ${state}") {
+      ScriptNode node
+      if(state.scriptDefinition.mountPoint == MountPoint.ROOT)
+      {
+        node = _scriptManager.installRootScript([:])
+      }
+      else
+      {
+        node = _scriptManager.installScript(state.scriptDefinition)
+      }
 
-    node.scriptState.restore(state)
+      node.scriptState.restore(state)
 
-    // restarting timers if there was any
-    state.scriptState.timers?.each {
-      node.scheduleTimer(it)
+      // restarting timers if there was any
+      state.scriptState.timers?.each {
+        node.scheduleTimer(it)
+      }
+      addListener(node)
     }
-    addListener(node)
   }
 
   public ScriptNode installRootScript(actionArgs)

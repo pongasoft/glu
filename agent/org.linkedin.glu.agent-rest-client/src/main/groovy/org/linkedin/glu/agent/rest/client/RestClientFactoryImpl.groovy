@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -24,7 +24,6 @@ import org.linkedin.util.clock.Timespan
 import org.restlet.Client
 import org.restlet.Context
 import org.restlet.data.Protocol
-import org.restlet.data.Reference
 
 /**
  * @author yan@pongasoft.com */
@@ -50,7 +49,9 @@ class RestClientFactoryImpl implements RestClientFactory
     {
       case 'http':
         protocol = Protocol.HTTP
-        client = new Client(null, [protocol] as List, 'org.restlet.ext.httpclient.HttpClientHelper')
+        client = new Client(null,
+                            [protocol] as List,
+                            'org.restlet.ext.httpclient.HttpClientHelper') // forcing httpclient
         client.connectTimeout = connectionTimeout.durationInMilliseconds
         break;
 
@@ -59,7 +60,9 @@ class RestClientFactoryImpl implements RestClientFactory
         Context context = new Context()
         context.attributes['serverURI'] = uri
         context.attributes['sslContext'] = _sslContext
-        client = new Client(context, [protocol] as List, HttpsClientHelper.class.name)
+        client = new Client(context,
+                            [protocol] as List,
+                            HttpsClientHelper.class.name)
         client.connectTimeout = connectionTimeout.durationInMilliseconds
         break;
 

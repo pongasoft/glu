@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -27,7 +27,7 @@
   </style>
 </head>
 <body>
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li class="active"><a href="#">List</a></li>
   <li><g:link action="choose">Load</g:link></li>
 </ul>

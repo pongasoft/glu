@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -27,13 +27,11 @@ import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.util.codec.Base64Codec
 import org.linkedin.util.codec.Codec
 import org.linkedin.util.codec.CodecUtils
-import org.linkedin.util.codec.OneWayCodec
-import org.linkedin.util.codec.OneWayMessageDigestCodec
 import org.restlet.Client
 import org.restlet.data.Form
 import org.restlet.data.Protocol
-import org.restlet.engine.security.DefaultSslContextFactory
 import org.restlet.ext.httpclient.HttpClientHelper
+import org.restlet.ext.ssl.DefaultSslContextFactory
 import org.restlet.util.Series
 
 /**

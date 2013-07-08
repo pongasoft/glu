@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -49,6 +49,11 @@ public interface SystemService
    * <code>true</code> otherwise
    */
   boolean saveCurrentSystem(SystemModel newSystemModel)
+
+  /**
+   * Deletes the current system associated to a fabric
+   */
+  boolean deleteCurrentSystem(String fabric)
 
   /**
    * Sets the system provided its id as the current system

@@ -2,7 +2,7 @@ Important
 =========
 
 The (latest) documentation for glu can be found online at
-http://linkedin.github.com/glu/docs/latest/html/index.html
+http://pongasoft.github.io/glu/docs/latest/html/index.html
 
 The documentation corresponding to the version of this package can be viewed in any web browser
 and is included in this package under the folder:

@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -16,8 +16,8 @@
   --}%
 <g:each in="['warning', 'success', 'error', 'info']" var="ft">
   <g:if test="${flash[ft]}">
-    <div id="flash" class="alert-message ${ft} fade in" data-alert="alert" >
-      <a class="close" href="#">&times;</a>
+    <div id="flash" class="alert alert-${ft} fade in" >
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
       <g:if test="${flash[ft] instanceof Collection}">
         <ul>
           <g:each in="${flash[ft]}" var="msg">

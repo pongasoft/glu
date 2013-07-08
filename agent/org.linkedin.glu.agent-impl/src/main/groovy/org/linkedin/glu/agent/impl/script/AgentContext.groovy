@@ -25,6 +25,7 @@ import org.linkedin.util.clock.Clock
 public interface AgentContext
 {
   Clock getClock()
+  Shell getRootShell()
   Shell getShellForScripts()
   Shell getShellForCommands()
   MOP getMop()

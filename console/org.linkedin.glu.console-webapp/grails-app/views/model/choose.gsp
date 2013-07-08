@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -23,14 +23,14 @@
 </head>
 <body>
 <div class="body">
-  <ul class="tabs">
+  <ul class="nav nav-tabs">
     <li><g:link action="list">List</g:link></li>
     <li class="active"><a href="#">Load</a></li>
   </ul>
 
   <div class="row">
     <div class="span12">
-      <g:form class="form-stacked" action="upload" method="post" enctype="multipart/form-data">
+      <g:form action="upload" method="post" enctype="multipart/form-data">
         <fieldset>
           <legend>From JSON (Upload)</legend>
           <div class="clearfix">
@@ -38,25 +38,25 @@
               <input type="file" name="jsonFile" />
             </div>
           </div>
+          <div class="actions">
+            <g:actionSubmit class="btn btn-primary" action="load" value="Upload"/>
+          </div>
         </fieldset>
-        <div class="actions">
-          <g:actionSubmit class="btn primary" action="load" value="Upload"/>
-        </div>
       </g:form>
     </div>
   </div>
   <div class="row">
     <div class="span12">
-      <g:form class="form-stacked" action="load">
+      <g:form action="load">
         <fieldset>
           <legend>From JSON (URI)</legend>
           <div class="clearfix">
-            <g:textField name="jsonUri" value="${params.jsonUri}" class="xxlarge"/>
+            <g:textField name="jsonUri" value="${params.jsonUri}" class="input-xxlarge"/>
+          </div>
+          <div class="actions">
+            <g:actionSubmit class="btn btn-primary" action="load" value="Load"/>
           </div>
         </fieldset>
-        <div class="actions">
-          <g:actionSubmit class="btn primary" action="load" value="Load"/>
-        </div>
       </g:form>
     </div>
   </div>

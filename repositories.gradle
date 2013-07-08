@@ -1,6 +1,6 @@
-
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,20 +22,24 @@ def topPublishDir = new File(userConfig.top.publish.dir ?: "${topBuildDir}/publi
  * Repositories for build
  */
 allRepositories.build = {
-  mavenRepo urls: "file://${rootDir}/local-maven-repo"
-  add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
+  // for libs included in this project
+  mavenRepo url: "file://${rootDir}/local-maven-repo"
+
+  ivy {
     name = "build-release"
-    addIvyPattern "${topReleaseDir}/[organisation]/[module]/[revision]/[module]-[revision].ivy"
-    addArtifactPattern "${topReleaseDir}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
-    m2compatible = true
-    checkmodified = true
+    url = topReleaseDir
+    layout 'maven'
   }
 
-  mavenRepo name: 'build-publish', urls: topPublishDir.toURI()
+  mavenRepo name: 'build-publish', url: topPublishDir.toURI()
 
-  mavenRepo name: 'restlet', urls: "http://maven.restlet.org"
+  mavenRepo name: 'grails-central', url: "http://repo.grails.org/grails/core"
 
   mavenCentral()
+
+  mavenRepo name: 'restlet', url: "http://maven.restlet.org"
+
+  bintray.jcenter()
 }
 
 /**
@@ -44,18 +48,56 @@ allRepositories.build = {
 allRepositories.buildscript = allRepositories.build
 
 /**
+ * Repository where the zookeeper-cli and zookeeper-server are being published
+ */
+allRepositories.utilsZookeeperDistribution = {
+  ivy {
+    url = 'http://dl.bintray.com/content/pongasoft/utils-zookeeper'
+    layout "pattern", {
+      artifact "[artifact]-[revision](-[classifier])(.[ext])"
+      ivy "[module]-[revision](-[classifier]).ivy"
+    }
+  }
+}
+
+/**
  * Repositories for release
  */
 allRepositories.snapshotRelease = {
-  add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
-    name = 'local-release'
-    addIvyPattern "${topReleaseDir}/[organisation]/[module]/[revision]/[module]-[revision].ivy"
-    addArtifactPattern "${topReleaseDir}/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
-    m2compatible = true
+  ivy {
+    name = "local-release"
+    url = topReleaseDir
+    layout 'maven'
   }
 }
 
 allRepositories.release = allRepositories.snapshotRelease
+
+def pomConfig =  { pomToConfigure ->
+  pomToConfigure.project {
+    name project.rootProject.name
+    description 'glu Deployment Automation Platform'
+    url 'http://github.com/pongasoft/glu'
+    licenses {
+      license {
+        name 'The Apache Software License, Version 2.0'
+        url 'http://www.apache.org/licenses/LICENSE-2.0'
+      }
+    }
+    developers {
+      developer {
+        id 'ypujante'
+        name 'Yan Pujante'
+        email 'yan@pongasoft.com'
+      }
+    }
+    scm {
+      connection "scm:git:${spec.scmUrl}"
+      developerConnection "scm:git:${spec.scmUrl}"
+      url spec.scmUrl
+    }
+  }
+}
 
 /**
  * Repositories for publish
@@ -63,42 +105,18 @@ allRepositories.release = allRepositories.snapshotRelease
 allRepositories.snapshotPublish = {
   mavenDeployer {
     repository(url: "file://localhost${topPublishDir}")
-    pom.whenConfigured { pomToConfigure ->
-      pomToConfigure.project {
-        name project.name
-        description 'GLU Deployment Automation Platform'
-        url 'http://github.com/linkedin/glu'
-        licenses {
-          license {
-            name 'The Apache Software License, Version 2.0'
-            url 'http://www.apache.org/licenses/LICENSE-2.0'
-          }
-        }
-        developers {
-          developer {
-            id 'ypujante'
-            name 'Yan Pujante'
-            email 'yan@pongasoft.com'
-          }
-          developer {
-            id 'referretti'
-            name 'Ricardo Ferretti'
-            email 'rferretti@linkedin.com'
-          }
-          developer {
-            id 'mdubey'
-            name 'Manish Dubey'
-            email 'mdubey@linkedin.com'
-          }
-        }
-        scm {
-          connection "scm:git:${spec.scmUrl}"
-          developerConnection "scm:git:${spec.scmUrl}"
-          url spec.scmUrl
-        }
-      }
-    }
+    pom.whenConfigured(pomConfig)
   }
 }
 
-allRepositories.publish = allRepositories.snapshotPublish
+/**
+ * Bintray binaries / maven style
+ */
+allRepositories.publish = bintray.binaries.mavenRepo {
+  pom.whenConfigured(pomConfig)
+}
+
+/**
+ * Distributions go to a different location
+ */
+allRepositories.distributions = bintray.distributions.ivyRepo()

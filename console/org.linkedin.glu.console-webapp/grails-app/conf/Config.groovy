@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -35,6 +35,11 @@ console.deploymentService.autoArchiveTimeout = "30m"
 
 // set to true if you want to display state delta in error even if there is a delta (yellow vs red)
 console.deltaService.stateDeltaOverridesDelta = true
+
+// set to false if you want missing agents to not be skipped anymore in plan computation
+console.plannerService.planner.skipMissingAgents = true
+
+console.trackerService.zookeeperRoot = '/org/glu'
 
 // connection timeout when the console tries to talk to the agent (rest)
 console.to.agent.connectionTimeout = "30s"
@@ -99,7 +104,7 @@ grails.external.domain.packages = [
 ]
 
 // this parameter disables auto flushing in grails which happens when an object is dirty
-// and not saved... when setting this to manual you need to explicitely save the object
+// and not saved... when setting this to manual you need to explicitly save the object
 hibernate.flush.mode="manual"
 
 // see ConsoleConfig for explanation
@@ -426,6 +431,7 @@ environments {
     console.defaults = console.dev.defaults
 
     plugins.StreamFileContentPlugin.unrestrictedLocation = '/export/content/glu'
+    plugins.StreamFileContentPlugin.maskFileContent = true
 
     grails.serverURL = "http://${InetAddress.getLocalHost().canonicalHostName}:8080/${appName}"
 

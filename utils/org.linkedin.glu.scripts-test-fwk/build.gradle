@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,11 +18,11 @@ apply plugin: 'groovy'
 apply plugin: 'org.linkedin.release'
 
 dependencies {
-  compile spec.external.linkedinUtilsGroovy
+  compile spec.external.utilsMiscGroovy
   compile project(':agent:org.linkedin.glu.agent-api')
   compile project(':agent:org.linkedin.glu.agent-impl')
 
-  groovy spec.external.groovy
+  compile spec.external.groovy
 
   compile spec.external.junit
 }

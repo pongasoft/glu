@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -36,6 +36,7 @@
       width: 150px;
       border: solid black 1px;
       display: inline-block;
+      margin: 0;
     }
   </style>
     <g:javascript>
@@ -76,18 +77,18 @@ function showHide()
     </g:javascript>
 </head>
 <body onload="autoRefresh();">
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li class="active"><a href="#">Recent</a></li>
   <li><g:link action="archived">Archived</g:link></li>
 </ul>
 <g:if test="${groupBy != null}">
-  <h3>
+  <h4>
     Auto Refresh: <cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
     <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/>
     <g:each in="${filters}" var="filter">
       |  ${filter.value}: <cl:checkBoxInitFromParams name="${filter.key}" id="${filter.key}" onclick="showHide();"/>
     </g:each>
-  </h3>
+  </h4>
   <div id="asyncDetails">
     <g:render template="deployments" model="[groupBy: groupBy]"/>
   </div>

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,7 +19,7 @@ package test.agent.perf
 
 /**
  * Example of running the performance test:
- * groovy groovy/test/agent/perf/TestPerfTimers.groovy /Volumes/raptor/deployment/glu/dist/agent/client/bin/gluc.sh resources/TimersTestScript.groovy
+ * groovy groovy/test/agent/perf/TestPerfTimers.groovy /export/content/glu/org.linkedin.glu.packaging-all-xxx/bin/agent-cli.sh resources/TimersTestScript.groovy
  * @author ypujante@linkedin.com */
 class TestPerfTimers
 {

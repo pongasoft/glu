@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,6 +17,7 @@
 
 package org.linkedin.glu.agent.server
 
+import org.linkedin.glu.agent.rest.common.RestServerFactoryImpl
 import org.linkedin.glu.agent.rest.resources.AgentConfigResource
 import org.linkedin.groovy.util.config.Config
 import org.linkedin.util.clock.Timespan
@@ -24,6 +25,7 @@ import org.linkedin.util.collections.CollectionsUtils
 import org.linkedin.util.lifecycle.Configurable
 import org.linkedin.zookeeper.client.IZKClient
 import org.linkedin.zookeeper.client.ZKClient
+import org.restlet.Server
 import org.restlet.routing.Router
 import org.restlet.Component
 import org.restlet.data.Protocol
@@ -115,7 +117,10 @@ class IZKClientFactory implements Configurable
     def port = Config.getOptionalInt(config, "${prefix}.agent.rest.nonSecure.port".toString(), 12907)
 
     def component = new Component();
-    def server = component.getServers().add(Protocol.HTTP, port);
+    def server = new RestServerFactoryImpl().createRestServer(false,
+                                                              null,
+                                                              port)
+    component.getServers().add(server)
     def context = component.getContext().createChildContext()
     def router = new Router(context)
     router.attach('/config', AgentConfigResource)

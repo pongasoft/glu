@@ -1,7 +1,7 @@
 
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -24,14 +24,14 @@
         <title>Show User</title>
     </head>
     <body>
-    <ul class="tabs">
+    <ul class="nav nav-tabs">
       <li><g:link action="list">User List</g:link></li>
       <li class="active"><a href="#">User [${userInstance.username}]</a></li>
       <li><g:link controller="user" action="edit" id="${userInstance.id}">Edit</g:link></li>
     </ul>
         <div class="body">
             <div class="dialog">
-              <table class="bordered-table condensed-table noFullWidth">
+              <table class="table table-bordered table-condensed noFullWidth">
                     <tbody>
 
                     
@@ -68,7 +68,7 @@
             <div class="buttons">
                 <g:form>
                     <input type="hidden" name="id" value="${userInstance?.id}" />
-                    <span class="button"><g:actionSubmit class="btn primary" value="Edit" /></span>
+                    <span class="button"><g:actionSubmit class="btn btn-primary" value="Edit" /></span>
                     <span class="button"><g:actionSubmit class="btn" onclick="return confirm('Are you sure?');" value="Delete" /></span>
                 </g:form>
             </div>

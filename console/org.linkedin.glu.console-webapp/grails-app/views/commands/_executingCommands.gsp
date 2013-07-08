@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2012 Yan Pujante
+  - Copyright (c) 2012-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -15,7 +15,7 @@
   --}%
 <g:if test="${commandExecutions}">
   <div id="history-current-command-executions">
-    <table class="bordered-table xtight-table">
+    <table class="table table-bordered table-condensed">
       <thead>
       <tr>
         <g:if test="${!params.agentId}"><th class="agentFilter">Agent</th></g:if>
@@ -37,7 +37,11 @@
           <td class="usernameFilter">${ce.username.encodeAsHTML()}</td>
           <td class="startTimeFilter"><cl:formatDate time="${ce.startTime}"/></td>
           <td class="durationFilter"><cl:formatDuration time="${ce.startTime}"/></td>
-          <td><div class="progress">&nbsp;</div></td>
+          <td>
+            <div class="progress progress-striped active">
+              <div class="bar" style="width: 100%"></div>
+            </div>
+          </td>
           <td><g:link controller="agents" action="interruptCommand" id="${ce.agent}" params="[commandId: ce.commandId]">Interrupt</g:link></td>
         </tr>
       </g:each>

@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -28,7 +28,7 @@
 </head>
 <body>
 <g:if test="${params.pid}">
-  <ul class="tabs">
+  <ul class="nav nav-tabs">
     <li><g:link controller="agents" action="list">List</g:link></li>
     <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
     <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
@@ -39,7 +39,7 @@
   </ul>
   <g:if test="${ps[params.pid]}">
     <g:form action="kill" id="${params.id}" params="[pid: params.pid]">
-      <g:textField name="signal" value="3"/> <g:submitButton class="btn primary" name="kill" value="Send Signal"/>
+      <g:textField name="signal" value="3"/> <g:submitButton class="btn btn-primary" name="kill" value="Send Signal"/>
     </g:form>
     <cl:mapToUL map="${ps[params.pid]}" specialKeys="${['args']}" var="specialEntry">
       <li>
@@ -57,7 +57,7 @@
   </g:else>
 </g:if>
 <g:else>
-  <ul class="tabs">
+  <ul class="nav nav-tabs">
     <li><g:link controller="agents" action="list">List</g:link></li>
     <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
     <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
@@ -65,7 +65,7 @@
     <cl:whenFeatureEnabled feature="commands"><li><g:link action="commands" id="${params.id}">Commands</g:link></li></cl:whenFeatureEnabled>
     <li class="active"><a href="#">All Processes</a></li>
   </ul>
-  <table class="bordered-table tight-table zebra-striped">
+  <table class="table table-bordered tight-table zebra-striped">
     <tr>
       <th>PID</th>
       <th>COMMAND</th>

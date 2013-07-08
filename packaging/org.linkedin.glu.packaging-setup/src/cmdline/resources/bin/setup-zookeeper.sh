@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2010-2010 LinkedIn, Inc
-# Portions Copyright (c) 2011 Yan Pujante
+# Portions Copyright (c) 2011-2013 Yan Pujante
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -73,7 +73,7 @@ cd $BASEDIR
 
 GLU_ZK_CONFIG=$BASEDIR/zookeeper-config
 GLU_ZK_ROOT=/org/glu
-GLU_ZK_CONNECT_STRING=localhost:2181
+GLU_ZK_CONNECT_STRING=127.0.0.1:2181
 GLU_ZK_CLI=$BASEDIR/org.linkedin.zookeeper-cli-@zookeeper.version@/bin/zk.sh
 
 # get script options

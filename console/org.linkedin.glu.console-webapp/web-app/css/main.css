@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,286 +13,599 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+/* FONT STACK */
+body,
+input, select, textarea {
+	font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	line-height: 1.1;
+}
+
+/* BASE LAYOUT */
+
+html {
+	background-color: #ddd;
+	background-image: -moz-linear-gradient(center top, #aaa, #ddd);
+	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #aaa), color-stop(1, #ddd));
+	background-image: linear-gradient(top, #aaa, #ddd);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorStr = '#aaaaaa', EndColorStr = '#dddddd');
+	background-repeat: no-repeat;
+	height: 100%;
+	/* change the box model to exclude the padding from the calculation of 100% height (IE8+) */
+	-webkit-box-sizing: border-box;
+	   -moz-box-sizing: border-box;
+	        box-sizing: border-box;
+}
+
+html.no-cssgradients {
+	background-color: #aaa;
+}
+
+.ie6 html {
+	height: 100%;
+}
+
+html * {
+	margin: 0;
+}
 
 body {
-  background: #fff;
-  color: black;
-  padding-top: 40px; /* 40px to make the container go all the way to the bottom of the topbar */
+	background: #ffffff;
+	color: #333333;
+	margin: 0 auto;
+	max-width: 960px;
+	overflow-x: hidden; /* prevents box-shadow causing a horizontal scrollbar in firefox when viewport < 960px wide */
+	   -moz-box-shadow: 0 0 0.3em #255b17;
+	-webkit-box-shadow: 0 0 0.3em #255b17;
+	        box-shadow: 0 0 0.3em #255b17;
 }
 
-.topbar a {
-  color: black;
-  font-weight: bold;
+#grailsLogo {
+	background-color: #abbf78;
 }
 
-.container {
-  width: 99%;
+/* replace with .no-boxshadow body if you have modernizr available */
+.ie6 body,
+.ie7 body,
+.ie8 body {
+	border-color: #255b17;
+	border-style: solid;
+	border-width: 0 1px;
 }
 
-.tabs {
-  margin-bottom: .8em;
+.ie6 body {
+	height: 100%;
 }
 
-dl {
-  margin-top: 1px;
+a:link, a:visited, a:hover {
+	color: #48802c;
 }
 
-.bordered-table {
-  border-collapse: collapse;
-  border-color: #888888;
+a:hover, a:active {
+	outline: none; /* prevents outline in webkit on active links but retains it for tab focus */
 }
 
-.bordered-table td {
-  border-color: #888888;
+h1 {
+	color: #48802c;
+	font-weight: normal;
+	font-size: 1.25em;
+	margin: 0.8em 0 0.3em 0;
 }
 
-.bordered-table th {
-  border-color: #888888;
-  background-color: #f0f0ff;
+ul {
+	padding: 0;
 }
 
-.bordered-table th + th, .bordered-table td + td, .bordered-table th + td {
-  border: 1px solid #888888;
+img {
+	border: 0;
 }
 
-table.tight-table th, table.tight-table td {
-  padding: 0.2em;
+/* GENERAL */
+
+#grailsLogo a {
+	display: inline-block;
+	margin: 1em;
 }
 
-table.xtight-table th, table.xtight-table td {
-  padding: 0 0.1em 0 0.1em;
+.content {
 }
 
-pre {
-  white-space: pre;
-  word-wrap: normal;
-  overflow-y: auto;
+.content h1 {
+	border-bottom: 1px solid #CCCCCC;
+	margin: 0.8em 1em 0.3em;
+	padding: 0 0.25em;
 }
 
-li {
-  color: black;
+.scaffold-list h1 {
+	border: none;
 }
 
-.noFullWidth {
-  width: auto;
+.footer {
+	background: #abbf78;
+	color: #000;
+	clear: both;
+	font-size: 0.8em;
+	margin-top: 1.5em;
+	padding: 1em;
+	min-height: 1em;
 }
 
-form .input {
-  margin-left: inherit;
+.footer a {
+	color: #255b17;
 }
 
-.modal {
-  width: auto;
-  height: auto;
-  max-width: 50%;
-  max-height: 75%;
-  overflow: auto;
+.spinner {
+	background: url(../images/spinner.gif) 50% 50% no-repeat transparent;
+	height: 16px;
+	width: 16px;
+    padding: 0.5em;
+    position: absolute;
+    right: 0;
+	top: 0;
+	text-indent: -9999px;
 }
 
-input,
-textarea,
-select,
-.uneditable-input {
-  height: inherit;
+/* NAVIGATION MENU */
+
+.nav {
+	background-color: #efefef;
+	padding: 0.5em 0.75em;
+	   -moz-box-shadow: 0 0 3px 1px #aaaaaa;
+	-webkit-box-shadow: 0 0 3px 1px #aaaaaa;
+	        box-shadow: 0 0 3px 1px #aaaaaa;
+	zoom: 1;
 }
 
-.ERROR {
-  background: #ffdddd;
+.nav ul {
+	overflow: hidden;
+	padding-left: 0;
+	zoom: 1;
 }
 
-.TRANSITION {
-  background: #ddddff;
+.nav li {
+	display: block;
+	float: left;
+	list-style-type: none;
+	margin-right: 0.5em;
+	padding: 0;
 }
 
-.RUNNING {
-  background: #ddffdd;
+.nav a {
+	color: #666666;
+	display: block;
+	padding: 0.25em 0.7em;
+	text-decoration: none;
+	   -moz-border-radius: 0.3em;
+	-webkit-border-radius: 0.3em;
+	        border-radius: 0.3em;
 }
 
-.NOT_RUNNING {
-  background: #dddddd;
+.nav a:active, .nav a:visited {
+	color: #666666;
 }
 
-#flash {
-  margin-top: 1em;
+.nav a:focus, .nav a:hover {
+	background-color: #999999;
+	color: #ffffff;
+	outline: none;
+	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
 }
 
-.errorStackTrace {
-  background: #ffdddd;
-  color: black;
-  font-family: monospace;
-  overflow-y: auto;
-  overflow-x: auto;
-  max-height: 30em;
-  width: auto;
+.no-borderradius .nav a:focus, .no-borderradius .nav a:hover {
+	background-color: transparent;
+	color: #444444;
+	text-decoration: underline;
 }
 
-dt.stackTraceHeader {
-  color: #880000;
-  font-weight: bold;
-  white-space: pre;
+.nav a.home, .nav a.list, .nav a.create {
+	background-position: 0.7em center;
+	background-repeat: no-repeat;
+	text-indent: 25px;
 }
 
-dd.stackTraceBody {
-  margin-left: 1.5em;
+.nav a.home {
+	background-image: url(../images/skin/house.png);
 }
 
-.example {
-  color: #aaaaaa;
-  border: solid 1px #aaaaaa;
-  font-size: 0.8em;
-  font-style: italic;
-  white-space: pre;
+.nav a.list {
+	background-image: url(../images/skin/database_table.png);
 }
 
-.info {
-  color: #333;
-  border: dashed 1px black;
-  background: #F0F0F0;
-  padding: 5px;
-  width: auto;
+.nav a.create {
+	background-image: url(../images/skin/database_add.png);
 }
 
-.error-status {
-  color: red;
+/* CREATE/EDIT FORMS AND SHOW PAGES */
+
+fieldset,
+.property-list {
+	margin: 0.6em 1.25em 0 1.25em;
+	padding: 0.3em 1.8em 1.25em;
+	position: relative;
+	zoom: 1;
+	border: none;
 }
 
-.hidden {
-  display: none;
+.property-list .fieldcontain {
+	list-style: none;
+	overflow: hidden;
+	zoom: 1;
 }
 
-dl.plan dd {
-  margin-left: 2em;
+.fieldcontain {
+	margin-top: 1em;
 }
 
-dl.plan .LEAF {
-  margin: .2em 0em .2em 0em;
+.fieldcontain label,
+.fieldcontain .property-label {
+	color: #666666;
+	text-align: right;
+	width: 25%;
 }
 
-dl dt {
-  font-weight: normal;
+.fieldcontain .property-label {
+	float: left;
 }
 
-.paginateButtons {
-  padding-top: 1em;
-  padding-bottom: 1em;
+.fieldcontain .property-value {
+	display: block;
+	margin-left: 27%;
 }
 
-.paginateButtons a {
-  margin-left: 0.3em;
-  margin-right: 0.3em;
+label {
+	cursor: pointer;
+	display: inline-block;
+	margin: 0 0.25em 0 0;
 }
 
-.paginateButtons .currentStep {
-  font-size: 1.2em;
-  background-color: #005a87;
-  color: #ffffff;
-  margin-left: 0.3em;
-  margin-right: 0.3em;
-  padding: 0.3em;
+input, select, textarea {
+	background-color: #fcfcfc;
+	border: 1px solid #cccccc;
+	font-size: 1em;
+	padding: 0.2em 0.4em;
 }
 
-.systemId {
-  font-family: monospace;
+select {
+	padding: 0.2em 0.2em 0.2em 0;
 }
 
-ul.tags {
-  display: inline;
-  padding: 0;
-  margin: 0;
+select[multiple] {
+	vertical-align: top;
 }
 
-ul.tags li.tag {
-  font-size: 0.8em;
-  list-style: none;
-  display: inline;
-  margin: 0 1px 0 1px;
+textarea {
+	width: 250px;
+	height: 150px;
+	overflow: auto; /* IE always renders vertical scrollbar without this */
+	vertical-align: top;
 }
 
-ul.tags.with-links a {
-  border: solid black 1px;
-  padding: 1px;
-  margin: 0;
-  font-weight: bold;
+input[type=checkbox], input[type=radio] {
+	background-color: transparent;
+	border: 0;
+	padding: 0;
 }
 
-ul.tags.with-links a:link, ul.tags.with-links a:visited {
-  text-decoration: none;
+input:focus, select:focus, textarea:focus {
+	background-color: #ffffff;
+	border: 1px solid #eeeeee;
+	outline: 0;
+	   -moz-box-shadow: 0 0 0.5em #ffffff;
+	-webkit-box-shadow: 0 0 0.5em #ffffff;
+	        box-shadow: 0 0 0.5em #ffffff;
 }
 
-ul.tags.with-links a:hover {
-  text-decoration: none;
+.required-indicator {
+	color: #48802C;
+	display: inline-block;
+	font-weight: bold;
+	margin-left: 0.3em;
+	position: relative;
+	top: 0.1em;
 }
 
-#footer {
-  clear: both;
+ul.one-to-many {
+	display: inline-block;
+	list-style-position: inside;
+	vertical-align: top;
 }
 
-#select-plan #select-plan-radio {
-  float: left;
+.ie6 ul.one-to-many, .ie7 ul.one-to-many {
+	display: inline;
+	zoom: 1;
 }
 
-#select-plan #select-plan-radio .plan-type-DEPLOY {
-  background: #ffdddd;
+ul.one-to-many li.add {
+	list-style-type: none;
 }
 
-#select-plan #plan-preview {
-  margin-left: .5em;
-  float: left;
+/* EMBEDDED PROPERTIES */
+
+fieldset.embedded {
+	background-color: transparent;
+	border: 1px solid #CCCCCC;
+	margin-left: 0;
+	margin-right: 0;
+	padding-left: 0;
+	padding-right: 0;
+	   -moz-box-shadow: none;
+	-webkit-box-shadow: none;
+	        box-shadow: none;
 }
 
-td.systemFilter li {
-  list-style: none;
+fieldset.embedded legend {
+	margin: 0 1em;
 }
 
-td.systemFilter ul {
-  margin-left: .5em;
-  margin-bottom: 0;
+/* MESSAGES AND ERRORS */
+
+.errors,
+.message {
+	font-size: 0.8em;
+	line-height: 2;
+	margin: 1em 2em;
+	padding: 0.25em;
 }
 
-li.filter-LogicSystemFilterChain {
-  list-style: none;
-  font-weight: bold;
+.message {
+	background: #f3f3ff;
+	border: 1px solid #b2d1ff;
+	color: #006dba;
+	   -moz-box-shadow: 0 0 0.25em #b2d1ff;
+	-webkit-box-shadow: 0 0 0.25em #b2d1ff;
+	        box-shadow: 0 0 0.25em #b2d1ff;
 }
 
-.summary-checkbox, .errorsOnly-checkbox {
-  text-align: center;
+.errors {
+	background: #fff3f3;
+	border: 1px solid #ffaaaa;
+	color: #cc0000;
+	   -moz-box-shadow: 0 0 0.25em #ff8888;
+	-webkit-box-shadow: 0 0 0.25em #ff8888;
+	        box-shadow: 0 0 0.25em #ff8888;
 }
 
-.shell {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  background-color: #000080;
-  color: #ffff00;
-  font-family: Monaco, Andale Mono, Courier New, monospace;
-  font-size: 12px;
-  padding: 2px;
+.errors ul,
+.message {
+	padding: 0;
 }
 
-.shell a {
-  color: #00fff7;
+.errors li {
+	list-style: none;
+	background: transparent url(../images/skin/exclamation.png) 0.5em 50% no-repeat;
+	text-indent: 2.2em;
 }
 
-.shell .errorStackTrace a {
-  color: #000000;
+.message {
+	background: transparent url(../images/skin/information.png) 0.5em 50% no-repeat;
+	text-indent: 2.2em;
 }
 
-.shell .cli {
-  font-size: 120%;
+/* form fields with errors */
+
+.error input, .error select, .error textarea {
+	background: #fff3f3;
+	border-color: #ffaaaa;
+	color: #cc0000;
 }
 
-.shell .stderr {
-  color: #ffaaaa;
+.error input:focus, .error select:focus, .error textarea:focus {
+	   -moz-box-shadow: 0 0 0.5em #ffaaaa;
+	-webkit-box-shadow: 0 0 0.5em #ffaaaa;
+	        box-shadow: 0 0 0.5em #ffaaaa;
 }
 
-.shell .stdin {
-  color: #aaffaa;
+/* same effects for browsers that support HTML5 client-side validation (these have to be specified separately or IE will ignore the entire rule) */
+
+input:invalid, select:invalid, textarea:invalid {
+	background: #fff3f3;
+	border-color: #ffaaaa;
+	color: #cc0000;
 }
 
-.shell .date, .shell .exitValue {
-  color: #aaaaaa;
+input:invalid:focus, select:invalid:focus, textarea:invalid:focus {
+	   -moz-box-shadow: 0 0 0.5em #ffaaaa;
+	-webkit-box-shadow: 0 0 0.5em #ffaaaa;
+	        box-shadow: 0 0 0.5em #ffaaaa;
 }
 
-.shell .close {
-  opacity: 0.8;
-  color: #ffff00;
+/* TABLES */
+
+table {
+	border-top: 1px solid #DFDFDF;
+	border-collapse: collapse;
+	width: 100%;
+	margin-bottom: 1em;
+}
+
+tr {
+	border: 0;
+}
+
+tr>td:first-child, tr>th:first-child {
+	padding-left: 1.25em;
+}
+
+tr>td:last-child, tr>th:last-child {
+	padding-right: 1.25em;
+}
+
+td, th {
+	line-height: 1.5em;
+	padding: 0.5em 0.6em;
+	text-align: left;
+	vertical-align: top;
+}
+
+th {
+	background-color: #efefef;
+	background-image: -moz-linear-gradient(top, #ffffff, #eaeaea);
+	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #ffffff), color-stop(1, #eaeaea));
+	    filter: progid:DXImageTransform.Microsoft.gradient(startColorStr = '#ffffff', EndColorStr = '#eaeaea');
+	-ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorStr='#ffffff', EndColorStr='#eaeaea')";
+	color: #666666;
+	font-weight: bold;
+	line-height: 1.7em;
+	padding: 0.2em 0.6em;
+}
+
+thead th {
+	white-space: nowrap;
+}
+
+th a {
+	display: block;
+	text-decoration: none;
+}
+
+th a:link, th a:visited {
+	color: #666666;
+}
+
+th a:hover, th a:focus {
+	color: #333333;
+}
+
+th.sortable a {
+	background-position: right;
+	background-repeat: no-repeat;
+	padding-right: 1.1em;
+}
+
+th.asc a {
+	background-image: url(../images/skin/sorted_asc.gif);
+}
+
+th.desc a {
+	background-image: url(../images/skin/sorted_desc.gif);
+}
+
+.odd {
+	background: #f7f7f7;
+}
+
+.even {
+	background: #ffffff;
+}
+
+th:hover, tr:hover {
+	background: #E1F2B6;
+}
+
+/* PAGINATION */
+
+.pagination {
+	border-top: 0;
+	margin: 0;
+	padding: 0.3em 0.2em;
+	text-align: center;
+	   -moz-box-shadow: 0 0 3px 1px #AAAAAA;
+	-webkit-box-shadow: 0 0 3px 1px #AAAAAA;
+	        box-shadow: 0 0 3px 1px #AAAAAA;
+	background-color: #EFEFEF;
+}
+
+.pagination a,
+.pagination .currentStep {
+	color: #666666;
+	display: inline-block;
+	margin: 0 0.1em;
+	padding: 0.25em 0.7em;
+	text-decoration: none;
+	   -moz-border-radius: 0.3em;
+	-webkit-border-radius: 0.3em;
+	        border-radius: 0.3em;
+}
+
+.pagination a:hover, .pagination a:focus,
+.pagination .currentStep {
+	background-color: #999999;
+	color: #ffffff;
+	outline: none;
+	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+.no-borderradius .pagination a:hover, .no-borderradius .pagination a:focus,
+.no-borderradius .pagination .currentStep {
+	background-color: transparent;
+	color: #444444;
+	text-decoration: underline;
+}
+
+/* ACTION BUTTONS */
+
+.buttons {
+	background-color: #efefef;
+	overflow: hidden;
+	padding: 0.3em;
+	   -moz-box-shadow: 0 0 3px 1px #aaaaaa;
+	-webkit-box-shadow: 0 0 3px 1px #aaaaaa;
+	        box-shadow: 0 0 3px 1px #aaaaaa;
+	margin: 0.1em 0 0 0;
+	border: none;
+}
+
+.buttons input,
+.buttons a {
+	background-color: transparent;
+	border: 0;
+	color: #666666;
+	cursor: pointer;
+	display: inline-block;
+	margin: 0 0.25em 0;
+	overflow: visible;
+	padding: 0.25em 0.7em;
+	text-decoration: none;
+
+	   -moz-border-radius: 0.3em;
+	-webkit-border-radius: 0.3em;
+	        border-radius: 0.3em;
+}
+
+.buttons input:hover, .buttons input:focus,
+.buttons a:hover, .buttons a:focus {
+	background-color: #999999;
+	color: #ffffff;
+	outline: none;
+	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.8);
+	   -moz-box-shadow: none;
+	-webkit-box-shadow: none;
+	        box-shadow: none;
+}
+
+.no-borderradius .buttons input:hover, .no-borderradius .buttons input:focus,
+.no-borderradius .buttons a:hover, .no-borderradius .buttons a:focus {
+	background-color: transparent;
+	color: #444444;
+	text-decoration: underline;
+}
+
+.buttons .delete, .buttons .edit, .buttons .save {
+	background-position: 0.7em center;
+	background-repeat: no-repeat;
+	text-indent: 25px;
+}
+
+.ie6 .buttons input.delete, .ie6 .buttons input.edit, .ie6 .buttons input.save,
+.ie7 .buttons input.delete, .ie7 .buttons input.edit, .ie7 .buttons input.save {
+	padding-left: 36px;
+}
+
+.buttons .delete {
+	background-image: url(../images/skin/database_delete.png);
+}
+
+.buttons .edit {
+	background-image: url(../images/skin/database_edit.png);
+}
+
+.buttons .save {
+	background-image: url(../images/skin/database_save.png);
+}
+
+a.skip {
+	position: absolute;
+	left: -9999px;
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -45,6 +46,13 @@ def class FromClassNameScriptFactory implements ScriptFactory, Serializable
     _classPath = classPath
   }
 
+  private FromClassNameScriptFactory(String className, def classPath, def localClassPath)
+  {
+    _className = className
+    _classPath = classPath
+    _jarFiles = localClassPath
+  }
+
   FromClassNameScriptFactory(Class c)
   {
     this(c.name, null)
@@ -72,6 +80,13 @@ def class FromClassNameScriptFactory implements ScriptFactory, Serializable
     return _script
   }
 
+  @Override
+  void destroyScript(ScriptConfig scriptConfig)
+  {
+    _jarFiles?.each { scriptConfig.shell.rm(it) }
+    _classLoader = null
+  }
+
   String toString()
   {
     if(_classPath)
@@ -85,13 +100,17 @@ def class FromClassNameScriptFactory implements ScriptFactory, Serializable
     def res = ['class': FromClassNameScriptFactory.class.getName(), className: _className]
     if(_classPath)
       res.classPath = _classPath
+    if(_jarFiles)
+      res.localClassPath = _jarFiles
     return res;
   }
 
   public static ScriptFactory fromExternalRepresentation(def args)
   {
     if(args['class'] == FromClassNameScriptFactory.class.getName())
-      return new FromClassNameScriptFactory(args.className, args.classPath)
+      return new FromClassNameScriptFactory(args.className,
+                                            args.classPath,
+                                            args.localClassPath)
     else
       return null
   }

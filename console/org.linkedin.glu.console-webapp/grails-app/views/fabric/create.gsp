@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -23,7 +23,7 @@
   <title>Create Fabric</title>
 </head>
 <body>
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li><g:link action="list">Fabric List</g:link></li>
   <li class="active"><a href="#">New</a></li>
 </ul>
@@ -35,7 +35,7 @@
   </g:hasErrors>
   <g:form action="save" method="post">
     <div class="dialog">
-      <table class="bordered-table condensed-table nofullwidth">
+      <table class="table table-bordered table-condensed noFullWidth">
         <tbody>
 
         <tr class="prop">
@@ -78,7 +78,7 @@
       </table>
     </div>
     <div class="buttons">
-      <span class="button"><input class="btn primary save" type="submit" value="Create"/></span>
+      <span class="button"><input class="btn btn-primary save" type="submit" value="Create"/></span>
     </div>
   </g:form>
 </div>

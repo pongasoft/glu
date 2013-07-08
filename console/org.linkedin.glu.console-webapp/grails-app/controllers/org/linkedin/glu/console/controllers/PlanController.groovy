@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2012 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,6 +17,7 @@
 
 package org.linkedin.glu.console.controllers
 
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 import org.linkedin.glu.provisioner.plan.api.IStepFilter
 import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
 import org.linkedin.glu.provisioner.plan.api.IPlanExecutionProgressTracker
@@ -50,8 +51,20 @@ public class PlanController extends ControllerBase
     [planType: "bounce"],
     [planType: "redeploy"],
     [planType: "undeploy"],
-    [planType: "transition", displayName: "Start", state: "running"],
-    [planType: "transition", displayName: "Stop", state: "stopped"],
+    [
+      planType: "transition",
+      displayName: "Start",
+      state: "running",
+      expectedEntryStates: ["running"],
+      currentEntryStates: ["stopped"]
+    ],
+    [
+      planType: "transition",
+      displayName: "Stop",
+      state: "stopped",
+      expectedEntryStates: ["running", "stopped"],
+      currentEntryStates: ["running"]
+    ],
   ]
 
   Clock clock = SystemClock.instance()
@@ -427,8 +440,9 @@ public class PlanController extends ControllerBase
       }
     }
 
-    def metadata = [origin: 'rest', *:args, filter: params.systemFilter ?: 'all']
-    ['action', 'controller', 'system', 'stepType'].each { metadata.remove(it) }
+    def metadata =
+      GluGroovyCollectionUtils.xorMap([origin: 'rest', *:args, filter: params.systemFilter ?: 'all'],
+                                      ['action', 'controller', 'system', 'stepType'])
 
     Plan plan = plannerService.computePlan(args, metadata)
 
@@ -436,7 +450,7 @@ public class PlanController extends ControllerBase
     {
       if(plan.leafSteps.findAll { it.action instanceof NoOpActionDescriptor }.size() == plan.leafStepsCount)
       {
-        response.setStatus(HttpServletResponse.SC_NO_CONTENT,
+        response.sendError(HttpServletResponse.SC_NO_CONTENT,
                            'no plan created (only pending transitions)')
         render ''
       }

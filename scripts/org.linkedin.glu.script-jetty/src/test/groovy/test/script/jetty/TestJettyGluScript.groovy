@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,7 +18,6 @@ package test.script.jetty
 
 import org.linkedin.glu.scripts.testFwk.GluScriptBaseTest
 import org.linkedin.glu.agent.api.ScriptExecutionCauseException
-import org.linkedin.groovy.util.lang.GroovyLangUtils
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
 
 /**

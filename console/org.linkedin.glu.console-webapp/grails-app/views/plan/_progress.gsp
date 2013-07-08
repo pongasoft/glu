@@ -1,5 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
+  - Portions Copyright (c) 2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -13,4 +14,4 @@
   - License for the specific language governing permissions and limitations under
   - the License.
   --}%
-<div class="progress"><img src="${g.resource(dir: 'images', file: 'progress_1x12.png')}" alt="${deployment.progressTracker.completionPercentage}%" width="${deployment.progressTracker.completionPercentage}%" height="12"></div> <span id="progress-${deployment.id}" class="progress-value">${deployment.progressTracker.completionPercentage}</span>%
+<div class="progress progress-striped active"><div class="bar" style="width: ${deployment.progressTracker.completionPercentage}%;"></div></div> <span id="progress-${deployment.id}" class="progress-value">${deployment.progressTracker.completionPercentage}%</span>

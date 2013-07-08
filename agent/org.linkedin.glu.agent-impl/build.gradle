@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,13 +23,13 @@ dependencies {
   compile project(':agent:org.linkedin.glu.agent-rest-common')
   compile project(':commands:org.linkedin.glu.commands-impl')
   compile project(':utils:org.linkedin.glu.utils')
-  compile spec.external.linkedinUtilsGroovy
-  compile spec.external.linkedinZookeeperImpl
+  compile spec.external.utilsMiscGroovy
+  compile spec.external.utilsZookeeperImpl
   compile spec.external.sigar
   compile spec.external.mimeUtil
   compile spec.external.commonsIO
 
-  groovy spec.external.groovy
+  compile spec.external.groovy
 
   testCompile spec.external.junit
 
@@ -39,9 +39,9 @@ dependencies {
   testRuntime spec.external.ivy
 }
 
-ideaModule {
-  whenConfigured { module ->
-    // plugin wrongly add src/test/resources as source folder causing issue when running 
+idea.module.iml {
+  whenMerged { module ->
+    // plugin wrongly add src/test/resources as source folder causing issue when running
     // compilation from within IDEA
     def path = module.testSourceFolders.find { it.url == 'file://$MODULE_DIR$/src/test/resources'}
     module.testSourceFolders.remove(path)

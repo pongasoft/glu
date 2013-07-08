@@ -47,6 +47,10 @@ interface AgentsService
 
   def getFullState(args)
 
+  boolean waitForState(String fabric, String agentName, def mountPoint, String state, def timeout)
+
+  boolean waitForState(Fabric fabric, String agentName, def mountPoint, String state, def timeout)
+
   def clearError(args)
 
   def uninstallScript(args)

@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -15,9 +15,9 @@
   - the License.
   --}%
 
-<h2>Active deployments [${deployments?.size()}]</h2>
+<h3>Active deployments [${deployments?.size()}]</h3>
 <g:if test="${deployments}">
-<table id="activeDeployments" class="bordered-table condensed-table">
+<table id="activeDeployments" class="table table-bordered table-condensed">
   <tr>
     <th class="descriptionFilter">Description</th>
     <th class="usernameFilter">Username</th>
@@ -40,5 +40,5 @@
 </table>
 </g:if>
 <g:else>
-  <h3>No active deployments...</h3>
+  <h4>No active deployments...</h4>
 </g:else>

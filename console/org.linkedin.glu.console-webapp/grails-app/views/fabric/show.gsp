@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -23,14 +23,14 @@
   <title>Show Fabric</title>
 </head>
 <body>
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li><g:link action="list">Fabric List</g:link></li>
   <li class="active"><a href="#">Fabric [${fabricInstance.name}]</a></li>
   <li><g:link controller="fabric" action="edit" id="${fabricInstance.id}">Edit</g:link></li>
 </ul>
 <div class="body">
   <div class="dialog">
-    <table class="bordered-table condensed-table noFullWidth">
+    <table class="table table-bordered table-condensed noFullWidth">
       <tbody>
 
       <tr class="prop">
@@ -71,7 +71,7 @@
       </tbody>
     </table>
   </div>
-  <g:link controller="fabric" class="btn primary" action="edit" id="${fabricInstance.id}">Edit</g:link>
+  <g:link controller="fabric" class="btn btn-primary" action="edit" id="${fabricInstance.id}">Edit</g:link>
 </div>
 </body>
 </html>

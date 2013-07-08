@@ -1,6 +1,8 @@
+import java.text.SimpleDateFormat
+
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,12 +20,14 @@
 apply plugin: 'org.linkedin.cmdline'
 apply plugin: 'org.linkedin.release'
 
+allRepositories.utilsZookeeperDistribution.configure()
+
 configurations {
   zookeeperPackages
 }
 
 dependencies {
-  zookeeperPackages spec.external.linkedinZookeeperServerPackage
+  zookeeperPackages spec.external.utilsZookeeperServerPackage
 }
 
 def dependentClis = [
@@ -41,8 +45,12 @@ cmdline {
 
   replacementTokens = [
     'jetty.distribution': "jetty-distribution-${spec.versions.jetty}",
-    'zookeeper.version': spec.versions.linkedinZookeeper
+    'zookeeper.version': spec.versions.utilsZookeeper
   ]
+}
+
+release  {
+  publish = allRepositories.distributions
 }
 
 def dependentProjects = dependentClis.keySet().collect { evaluationDependsOn(it) }
@@ -66,4 +74,14 @@ project.'package-assemble'.doFirst {
   configurations.zookeeperPackages.resolve().each { zkp ->
     ant.untar(src: zkp, dest: basePackage, compression: 'gzip')
   }
+
+  def gitSha1 = 'git rev-parse HEAD'.execute().text.trim()
+  new File(basePackage, 'build.info').text = """------------------------------------------------------------
+glu ${project.version}
+------------------------------------------------------------
+glu git sha-1: ${gitSha1}
+glu build time: ${new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z").format(new Date())}
+glu build environment:
+${org.gradle.util.GradleVersion.current().prettyPrint().trim()}
+"""
 }

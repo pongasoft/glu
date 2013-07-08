@@ -1,4 +1,4 @@
-.. Copyright (c) 2011 Yan Pujante
+.. Copyright (c) 2011-2013 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -1666,7 +1666,7 @@ Read/Wait for command result
 API Examples
 ^^^^^^^^^^^^
 * Sending the model to glu in `java <https://gist.github.com/756465>`_
-* `Python example <https://github.com/linkedin/glu/blob/REL_1.5.0/console/org.linkedin.glu.console-cli/src/cmdline/resources/lib/python/gluconsole/rest.py>`_ (part of the cli)
+* `Python example <https://github.com/pongasoft/glu/blob/REL_1.5.0/console/org.linkedin.glu.console-cli/src/cmdline/resources/lib/python/gluconsole/rest.py>`_ (part of the cli)
 
 .. _goe-rest-api-delta-formal-definition:
 
@@ -1735,7 +1735,7 @@ What is a plugin?
 
 A plugin is simply a class with (groovy) closures, each of them defining a specific hook. You can define as many or as little of those closures as you want and you can *spread* them accross different classes (for example, you can have a plugin class handling only the *deployment* related plugin hooks, and another handling the hooks for a different part of the system). If a closure is missing, then it will simply not be called.
 
-.. tip:: The class `DocumentationPlugin <https://github.com/linkedin/glu/tree/master/orchestration/org.linkedin.glu.orchestration-engine/src/main/groovy/org/linkedin/glu/orchestration/engine/plugins/builtin/DocumentationPlugin.groovy>`_ is meant to be an hexaustive list of all the hooks available as well as a documentation on how to use them. It also serves as an example of how to write a plugin!
+.. tip:: The class `DocumentationPlugin <https://github.com/pongasoft/glu/tree/master/orchestration/org.linkedin.glu.orchestration-engine/src/main/groovy/org/linkedin/glu/orchestration/engine/plugins/builtin/DocumentationPlugin.groovy>`_ is meant to be an hexaustive list of all the hooks available as well as a documentation on how to use them. It also serves as an example of how to write a plugin!
 
 How do you install a plugin?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1757,7 +1757,7 @@ You then need to tell the console about it. For this you change the configuratio
 List of hooks available
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-.. tip:: For full documentation and typical use cases, refer to the class `DocumentationPlugin <https://github.com/linkedin/glu/tree/master/orchestration/org.linkedin.glu.orchestration-engine/src/main/groovy/org/linkedin/glu/orchestration/engine/plugins/builtin/DocumentationPlugin.groovy>`_.
+.. tip:: For full documentation and typical use cases, refer to the class `DocumentationPlugin <https://github.com/pongasoft/glu/tree/master/orchestration/org.linkedin.glu.orchestration-engine/src/main/groovy/org/linkedin/glu/orchestration/engine/plugins/builtin/DocumentationPlugin.groovy>`_.
 
 * Initialization
 
@@ -1798,7 +1798,7 @@ List of hooks available
 Future hooks
 ^^^^^^^^^^^^
 
-Now that the plugin mechanism is in place, adding new hooks is not very complicated. If you have specific requirements for a new hook, please open a ticket on the `glu ticketing system <https://github.com/linkedin/glu/issues>`_.
+Now that the plugin mechanism is in place, adding new hooks is not very complicated. If you have specific requirements for a new hook, please open a ticket on the `glu ticketing system <https://github.com/pongasoft/glu/issues>`_.
 
 .. _goe-cli:
 

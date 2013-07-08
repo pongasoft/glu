@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -44,6 +44,9 @@ plugins.StreamFileContentPlugin.unrestrictedLocation = ''
 
 // role for unrestricted
 plugins.StreamFileContentPlugin.unrestrictedRole = 'ADMIN'
+
+// to mask the content of the file (remove passwords when reading log files)
+plugins.StreamFileContentPlugin.maskFileContent = true
 
 // define the plugins as a Map, or a class name or an array of class names
 orchestration.engine.plugins = [

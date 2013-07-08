@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -38,7 +38,7 @@
   <li>New Version: <g:textField name="version"/></li>
   <li>Coordinates: <g:textField name="coordinates" size="100"/></li>
   </ul>
-  <g:actionSubmit class="btn primary" action="upgrade" value="Upgrade"/>
+  <g:actionSubmit class="btn btn-primary" action="upgrade" value="Upgrade"/>
 <g:each in="${versions.keySet().sort()}" var="version">
   <h2>${version}</h2>
   <p>Quick Select:
@@ -49,7 +49,7 @@
     | <a href="#" onClick="quickSelect('agent_${version}', 'agentCheckbox', ${pct});return false;">${pct}%</a>
   </g:each>
   </p>
-  <table class="bordered-table condensed-table" id="agent_${version}">
+  <table class="table table-bordered table-condensed noFullWidth" id="agent_${version}">
     <g:each in="${versions[version].agentName.sort()}" var="agentName">
       <tr>
         <td>${agentName}</td>
@@ -61,7 +61,7 @@
 </g:form>
 <h2 class="separator">Agent Cleanup Upgrade</h2>
 <g:form method="post" controller="agents" action="upgrade">
-  <g:actionSubmit class="btn primary" action="cleanup" value="Cleanup"/>
+  <g:actionSubmit class="btn btn-primary" action="cleanup" value="Cleanup"/>
   <span class="help">Cleanup all previously leftover upgrade</span>
 </g:form>
 </body>

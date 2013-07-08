@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Yan Pujante
+ * Copyright (c) 2012-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -32,6 +32,12 @@ public class CommandGluScriptFactory implements ScriptFactory
   def createScript(ScriptConfig scriptConfig)
   {
     new CommandGluScript(ioStorage: ioStorage)
+  }
+
+  @Override
+  void destroyScript(ScriptConfig scriptConfig)
+  {
+    // nothing to do here
   }
 
   @Override

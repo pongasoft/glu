@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -92,6 +92,12 @@ public class SystemStorageImpl implements SystemStorage
         throw new SystemStorageException(dbc.errors)
       }
     }
+  }
+
+  @Override
+  boolean deleteCurrentSystem(String fabric)
+  {
+    DbCurrentSystem.executeUpdate("delete DbCurrentSystem s where s.fabric=?", [fabric]) == 1
   }
 
   @Override

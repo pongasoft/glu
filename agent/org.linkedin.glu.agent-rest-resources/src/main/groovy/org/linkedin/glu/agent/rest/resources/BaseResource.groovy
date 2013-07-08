@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -26,43 +26,46 @@ import org.linkedin.glu.agent.api.NoSuchMountPointException
 import org.linkedin.glu.agent.api.ScriptIllegalStateException
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.groovy.util.rest.RestException
-import org.restlet.Context
-import org.restlet.Request
-import org.restlet.Response
+import org.restlet.engine.header.Header
+import org.restlet.resource.ResourceException
 import org.restlet.data.Form
-import org.restlet.data.MediaType
 import org.restlet.data.Reference
 import org.restlet.data.Status
 import org.restlet.ext.json.JsonRepresentation
 import org.restlet.representation.Representation
-import org.restlet.representation.Variant
-import org.restlet.resource.Resource
 import org.linkedin.glu.utils.exceptions.DisabledFeatureException
+import org.restlet.resource.ServerResource
+import org.restlet.util.Series
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Base class for resources to the agent
  *
  * @author ypujante@linkedin.com
  */
-class BaseResource extends Resource
+class BaseResource extends ServerResource
 {
   public static final String MODULE = BaseResource.class.getName();
-  public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
 
-  private final String _resourceMountPoint
-  private final Agent _agent
+  private static final String HEADERS_KEY = "org.restlet.http.headers"
 
-  BaseResource(Context context, Request request, Response response)
+  private String _resourceMountPoint
+  private Agent _agent
+
+  @Override
+  protected void doInit() throws ResourceException
   {
-    super(context, request, response);
     _resourceMountPoint = context.attributes[getClass().name]
-    _agent = context.attributes['agent']
-    variants.add(new Variant(MediaType.APPLICATION_JSON))
+    _agent = (Agent) context.attributes['agent']
+    // using annotation => disabling content negotiation for now
+    setNegotiated(false)
   }
 
   def static toArgs(Representation representation)
   {
-    JSONObject json = new JsonRepresentation(representation).toJsonObject()
+    JSONObject json = new JsonRepresentation(representation).getJsonObject()
     return JsonUtils.toValue(json.get('args'))
   }
 
@@ -93,7 +96,7 @@ class BaseResource extends Resource
     return new JsonRepresentation(JsonUtils.toJSON(res))
   }
 
-  protected <T> T noException(Closure closure)
+  protected Representation noException(Closure closure)
   {
     try
     {
@@ -130,13 +133,12 @@ class BaseResource extends Resource
     }
   }
 
-  private def handleException(Status status, Throwable th)
+  private Representation handleException(Status status, Throwable th)
   {
     response.setStatus(status, th)
     def entity = new JsonRepresentation(RestException.toJSON(th))
     response.setEntity(entity)
     return entity
-
   }
 
   Agent getAgent()
@@ -155,15 +157,22 @@ class BaseResource extends Resource
     return ref.getPath(true) - resourceMountPoint
   }
 
+  protected Series<Header> getResponseHeader()
+  {
+    def attributes = response.attributes;
+    Series<Header> headers = (Series<Header>) attributes.get(HEADERS_KEY);
+    if(headers == null)
+    {
+      headers = new Series<Header>(Header.class)
+      Series<Header> prev = (Series<Header>) attributes.putIfAbsent(HEADERS_KEY, headers)
+      if(prev != null)
+        headers = prev
+    }
+    return headers
+  }
+
   protected void addResponseHeader(String name, def value)
   {
-    Form form = (Form) response.attributes.'org.restlet.http.headers'
-    if(form == null)
-    {
-      form = new Form()
-      response.attributes.'org.restlet.http.headers' = form
-    }
-    if(value != null)
-      form.add(name, value.toString())
+    responseHeader.add(name, value.toString())
   }
 }

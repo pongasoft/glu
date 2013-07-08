@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -36,7 +36,7 @@ import org.linkedin.util.clock.SystemClock
  * this class.
  *
  * In your setup, you can set the {@link GluScriptBaseTest#initParameters}. Most of the methods
- * can be overriden to provide customized values. From your test you can then use the convenient
+ * can be overridden to provide customized values. From your test you can then use the convenient
  * methods like {@link GluScriptBaseTest#deploy()} to run through all the phase of your script.
  *
  * @see GluScriptBaseTest#getScriptClass()} for advice on how to name your test

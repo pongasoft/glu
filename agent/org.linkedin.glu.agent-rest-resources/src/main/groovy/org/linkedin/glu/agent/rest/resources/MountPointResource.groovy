@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2012-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,14 +19,14 @@
 package org.linkedin.glu.agent.rest.resources
 
 import org.linkedin.glu.agent.api.MountPoint
+import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
 import org.linkedin.groovy.util.rest.RestException
 import org.linkedin.util.lang.LangUtils
-import org.restlet.Context
-import org.restlet.Request
-import org.restlet.Response
 import org.restlet.representation.Representation
-import org.restlet.representation.Variant
-import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
+import org.restlet.resource.Delete
+import org.restlet.resource.Get
+import org.restlet.resource.Post
+import org.restlet.resource.Put
 
 /**
  * Represents a script resource
@@ -37,40 +38,14 @@ class MountPointResource extends BaseResource
   public static final String MODULE = MountPointResource.class.getName();
   public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
 
-  MountPointResource(Context context, Request request, Response response)
-  {
-    super(context, request, response);
-  }
-
-
-  public boolean allowPut()
-  {
-    return true
-  }
-
-  public boolean allowPost()
-  {
-    return true
-  }
-
-  public boolean allowDelete()
-  {
-    return true
-  }
-
-  public boolean allowGet()
-  {
-    return true
-  }
-
-
   /**
    * GET: return the state + others (tbd)
    * GET with query string: wait for state / action
    */
-  public Representation represent(Variant variant)
+  @Get
+  public Representation getMountPointsOrWaitForState()
   {
-    return noException {
+    noException {
       def form = request.originalRef.queryAsForm
       if(form)
       {
@@ -118,17 +93,22 @@ class MountPointResource extends BaseResource
   /**
    * PUT (install script)
    */
-  public void storeRepresentation(Representation representation)
+  @Put
+  public Representation installScript(Representation representation)
   {
     noException {
-      agent.installScript(toArgs(representation))
+      def args = toArgs(representation)
+      args.mountPoint = getMountPoint() // making sure that the mountPoint is coming from the path (glu-178)
+      agent.installScript(args)
+      return null
     }
   }
 
   /**
    * POST (execute action / execute action and wait / execute call / clear Error / interrupt action)
    */
-  public void acceptRepresentation(Representation representation)
+  @Post
+  public Representation executeOnMountPoint(Representation representation)
   {
     noException {
       def args = toArgs(representation)
@@ -146,7 +126,7 @@ class MountPointResource extends BaseResource
       {
         args[action].mountPoint = getMountPoint()
         def res = agent."${action}"(args[action])
-        response.setEntity(computeRepresentationResult(res))
+        computeRepresentationResult(res)
       }
       else
       {
@@ -155,7 +135,7 @@ class MountPointResource extends BaseResource
     }
   }
 
-  private Representation computeRepresentationResult(res)
+  private static Representation computeRepresentationResult(res)
   {
     if(res instanceof InputStream)
     {
@@ -170,11 +150,13 @@ class MountPointResource extends BaseResource
   /**
    * DELETE (uninstall script)
    */
-  public void removeRepresentations()
+  @Delete
+  public Representation uninstallScript()
   {
     noException {
       def force = query.getFirstValue('force')
-      agent.uninstallScript(mountPoint: getMountPoint(), force: force) 
+      agent.uninstallScript(mountPoint: getMountPoint(), force: force)
+      return null
     }
   }
 

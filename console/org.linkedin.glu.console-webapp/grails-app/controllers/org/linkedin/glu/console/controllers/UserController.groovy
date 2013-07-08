@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -112,7 +112,7 @@ class UserController extends ControllerBase
             return
           }
         }
-        userInstance.setRoles(role)
+        userInstance.updateRoles(role)
         if(!userInstance.hasErrors() && userInstance.save([flush: true]))
         {
           flash.success = "User ${userInstance.username} updated"
@@ -156,7 +156,7 @@ class UserController extends ControllerBase
         return
       }
 
-      userInstance.setRoles(RoleName.USER)
+      userInstance.updateRoles(RoleName.USER)
 
       DbUserCredentials ucr = new DbUserCredentials(username: params.username,
                                                     password: params.password)

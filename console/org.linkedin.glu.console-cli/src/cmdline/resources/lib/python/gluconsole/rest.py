@@ -146,7 +146,7 @@ class Client:
         # An empty/None filter implies 'all'
         if system_filter:
             filters.append(
-                'system_filter=' + restkit.util.url_quote(system_filter))
+                'systemFilter=' + restkit.util.url_quote(system_filter))
 
         if parallel:
             filters.append('order=parallel')

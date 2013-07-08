@@ -1,6 +1,6 @@
 /*
 * Copyright (c) 2010-2010 LinkedIn, Inc
-* Portions Copyright (c) 2011 Yan Pujante
+* Portions Copyright (c) 2011-2013 Yan Pujante
 *
 * Licensed under the Apache License, Version 2.0 (the "License"); you may not
 * use this file except in compliance with the License. You may obtain a copy of
@@ -16,7 +16,7 @@
 */
 
 import org.linkedin.glu.console.domain.RoleName
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -26,7 +26,7 @@ class UrlMappings
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   private static def role = { path ->
-    def userRole = ConfigurationHolder.config.console.security.roles."${path}"
+    def userRole = ConsoleConfig.getInstance().console.security.roles."${path}"
     if(!userRole)
     {
       userRole = RoleName.ADMIN.toString()
@@ -190,7 +190,7 @@ class UrlMappings
     }
 
     // /
-    "/"(controller: 'dashboard', action: 'delta') { 
+    "/"(controller: 'home', action: 'slash') {
       __nvbe = 'Dashboard'
       __role = UrlMappings.role('/')
     }

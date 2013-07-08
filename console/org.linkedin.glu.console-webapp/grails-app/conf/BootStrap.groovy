@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,8 +19,8 @@ import org.linkedin.glu.console.domain.Fabric
 import grails.util.Environment
 import org.linkedin.glu.console.domain.User
 import org.linkedin.glu.console.domain.RoleName
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
 import org.linkedin.glu.grails.utils.ConsoleConfig
+import org.linkedin.glu.groovy.utils.jvm.JVMInfo
 import org.linkedin.groovy.util.net.SingletonURLStreamHandlerFactory
 import org.linkedin.groovy.util.ivy.IvyURLHandler
 import org.linkedin.glu.provisioner.core.model.SystemModel
@@ -30,10 +30,10 @@ import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.orchestration.engine.delta.DeltaService
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
 import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
-import org.codehaus.groovy.grails.commons.ApplicationHolder
 
 class BootStrap {
 
+  def grailsApplication
   ConsoleConfig consoleConfig
   SystemService systemService
   DeltaService deltaService
@@ -43,14 +43,18 @@ class BootStrap {
     log.info "Starting up... [${Environment.current} mode]"
 
     JulToSLF4jBridge.installBridge()
-    
+
+    log.info JVMInfo.getJVMInfoAsStringCollection().join(" | ")
+
+    def config = grailsApplication.config
+
     if(!consoleConfig.defaults)
       throw new IllegalStateException("could not find console config defaults. Did you properly set console.defaults property ?")
 
     servletContext.consoleConfig = consoleConfig
 
     // setup ivy url handler
-    def ivySettings = ConfigurationHolder.config.console.ivySettingsURL
+    def ivySettings = config.console.ivySettingsURL
     if (ivySettings) {
       SingletonURLStreamHandlerFactory.INSTANCE.registerHandler('ivy') {
         return new IvyURLHandler(ivySettings)
@@ -60,12 +64,11 @@ class BootStrap {
     }
 
     // initializing the plugin if one is provided
-    def config = ConfigurationHolder.config
     if(config.orchestration.engine.plugins)
     {
       pluginService.initializePlugin(config.orchestration.engine.plugins,
                                      [
-                                       applicationContext: ApplicationHolder.application.mainContext,
+                                       applicationContext: grailsApplication.mainContext,
                                        config: config
                                      ])
     }
@@ -99,7 +102,7 @@ class BootStrap {
       ].each { username, roles ->
         User.withTransaction { status ->
           User user = new User(username: username)
-          user.setRoles(roles)
+          user.updateRoles(roles)
           if(!user.save())
             throw new RuntimeException("could not create ${username} user")
 
@@ -121,7 +124,7 @@ class BootStrap {
 
       User.withTransaction { status ->
         def userInstance = new User(username: "admin")
-        userInstance.setRoles([RoleName.USER, RoleName.RELEASE, RoleName.ADMIN])
+        userInstance.updateRoles([RoleName.USER, RoleName.RELEASE, RoleName.ADMIN])
         if(!userInstance.save())
           throw new RuntimeException("could not create admin user")
 

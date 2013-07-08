@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,11 +18,9 @@
 package org.linkedin.glu.agent.rest.resources
 
 import org.linkedin.util.lifecycle.Configurable
-import org.restlet.Context
-import org.restlet.Request
-import org.restlet.Response
 import org.restlet.data.Status
 import org.restlet.representation.Representation
+import org.restlet.resource.Put
 
 /**
  * @author ypujante@linkedin.com */
@@ -33,22 +32,19 @@ class AgentConfigResource extends BaseResource
   Configurable configurable
   def codec
 
-  AgentConfigResource(Context context, Request request, Response response)
+  @Override
+  protected void doInit() throws org.restlet.resource.ResourceException
   {
-    super(context, request, response);
+    super.doInit()
     configurable = context.attributes['configurable']
     codec = context.attributes['codec']
   }
 
-  public boolean allowPut()
-  {
-    return true
-  }
-  
   /**
    * PUT: configuration (key/value pairs)
    */
-  public void storeRepresentation(Representation representation)
+  @Put
+  public Representation configure(Representation representation)
   {
     noException {
       Map map = toArgs(representation)
@@ -56,11 +52,13 @@ class AgentConfigResource extends BaseResource
       if(validate(map))
       {
         configurable.configure(map)
+        return null
       }
       else
       {
         log.warn("Received data with wrong checksum <${map.checksum}>")
         response.setStatus(Status.CLIENT_ERROR_FORBIDDEN)
+        return null
       }
     }
   }

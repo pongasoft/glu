@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -35,7 +35,7 @@
   <div id="plan_${plan.id}">
   <g:form method="post" controller="plan" action="filter" id="${plan.id}">
     <g:hiddenField name="stepId" value="${plan.id}"/>
-    <g:actionSubmit class="btn primary" action="execute" value="Execute" onClick="return confirm('Are you sure you want to execute this plan ?');"/>
+    <g:actionSubmit class="btn btn-primary" action="execute" value="Execute" onClick="return confirm('Are you sure you want to execute this plan ?');"/>
     <g:actionSubmit class="btn" action="filter" value="Filter"/>
     <g:render template="plan" model="[plan: plan]"/>
   </g:form>

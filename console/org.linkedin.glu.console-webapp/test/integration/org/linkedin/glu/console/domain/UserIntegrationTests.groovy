@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -75,7 +76,7 @@ class UserIntegrationTests extends GroovyTestCase
     assertFalseUsingGroovyTruth(user.impliesRole(RoleName.RESTRICTED))
 
     // we test the setRoles method
-    user.setRoles([RoleName.USER, RoleName.ADMIN, RoleName.RELEASE])
+    user.updateRoles([RoleName.USER, RoleName.ADMIN, RoleName.RELEASE])
     assertNotNull(user.save())
 
     assertEquals('user1', user.username)
@@ -88,7 +89,7 @@ class UserIntegrationTests extends GroovyTestCase
     assertFalseUsingGroovyTruth(user.impliesRole(RoleName.RESTRICTED))
 
     // we test the setRoles method
-    user.setRoles([RoleName.USER, RoleName.RESTRICTED])
+    user.updateRoles([RoleName.USER, RoleName.RESTRICTED])
     assertNotNull(user.save())
 
     assertEquals('user1', user.username)

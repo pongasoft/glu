@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011 Yan Pujante
+  - Portions Copyright (c) 2011-2013 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -22,28 +22,25 @@
   <meta name="layout" content="main"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'status-colors.css')}"/>
   <style type="text/css">
-    div.stackTraceBody {
-      display: none;
-    }
-    span.stackTraceExceptionClass {
-      display: none;
-    }
-    div.stackTraceMessage {
-      color: #880000;
-      font-weight: bold;
-      font-family: monospace;
-      overflow-y: auto;
+    .errorStackTrace {
+      margin-top: 0;
+      margin-bottom: 0;
     }
     .progress {
       width: 150px;
       border: solid black 1px;
       display: inline-block;
+      margin: 0;
     }
     a.step-link {
       color: black;
     }
     a.step-link:hover {
       color: #0069D6;
+    }
+
+    #deployment-details {
+      font-size: smaller;
     }
   </style>
   <g:javascript>
@@ -98,17 +95,17 @@ function refresh()
   </g:javascript>
 </head>
 <body onload="showErrorsOnly();autoRefresh();">
-<ul class="tabs">
+<ul class="nav nav-tabs">
   <li><g:link action="deployments">Recent</g:link></li>
   <li class="active"><a href="#">Recent [${deployment.description.encodeAsHTML()}]</a></li>
   <li><g:link action="archived">Archived</g:link></li>
 </ul>
 
-<h3>
+<h4>
   Show Errors Only: <cl:checkBoxInitFromParams name="showErrorsOnly" id="showErrorsOnly" onclick="showErrorsOnly();"/> |
   Auto Refresh: <cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
   <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/>
-</h3>
+</h4>
 
 <div id="asyncDetails">
   <g:render template="deploymentDetails" model="[deployment: deployment]"/>
