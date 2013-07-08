@@ -59,7 +59,7 @@ def main():
 
     # command line parsing
     usage = ('usage: %prog -f <fabric>'
-        ' <start|stop|bounce|deploy|undeploy|redeploy|load|status> [flags]')
+        ' <start|stop|bounce|deploy|undeploy|redeploy|load|status|agents> [flags]')
     parser = OptionParser(usage=usage,
         version='@console.name@: @console.version@')
 
@@ -265,6 +265,9 @@ def main():
                 options.instance, options.all_tags, options.any_tag)
 
         result = client.status(options.live, options.beautify, system_filter)
+
+    elif action == 'agents':
+        result = client.agents(options.beautify)
 
     else:
         parser.error('Unknown action: ' + action)
