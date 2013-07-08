@@ -333,3 +333,21 @@ class Client:
         response = self._do_request(uri, 'GET')
 
         return response.body
+
+    def agents(self, beautify=False):
+        """Retrieve the agents status.
+
+        :param beautify: If True, use a pretty printer on the output.
+        """
+        uri = 'agents'
+        params = {}
+
+        if beautify:
+            params['prettyPrint'] = 'true'
+
+        if params:
+            uri = '%s?%s' % (uri, urllib.urlencode(params))
+
+        response = self._do_request(uri, 'GET')
+
+        return response.body
