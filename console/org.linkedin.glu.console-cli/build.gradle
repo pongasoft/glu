@@ -25,4 +25,5 @@ cmdline {
     'console.version': version,
     'console.name': project.name
   ]
+  noPackageInstallTask = true
 }

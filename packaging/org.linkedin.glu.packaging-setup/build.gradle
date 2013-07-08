@@ -24,4 +24,5 @@ dependencies {
 cmdline {
   folders = []
   resources << packageIncludes
+  noPackageInstallTask = true
 }

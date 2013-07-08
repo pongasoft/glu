@@ -44,6 +44,7 @@ cmdline {
   ]
   folders = ['data']
   resources << packageIncludes
+  noPackageInstallTask = true
 }
 
 def agentServerUpgradeProject = evaluationDependsOn(':agent:org.linkedin.glu.agent-server-upgrade')

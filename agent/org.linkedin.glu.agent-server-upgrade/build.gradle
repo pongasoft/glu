@@ -15,7 +15,6 @@
 * the License.
 */
 apply plugin: 'org.linkedin.cmdline'
-apply plugin: 'org.linkedin.release'
 
 dependencies {
   lib project(":agent:org.linkedin.glu.agent-server-impl")
@@ -28,10 +27,7 @@ cmdline {
     'agent.name': 'org.linkedin.glu.agent-server'
   ]
   resources << packageIncludes
-}
-
-release  {
-  publish = allRepositories.distributions
+  noPackageInstallTask = true
 }
 
 /********************************************************
@@ -45,12 +41,4 @@ project.'package-assemble' << {
     include '*.dylib'
     into new File(project.convention.plugins.cmdline.assemblePackageFile, 'lib')
   }
-}
-
-/********************************************************
- * task: package-install
- * overriden to not install as it does make too much sense
- ********************************************************/
-task([overwrite: true], 'package-install') << {
-  // no op... it does not make sense to install the upgrade
 }

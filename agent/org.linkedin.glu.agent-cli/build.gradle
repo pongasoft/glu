@@ -23,4 +23,5 @@ dependencies {
 
 cmdline {
   resources << packageIncludes
+  noPackageInstallTask = true
 }

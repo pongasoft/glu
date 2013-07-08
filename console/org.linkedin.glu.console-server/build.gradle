@@ -48,6 +48,8 @@ def scriptProjects =
 cmdline {
   folders = []
 
+  noPackageInstallTask = true
+
   dependsOn = [
     ':console:org.linkedin.glu.console-webapp:war',
     ':samples:org.linkedin.glu.samples.sample-webapp:war',

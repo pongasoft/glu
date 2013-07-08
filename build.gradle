@@ -44,7 +44,7 @@ buildscript {
  }
 
   dependencies {
-    classpath 'org.pongasoft:org.linkedin.gradle-plugins:2.2.1'
+    classpath 'org.pongasoft:org.linkedin.gradle-plugins:2.2.2-SNAPSHOT'
   }
 }
 
