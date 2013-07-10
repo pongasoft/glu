@@ -65,7 +65,11 @@ agents << [
 consoles << [
   name: 'tutorialConsole',
   host: 'localhost',
-  plugins: ['org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin'],
+  plugins: [
+    [
+      fqcn: 'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin'
+    ]
+  ],
   configTokens: [
     dataSource: """
 dataSource.dbCreate ='update'

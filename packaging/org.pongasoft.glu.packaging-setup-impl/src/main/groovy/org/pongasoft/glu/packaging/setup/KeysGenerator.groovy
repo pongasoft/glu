@@ -17,6 +17,7 @@
 package org.pongasoft.glu.packaging.setup
 
 import org.linkedin.glu.groovy.utils.shell.Shell
+import org.linkedin.glu.groovy.utils.shell.ShellExecException
 import org.linkedin.util.codec.Base64Codec
 import org.linkedin.util.codec.Codec
 import org.linkedin.util.codec.CodecUtils
@@ -29,6 +30,10 @@ import org.pongasoft.glu.provisioner.core.metamodel.impl.KeyStoreMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.KeysMetaModelImpl
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+import java.security.Key
+import java.security.KeyStore
+import java.security.cert.Certificate
 
 /**
  * The purpose of this class is to generate keys and keystore for glu
@@ -53,12 +58,7 @@ public class KeysGenerator
       keyalg: 'RSA',
       keysize: 2048,
       validity: 2000,
-      dname: [
-        cn: 'glu-cn',
-        ou: 'glu-ou',
-        o: 'glu-o',
-        c: 'glu-c'
-      ],
+      dname: "cn=glu-cn,ou=glu-ou,o=glu-o,c=glu-c"
     ]
 
   KeysMetaModelImpl keys
@@ -98,6 +98,8 @@ public class KeysGenerator
       keys.agentTrustStore = generateAgentTrustStore(keys.agentKeyStore)
       keys.consoleKeyStore = generateConsoleKeyStore()
       keys.consoleTrustStore = generateConsoleTrustStore(keys.consoleKeyStore)
+
+      generateConsolePem(keys.consoleKeyStore)
     }
 
     return keys
@@ -156,7 +158,7 @@ public class KeysGenerator
         '-keyalg', opts.keyalg,
         '-keysize', opts.keysize,
         '-validity', opts.validity,
-        '-dname', opts.dname.collect {k, v -> "${k}=${v}"}.join(', ')
+        '-dname', opts.dname
       ]
 
       def res = shell.exec(command: cmd)
@@ -254,7 +256,7 @@ public class KeysGenerator
         '-keyalg', opts.keyalg,
         '-keysize', opts.keysize,
         '-validity', opts.validity,
-        '-dname', opts.dname.collect {k, v -> "${k}=${v}"}.join(', ')
+        '-dname', opts.dname
       ]
 
       def res = shell.exec(command: cmd)
@@ -332,6 +334,74 @@ public class KeysGenerator
     return new KeyStoreMetaModelImpl(uri: computeKeyStoreUri(resource),
                                      checksum: computeChecksum(resource),
                                      storePassword: getEncryptedPasswords().consoleTrustStore)
+  }
+
+  /**
+   * Step 5: generate a .pem file for use with curl
+   */
+  Resource generateConsolePem(KeyStoreMetaModel consoleKeyStore)
+  {
+    createResourceInOutputFolder('console.pem') { Resource consolePem ->
+
+      shell.withOutputStream(consolePem) { consolePemStream ->
+        KeyStore ks = KeyStore.getInstance("jks");
+
+        /* Load the key store. */
+        shell.withInputStream(toCanonicalPath(consoleKeyStore)) { InputStream stream ->
+          ks.load(stream, getPasswords().consoleKeyStore.toCharArray())
+        }
+
+        /* Save the private key. */
+        ByteArrayOutputStream derKey = new ByteArrayOutputStream()
+        derKey.withStream { kos ->
+          Key pvt = ks.getKey("console", getPasswords().consoleKey.toCharArray());
+          kos.write(pvt.getEncoded());
+        }
+
+        try
+        {
+          shell.exec(command: ['openssl', 'pkcs8', '-inform', 'der', '-nocrypt'],
+                     stdout: consolePemStream,
+                     stdin: new ByteArrayInputStream(derKey.toByteArray()),
+                     stderr: System.err,
+                     res: 'exitValue')
+        }
+        catch(ShellExecException ex)
+        {
+          log.warn("skipping generation of console.pem: could not execute openssl (is it installed?)")
+
+          if(log.isDebugEnabled())
+            log.debug("skipping generation of console.pem", ex)
+        }
+
+        /* Save the certificate. */
+        ByteArrayOutputStream derCert = new ByteArrayOutputStream()
+        derCert.withStream { cos ->
+          Certificate pub = ks.getCertificate("console");
+          cos.write(pub.getEncoded());
+        }
+
+        try
+        {
+          shell.exec(command: ['openssl', 'x509', '-inform', 'der'],
+                     stdout: consolePemStream,
+                     stdin: new ByteArrayInputStream(derCert.toByteArray()),
+                     stderr: System.err,
+                     res: 'exitValue')
+        }
+        catch(ShellExecException ex)
+        {
+          log.warn("skipping generation of console.pem: could not execute openssl (is it installed?)")
+
+          if(log.isDebugEnabled())
+            log.debug("skipping generation of console.pem", ex)
+        }
+
+      }
+
+
+      return consolePem
+    }
   }
 
   private String toCanonicalPath(KeyStoreMetaModel keyStore)

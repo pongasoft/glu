@@ -77,6 +77,15 @@ public class TestKeysGenerator extends GroovyTestCase
       ]
 
       assertEquals(expectedEncryptedPasswords, generator.encryptedPasswords)
+
+      def consolePem = shell.toResource('/keys/console.pem')
+      assertTrue(consolePem.exists())
+      def consolePemContent = shell.cat(consolePem)
+
+      assertTrue(consolePemContent.contains('-----BEGIN RSA PRIVATE KEY-----'))
+      assertTrue(consolePemContent.contains('-----END RSA PRIVATE KEY-----'))
+      assertTrue(consolePemContent.contains('-----BEGIN CERTIFICATE-----'))
+      assertTrue(consolePemContent.contains('-----END CERTIFICATE-----'))
     }
   }
 

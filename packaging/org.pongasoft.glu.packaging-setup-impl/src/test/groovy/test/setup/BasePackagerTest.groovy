@@ -91,11 +91,11 @@ public abstract class BasePackagerTest extends GroovyTestCase
   {
     super.setUp()
     GluMetaModelBuilder builder = new GluMetaModelBuilder()
-    builder.deserializeFromJson(rootShell.replaceTokens(testModelFile.text,
-                                                        [
-                                                          'glu.version': GLU_VERSION,
-                                                          'zookeeper.version': ZOOKEEPER_VERSION
-                                                        ]))
+    builder.deserializeFromJsonGroovyDsl(rootShell.replaceTokens(testModelFile.text,
+                                                                 [
+                                                                   'glu.version': GLU_VERSION,
+                                                                   'zookeeper.version': ZOOKEEPER_VERSION
+                                                                 ]))
     testModel = builder.toGluMetaModel()
   }
 
@@ -103,7 +103,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
   {
     GluMetaModelBuilder builder = new GluMetaModelBuilder()
 
-    builder.deserializeFromJson(gluMetaModelString)
+    builder.deserializeFromJsonGroovyDsl(gluMetaModelString)
 
     return builder.toGluMetaModel()
   }

@@ -17,21 +17,15 @@
 package org.pongasoft.glu.provisioner.core.metamodel.impl
 
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
-import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.HostMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ServerMetaModel
 
 /**
  * @author yan@pongasoft.com  */
-public class ServerMetaModelImpl implements ServerMetaModel
+public class ServerMetaModelImpl extends CliMetaModelImpl implements ServerMetaModel
 {
   public static final String MAIN_PORT_KEY = 'mainPort'
 
-  String version
-  HostMetaModel host
   Map<String, Integer> ports
-  Map<String, String> configTokens
-  GluMetaModel gluMetaModel
 
   @Override
   int getMainPort()
@@ -62,31 +56,16 @@ public class ServerMetaModelImpl implements ServerMetaModel
     return -1
   }
 
-  String getVersion()
-  {
-    version ?: gluMetaModel.gluVersion
-  }
-
   @Override
   Object toExternalRepresentation()
   {
-    def res = [
-      host: host.toExternalRepresentation(),
-    ]
-
-    if(version)
-      res.version = version
+    def res = super.toExternalRepresentation()
 
     if(mainPort != defaultPort)
       res.port = mainPort
 
     if(ports.size() > 1)
       res.ports =  GluGroovyCollectionUtils.xorMap(ports, [MAIN_PORT_KEY])
-
-    if(configTokens)
-    {
-      res.configTokens = configTokens
-    }
 
     return res
   }

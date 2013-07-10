@@ -30,7 +30,9 @@ public class GluMetaModelJsonGroovyDsl
                                           zooKeeperRoot: null,
                                           fabrics: [:],
                                           agents: [],
+                                          agentCli: null,
                                           consoles: [],
+                                          consoleCli: null,
                                           zooKeeperClusters: [],
                                           out: System.out)
 

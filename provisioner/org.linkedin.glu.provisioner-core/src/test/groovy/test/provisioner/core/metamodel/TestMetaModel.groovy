@@ -125,7 +125,9 @@ public class TestMetaModel extends GroovyTestCase
       "host": "localhost",
       "name": "tutorialConsole",
       "plugins": [
-        "org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin"
+        {
+          "fqcn": "org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin"
+        }
       ]
     }
   ],
@@ -208,6 +210,217 @@ public class TestMetaModel extends GroovyTestCase
     assertEquals(3888, zk.leaderElectionPort)
     assertEquals('127.0.0.1', zk.host.resolveHostAddress())
 
+  }
+
+  /**
+   * Test that whatever is not tested by the tutorial model still works
+   */
+  public void testMiscModel()
+  {
+    def model = """{
+  "gluVersion": "x.y.z",
+  "fabrics": {
+    "fabric-1": {
+      "console": "console-1",
+      "zooKeeperCluster": "zkc-1"
+    }
+  },
+  "agents": [
+    {
+      "version": "av1",
+      "host": "ah1",
+      "install": {
+        "path": "/a1/"
+      },
+      "configTokens": {
+        "a.p1": "a.v1"
+      },
+      "name": "agent-1",
+      "port": 1111,
+      "ports": {
+        "configPort": 2222
+      },
+      "fabric": "fabric-1"
+    }
+  ],
+  "consoles": [
+     {
+      "version": "cv1",
+      "host": "ch1",
+      "install": {
+        "path": "/c1/"
+      },
+      "configTokens": {
+        "c.p1": "c.v1"
+      },
+      "name": "console-1",
+      "port": 3333,
+      "ports": {
+        "externalPort": 4444
+      },
+      "externalHost": "ceh1",
+      "internalPath": "/i/c1",
+      "externalPath": "/e/c2",
+      "plugins": [
+        {
+          "fqcn": "pl.c1",
+          "classPath": ["file:/p.jar"]
+        }
+      ],
+      "dataSourceDriverUri": "file:/d.jar"
+    }
+  ],
+
+  "zooKeeperClusters": [
+    {
+      "configTokens": {
+        "zkc.p1": "zkc.v1"
+      },
+      "name": "zkc-1",
+      "fabrics": ["fabric-1"],
+      "zooKeepers": [
+        {
+          "version": "z11",
+          "host": "z1h1",
+          "install": {
+            "path": "/z1/"
+          },
+          "configTokens": {
+            "z1.p1": "z1.v1"
+          },
+          "name": "zk-1",
+          "port": 5555,
+          "ports": {
+            "quorumPort": 6666,
+            "leaderElectionPort": 7777
+          }
+        },
+        {
+          "version": "z21",
+          "host": "z2h1",
+          "install": {
+            "path": "/z2/"
+          },
+          "configTokens": {
+            "z2.p1": "z2.v1"
+          },
+          "name": "zk-2",
+          "port": 8888,
+          "ports": {
+            "quorumPort": 9999,
+            "leaderElectionPort": 10000
+          }
+        }
+      ]
+    }
+  ]
+
+}"""
+
+    def expectedModel = """
+{
+  "agents": [
+    {
+      "configTokens": {
+        "a.p1": "a.v1"
+      },
+      "fabric": "fabric-1",
+      "host": "ah1",
+      "install": {
+        "path": "/a1/"
+      },
+      "name": "agent-1",
+      "port": 1111,
+      "ports": {
+        "configPort": 2222
+      },
+      "version": "av1"
+    }
+  ],
+  "consoles": [
+    {
+      "configTokens": {
+        "c.p1": "c.v1"
+      },
+      "dataSourceDriverUri": "file:/d.jar",
+      "externalHost": "ceh1",
+      "externalPath": "/e/c2",
+      "host": "ch1",
+      "install": {
+        "path": "/c1/"
+      },
+      "internalPath": "/i/c1",
+      "name": "console-1",
+      "plugins": [
+        {
+          "classPath": [
+            "file:/p.jar"
+          ],
+          "fqcn": "pl.c1"
+        }
+      ],
+      "port": 3333,
+      "ports": {
+        "externalPort": 4444
+      },
+      "version": "cv1"
+    }
+  ],
+  "fabrics": {
+    "fabric-1": {
+      "console": "console-1",
+      "zooKeeperCluster": "zkc-1"
+    }
+  },
+  "gluVersion": "x.y.z",
+  "metaModelVersion": "1.0.0",
+  "zooKeeperClusters": [
+    {
+      "configTokens": {
+        "zkc.p1": "zkc.v1"
+      },
+      "fabrics": [
+        "fabric-1"
+      ],
+      "name": "zkc-1",
+      "zooKeepers": [
+        {
+          "configTokens": {
+            "z1.p1": "z1.v1"
+          },
+          "host": "z1h1",
+          "install": {
+            "path": "/z1/"
+          },
+          "port": 5555,
+          "ports": {
+            "leaderElectionPort": 7777,
+            "quorumPort": 6666
+          },
+          "version": "z11"
+        },
+        {
+          "configTokens": {
+            "z2.p1": "z2.v1"
+          },
+          "host": "z2h1",
+          "install": {
+            "path": "/z2/"
+          },
+          "port": 8888,
+          "ports": {
+            "leaderElectionPort": 10000,
+            "quorumPort": 9999
+          },
+          "version": "z21"
+        }
+      ]
+    }
+  ]
+}
+"""
+
+    checkJson(model, expectedModel)
   }
 
   private GluMetaModel checkJson(String model, String expectedModel)

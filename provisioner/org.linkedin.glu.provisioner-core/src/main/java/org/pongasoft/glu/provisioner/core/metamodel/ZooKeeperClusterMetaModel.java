@@ -22,18 +22,38 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Represents a cluster of ZooKeeper instances.
  * @author yan@pongasoft.com
  */
 public interface ZooKeeperClusterMetaModel extends Externable, Configurable
 {
+  /**
+   * @return the name of the cluster
+   */
   String getName();
 
+  /**
+   * @return all the fabrics that are installed in this cluster
+   */
   Map<String, FabricMetaModel> getFabrics();
+
+  /**
+   * @return the fabric given its name or <code>null</code>
+   */
   FabricMetaModel findFabric(String fabricName);
 
+  /**
+   * @return all the ZooKeeper server instances making up this cluster
+   */
   List<ZooKeeperMetaModel> getZooKeepers();
 
+  /**
+   * @return the connection string in order to connect to this cluster
+   */
   String getZooKeeperConnectionString();
 
+  /**
+   * @return reference to the glu meta model this cluster belongs to
+   */
   GluMetaModel getGluMetaModel();
 }

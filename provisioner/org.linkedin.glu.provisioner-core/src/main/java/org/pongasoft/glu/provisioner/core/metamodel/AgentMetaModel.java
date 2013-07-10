@@ -19,6 +19,9 @@ package org.pongasoft.glu.provisioner.core.metamodel;
 import org.linkedin.glu.utils.core.Externable;
 
 /**
+ * Represents a glu agent (that gets installed on each node where you need to deploy/undeploy
+ * applications)
+ *
  * @author yan@pongasoft.com
  */
 public interface AgentMetaModel extends ServerMetaModel, Externable
@@ -37,8 +40,20 @@ public interface AgentMetaModel extends ServerMetaModel, Externable
    */
   String getResolvedName();
 
+  /**
+   * @return which port the agent is listening on. Alias to {@link #getMainPort()}.
+   */
   int getAgentPort();
+
+  /**
+   * @return which port the agent is listening on for configuration. Not a typical use case.
+   */
   int getConfigPort();
 
+  /**
+   * An agent belongs to one and only one fabric.
+   *
+   * @return the unique fabric this agent belongs to
+   */
   FabricMetaModel getFabric();
 }

@@ -29,6 +29,8 @@ import org.linkedin.zookeeper.client.ZKClient
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.impl.builder.GluMetaModelBuilder
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.util.concurrent.TimeoutException
 
@@ -36,6 +38,9 @@ import java.util.concurrent.TimeoutException
  * @author yan@pongasoft.com  */
 public class SetupMain
 {
+  public static final String MODULE = SetupMain.class.getName();
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
+
   public static class AbortException extends Exception
   {
     int exitValue = 0
@@ -60,15 +65,15 @@ public class SetupMain
 
   protected def init(args)
   {
-    cli = new CliBuilder(usage: './bin/setup.sh [-h] [-K] [-D] [-Z] [meta-model]*',
+    cli = new CliBuilder(usage: 'setup.sh [-h] [-K] [-D] [-Z] [meta-model]*',
                          width: 80,
                          header: 'Options:',
                          footer: '''
 Typical usage:
-./bin/setup.sh -h               // help
-./bin/setup.sh -K               // generate keys (step 1)
-./bin/setup.sh -D <meta-model>+ // generate the distribution (step 2)
-./bin/setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
+setup.sh -h               // help
+setup.sh -K               // generate keys (step 1)
+setup.sh -D <meta-model>+ // generate the distribution (step 2)
+setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
 ''')
     cli.D(longOpt: 'gen-dist', 'generate the distributions', args: 0, required: false)
     cli.K(longOpt: 'gen-keys', 'generate the keys', args: 0, required: false)
@@ -77,6 +82,7 @@ Typical usage:
     cli._(longOpt: 'configs-root', "location of the configs (multiple allowed) [default: ${defaultConfigsResource}]", args: 1, required: false)
     cli._(longOpt: 'packages-root', "location of the packages [default: ${defaultPackagesRootResource}]", args: 1, required: false)
     cli._(longOpt: 'keys-root', "location of the keys (if relative) [default: <outputFolder>/keys]", args: 1, required: false)
+    cli._(longOpt: 'keys-dname', "the (X.500) distinguished name to use for the keys certificate (ex: \"cn=Mark Smith, ou=JavaSoft, o=Sun, l=Cupertino, s=California, c=US\"), ", args: 1, required: false)
     cli._(longOpt: 'glu-root', "location of glu distribution [default: ${gluRootResource}]", args: 1, required: false)
     cli._(longOpt: 'agents-only', "generate distribution for agents only", args: 0, required: false)
     cli._(longOpt: 'consoles-only', "generate distribution for consoles only", args: 0, required: false)
@@ -95,10 +101,10 @@ Typical usage:
     if(options.h)
     {
       println '''usage:
- ./bin/setup.sh -h                              // help
- ./bin/setup.sh -K                              // generate keys (step 1)
- ./bin/setup.sh -D [meta-model] [meta-model]... // generate the distribution (step 2)
- ./bin/setup.sh -Z [meta-model] [meta-model]... // configure ZooKeeper clusters (step 3)
+ setup.sh -h                              // help
+ setup.sh -K                              // generate keys (step 1)
+ setup.sh -D [meta-model] [meta-model]... // generate the distribution (step 2)
+ setup.sh -Z [meta-model] [meta-model]... // configure ZooKeeper clusters (step 3)
 '''
       cli.usage()
       return null
@@ -121,6 +127,7 @@ Typical usage:
     else
     {
       String value = System.console().readLine("${message} [${defaultValue}]: ")
+      value = value?.trim()
       if(!value)
         return defaultValue?.toString()
       else
@@ -137,9 +144,27 @@ Typical usage:
     FileResource.create(gluRoot)
   }
 
+  protected Resource createResource(String filePath)
+  {
+    if(filePath.startsWith('/'))
+      pwdResource.rootResource.createRelative(filePath)
+    else
+      pwdResource.createRelative(filePath)
+  }
+
   protected String getUserDir()
   {
     System.getProperty('user.dir')
+  }
+
+  protected String getPwd()
+  {
+    System.getProperty('user.pwd', userDir)
+  }
+
+  protected Resource getPwdResource()
+  {
+    FileResource.create(pwd)
   }
 
   protected Resource getUserDirResource()
@@ -165,11 +190,10 @@ Typical usage:
 
     if(!out)
     {
-      out = promptForValue("Enter the output directory",
-                           System.getProperty('user.pwd', userDir))
+      out = promptForValue("Enter the output directory", pwd)
     }
 
-    outputFolder = FileResource.create(new File(out))
+    outputFolder = createResource(out)
 
     def actions = [
       'gen-keys', 'gen-dist', 'configure-zookeeper-clusters'].findAll {
@@ -193,15 +217,18 @@ Typical usage:
     def km = new KeysGenerator(shell: shell,
                                outputFolder: outputFolder.createRelative('keys'),
                                masterPassword: new String(masterPassword))
+    def keysDname = Config.getOptionalString(config, 'keys-dname', null)
+    if(keysDname)
+      km.opts.dname = keysDname
     try
     {
       def kmm = km.generateKeys().toExternalRepresentation()
 
-      println "Keys have been generated in the following folder: ${outputFolder.path}"
+      log.info "Keys have been generated in the following folder: ${km.outputFolder.path}"
 
-      println "Copy the following section in your meta model (see comment in meta model)"
+      log.info "Copy the following section in your meta model (see comment in meta model)"
 
-      println "//" * 20
+      log.info "//" * 20
 
       println "def keys = ["
       kmm.each { storeName, store ->
@@ -211,7 +238,7 @@ Typical usage:
       }
       println "]"
 
-      println "//" * 20
+      log.info "//" * 20
     }
     catch(IllegalStateException e)
     {
@@ -224,7 +251,7 @@ Typical usage:
    * --gen-dist command
    */
   def gen_dist = {
-    println "Generating distributions"
+    log.info "Generating distributions"
 
     def packager = buildPackager(false)
 
@@ -241,7 +268,16 @@ Typical usage:
     }
     else
     {
-      packager.packageAll()
+      def packagedArtifacts = packager.packageAll()
+
+      log.info "All distributions generated successfully"
+
+      log.info "In this version, you need to install them yourself on the appropriate hosts:"
+      log.info "#" * 20
+
+      packagedArtifacts.findAll { k, v -> k instanceof ZooKeeperClusterMetaModel}.values()
+
+      log.info "#" * 20
     }
   }
 
@@ -249,7 +285,7 @@ Typical usage:
    * --configure-zookeeper-clusters command
    */
   def configure_zookeeper_clusters = {
-    println "Configuring ZooKeeper clusters"
+    log.info "Configuring ZooKeeper clusters"
 
     def packager = buildPackager(true)
 
@@ -272,7 +308,7 @@ Typical usage:
   protected void configureZooKeeperCluster(ZooKeeperClusterMetaModel model,
                                            Resource location)
   {
-    println "Configuring ZooKeeper cluster [${model.name}]"
+    log.info "Configuring ZooKeeper cluster [${model.name}]"
 
     def zkClient = new ZKClient(model.zooKeeperConnectionString,
                                 Timespan.parse("5s"),
@@ -287,7 +323,7 @@ Typical usage:
       GroovyIOUtils.eachChildRecurse(location.createRelative('conf').chroot('.')) { Resource child ->
         if(!child.isDirectory())
         {
-          println "uploading ${child.path} to ${model.zooKeeperConnectionString}"
+          log.info "uploading ${child.path} to ${model.zooKeeperConnectionString}"
           UploadCommand cmd = new UploadCommand()
           if(cmd.execute(zkClient, ['-f', child.file.canonicalPath, child.path]) != 0)
             throw new AbortException("Error while uploading to ZooKeeper cluster [${model.zooKeeperConnectionString}]", 3)
@@ -316,7 +352,7 @@ Typical usage:
 
     GluMetaModelBuilder builder = new GluMetaModelBuilder()
     metaModels.each { String metaModel ->
-      builder.deserializeFromJsonResource(FileResource.create(metaModel))
+      builder.deserializeFromJsonResource(createResource(metaModel))
     }
 
     builder.toGluMetaModel()
@@ -333,7 +369,7 @@ Typical usage:
       if(configRoot == '<default>')
         defaultConfigsResource
       else
-        FileResource.create(configRoot)
+        createResource(configRoot)
     }
 
     // packagesRoot
@@ -348,9 +384,9 @@ Typical usage:
 
     new GluPackager(shell: shell,
                     configsRoots: configsRoots,
-                    packagesRoot: FileResource.create(packagesRoot),
+                    packagesRoot: createResource(packagesRoot),
                     outputFolder: outputFolder,
-                    keysRoot: FileResource.create(keysRoot),
+                    keysRoot: createResource(keysRoot),
                     gluMetaModel: gluMetaModel,
                     dryMode: dryMode)
   }
@@ -369,7 +405,7 @@ Typical usage:
       }
       catch (MissingConfigParameterException e)
       {
-        println e
+        log.error(e.message)
         clientMain.cli.usage()
       }
       catch(AbortException e)

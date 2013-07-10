@@ -20,10 +20,19 @@ import org.linkedin.glu.utils.core.Externable;
 import org.linkedin.groovy.util.state.StateMachine;
 
 /**
+ * Represents the state machine to use with glu.
  * @author yan@pongasoft.com
  */
 public interface StateMachineMetaModel extends Externable
 {
+  /**
+   * @return the transitions
+   */
   StateMachine getDefaultTransitions();
+
+  /**
+   * @return the state considered to be the target state in the state machine (ex: 'running' in
+   *         the default state machine that comes bundled with glu)
+   */
   String getDefaultEntryState();
 }

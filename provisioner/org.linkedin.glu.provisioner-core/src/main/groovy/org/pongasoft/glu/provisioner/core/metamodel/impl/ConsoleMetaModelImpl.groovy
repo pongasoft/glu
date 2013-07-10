@@ -17,6 +17,7 @@
 package org.pongasoft.glu.provisioner.core.metamodel.impl
 
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.ConsolePluginMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.FabricMetaModel
 
 /**
@@ -26,7 +27,7 @@ public class ConsoleMetaModelImpl extends ServerMetaModelImpl implements Console
   String name
   Map<String, FabricMetaModel> fabrics
   String externalHost
-  Collection<String> plugins
+  Collection<ConsolePluginMetaModel> plugins
   URI dataSourceDriverUri
   String internalPath
   String externalPath
@@ -84,7 +85,7 @@ public class ConsoleMetaModelImpl extends ServerMetaModelImpl implements Console
       ext.externalPath = externalPath
 
     if(plugins)
-      ext.plugins = plugins
+      ext.plugins = plugins.collect { it.toExternalRepresentation() }
 
     if(dataSourceDriverUri)
       ext.dataSourceDriverUri = dataSourceDriverUri.toString()

@@ -19,6 +19,8 @@ package org.pongasoft.glu.provisioner.core.metamodel;
 import org.linkedin.glu.utils.core.Externable;
 
 /**
+ * Represents a single instance of ZooKeeper
+ *
  * @author yan@pongasoft.com
  */
 public interface ZooKeeperMetaModel extends ServerMetaModel, Externable
@@ -27,11 +29,29 @@ public interface ZooKeeperMetaModel extends ServerMetaModel, Externable
   public static final int DEFAULT_QUORUM_PORT = 2888;
   public static final int DEFAULT_LEADER_ELECTION_PORT = 3888;
 
+  /**
+   * @return the client port ({@link #getMainPort()})
+   */
   int getClientPort();
+
+  /**
+   * @return the (quorum) port used when cluster has more than 1 server to talk to each other
+   */
   int getQuorumPort();
+
+  /**
+   * @return the (leader election) port used when cluster has more than 1 server to talk to
+   *         each other
+   */
   int getLeaderElectionPort();
 
+  /**
+   * @return the index of this instance in the cluster (used for configuration purposes)
+   */
   int getServerIdx();
 
+  /**
+   * @return a reference to the cluster this instance belongs to
+   */
   ZooKeeperClusterMetaModel getZooKeeperCluster();
 }

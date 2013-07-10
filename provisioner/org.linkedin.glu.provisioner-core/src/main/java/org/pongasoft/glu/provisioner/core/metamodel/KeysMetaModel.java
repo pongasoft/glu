@@ -19,12 +19,30 @@ package org.pongasoft.glu.provisioner.core.metamodel;
 import org.linkedin.glu.utils.core.Externable;
 
 /**
+ * Represents the set of keys associated to a fabric
  * @author yan@pongasoft.com
  */
 public interface KeysMetaModel extends Externable
 {
+  /**
+   * @return agent key store (private to agent)
+   */
   KeyStoreMetaModel getAgentKeyStore();
+
+  /**
+   * @return agent trust store (public)
+   */
   KeyStoreMetaModel getAgentTrustStore();
+
+  /**
+   * Note that this is the critical key store that needs to be kept private!
+   *
+   * @return console key store (private to console)
+   */
   KeyStoreMetaModel getConsoleKeyStore();
+
+  /**
+   * @return console trust store (public)
+   */
   KeyStoreMetaModel getConsoleTrustStore();
 }

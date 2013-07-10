@@ -67,6 +67,6 @@ fi
 # Java Tuning Options (heap & generations sizes; GC tuning)
 JVM_TUNING_OPTIONS="$JVM_SIZE $JVM_SIZE_NEW $JVM_SIZE_PERM $JVM_GC_TYPE $JVM_GC_OPTS $JVM_GC_LOG"
 
-JAVA_OPTIONS="$JAVA_OPTIONS $JVM_TUNING_OPTIONS -Dorg.linkedin.glu.console.config.location=$BASEDIR/conf/glu-console-webapp.groovy -Dorg.linkedin.glu.console.keys.dir=$BASEDIR/keys -Dorg.linkedin.glu.console.plugins.classpath=$PLUGINS_CLASSPATH -Dorg.linkedin.glu.console.root=$BASEDIR"
+JAVA_OPTIONS="$JAVA_OPTIONS $JVM_TUNING_OPTIONS $JVM_APP_INFO -Dorg.linkedin.glu.console.config.location=$BASEDIR/conf/glu-console-webapp.groovy -Dorg.linkedin.glu.console.keys.dir=$BASEDIR/keys -Dorg.linkedin.glu.console.plugins.classpath=$PLUGINS_CLASSPATH -Dorg.linkedin.glu.console.root=$BASEDIR"
 
 JAVA="$JAVA_CMD" JAVA_OPTIONS="$JAVA_OPTIONS" $JETTY_CMD "$@"

@@ -16,17 +16,19 @@
 
 package org.pongasoft.glu.provisioner.core.metamodel;
 
-import org.linkedin.glu.utils.core.Externable;
-
 /**
+ * Represents a server which is a cli that starts a (usually long running) process that binds to
+ * one (or more) port(s).
+ *
  * @author yan@pongasoft.com
  */
-public interface ServerMetaModel extends Externable, Configurable
+public interface ServerMetaModel extends CliMetaModel
 {
-  String getVersion();
-
-  HostMetaModel getHost();
-
+  /**
+   * If undefined, return the {@link #getDefaultPort()}.
+   *
+   * @return the "main"/primary port of this server, which is how the server is usually contacted on
+   */
   int getMainPort();
 
   /**
@@ -35,7 +37,10 @@ public interface ServerMetaModel extends Externable, Configurable
    */
   int getDefaultPort();
 
+  /**
+   * @param portName the name of the port to return. <code>mainPort</code> is equivalent to
+   *                 {@link #getMainPort()}
+   * @return the port associated to the name (in case the server uses additional ports)
+   */
   int getPort(String portName);
-
-  GluMetaModel getGluMetaModel();
 }

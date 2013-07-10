@@ -21,21 +21,44 @@ import org.linkedin.glu.utils.core.Externable;
 import java.util.Map;
 
 /**
+ * Represents a fabric in glu.
+ *
  * @author yan@pongasoft.com
  */
 public interface FabricMetaModel extends Externable
 {
+  /**
+   * @return the name of the fabric
+   */
   String getName();
 
+  /**
+   * In a given fabric, agent names must be unique.
+   *
+   * @return all the agents that belong to a fabric. key is agent name
+   */
   Map<String, AgentMetaModel> getAgents();
 
   AgentMetaModel findAgent(String agentName);
 
+  /**
+   * @return the ZooKeeper cluster where this fabric is hosted
+   */
   ZooKeeperClusterMetaModel getZooKeeperCluster();
 
+  /**
+   * @return the console that manages this fabric
+   */
   ConsoleMetaModel getConsole();
 
+  /**
+   * @return the keys associated to this fabric (communication to agents)
+   * @see ConsoleMetaModel for details and restrictions
+   */
   KeysMetaModel getKeys();
 
+  /**
+   * @return reference to the glu meta model this fabric belongs to
+   */
   GluMetaModel getGluMetaModel();
 }

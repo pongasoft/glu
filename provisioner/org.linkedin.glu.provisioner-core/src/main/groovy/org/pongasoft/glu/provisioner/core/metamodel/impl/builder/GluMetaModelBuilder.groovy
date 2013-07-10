@@ -17,18 +17,22 @@
 package org.pongasoft.glu.provisioner.core.metamodel.impl.builder
 
 import com.fasterxml.jackson.core.JsonParseException
-import org.codehaus.groovy.control.CompilationFailedException
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.groovy.util.state.StateMachineImpl
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.KeysMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.impl.AgentCliMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.AgentMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.CliMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.ConsoleCliMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.ConsoleMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.ConsolePluginMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.FabricMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.GluMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.HostMetaModelImpl
+import org.pongasoft.glu.provisioner.core.metamodel.impl.InstallMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.KeyStoreMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.KeysMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.PhysicalHostMetaModelImpl
@@ -36,11 +40,16 @@ import org.pongasoft.glu.provisioner.core.metamodel.impl.ServerMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.StateMachineMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.ZooKeeperClusterMetaModelImpl
 import org.pongasoft.glu.provisioner.core.metamodel.impl.ZooKeeperMetaModelImpl
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * @author yan@pongasoft.com  */
 public class GluMetaModelBuilder
 {
+  public static final String MODULE = GluMetaModelBuilder.class.getName();
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
+
   GluMetaModelImpl gluMetaModel = new GluMetaModelImpl()
   Map<String, FabricMetaModelImpl> fabrics = [:]
   Map<String, ConsoleMetaModelImpl> consoles = [:]
@@ -49,10 +58,16 @@ public class GluMetaModelBuilder
   void deserializeFromJsonResource(Resource resource)
   {
     if(resource != null)
-      deserializeFromJson(GroovyIOUtils.cat(resource))
+    {
+      def jsonModel = GroovyIOUtils.cat(resource)
+      if(resource.filename?.endsWith('.json.groovy'))
+        deserializeFromJsonGroovyDsl(jsonModel)
+      else
+        deserializeFromJsonString(jsonModel)
+    }
   }
 
-  void deserializeFromJson(String jsonModel)
+  void deserializeFromJsonString(String jsonModel)
   {
     Map jsonMapModel
 
@@ -62,18 +77,31 @@ public class GluMetaModelBuilder
     }
     catch(JsonParseException jpe)
     {
-      try
-      {
-        jsonMapModel = GluMetaModelJsonGroovyDsl.parseJsonGroovy(jsonModel)
+      def lines = []
+      int i = 1
+      jsonModel.eachLine { line ->
+        lines << "[${i++}] ${line}"
       }
-      catch(CompilationFailedException cfe)
-      {
-        def ex = new IllegalArgumentException("cannot parse json model")
-        ex.addSuppressed(jpe)
-        ex.addSuppressed(cfe)
-        throw ex
-      }
+
+      int errorLine = jpe.location.lineNr - 1 // 1 based
+
+      def minLine = Math.max(0, errorLine - 5)
+      def maxLine = Math.min(lines.size(), errorLine + 5)
+
+      log.error """Problem with json model: ${jpe.message}
+${'/' * 20}
+${lines[minLine..maxLine].join('\n')}
+${'/' * 20}"""
+
+      throw jpe
     }
+
+    deserializeFromJsonMap(jsonMapModel)
+  }
+
+  void deserializeFromJsonGroovyDsl(String jsonModel)
+  {
+    Map jsonMapModel = GluMetaModelJsonGroovyDsl.parseJsonGroovy(jsonModel)
 
     deserializeFromJsonMap(jsonMapModel)
   }
@@ -90,8 +118,14 @@ public class GluMetaModelBuilder
     // agents
     jsonModel.agents?.each { deserializeAgent(it) }
 
+    if(jsonModel.agentCli)
+      gluMetaModel.agentCli = deserializeCli(jsonModel.agentCli, new AgentCliMetaModelImpl())
+
     // consoles
     jsonModel.consoles?.each { deserializeConsole(it) }
+
+    if(jsonModel.consoleCli)
+      gluMetaModel.consoleCli = deserializeCli(jsonModel.consoleCli, new ConsoleCliMetaModelImpl())
 
     // zookeeperClusters
     jsonModel.zooKeeperClusters?.each { deserializeZooKeeperCluster(it) }
@@ -184,11 +218,13 @@ public class GluMetaModelBuilder
    */
   void deserializeConsole(Map consoleModel)
   {
+    def plugins = consoleModel.plugins?.collect { deserializeConsolePlugin(it) }
+
     ConsoleMetaModelImpl console =
       deserializeServer(consoleModel,
                         new ConsoleMetaModelImpl(name: consoleModel.name ?: 'default',
                                                  fabrics: [:],
-                                                 plugins: consoleModel.plugins ?: [],
+                                                 plugins: plugins ?: [],
                                                  externalHost: consoleModel.externalHost,
                                                  internalPath: consoleModel.internalPath,
                                                  externalPath: consoleModel.externalPath))
@@ -251,15 +287,29 @@ public class GluMetaModelBuilder
   }
 
   /**
+   * Deserializes the cli model piece (super class).
+   *
+   * @return <code>impl</code>
+   */
+  private <T extends CliMetaModelImpl> T deserializeCli(Map cliModel, T impl)
+  {
+    impl.version = cliModel.version
+    impl.gluMetaModel = gluMetaModel
+    impl.host = deserializeHostMetaModel(cliModel.host ?: 'localhost')
+    impl.install = deserializeInstall(cliModel.install)
+    impl.configTokens = deserializeConfigTokens(cliModel.configTokens)
+
+    return impl
+  }
+
+  /**
    * Deserializes the server model piece (super class).
    *
    * @return <code>impl</code>
    */
   private <T extends ServerMetaModelImpl> T deserializeServer(Map serverModel, T impl)
   {
-    impl.version = serverModel.version
-    impl.gluMetaModel = gluMetaModel
-    impl.host = deserializeHostMetaModel(serverModel.host ?: 'localhost')
+    impl = deserializeCli(serverModel, impl)
 
     Map<String, Integer> ports = [:]
     if(serverModel.port)
@@ -267,9 +317,28 @@ public class GluMetaModelBuilder
     if(serverModel.ports)
       ports.putAll(serverModel.ports)
     impl.ports = Collections.unmodifiableMap(ports)
-    impl.configTokens = deserializeConfigTokens(serverModel.configTokens)
 
     return impl
+  }
+
+  private ConsolePluginMetaModelImpl deserializeConsolePlugin(Map consolePluginModel)
+  {
+    ConsolePluginMetaModelImpl impl = new ConsolePluginMetaModelImpl(fqcn: consolePluginModel.fqcn)
+    if(consolePluginModel.classPath)
+    {
+      impl.classPath = consolePluginModel.classPath.collect { new URI(it) }
+    }
+    return impl
+  }
+
+  private InstallMetaModelImpl deserializeInstall(Map installModel)
+  {
+    if(installModel)
+    {
+      new InstallMetaModelImpl(path: installModel.path)
+    }
+    else
+      return null
   }
 
   private Map<String, String> deserializeConfigTokens(Map configTokens)
@@ -329,10 +398,13 @@ public class GluMetaModelBuilder
       if(console.fabrics.size() > 1)
       {
         Map<String, KeysMetaModel> allKeys = console.fabrics.collectEntries { k, v -> [k, v.keys] }
-        def fabricsWithDifferentKeys =
-          allKeys.groupBy { k, v -> v }.find { it.value.size() > 1}?.value*.key
-        if(fabricsWithDifferentKeys)
-          throw new IllegalArgumentException("only one set of keys supported (at this time) in a given console [${console.name}]: those fabrics [${fabricsWithDifferentKeys}] have different keys")
+
+        def fabricsWithDifferentKeys = allKeys.groupBy { k, v -> v }
+
+        if(fabricsWithDifferentKeys.size() > 1)
+        {
+          throw new IllegalArgumentException("only one set of keys supported (at this time) in a given console [${console.name}]: those fabrics [${fabricsWithDifferentKeys.keySet()}] have different keys")
+        }
       }
     }
     zooKeeperClusters.values().each { zooKeeperCluster ->

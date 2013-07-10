@@ -27,11 +27,16 @@ import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * @author yan@pongasoft.com  */
 public class GluPackager
 {
+  public static final String MODULE = GluPackager.class.getName();
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
+
   public static final OneWayCodec SHA1 =
     OneWayMessageDigestCodec.createSHA1Instance('', HexaCodec.INSTANCE)
 
@@ -50,13 +55,15 @@ public class GluPackager
 
   boolean dryMode = false
 
-  void packageAll()
+  def packageAll()
   {
     packageAgents()
     packageConsoles()
     packageZooKeeperClusters()
     packageAgentCli()
     packageConsoleCli()
+
+    return packagedArtifacts
   }
 
   void packageAgents()
@@ -83,7 +90,7 @@ public class GluPackager
           // no need to generate the package!
           if(!dryMode)
           {
-            println "Skipped agent package ${pas.agentServer.location} ${pas.agentServer.host}:${pas.agentServer.port}"
+            log.info "Skipped agent package ${pas.agentServer.location} => ${pas.agentServer.host}:${pas.agentServer.port}"
           }
         }
       }
@@ -91,7 +98,7 @@ public class GluPackager
       {
         packager.createPackage()
         if(!dryMode)
-          println "Generated agent package ${pas.agentServer.location} ${pas.agentServer.host}:${pas.agentServer.port}"
+          log.info "Generated agent package ${pas.agentServer.location} => ${pas.agentServer.host}:${pas.agentServer.port}"
         checksums[packageName] = checksum
       }
 
@@ -105,7 +112,7 @@ public class GluPackager
       PackagedArtifact pa = packageConsole(model)
       packagedArtifacts[model] = pa
       if(!dryMode)
-        println "Generated console package ${pa.location} ${pa.host}:${pa.port}"
+        log.info "Generated console package ${pa.location} => ${pa.host}:${pa.port}"
     }
   }
 
@@ -117,9 +124,9 @@ public class GluPackager
       if(!dryMode)
       {
         pas.zooKeepers.each { zki ->
-          println "Generated ZooKeeper instance ${zki.location} ${zki.host}:${zki.port}"
+          log.info "Generated ZooKeeper instance ${zki.location}  => ${zki.host}:${zki.port}"
         }
-        println "Generated ZooKeeper cluster ${pas.zooKeeperCluster.location} ${model.zooKeeperConnectionString}"
+        log.info "Generated ZooKeeper cluster ${pas.zooKeeperCluster.location} => ${model.zooKeeperConnectionString}"
       }
     }
   }

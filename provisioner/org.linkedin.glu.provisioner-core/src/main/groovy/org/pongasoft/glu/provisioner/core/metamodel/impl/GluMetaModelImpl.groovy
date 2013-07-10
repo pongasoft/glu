@@ -17,7 +17,9 @@
 package org.pongasoft.glu.provisioner.core.metamodel.impl
 
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.pongasoft.glu.provisioner.core.metamodel.AgentCliMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.ConsoleCliMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.FabricMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
@@ -35,6 +37,8 @@ public class GluMetaModelImpl implements GluMetaModel
   String gluVersion
   String metaModelVersion = META_MODEL_VERSION
   String zooKeeperRoot = DEFAULT_ZOOKEEPER_ROOT
+  ConsoleCliMetaModel consoleCli
+  AgentCliMetaModel agentCli
 
   @Override
   FabricMetaModel findFabric(String fabricName)
@@ -97,6 +101,18 @@ public class GluMetaModelImpl implements GluMetaModel
   }
 
   @Override
+  ConsoleCliMetaModel getConsoleCli()
+  {
+    consoleCli ?: new ConsoleCliMetaModelImpl(gluMetaModel: this)
+  }
+
+  @Override
+  AgentCliMetaModel getAgentCli()
+  {
+    agentCli ?: new AgentCliMetaModelImpl(gluMetaModel: this)
+  }
+
+  @Override
   Object toExternalRepresentation()
   {
     def res =[
@@ -114,8 +130,14 @@ public class GluMetaModelImpl implements GluMetaModel
     if(agents)
       res.agents = agents.collect { it.toExternalRepresentation() }
 
+    if(agentCli)
+      res.agentCli = agentCli.toExternalRepresentation()
+
     if(consoles)
       res.consoles = consoles.values().collect { it.toExternalRepresentation() }
+
+    if(consoleCli)
+      res.consoleCli = consoleCli.toExternalRepresentation()
 
     if(zooKeeperClusters)
       res.zooKeeperClusters = zooKeeperClusters.values().collect { it.toExternalRepresentation() }
