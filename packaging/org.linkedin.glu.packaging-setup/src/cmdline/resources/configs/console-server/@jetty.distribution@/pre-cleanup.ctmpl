@@ -15,5 +15,5 @@
  */
 
 // delete the subfolder contexts and webapps since they come prepopulated with values we do not want
-packagerContext.shell.rmdirs(toResource.parentResource.createRelative('contexts'))
-packagerContext.shell.rmdirs(toResource.parentResource.createRelative('webapps'))
+shell.rmdirs(toResource.parentResource.createRelative('contexts'))
+shell.rmdirs(toResource.parentResource.createRelative('webapps'))

@@ -20,7 +20,7 @@ url=https://localhost:12906/
 
 ################################
 # Security:
-<% def keys = (gluMetaModel.fabrics.values() as List)[0].keys %>
+<% def keys = (agentCliMetaModel.gluMetaModel.fabrics.values() as List)[0].keys %>
 <% if(keys) { %>
 sslEnabled=true
 

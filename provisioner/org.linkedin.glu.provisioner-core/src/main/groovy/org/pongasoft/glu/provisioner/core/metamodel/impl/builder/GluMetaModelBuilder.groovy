@@ -17,6 +17,7 @@
 package org.pongasoft.glu.provisioner.core.metamodel.impl.builder
 
 import com.fasterxml.jackson.core.JsonParseException
+import org.codehaus.groovy.control.CompilationFailedException
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.groovy.util.state.StateMachineImpl
@@ -101,7 +102,26 @@ ${'/' * 20}"""
 
   void deserializeFromJsonGroovyDsl(String jsonModel)
   {
-    Map jsonMapModel = GluMetaModelJsonGroovyDsl.parseJsonGroovy(jsonModel)
+    Map jsonMapModel
+    try
+    {
+      jsonMapModel = GluMetaModelJsonGroovyDsl.parseJsonGroovy(jsonModel)
+    }
+    catch(CompilationFailedException cfe)
+    {
+      def lines = []
+      int i = 1
+      jsonModel.eachLine { line ->
+        lines << "[${i++}] ${line}"
+      }
+
+      log.error """Problem with json model: ${cfe.message}
+${'/' * 20}
+${lines.join('\n')}
+${'/' * 20}"""
+
+      throw cfe
+    }
 
     deserializeFromJsonMap(jsonMapModel)
   }

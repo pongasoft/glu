@@ -61,7 +61,7 @@ plugins.StreamFileContentPlugin.maskFileContent = true
 
 // define the plugins as a Map, or a class name or an array of class names
 orchestration.engine.plugins = [
-  <%= consoleMetaModel.plugins?.collect { "'${it}'" }?.join(',\n') %>
+  <%= consoleMetaModel.plugins?.collect { "'${it.fqcn}'" }?.join(',\n') %>
 ]
 
 // extra plugin configuration

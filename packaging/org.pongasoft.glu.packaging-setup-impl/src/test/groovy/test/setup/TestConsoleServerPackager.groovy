@@ -97,6 +97,8 @@ public class TestConsoleServerPackager extends BasePackagerTest
     ShellImpl.createTempShell { Shell shell ->
 
       def driverResource = shell.saveContent('/drivers/db-driver.jar', 'this is the driver')
+      def plugin1Resource = shell.saveContent('/plugins/plugin1.jar', 'this is the plugin1')
+      def plugin2Resource = shell.saveContent('/plugins/plugin2.jar', 'this is the plugin2')
 
       def metaModel = """
 fabrics['f1'] = [
@@ -112,7 +114,10 @@ consoles << [
   internalPath: '/ic',
   externalHost: 'h2',
   externalPath: '/ec',
-  plugins: ['p1', 'p2'],
+  plugins: [
+    [fqcn: 'p1', classPath: ['${plugin1Resource.toURI()}']],
+    [fqcn: 'p2', classPath: ['${plugin2Resource.toURI()}']],
+  ],
   version: '${GLU_VERSION}',
   dataSourceDriverUri: '${driverResource.toURI()}',
   configTokens: [
@@ -131,6 +136,7 @@ consoles << [
       def inputPackage = shell.mkdirs("/dist/org.linkedin.glu.console-server-${GLU_VERSION}")
 
       def jettyDistribution = "jetty-distribution-${JETTY_VERSION}"
+      def consoleWar = "org.linkedin.glu.console-webapp-${GLU_VERSION}"
       def jettyPackage = shell.mkdirs(inputPackage.createRelative(jettyDistribution))
       shell.saveContent(jettyPackage.'/lib/acme.jar', 'this is the jar')
       shell.saveContent(jettyPackage.'/contexts/dummy-context.xml', 'will be deleted')
@@ -258,9 +264,16 @@ JVM_SIZE="-Xmx555m"
           "/${jettyDistribution}/contexts/console-jetty-context.xml": TUTORIAL_CONSOLE_JETTY_CONTEXT.replace('/console', '/ic'),
           "/${jettyDistribution}/contexts/glu-jetty-context.xml": DEFAULT_GLU_JETTY_CONTEXT,
           "/${jettyDistribution}/lib": DIRECTORY,
-          "/${jettyDistribution}/lib/ext": DIRECTORY,
-          "/${jettyDistribution}/lib/ext/db-driver.jar": "this is the driver",
           "/${jettyDistribution}/lib/acme.jar": 'this is the jar',
+          "/glu": DIRECTORY,
+          "/glu/repository": DIRECTORY,
+          "/glu/repository/exploded-wars": DIRECTORY,
+          "/glu/repository/exploded-wars/${consoleWar}": DIRECTORY,
+          "/glu/repository/exploded-wars/${consoleWar}/WEB-INF": DIRECTORY,
+          "/glu/repository/exploded-wars/${consoleWar}/WEB-INF/lib": DIRECTORY,
+          "/glu/repository/exploded-wars/${consoleWar}/WEB-INF/lib/db-driver.jar": "this is the driver",
+          "/glu/repository/exploded-wars/${consoleWar}/WEB-INF/lib/plugin1.jar": "this is the plugin1",
+          "/glu/repository/exploded-wars/${consoleWar}/WEB-INF/lib/plugin2.jar": "this is the plugin2",
         ]
 
       checkPackageContent(expectedResources, artifact.location)

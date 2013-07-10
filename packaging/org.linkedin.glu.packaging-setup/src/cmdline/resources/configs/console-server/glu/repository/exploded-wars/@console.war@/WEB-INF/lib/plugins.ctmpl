@@ -14,7 +14,15 @@
  * the License.
  */
 
-// download/fetch the URI
-if(consoleMetaModel.dataSourceDriverUri) {
-  packagerContext.shell.fetch(consoleMetaModel.dataSourceDriverUri, toResource)
+// download/fetch all the plugins
+if(consoleMetaModel.plugins) {
+
+  def classPaths = consoleMetaModel.plugins*.classPath.flatten().findAll { it }.unique()
+
+  if(classPaths)
+    shell.mkdirs(toResource.parentResource)
+
+  classPaths.each { classPath ->
+    shell.fetch(classPath, toResource.parentResource)
+  }
 }

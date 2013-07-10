@@ -17,5 +17,5 @@
 // myid exists only if "real" cluster (meaning more than 1 server)
 if(zooKeeperMetaModel.zooKeeperCluster.zooKeepers.size() > 1)
 {
-  packagerContext.shell.saveContent(toResource, "${zooKeeperMetaModel.serverIdx}")
+  shell.saveContent(toResource, "${zooKeeperMetaModel.serverIdx}")
 }

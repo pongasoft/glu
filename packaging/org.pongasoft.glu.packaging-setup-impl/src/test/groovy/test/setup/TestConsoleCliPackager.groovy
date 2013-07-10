@@ -37,7 +37,7 @@ public class TestConsoleCliPackager extends BasePackagerTest
                                             outputFolder: shell.mkdirs('/out'),
                                             inputPackage: inputPackage,
                                             configsRoots: copyConfigs(shell.toResource('/configs')),
-                                            metaModel: testModel)
+                                            metaModel: testModel.consoleCli)
 
       PackagedArtifact artifact = packager.createPackage()
 

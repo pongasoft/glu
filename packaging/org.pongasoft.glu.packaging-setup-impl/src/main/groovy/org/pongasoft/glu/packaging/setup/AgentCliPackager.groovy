@@ -17,31 +17,34 @@
 package org.pongasoft.glu.packaging.setup
 
 import org.linkedin.util.io.resource.Resource
-import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.AgentCliMetaModel
 
 /**
  * @author yan@pongasoft.com  */
 public class AgentCliPackager extends BasePackager
 {
-  GluMetaModel metaModel
+  AgentCliMetaModel metaModel
 
   PackagedArtifact createPackage()
   {
-    String packageName = inputPackage.filename
+    String packageName = ensureVersion(metaModel.version)
 
     def tokens = [
-      gluMetaModel: metaModel,
+      agentCliMetaModel: metaModel,
     ]
     tokens[PACKAGER_CONTEXT_KEY] = packagerContext
 
-    Resource packagePath = outputFolder.createRelative(packageName)
+    def parts = [packageName]
+    parts << metaModel.version
+
+    Resource packagePath = outputFolder.createRelative(parts.join('-'))
 
     if(!dryMode)
     {
       copyInputPackage(packagePath)
       configure(packagePath, tokens)
-      if(metaModel.stateMachine)
-        generateStateMachineJarFile(metaModel.stateMachine,
+      if(metaModel.gluMetaModel.stateMachine)
+        generateStateMachineJarFile(metaModel.gluMetaModel.stateMachine,
                                     packagePath.createRelative('lib'))
     }
 

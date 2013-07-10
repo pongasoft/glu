@@ -16,7 +16,6 @@
 
 package org.pongasoft.glu.packaging.setup
 
-import org.linkedin.groovy.util.net.GroovyNetUtils
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 
@@ -62,11 +61,9 @@ public class ConsoleServerPackager extends BasePackager
     def tokens = [
       consoleMetaModel: metaModel,
       envPropertyNames: ENV_PROPERTY_NAMES,
-      'jetty.distribution': jettyDistribution
+      'jetty.distribution': jettyDistribution,
+      'console.war': "org.linkedin.glu.console-webapp-${metaModel.version}"
     ]
-
-    if(metaModel.dataSourceDriverUri)
-      tokens['dataSource.driver'] = GroovyNetUtils.guessFilename(metaModel.dataSourceDriverUri)
 
     tokens[PACKAGER_CONTEXT_KEY] = packagerContext
     tokens[CONFIG_TOKENS_KEY] = [*:configTokens]

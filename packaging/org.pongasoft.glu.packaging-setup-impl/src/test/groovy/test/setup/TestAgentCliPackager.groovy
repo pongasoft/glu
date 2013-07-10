@@ -38,7 +38,7 @@ public class TestAgentCliPackager extends BasePackagerTest
                                           outputFolder: shell.mkdirs('/out'),
                                           inputPackage: inputPackage,
                                           configsRoots: copyConfigs(shell.toResource('/configs')),
-                                          metaModel: testModel)
+                                          metaModel: testModel.agentCli)
 
       PackagedArtifact artifact = packager.createPackage()
 
@@ -101,6 +101,9 @@ truststorePassword=nacEn92x8-1
     ShellImpl.createTempShell { Shell shell ->
 
       def metaModel = """
+
+gluVersion = '${GLU_VERSION}'
+
 fabrics['f1'] = [ : ]
 
 stateMachine = [
@@ -124,7 +127,7 @@ stateMachine = [
                                           outputFolder: shell.mkdirs('/out'),
                                           inputPackage: inputPackage,
                                           configsRoots: copyConfigs(shell.toResource('/configs')),
-                                          metaModel: toGluMetaModel(metaModel))
+                                          metaModel: toGluMetaModel(metaModel).agentCli)
 
       PackagedArtifact artifact = packager.createPackage()
 

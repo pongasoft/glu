@@ -243,6 +243,16 @@ public class TestMetaModel extends GroovyTestCase
       "fabric": "fabric-1"
     }
   ],
+  "agentCli": {
+      "version": "acv1",
+      "host": "ach1",
+      "install": {
+        "path": "/ac1/"
+      },
+      "configTokens": {
+        "ac.p1": "ac.v1"
+      }
+  },
   "consoles": [
      {
       "version": "cv1",
@@ -270,6 +280,17 @@ public class TestMetaModel extends GroovyTestCase
       "dataSourceDriverUri": "file:/d.jar"
     }
   ],
+
+  "consoleCli": {
+      "version": "ccv1",
+      "host": "cch1",
+      "install": {
+        "path": "/cc1/"
+      },
+      "configTokens": {
+        "cc.p1": "cc.v1"
+      }
+  },
 
   "zooKeeperClusters": [
     {
@@ -319,6 +340,16 @@ public class TestMetaModel extends GroovyTestCase
 
     def expectedModel = """
 {
+  "agentCli": {
+    "configTokens": {
+      "ac.p1": "ac.v1"
+    },
+    "host": "ach1",
+    "install": {
+      "path": "/ac1/"
+    },
+    "version": "acv1"
+  },
   "agents": [
     {
       "configTokens": {
@@ -337,6 +368,16 @@ public class TestMetaModel extends GroovyTestCase
       "version": "av1"
     }
   ],
+  "consoleCli": {
+    "configTokens": {
+      "cc.p1": "cc.v1"
+    },
+    "host": "cch1",
+    "install": {
+      "path": "/cc1/"
+    },
+    "version": "ccv1"
+  },
   "consoles": [
     {
       "configTokens": {
