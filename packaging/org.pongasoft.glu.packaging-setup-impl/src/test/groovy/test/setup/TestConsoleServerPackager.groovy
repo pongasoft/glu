@@ -25,8 +25,6 @@ import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
  * @author yan@pongasoft.com  */
 public class TestConsoleServerPackager extends BasePackagerTest
 {
-  public static final String JETTY_VERSION = "j.v.2"
-
   public void testTutorialModel()
   {
     ShellImpl.createTempShell { Shell shell ->

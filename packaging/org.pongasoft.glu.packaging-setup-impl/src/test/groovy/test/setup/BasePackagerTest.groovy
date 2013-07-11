@@ -51,6 +51,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
 
   public static final String GLU_VERSION = 'g.v.0'
   public static final String ZOOKEEPER_VERSION = 'z.v.1'
+  public static final String JETTY_VERSION = "j.v.2"
 
   public static final String DEFAULT_KEYS = """
   keys: [

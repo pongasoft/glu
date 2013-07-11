@@ -23,8 +23,10 @@ import org.linkedin.util.codec.HexaCodec
 import org.linkedin.util.codec.OneWayCodec
 import org.linkedin.util.codec.OneWayMessageDigestCodec
 import org.linkedin.util.io.resource.Resource
+import org.linkedin.util.reflect.ReflectUtils
 import org.pongasoft.glu.provisioner.core.metamodel.AgentCliMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.CliMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleCliMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
@@ -68,6 +70,105 @@ public class GluPackager
     packageConsoleCli()
 
     return packagedArtifacts
+  }
+
+  void generateInstallScripts(boolean generateInstallAllScript)
+  {
+    def installAllScript = []
+
+    [
+      (ZooKeeperMetaModel.class): "zookeepers",
+      (AgentMetaModel.class): "agents",
+      (ConsoleMetaModel.class): "consoles",
+      (AgentCliMetaModel.class): "agent-cli",
+      (ConsoleCliMetaModel.class): "console-cli",
+    ].each { Class<? extends CliMetaModel> metaModelClass, String name ->
+
+      def installScript = []
+
+      installScript << ("#" * 20) + " [${name}] " + ("#" * 20)
+      buildInstallCommands(metaModelClass, installScript)
+      installScript << "#" * 20
+
+      generateInstallScript("install-${name}.sh", installScript)
+
+      installAllScript.addAll(installScript)
+    }
+
+    if(generateInstallAllScript)
+      generateInstallScript("install-all.sh", installAllScript)
+  }
+
+  protected Resource generateInstallScript(String name, def lines)
+  {
+    def content = """#!/bin/bash
+
+if [ -z "\$SCP_CMD" ]; then
+  SCP_CMD="scp"
+fi
+
+if [ -z "\$SCP_OPTIONS" ]; then
+  SCP_OPTIONS="-r"
+fi
+
+if [ -z "\$SCP_USER" ]; then
+  SCP_USER=\$USER
+fi
+
+${lines.join('\n')}
+
+"""
+    def installScript = shell.saveContent(outputFolder.createRelative("bin/${name}"), content)
+    shell.chmodPlusX(installScript)
+
+    log.info "Generated install script ${installScript.file.canonicalPath}"
+
+    return installScript
+  }
+
+  /**
+   * Build install commands
+   */
+  protected <T extends CliMetaModel> void buildInstallCommands(Class<T> metaModelClass,
+                                                               def installScript)
+  {
+    filter(packagedArtifacts, metaModelClass).each { T metaModel,  PackagedArtifact pa ->
+      installScript << buildInstallCommand(metaModel, pa)
+    }
+  }
+
+  /**
+   * Build a single install command
+   */
+  protected String buildInstallCommand(CliMetaModel cli, PackagedArtifact artifact)
+  {
+    if(artifact.host)
+    {
+      if(cli.install?.path)
+      {
+        "\$SCP_CMD \$SCP_OPTIONS \"${artifact.location.file.canonicalPath}\" \"\$SCP_USER@${artifact.host}:${cli.install.path}\""
+      }
+      else
+      {
+        "# manually install ${artifact.location.file.canonicalPath} on host ${artifact.host}"
+      }
+    }
+    else
+    {
+      "# manually install ${artifact.location.file.canonicalPath}"
+    }
+
+  }
+
+  /**
+   * Filter the map by class
+   */
+  protected <T extends MetaModel> Map<T, PackagedArtifact> filter(Map<MetaModel, PackagedArtifact> artifacts,
+                                                                  Class<T> metaModelClass)
+  {
+    artifacts.findAll {k, v ->
+      ReflectUtils.isSubClassOrInterfaceOf(k.getClass(), metaModelClass)
+    } as Map<T, PackagedArtifact>
   }
 
   void packageAgents()
@@ -203,8 +304,7 @@ public class GluPackager
 
     packagedArtifacts.putAll(packager.createPackages())
 
-    if(!dryMode)
-      println "Generated agent-cli package ${packagedArtifacts[agentCliMetaModel].location}"
+    displayPackagedArtifact(agentCliMetaModel, "agent cli package")
   }
 
   protected void packageConsoleCli()
@@ -223,8 +323,7 @@ public class GluPackager
 
     packagedArtifacts.putAll(packager.createPackages())
 
-    if(!dryMode)
-      println "Generated console-cli package ${packagedArtifacts[consoleCliMetaModel].location}"
+    displayPackagedArtifact(consoleCliMetaModel, "console cli package")
   }
 
   protected PackagerContext createPackagerContext()

@@ -24,18 +24,10 @@ import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.util.clock.Timespan
 import org.linkedin.util.io.resource.FileResource
 import org.linkedin.util.io.resource.Resource
-import org.linkedin.util.reflect.ReflectUtils
 import org.linkedin.zookeeper.cli.commands.UploadCommand
 import org.linkedin.zookeeper.client.ZKClient
-import org.pongasoft.glu.provisioner.core.metamodel.AgentCliMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.CliMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.ConsoleCliMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.MetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.impl.builder.GluMetaModelBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -273,83 +265,17 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
         packager.packageConsoles()
       if(Config.getOptionalBoolean(config, 'zookeeper-clusters-only', false))
         packager.packageZooKeeperClusters()
+
+      packager.generateInstallScripts(false)
     }
     else
     {
-      Map<MetaModel, PackagedArtifact> packagedArtifacts = packager.packageAll()
+      packager.packageAll()
+
+      packager.generateInstallScripts(true)
 
       log.info "All distributions generated successfully."
-
-      def installScript = []
-
-      [
-        ZooKeeperMetaModel,
-        AgentMetaModel,
-        ConsoleMetaModel,
-        AgentCliMetaModel,
-        ConsoleCliMetaModel,
-      ].each { Class<? extends CliMetaModel> metaModelClass ->
-        installScript << ("#" * 20) + " [${metaModelClass.simpleName - 'MetaModel'}s] " + ("#" * 20)
-        buildInstallCommands(packagedArtifacts, metaModelClass, installScript)
-        installScript << "#" * 20
-      }
-
-      log.info """Install script ....
-#!/bin/bash
-
-SCP_OPTIONS="-R"
-SCP_USER="${System.getProperty('user.name')}"
-
-${installScript.join('\n')}
-
-"""
     }
-  }
-
-  /**
-   * Build install commands
-   */
-  protected <T extends CliMetaModel> void buildInstallCommands(Map<MetaModel, PackagedArtifact> packagedArtifacts,
-                                                               Class<T> metaModelClass,
-                                                               def installScript)
-  {
-    filter(packagedArtifacts, metaModelClass).each { T metaModel,  PackagedArtifact pa ->
-      installScript << buildInstallCommand(metaModel, pa)
-    }
-  }
-
-  /**
-   * Build a single install command
-   */
-  protected String buildInstallCommand(CliMetaModel cli, PackagedArtifact artifact)
-  {
-    if(artifact.host)
-    {
-      if(cli.install?.path)
-      {
-        "scp \$SCP_OPTIONS \"${artifact.location.file.canonicalPath}\" \"\$SCP_USER@${artifact.host}:${cli.install.path}\""
-      }
-      else
-      {
-        "# manually install ${artifact.location.file.canonicalPath} on host ${artifact.host}"
-      }
-    }
-    else
-    {
-      "# manually install ${artifact.location.file.canonicalPath}"
-    }
-
-  }
-
-  /**
-   * Filter the map by class
-   */
-  protected <T extends MetaModel> Map<T, PackagedArtifact> filter(Map<MetaModel, PackagedArtifact> artifacts,
-                                                                  Class<T> metaModelClass)
-  {
-    artifacts.findAll {k, v ->
-      ReflectUtils.isSubClassOrInterfaceOf(k.getClass(), metaModelClass)
-    } as Map<T, PackagedArtifact>
   }
 
   /**
