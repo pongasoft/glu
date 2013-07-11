@@ -26,7 +26,7 @@ import java.util.Map;
  *
  * @author yan@pongasoft.com
  */
-public interface GluMetaModel extends Externable
+public interface GluMetaModel extends Externable, MetaModel
 {
   public static final String DEFAULT_ZOOKEEPER_ROOT = "/org/glu";
 

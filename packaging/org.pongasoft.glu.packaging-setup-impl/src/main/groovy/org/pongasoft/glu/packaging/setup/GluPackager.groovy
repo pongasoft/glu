@@ -23,10 +23,14 @@ import org.linkedin.util.codec.HexaCodec
 import org.linkedin.util.codec.OneWayCodec
 import org.linkedin.util.codec.OneWayMessageDigestCodec
 import org.linkedin.util.io.resource.Resource
+import org.pongasoft.glu.provisioner.core.metamodel.AgentCliMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.ConsoleCliMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.MetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperMetaModel
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -51,11 +55,11 @@ public class GluPackager
   Resource outputFolder
   Resource keysRoot
 
-  def packagedArtifacts = [:]
+  Map<MetaModel, PackagedArtifact> packagedArtifacts = [:]
 
   boolean dryMode = false
 
-  def packageAll()
+  Map<MetaModel, PackagedArtifact> packageAll()
   {
     packageAgents()
     packageConsoles()
@@ -73,11 +77,13 @@ public class GluPackager
     gluMetaModel.agents.each { AgentMetaModel model ->
       AgentServerPackager packager = buildPackager(model)
 
-      def pas = packager.computePackagedArtifacts()
+      Map<MetaModel, PackagedArtifact> pas = packager.computePackagedArtifacts()
 
-      def checksum = computeChecksum(pas.agentServer)
+      PackagedArtifact agent = pas[model]
 
-      def packageName = pas.agentServer.location.filename
+      def checksum = computeChecksum(agent)
+
+      def packageName = agent.location.filename
       def previousChecksum = checksums[packageName]
 
       if(previousChecksum)
@@ -90,43 +96,51 @@ public class GluPackager
           // no need to generate the package!
           if(!dryMode)
           {
-            log.info "Skipped agent package ${pas.agentServer.location} => ${pas.agentServer.host}:${pas.agentServer.port}"
+            log.info "Skipped agent package ${agent.location} => ${agent.host}:${agent.port}"
           }
         }
       }
       else
       {
-        packager.createPackage()
-        if(!dryMode)
-          log.info "Generated agent package ${pas.agentServer.location} => ${pas.agentServer.host}:${pas.agentServer.port}"
+        packagedArtifacts.putAll(packager.createPackages())
+        displayPackagedArtifact(model, "agent package")
         checksums[packageName] = checksum
       }
-
-      packagedArtifacts[model] = pas
     }
   }
 
   void packageConsoles()
   {
     gluMetaModel.consoles.values().each { ConsoleMetaModel model ->
-      PackagedArtifact pa = packageConsole(model)
-      packagedArtifacts[model] = pa
-      if(!dryMode)
-        log.info "Generated console package ${pa.location} => ${pa.host}:${pa.port}"
+      Map<MetaModel, PackagedArtifact> pas = packageConsole(model)
+      packagedArtifacts.putAll(pas)
+      displayPackagedArtifact(model, "console package")
     }
   }
 
   void packageZooKeeperClusters()
   {
     gluMetaModel.zooKeeperClusters.values().each { ZooKeeperClusterMetaModel model ->
-      def pas = packageZooKeeperCluster(model)
-      packagedArtifacts[model] = pas
-      if(!dryMode)
+      Map<MetaModel, PackagedArtifact> pas = packageZooKeeperCluster(model)
+      packagedArtifacts.putAll(pas)
+      model.zooKeepers.each { ZooKeeperMetaModel zkm ->
+        displayPackagedArtifact(zkm, "ZooKeeper instance [${zkm.serverIdx}]")
+      }
+      displayPackagedArtifact(model, "ZooKeeper cluster [${model.name}]")
+    }
+  }
+
+  protected void displayPackagedArtifact(MetaModel metaModel, String displayName)
+  {
+    if(!dryMode)
+    {
+      PackagedArtifact pa = packagedArtifacts[metaModel]
+      if(pa)
       {
-        pas.zooKeepers.each { zki ->
-          log.info "Generated ZooKeeper instance ${zki.location}  => ${zki.host}:${zki.port}"
-        }
-        log.info "Generated ZooKeeper cluster ${pas.zooKeeperCluster.location} => ${model.zooKeeperConnectionString}"
+        String str = "Generated ${displayName} ${pa.location}"
+        if(pa.host)
+          str = "${str} => ${pa.host}:${pa.port}"
+        log.info str
       }
     }
   }
@@ -145,7 +159,7 @@ public class GluPackager
     return packager
   }
 
-  protected PackagedArtifact packageConsole(ConsoleMetaModel consoleMetaModel)
+  protected Map<MetaModel, PackagedArtifact> packageConsole(ConsoleMetaModel consoleMetaModel)
   {
     def out = shell.mkdirs(outputFolder.createRelative('consoles'))
     def packager =
@@ -156,10 +170,10 @@ public class GluPackager
                                 configsRoots: configsRoots,
                                 metaModel: consoleMetaModel,
                                 dryMode: dryMode)
-    packager.createPackage()
+    packager.createPackages()
   }
 
-  protected def packageZooKeeperCluster(ZooKeeperClusterMetaModel zooKeeperClusterMetaModel)
+  protected Map<MetaModel, PackagedArtifact> packageZooKeeperCluster(ZooKeeperClusterMetaModel zooKeeperClusterMetaModel)
   {
     def out = shell.mkdirs(outputFolder.createRelative('zookeeper-clusters'))
     def packager =
@@ -170,11 +184,13 @@ public class GluPackager
                                    configsRoots: configsRoots,
                                    metaModel: zooKeeperClusterMetaModel,
                                    dryMode: dryMode)
-    packager.createPackage()
+    packager.createPackages()
   }
 
-  protected PackagedArtifact packageAgentCli()
+  protected void packageAgentCli()
   {
+    AgentCliMetaModel agentCliMetaModel = gluMetaModel.agentCli
+
     def out = shell.mkdirs(outputFolder.createRelative('agent-cli'))
     def packager =
       new AgentCliPackager(packagerContext: createPackagerContext(),
@@ -182,24 +198,19 @@ public class GluPackager
                            inputPackage: getInputPackage('org.linkedin.glu.agent-cli',
                                                          gluMetaModel.gluVersion),
                            configsRoots: configsRoots,
-                           metaModel: gluMetaModel,
+                           metaModel: agentCliMetaModel,
                            dryMode: dryMode)
 
-    PackagedArtifact pa = packager.createPackage()
-
-    if(!packagedArtifacts[gluMetaModel])
-      packagedArtifacts[gluMetaModel] = [:]
-
-    packagedArtifacts[gluMetaModel].agentCli = pa
+    packagedArtifacts.putAll(packager.createPackages())
 
     if(!dryMode)
-      println "Generated agent-cli package ${pa.location}"
-
-    return pa
+      println "Generated agent-cli package ${packagedArtifacts[agentCliMetaModel].location}"
   }
 
-  protected PackagedArtifact packageConsoleCli()
+  protected void packageConsoleCli()
   {
+    ConsoleCliMetaModel consoleCliMetaModel = gluMetaModel.consoleCli
+
     def out = shell.mkdirs(outputFolder.createRelative('console-cli'))
     def packager =
       new ConsoleCliPackager(packagerContext: createPackagerContext(),
@@ -207,20 +218,13 @@ public class GluPackager
                              inputPackage: getInputPackage('org.linkedin.glu.console-cli',
                                                            gluMetaModel.gluVersion),
                              configsRoots: configsRoots,
-                             metaModel: gluMetaModel,
+                             metaModel: consoleCliMetaModel,
                              dryMode: dryMode)
 
-    PackagedArtifact pa = packager.createPackage()
-
-    if(!packagedArtifacts[gluMetaModel])
-      packagedArtifacts[gluMetaModel] = [:]
-
-    packagedArtifacts[gluMetaModel].consoleCli = pa
+    packagedArtifacts.putAll(packager.createPackages())
 
     if(!dryMode)
-      println "Generated console-cli package ${pa.location}"
-
-    return pa
+      println "Generated console-cli package ${packagedArtifacts[consoleCliMetaModel].location}"
   }
 
   protected PackagerContext createPackagerContext()

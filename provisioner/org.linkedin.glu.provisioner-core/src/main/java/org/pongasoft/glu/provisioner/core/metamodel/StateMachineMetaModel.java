@@ -23,7 +23,7 @@ import org.linkedin.groovy.util.state.StateMachine;
  * Represents the state machine to use with glu.
  * @author yan@pongasoft.com
  */
-public interface StateMachineMetaModel extends Externable
+public interface StateMachineMetaModel extends Externable, MetaModel
 {
   /**
    * @return the transitions

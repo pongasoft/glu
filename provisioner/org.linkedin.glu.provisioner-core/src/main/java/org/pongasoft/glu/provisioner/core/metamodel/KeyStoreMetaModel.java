@@ -25,7 +25,7 @@ import java.net.URI;
  *
  * @author yan@pongasoft.com
  */
-public interface KeyStoreMetaModel extends Externable
+public interface KeyStoreMetaModel extends Externable, MetaModel
 {
   /**
    * @return location of the key store (can be relative, use --keys-root to 'resolve' the location)

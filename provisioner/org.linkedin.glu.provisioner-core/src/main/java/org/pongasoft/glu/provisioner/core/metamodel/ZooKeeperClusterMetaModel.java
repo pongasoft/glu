@@ -25,7 +25,7 @@ import java.util.Map;
  * Represents a cluster of ZooKeeper instances.
  * @author yan@pongasoft.com
  */
-public interface ZooKeeperClusterMetaModel extends Externable, Configurable
+public interface ZooKeeperClusterMetaModel extends Externable, Configurable, MetaModel
 {
   /**
    * @return the name of the cluster

@@ -3,6 +3,7 @@ package org.pongasoft.glu.packaging.setup
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.FabricMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.MetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperMetaModel
 
@@ -12,7 +13,7 @@ public class ZooKeeperClusterPackager extends BasePackager
 {
   ZooKeeperClusterMetaModel metaModel
 
-  def createPackage()
+  Map<MetaModel, PackagedArtifact> createPackages()
   {
     def parts = ['zookeeper-cluster']
 
@@ -22,18 +23,18 @@ public class ZooKeeperClusterPackager extends BasePackager
     Resource packagePath =
       configure(outputFolder.createRelative(parts.join('-')))
 
-    def zooKeepers = createPackages(packagePath)
+    Map<MetaModel, PackagedArtifact> zooKeepers = createPackages(packagePath)
 
     return [
-      zooKeeperCluster: new PackagedArtifact(location: packagePath),
-      zooKeepers: zooKeepers
+      (metaModel): new PackagedArtifact(location: packagePath),
+      *:zooKeepers
     ]
   }
 
-  Collection<PackagedArtifact> createPackages(Resource clusterPackagePath)
+  Map<MetaModel, PackagedArtifact> createPackages(Resource clusterPackagePath)
   {
-    metaModel.zooKeepers.collect { ZooKeeperMetaModel zk ->
-      createPackage(clusterPackagePath, zk)
+    metaModel.zooKeepers.collectEntries { ZooKeeperMetaModel zk ->
+      [(zk): createPackage(clusterPackagePath, zk)]
     }
   }
 

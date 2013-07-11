@@ -25,7 +25,7 @@ import java.util.Map;
  *
  * @author yan@pongasoft.com
  */
-public interface FabricMetaModel extends Externable
+public interface FabricMetaModel extends Externable, MetaModel
 {
   /**
    * @return the name of the fabric

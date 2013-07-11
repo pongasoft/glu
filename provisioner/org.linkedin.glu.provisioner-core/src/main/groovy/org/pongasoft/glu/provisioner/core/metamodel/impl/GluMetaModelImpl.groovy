@@ -40,6 +40,9 @@ public class GluMetaModelImpl implements GluMetaModel
   ConsoleCliMetaModel consoleCli
   AgentCliMetaModel agentCli
 
+  private ConsoleCliMetaModel _defaultConsoleCli = new ConsoleCliMetaModelImpl(gluMetaModel: this)
+  private AgentCliMetaModel _defaultAgentCli = new AgentCliMetaModelImpl(gluMetaModel: this)
+
   @Override
   FabricMetaModel findFabric(String fabricName)
   {
@@ -103,13 +106,13 @@ public class GluMetaModelImpl implements GluMetaModel
   @Override
   ConsoleCliMetaModel getConsoleCli()
   {
-    consoleCli ?: new ConsoleCliMetaModelImpl(gluMetaModel: this)
+    consoleCli ?: _defaultConsoleCli
   }
 
   @Override
   AgentCliMetaModel getAgentCli()
   {
-    agentCli ?: new AgentCliMetaModelImpl(gluMetaModel: this)
+    agentCli ?: _defaultAgentCli
   }
 
   @Override

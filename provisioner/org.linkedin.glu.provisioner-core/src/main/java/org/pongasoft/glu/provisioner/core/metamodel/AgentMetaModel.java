@@ -56,4 +56,9 @@ public interface AgentMetaModel extends ServerMetaModel, Externable
    * @return the unique fabric this agent belongs to
    */
   FabricMetaModel getFabric();
+
+  /**
+   * @return the agent upgrade
+   */
+  AgentUpgradeMetaModel getAgentUpgrade();
 }

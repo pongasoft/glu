@@ -22,7 +22,7 @@ import org.linkedin.glu.utils.core.Externable;
  * Represents the set of keys associated to a fabric
  * @author yan@pongasoft.com
  */
-public interface KeysMetaModel extends Externable
+public interface KeysMetaModel extends Externable, MetaModel
 {
   /**
    * @return agent key store (private to agent)

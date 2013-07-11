@@ -2,16 +2,16 @@ package org.pongasoft.glu.packaging.setup
 
 import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
 import org.linkedin.glu.groovy.utils.shell.Shell
-import org.linkedin.groovy.util.ant.AntUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.util.io.resource.Resource
+import org.pongasoft.glu.provisioner.core.metamodel.MetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.StateMachineMetaModel
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
  * @author yan@pongasoft.com  */
-public class BasePackager
+public abstract class BasePackager
 {
   public static final String MODULE = BasePackager.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
@@ -43,6 +43,8 @@ public class BasePackager
 
     fullPackageName - "-${version}"
   }
+
+  abstract Map<MetaModel, PackagedArtifact>  createPackages()
 
   Shell getShell()
   {

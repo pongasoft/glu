@@ -10,7 +10,7 @@ import java.util.Collection;
  *
  * @author yan@pongasoft.com
  */
-public interface ConsolePluginMetaModel extends Externable
+public interface ConsolePluginMetaModel extends Externable, MetaModel
 {
   /**
    * @return the fully qualified class name of the plugin */

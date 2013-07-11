@@ -7,7 +7,7 @@ import org.linkedin.glu.utils.core.Externable;
  *
  * @author yan@pongasoft.com
  */
-public interface CliMetaModel extends Externable, Configurable
+public interface CliMetaModel extends Externable, Configurable, MetaModel
 {
   /**
    * @return the version of this cli... if undefined, defaults to

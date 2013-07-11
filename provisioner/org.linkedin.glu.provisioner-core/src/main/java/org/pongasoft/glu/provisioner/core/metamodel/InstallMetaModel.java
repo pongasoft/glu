@@ -8,7 +8,7 @@ import org.linkedin.glu.utils.core.Externable;
  *
  * @author yan@pongasoft.com
  */
-public interface InstallMetaModel extends Externable
+public interface InstallMetaModel extends Externable, MetaModel
 {
   /**
    * Note that a trailing / indicates, it will be considered a directory in which to install

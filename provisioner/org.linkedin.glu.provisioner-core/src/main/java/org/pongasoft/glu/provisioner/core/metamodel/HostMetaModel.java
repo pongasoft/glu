@@ -21,7 +21,7 @@ import org.linkedin.glu.utils.core.Externable;
 /**
  * @author yan@pongasoft.com
  */
-public interface HostMetaModel extends Externable
+public interface HostMetaModel extends Externable, MetaModel
 {
   /**
    * @return the address (ip, hostname, etc...) on which this host is reachable
