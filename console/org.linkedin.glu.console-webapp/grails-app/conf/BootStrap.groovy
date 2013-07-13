@@ -15,6 +15,14 @@
  * the License.
  */
 
+
+import org.apache.shiro.mgt.DefaultSecurityManager
+import org.apache.shiro.mgt.SecurityManager
+import org.apache.shiro.realm.Realm
+import org.apache.shiro.subject.PrincipalCollection
+import org.apache.shiro.subject.SimplePrincipalCollection
+import org.apache.shiro.subject.Subject
+import org.linkedin.glu.console.domain.AuditLog
 import org.linkedin.glu.console.domain.Fabric
 import grails.util.Environment
 import org.linkedin.glu.console.domain.User
@@ -34,6 +42,7 @@ import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
 class BootStrap {
 
   def grailsApplication
+  def shiroSecurityManager
   ConsoleConfig consoleConfig
   SystemService systemService
   DeltaService deltaService
@@ -76,24 +85,6 @@ class BootStrap {
     // setting up data when development...
     if(Environment.current == Environment.DEVELOPMENT)
     {
-      def hostname = InetAddress.getLocalHost().canonicalHostName
-
-      // dev fabrics
-      [
-          'glu-dev-1': '#005a87',
-          'glu-dev-2': '#5a0087',
-      ].each { fabric, color ->
-        new Fabric(name: fabric,
-                   zkConnectString: "${hostname}:2181",
-                   zkSessionTimeout: '5s',
-                   color: color).save()
-
-        // create an empty system
-        def emptySystem = new SystemModel(fabric: fabric)
-        emptySystem.metadata.name = "Empty System Model"
-        systemService.saveCurrentSystem(emptySystem)
-      }
-
       // creating users (glu, glur, glua)
       [
           glu:  [RoleName.USER],
@@ -140,6 +131,45 @@ class BootStrap {
       log.info "Successfully created (original) admin user. MAKE SURE YOU LOG IN AND CHANGE THE PASSWORD!"
     }
 
+    executeWithSubject {
+      // handle fabrics defined in bootstrap
+      Fabric.withTransaction { status ->
+        Map<String, Fabric> allFabrics = Fabric.list().collectEntries { Fabric f -> [f.name, f] }
+        config.console?.bootstrap?.fabrics?.each { params ->
+          if(!allFabrics.containsKey(params.name))
+          {
+            def fabricInstance = new Fabric(params)
+            if(!fabricInstance.hasErrors() && fabricInstance.save())
+            {
+              AuditLog.audit('fabric.created', fabricInstance.id.toString(), params.toString())
+              def emptySystem = new SystemModel(fabric: fabricInstance.name)
+              emptySystem.metadata.name = "Empty System Model"
+              systemService.saveCurrentSystem(emptySystem)
+              log.info "Successfully added fabric ${fabricInstance.name}"
+            }
+            else
+            {
+              status.setRollbackOnly() // rollback the transaction
+              throw new RuntimeException("Could not create fabric ${params}")
+            }
+          }
+          else
+          {
+            log.info "Fabric ${params.name} already exists"
+
+            Fabric currentFabric = allFabrics[params.name]
+            ['zkConnectString', 'zkSessionTimeout', 'color'].each { String propName ->
+              def currentValue = currentFabric."${propName}"
+              def configValue = params[propName]
+              if(currentValue != configValue)
+                log.warn("for fabric ${currentFabric.name} defined in " +
+                         "[console.bootstrap.fabrics]: mismatch ${propName}: ${currentValue} != ${configValue}")
+            }
+          }
+        }
+      }
+    }
+
     // initializing default custom delta definition
     CustomDeltaDefinition defaultCustomDeltaDefinition =
       CustomDeltaDefinition.fromDashboard(consoleConfig.defaults.dashboard)
@@ -153,6 +183,28 @@ class BootStrap {
     }
 
     log.info "Console started."
+  }
+
+  /**
+   * Make sure the call runs with a subject so that there is no warning..
+   * @return whatever the closure returns
+   */
+  private <T> T executeWithSubject(Closure<T> closure)
+  {
+    Realm localizedRealm = shiroSecurityManager.realms[0]
+
+    SecurityManager bootstrapSecurityManager = new DefaultSecurityManager(localizedRealm);
+    PrincipalCollection principals =
+      new SimplePrincipalCollection("<bootstrap>", localizedRealm.getName());
+    Subject subject =
+      new Subject.Builder(bootstrapSecurityManager).principals(principals).buildSubject();
+
+    T res = null
+    subject.execute {
+      res = closure()
+    }
+
+    return res
   }
 
   def destroy = {

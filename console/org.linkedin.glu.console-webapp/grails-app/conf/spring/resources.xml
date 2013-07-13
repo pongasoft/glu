@@ -135,7 +135,7 @@
         class="org.linkedin.glu.console.authorization.ShiroAuthorizationService"/>
 
   <!-- *********************** -->
-  <!-- fabricService         -->
+  <!-- fabricService           -->
   <!-- *********************** -->
   <bean id="_fabricServiceImpl"
         class="org.linkedin.glu.orchestration.engine.fabric.FabricServiceImpl"

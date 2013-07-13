@@ -428,6 +428,11 @@ environments {
 
     console.truststorePassword = 'nacEn92x8-1'
 
+    console.bootstrap.fabrics = [
+      [ name: 'glu-dev-1', zkConnectString: '127.0.0.1:2181', zkSessionTimeout: '5s', color: '#005a87' ],
+      [ name: 'glu-dev-2', zkConnectString: '127.0.0.1:2181', zkSessionTimeout: '5s', color: '#5a0087' ],
+    ]
+
     console.defaults = console.dev.defaults
 
     plugins.StreamFileContentPlugin.unrestrictedLocation = '/export/content/glu'
@@ -465,6 +470,8 @@ environments {
              'org.linkedin'
 
         //debug 'org.linkedin.zookeeper.tracker', 'org.linkedin.glu.agent.tracker'
+
+              debug 'org.linkedin.glu.console.domain'
 
 //        trace 'org.hibernate.SQL', 'org.hibernate.type'
 //        trace 'org.codehaus.groovy.grails.orm'

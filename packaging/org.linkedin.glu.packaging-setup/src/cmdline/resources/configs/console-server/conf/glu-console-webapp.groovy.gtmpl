@@ -45,7 +45,12 @@ dataSource.dbCreate = "update"
 dataSource.url = dataSourceUrl
 """ %>
 
-// specify the database connection string
+// specify the fabrics used by this console (at bootstrap)
+console.bootstrap.fabrics = [
+<% consoleMetaModel.fabrics.values().each { fabricMetaModel -> %>
+  [ name: '${fabricMetaModel.name}', zkConnectString: '${fabricMetaModel.zooKeeperCluster.zooKeeperConnectionString}', zkSessionTimeout: '${fabricMetaModel.zooKeeperCluster.zooKeeperSessionTimeout ?: '30s'}', color: '${fabricMetaModel.color ?: "#005a87"}' ],
+<%  } /* each fabric */ %>
+]
 
 grails.serverURL = "http${consoleMetaModel.externalPort == 443 ? 's' : ''}://${consoleMetaModel.externalHost}${consoleMetaModel.externalPort == 80 || consoleMetaModel.externalPort == 443 ? '' : ':' + consoleMetaModel.externalPort}${consoleMetaModel.externalPath}"
 

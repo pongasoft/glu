@@ -28,6 +28,7 @@ import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
 public class FabricMetaModelImpl implements FabricMetaModel
 {
   String name
+  String color
   KeysMetaModel keys
   Map<String, AgentMetaModel> agents
   ZooKeeperClusterMetaModel zooKeeperCluster
@@ -44,6 +45,9 @@ public class FabricMetaModelImpl implements FabricMetaModel
   Object toExternalRepresentation()
   {
     def res = [name: name]
+
+    if(color)
+      res.color = color
 
     if(keys)
       res.keys = keys.toExternalRepresentation()

@@ -17,6 +17,7 @@
 package org.pongasoft.glu.provisioner.core.metamodel;
 
 import org.linkedin.glu.utils.core.Externable;
+import org.linkedin.util.clock.Timespan;
 
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,11 @@ public interface ZooKeeperClusterMetaModel extends Externable, Configurable, Met
    * @return the connection string in order to connect to this cluster
    */
   String getZooKeeperConnectionString();
+
+  /**
+   * @return the session time out to use for this cluster (optional)
+   */
+  Timespan getZooKeeperSessionTimeout();
 
   /**
    * @return reference to the glu meta model this cluster belongs to

@@ -132,7 +132,7 @@ ${lines.join('\n')}
   protected <T extends CliMetaModel> void buildInstallCommands(Class<T> metaModelClass,
                                                                def installScript)
   {
-    filter(packagedArtifacts, metaModelClass).each { T metaModel,  PackagedArtifact pa ->
+    filter(metaModelClass).each { T metaModel,  PackagedArtifact pa ->
       installScript << buildInstallCommand(metaModel, pa)
     }
   }
@@ -163,10 +163,9 @@ ${lines.join('\n')}
   /**
    * Filter the map by class
    */
-  protected <T extends MetaModel> Map<T, PackagedArtifact> filter(Map<MetaModel, PackagedArtifact> artifacts,
-                                                                  Class<T> metaModelClass)
+  public <T extends MetaModel> Map<T, PackagedArtifact> filter(Class<T> metaModelClass)
   {
-    artifacts.findAll {k, v ->
+    packagedArtifacts.findAll {k, v ->
       ReflectUtils.isSubClassOrInterfaceOf(k.getClass(), metaModelClass)
     } as Map<T, PackagedArtifact>
   }

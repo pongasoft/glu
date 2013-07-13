@@ -30,7 +30,6 @@ import org.linkedin.groovy.util.config.MissingConfigParameterException
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.utils.tags.TagsSerializer
 import org.linkedin.glu.groovy.util.state.DefaultStateMachine
-import org.linkedin.glu.agent.rest.common.AgentRestUtils
 import org.linkedin.glu.agent.api.TimeOutException
 import org.linkedin.util.clock.Timespan
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution

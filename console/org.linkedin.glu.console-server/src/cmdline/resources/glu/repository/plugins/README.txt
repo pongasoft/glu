@@ -1,3 +1,3 @@
-This directory should contain the jar files for your plugin(s).
+This directory is kept for backward compatibility with versions prior to 5.1.0 only.
 
-If your plugin has external dependencies, then copy them into ./@jetty.distribution@/lib/ext/
+Now plugins (and their dependencies) should go under the exploded war (WEB-INF/lib)

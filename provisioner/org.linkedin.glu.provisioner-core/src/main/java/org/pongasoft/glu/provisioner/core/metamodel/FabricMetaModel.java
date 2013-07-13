@@ -58,6 +58,12 @@ public interface FabricMetaModel extends Externable, MetaModel
   KeysMetaModel getKeys();
 
   /**
+   * @return the color to use in the UI for the fabric (optional). Any CSS color will work
+   *         (ex: 'blue', '#005a87')
+   */
+  String getColor();
+
+  /**
    * @return reference to the glu meta model this fabric belongs to
    */
   GluMetaModel getGluMetaModel();

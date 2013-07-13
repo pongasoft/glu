@@ -100,7 +100,9 @@ public class TestConsoleServerPackager extends BasePackagerTest
 
       def metaModel = """
 fabrics['f1'] = [
+  zooKeeperCluster: 'zkc',
   console: 'default',
+  color: 'black'
 ]
 
 consoles << [
@@ -127,6 +129,18 @@ consoles << [
     console: '<console config>',
     'console.defaults': '<console.defaults>',
   ]
+]
+
+zooKeeperClusters << [
+  name: 'zkc',
+  zooKeeperSessionTimeout: '1m',
+  zooKeepers: [
+    [
+      version: '${ZOOKEEPER_VERSION}',
+      host: 'hz',
+      port: 23456
+    ]
+  ],
 ]
 
 """
@@ -183,7 +197,12 @@ console.trackerService.zookeeperRoot = '/org/glu'
 // dataSource configuration
 <datasource>
 
-// specify the database connection string
+// specify the fabrics used by this console (at bootstrap)
+console.bootstrap.fabrics = [
+
+  [ name: 'f1', zkConnectString: 'hz:23456', zkSessionTimeout: '1m', color: 'black' ],
+
+]
 
 grails.serverURL = "http://h2:19090/ec"
 
@@ -383,7 +402,12 @@ dataSource.dbCreate ='update'
 dataSource.url="jdbc:hsqldb:file:${System.properties['user.dir']}/database/prod;shutdown=true"
 
 
-// specify the database connection string
+// specify the fabrics used by this console (at bootstrap)
+console.bootstrap.fabrics = [
+
+  [ name: 'glu-dev-1', zkConnectString: '127.0.0.1:2181', zkSessionTimeout: '30s', color: '#005a87' ],
+
+]
 
 grails.serverURL = "http://localhost:8080/console"
 

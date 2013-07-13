@@ -26,6 +26,7 @@ import org.linkedin.util.io.resource.FileResource
 import org.linkedin.util.io.resource.Resource
 import org.linkedin.zookeeper.cli.commands.UploadCommand
 import org.linkedin.zookeeper.client.ZKClient
+import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.impl.builder.GluMetaModelBuilder
@@ -215,7 +216,7 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
     println "Generating keys..."
     char[] masterPassword = System.console().readPassword("Enter a master password:")
     def km = new KeysGenerator(shell: shell,
-                               outputFolder: outputFolder.createRelative('keys'),
+                               outputFolder: outputFolder,
                                masterPassword: new String(masterPassword))
     def keysDname = Config.getOptionalString(config, 'keys-dname', null)
     if(keysDname)
@@ -288,14 +289,12 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
 
     packager.packageZooKeeperClusters()
 
-    def artifacts =
-      packager.packagedArtifacts.findAll { k, v -> k instanceof ZooKeeperClusterMetaModel}
-
     def zooKeeperClusterNames = (config.'zookeeper-cluster-names' ?: []) as Set
 
-    artifacts.each { ZooKeeperClusterMetaModel model, def pas ->
+    packager.filter(ZooKeeperClusterMetaModel).each { ZooKeeperClusterMetaModel model,
+                                                      PackagedArtifact pa ->
       if(!zooKeeperClusterNames || zooKeeperClusterNames.contains(model.name))
-        configureZooKeeperCluster(model, pas.zooKeeperCluster.location)
+        configureZooKeeperCluster(model, pa.location)
     }
   }
 

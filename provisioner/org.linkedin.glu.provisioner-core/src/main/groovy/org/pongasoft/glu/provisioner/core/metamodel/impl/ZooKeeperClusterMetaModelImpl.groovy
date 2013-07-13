@@ -16,6 +16,7 @@
 
 package org.pongasoft.glu.provisioner.core.metamodel.impl
 
+import org.linkedin.util.clock.Timespan
 import org.pongasoft.glu.provisioner.core.metamodel.FabricMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
@@ -30,6 +31,7 @@ public class ZooKeeperClusterMetaModelImpl implements ZooKeeperClusterMetaModel
   List<ZooKeeperMetaModel> zooKeepers
   Map<String, String> configTokens
   GluMetaModel gluMetaModel
+  Timespan zooKeeperSessionTimeout
 
   @Override
   FabricMetaModel findFabric(String fabricName)
@@ -51,6 +53,9 @@ public class ZooKeeperClusterMetaModelImpl implements ZooKeeperClusterMetaModel
       fabrics: fabrics.keySet().collect { it },
       zooKeepers: zooKeepers.collect { it.toExternalRepresentation() }
     ]
+
+    if(zooKeeperSessionTimeout)
+      res.zooKeeperSessionTimeout = zooKeeperSessionTimeout.toString()
 
     if(configTokens)
     {

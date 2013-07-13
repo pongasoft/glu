@@ -21,6 +21,7 @@ import org.codehaus.groovy.control.CompilationFailedException
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.groovy.util.state.StateMachineImpl
+import org.linkedin.util.clock.Timespan
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.KeysMetaModel
@@ -209,6 +210,8 @@ ${'/' * 20}"""
       fabric.zooKeeperCluster.fabrics[fabricName] = fabric
     }
 
+    fabric.color = fabricModel.color
+
     fabric.keys = deserializeKeys(fabricModel.keys)
   }
 
@@ -263,6 +266,7 @@ ${'/' * 20}"""
     ZooKeeperClusterMetaModelImpl zooKeeperCluster =
       new ZooKeeperClusterMetaModelImpl(name: zooKeeperClusterModel.name ?: 'default',
                                         fabrics: [:],
+                                        zooKeeperSessionTimeout: Timespan.parse(zooKeeperClusterModel.zooKeeperSessionTimeout),
                                         gluMetaModel: gluMetaModel)
 
     // handle the zookeepers making up the cluster

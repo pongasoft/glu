@@ -73,6 +73,9 @@ setup()
     echo "### Setting up tutorial..."
     $GLU_HOME/bin/setup.sh -D --keys-root $GLU_HOME/models/tutorial/keys -o $GLU_TUTORIAL_DISTS $GLU_HOME/models/tutorial/glu-meta-model.json.groovy
 
+    # getting rid of install scripts
+    rm -rf $GLU_TUTORIAL_BIN
+
     echo "### Creating shortcuts..."
     mkdir $GLU_TUTORIAL_BIN
     ln -s $GLU_TUTORIAL_AGENT_ROOT $GLU_TUTORIAL_AGENT_LINK
