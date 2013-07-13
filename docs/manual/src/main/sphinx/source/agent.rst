@@ -442,7 +442,10 @@ By default the agent uses :term:`ZooKeeper` to 'publish' its state in a central 
 
 Auto Upgrade
 ------------
-The agent has the capability of being able to upgrade itself
+The agent has the capability of being able to upgrade itself.
+
+.. note::
+   Since glu 5.1.0, the agent upgrade artifact is generated as part of the :ref:`distribution generation step <easy-propduction-setup-gen-dist>` and can be found under ``<outputFolder>/agents/org.linkedin.glu.agent-server-<clusterName>-upgrade-<version>`` (simply tar this folder or use the ``--compress`` option when running the ``setup.sh`` command).
 
 Using the command line
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -751,20 +754,24 @@ The boot process will wait to go further until a fabric is assigned in ZooKeeper
 
 Installation
 ------------
-Check the section :ref:`production-setup-agent` for details about how to install the agent the first time.
+Check the section :ref:`easy-propduction-setup-install` for details about how to install the agent the first time.
 
-Once the agent is installed, you can simply use the :ref:`auto upgrade <agent-auto-upgrade>` capability to upgrade it. For that you would download the agent upgrade only package (``org.linkedin.glu.agent-server-upgrade-x.y.z.tar.gz``) and follow the :ref:`instructions <agent-auto-upgrade>`.
+Once the agent is installed, you can simply use the :ref:`auto upgrade <agent-auto-upgrade>` capability to upgrade it.
 
 Security
 --------
 The agent offers a REST API over https, setup with client authentication. In this model, what is really important is for the agent to allow only the right set of clients to be able to call the API.
 
-Key setup
----------
-The agent comes with a default set of keys. 
+.. note::
+   Although this is not recommended for a production setup, you may be ok in using http in which case simply define::
 
-.. warning::
-   It is strongly suggested to generate your own set of keys. See :ref:`production-keys` for instructions on how to do this.
+     def keys = null
+
+   in your glu :term:`meta model`.
+
+Key setup
+^^^^^^^^^
+The keys needed by the agent are generated during the :ref:`keys generation step <easy-propduction-setup-gen-dist>`. 
 
 Multiple agents on one host
 ---------------------------

@@ -12,8 +12,8 @@
    License for the specific language governing permissions and limitations under
    the License.
 
-Development Setup
-=================
+Compiling glu
+=============
 
 Compilation
 -----------

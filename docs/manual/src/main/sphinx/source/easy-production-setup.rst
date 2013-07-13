@@ -57,12 +57,14 @@ Untar/Unzip in a location of your choice::
 
 Use the setup tool
 ------------------
-The tool ``$GLU_HOME/bin/setup.sh`` is used for all the steps and you can get help by issuing ``$GLU_HOME/bin/setup.sh -h`` as well as checking out the dedicated section (TBD).
+The tool ``$GLU_HOME/bin/setup.sh`` is used for all the steps and you can get help by issuing ``$GLU_HOME/bin/setup.sh -h`` as well as checking out the :doc:`dedicated section <setup-tool>`.
 
 .. _easy-production-setup-target-directory-tip:
 
 .. tip::
    By default, the setup tool uses the current directory for its output. It is then recommended to ``cd`` into the target directory and issue ``$GLU_HOME/bin/setup.sh`` commands. Note that you can also use the ``-o xxxx`` to specify the target directory, or enter it when prompted.
+
+.. _easy-propduction-setup-gen-keys:
 
 Step 1: Generate the keys ``[-K]``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -85,6 +87,8 @@ You will be prompted for a master password.
 
 The output will look like this (with obviously different values)::
 
+  > cd /tmp/prod-1
+  > $GLU_HOME/bin/setup.sh -K
   Enter the output directory [/tmp/prod-1]: keys
   Generating keys...
   Enter a master password:
@@ -139,7 +143,7 @@ glu is very configurable and offers many ways of configuring:
 
  * simple tweaks like port numbers in the meta model
  * more advanced tweaks, like jvm parameters, in the meta model (``configTokens`` section)
- * config roots which lets you add/delete/modify any file in the distributions that will be generated in Step 3
+ * configs roots which lets you add/delete/modify any file in the distributions that will be generated in Step 3
  * console plugins to extend/modify the behavior of the console
 
 Check the documentation :doc:`configuring glu <glu-config>` for more details.
@@ -149,6 +153,8 @@ Check the documentation :doc:`configuring glu <glu-config>` for more details.
 
    .. warning::
       Make sure though that you use a 'real' database for production setups as is demonstrated in the sample production meta model.
+
+.. _easy-propduction-setup-gen-dist:
 
 Step 4: Generate the distributions ``[-D]``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -181,6 +187,8 @@ For example (using the sample meta model with the keys generated in Step 1)::
   2013/07/11 09:49:33.741 INFO [GluPackager] Generated install script /private/tmp/prod-1/distributions/staging/bin/install-all.sh
   2013/07/11 09:49:33.741 INFO [SetupMain] All distributions generated successfully.
 
+.. _easy-propduction-setup-install:
+
 Step 5: Install the distributions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 All the distributions that were generated during Step 4 now need to be installed on each host. There are million different ways to install (and start) the distributions on each host:
@@ -194,7 +202,7 @@ Step 4 generates the distributions that are ready to be installed as-is and tell
 
   2013/07/11 09:49:32.964 INFO [GluPackager] Generated ZooKeeper instance [1] file:/private/tmp/prod-1/distributions/staging/zookeeper-clusters/zookeeper-cluster-stgZkCluster/org.linkedin.zookeeper-server-zk-host1-2.0.0/ => zk-host1:2181
 
-Step 4 also generates a set of convenient install scripts using the information from the meta model (especially the ``host`` and ``install`` entries). The install scripts are convenient scripts that you can look at/tweak. They should work essentially as-is if you use ``scp`` (provided the fact that you already have the proper credentials on the target host).
+Step 4 also generates a set of convenient install scripts using the information from the meta model (especially the ``host`` and ``install`` entries). The install scripts are convenient scripts that you can look at/tweak. They should work essentially as-is if you use ``scp`` (provided the fact that you already have the proper (ssh) credentials on the target host).
 
 .. tip::
    The scripts use the variables ``SCP_CMD``, ``SCP_OPTIONS`` and ``SCP_USER`` so you may want to override them to make the script behave differently. For example::
@@ -247,7 +255,10 @@ This optional step lets you check that everything is fine so far: the ``agent-cl
 Step 9: Start the console
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 .. warning::
-   Prior to starting the console, you need to make sure that the database that it is going to use (which you defined in the meta model) is up and running and that the proper user has been created. Check :ref:`<console-configuration-database>` for details for MySql.
+   Prior to starting the console, you need to make sure that the database that it is going to use (which you defined in the meta model) is up and running and that the proper (database) user has been created. Check :ref:`console-configuration-database-mysql` for details for MySql.
+
+   .. note:: 
+      if you use the built-in HSQLDB, then you don't have anything to do, but it is not recommended for production setup.
 
 You can now start the console(s)::
 
@@ -256,10 +267,12 @@ You can now start the console(s)::
 .. warning:: The first time you start the console, it will create an administrator user (``admin``/``admin``). It is **strongly** recommended to change the password immediately.
 
 .. tip::
-   If you use this option, the documentation is automatically available when you start the server, under ``http://<consolehost>:8080/glu/docs/html/index.html``
+   During boostrap, the console will automatically create the fabrics that were defined in your meta model, so you are ready to go!
 
-.. note::
-   At this stage, the console starts "empty". You need to add the fabrics manually. The output of the distribution generation Step (4) will tell you how to configure the consoles.
+.. tip::
+   The documentation is automatically available when you start the server, under ``http://<consolehost>:8080/glu/docs/html/index.html``
+
+You can now log in to the console using ``admin/admin`` for credentials and change the password.
 
 Upgrade
 -------

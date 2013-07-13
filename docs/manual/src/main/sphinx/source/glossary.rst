@@ -29,6 +29,9 @@ Glossary
   command
      Any kind of (unix) shell command (ex: ``uptime``, ``echo foo > /tmp/file.txt``, etc...)
 
+  cli
+     An application/tool that runs and then exists when the task is complete. In glu, clis are self contained and packaged under a directory structure with a ``bin/xxxx.sh`` to start the application/tool.
+
   Console
     The webapp/REST api built on top of ZooKeeper which is the orchestrator of the system.
 
@@ -77,6 +80,9 @@ Glossary
   live state
     The state of the *live* system as reported by the agents in ZooKeeper. This state is dynamically collected by the :term:`orchestration engine`.
 
+  meta model
+    The model which describes the glu setup itself (agents, consoles, fabrics, etc...). Do not confuse with the :term:`model` described below.
+
   Metadata
     Metadata in the context of glu represents a map that can be represented as a json object::
 
@@ -114,6 +120,9 @@ Glossary
 
   orchestration engine
     The orchestration engine is the process that listens to ZooKeeper updates coming from the agents, compute differences (:term:`delta`) with the :term:`model` in order to visualize them and/or execute a deployment plan. The orchestration engine is in charge of orchestrating deployments making sure they happen either sequentially or in parallel (or a combination of both).
+
+  server
+     An application that is long lived and usually terminates when asked to do so. In glu, servers are self contained and packaged under a directory structure with a ``bin/xxxx.sh`` shell script. The command ``bin/xxxx.sh start`` is used to start the server. The command ``bin/xxxx.sh stop`` is used to stop the server.
 
   static model
     Synonym for :term:`model`. More information about :ref:`the static model <static-model>`.

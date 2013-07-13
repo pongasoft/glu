@@ -1,4 +1,4 @@
-.. Copyright (c) 2011 Yan Pujante
+.. Copyright (c) 2013 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -12,26 +12,9 @@
    License for the specific language governing permissions and limitations under
    the License.
 
-All content
-===========
+ 
+.. _setup-tool:
 
-.. toctree::
-   
-   index
-   tutorial
-   agent
-   glu-script
-   orchestration-engine
-   static-model
-   filtering
-   console
-   meta-model
-   glu-config
-   easy-production-setup
-   setup-tool
-   production-setup
-   dev-setup
-   RELEASE
+``setup.sh`` tool
+=================
 
-   glossary
-   self
