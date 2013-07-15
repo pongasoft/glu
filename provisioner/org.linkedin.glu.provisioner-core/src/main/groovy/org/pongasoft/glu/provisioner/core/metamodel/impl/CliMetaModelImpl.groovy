@@ -10,7 +10,7 @@ import org.pongasoft.glu.provisioner.core.metamodel.InstallMetaModel
 public class CliMetaModelImpl implements CliMetaModel
 {
   String version
-  Map<String, String> configTokens
+  Map<String, Object> configTokens
   HostMetaModel host
   InstallMetaModel install
   GluMetaModel gluMetaModel

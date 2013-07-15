@@ -365,7 +365,7 @@ ${'/' * 20}"""
       return null
   }
 
-  private Map<String, String> deserializeConfigTokens(Map configTokens)
+  private Map<String, Object> deserializeConfigTokens(Map configTokens)
   {
     if(configTokens == null)
       configTokens = [:]

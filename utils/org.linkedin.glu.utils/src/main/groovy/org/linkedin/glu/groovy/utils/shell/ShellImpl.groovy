@@ -1061,8 +1061,7 @@ def class ShellImpl implements Shell
           def groovyTemplate = new GStringTemplateEngine().createTemplate(cat(templateResource))
           def processedTemplate = groovyTemplate.make(tokens)
 
-          if(toIsDirectory)
-            toResource = toResource.createRelative(templateResource.filename - '.gtmpl')
+          toResource = handleTemplateExtension(templateResource, toResource, toIsDirectory, '.gtmpl')
 
           withWriter(toResource) { Writer writer -> processedTemplate.writeTo(writer) }
           break
@@ -1070,8 +1069,7 @@ def class ShellImpl implements Shell
         case 'ctmpl':
           def binding = new Binding([*:tokens])
 
-          if(toIsDirectory)
-            toResource = toResource.createRelative(templateResource.filename - '.ctmpl')
+          toResource = handleTemplateExtension(templateResource, toResource, toIsDirectory, '.ctmpl')
 
           binding.shell = tokens.shell ?: this
           binding.toResource = toResource
@@ -1084,15 +1082,14 @@ def class ShellImpl implements Shell
           break
 
         case 'xtmpl':
-          if(toIsDirectory)
-            toResource = toResource.createRelative(templateResource.filename - '.xtmpl')
+          toResource = handleTemplateExtension(templateResource, toResource, toIsDirectory, '.xtmpl')
           replaceTokens(templateResource, toResource, tokens)
           break
 
         default:
           if(toIsDirectory)
             toResource = toResource.createRelative(templateResource.filename)
-          replaceTokens(templateResource, toResource, tokens)
+          cp(templateResource, toResource)
           break
       }
 
@@ -1106,6 +1103,22 @@ def class ShellImpl implements Shell
       throw new TemplateProcessingException("Exception while processing template [${templateResource.toURI()}]",
                                             th)
     }
+  }
+
+  private Resource handleTemplateExtension(Resource templateResource,
+                                           Resource toResource,
+                                           boolean toIsDirectory,
+                                           String templateExtension)
+  {
+    if(toIsDirectory)
+      toResource = toResource.createRelative(templateResource.filename - templateExtension)
+    else
+    {
+      if(toResource.filename == templateResource.filename)
+        toResource = toResource.parentResource.createRelative(templateResource.filename - templateExtension)
+    }
+
+    return toResource
   }
 
   /**

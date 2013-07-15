@@ -43,7 +43,7 @@ public class ConsoleServerPackager extends BasePackager
 
   ConsoleMetaModel metaModel
 
-  Map<String, String> getConfigTokens()
+  Map<String, Object> getConfigTokens()
   {
     metaModel.configTokens
   }

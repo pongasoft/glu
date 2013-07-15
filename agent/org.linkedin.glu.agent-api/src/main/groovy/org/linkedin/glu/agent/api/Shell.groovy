@@ -742,19 +742,20 @@ def interface Shell
    * <code>to</code>.
    *
    * <ul>
+   *   <li>if the template ends with <code>.xtmpl</code> it will be processed through the
+   *       {@link #replaceTokens(java.lang.String, java.util.Map)} mechanism</li>
    *   <li>if the template ends with <code>.gtmpl</code> it will be processed through the groovy
    *       template engine</li>
    *   <li>if the template ends with <code>.ctmpl</code> it will be treated as groovy script with
    *       all tokens variables provided, as well as <code>shell</code> (this class),
    *       and <code>toResource</code> (the <code>Resource</code> representing <code>to</code>)</li>
-   *   <li>if the template ends with <code>.xtmpl</code> it will be processed through the
-   *       {@link #replaceTokens(java.lang.String, java.util.Map)} mechanism</li>
-   *   <li>if the template has no extension, the replaceTokens mechanism will be called</li>
+   *   <li>if the template has no template specific extension, it is equivalent to
+   *       <code>cp(template, to)</code></li>
    * </ul>
    *
    * @param template ({@see #toResource(Object)} for possible values)
    * @param to ({@see #toResource(Object)} for possible values)}
-   * @param tokens a map of token
+   * @param tokens a map of tokens
    * @return <code>to</code> as a {@link Resource}
    */
   Resource processTemplate(def template, def to, Map tokens)

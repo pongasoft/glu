@@ -29,7 +29,7 @@ public class ZooKeeperClusterMetaModelImpl implements ZooKeeperClusterMetaModel
   String name
   Map<String, FabricMetaModel> fabrics
   List<ZooKeeperMetaModel> zooKeepers
-  Map<String, String> configTokens
+  Map<String, Object> configTokens
   GluMetaModel gluMetaModel
   Timespan zooKeeperSessionTimeout
 

@@ -651,14 +651,14 @@ line 3 abcdef
       assertEquals('/out/foo', p4.path)
       assertEquals('abc foo efg bar hij foo ${token3}', shell.cat(p4))
 
-      // unknown extension
+      // unknown extension => no processing... simply copy
       def t3 = shell.saveContent(templates.createRelative('/foo.xxx'),
                                  'abc @token1@ efg @token2@ hij @token1@')
 
       // in an existing dir
       def p5 = shell.processTemplate(t3, '/out', [token1: 'foo', token2: 'bar'])
       assertEquals('/out/foo.xxx', p5.path)
-      assertEquals('abc foo efg bar hij foo', shell.cat(p5))
+      assertEquals('abc @token1@ efg @token2@ hij @token1@', shell.cat(p5))
 
     }
   }

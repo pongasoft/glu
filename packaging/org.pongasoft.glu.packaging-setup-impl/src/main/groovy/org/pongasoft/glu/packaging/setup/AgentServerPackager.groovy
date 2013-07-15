@@ -62,9 +62,9 @@ public class AgentServerPackager extends BasePackager
   AgentMetaModel metaModel
 
   private Map<MetaModel, PackagedArtifact> _packagedArtifacts = null
-  private Map<String, String> _tokens = null
+  private Map<String, Object> _tokens = null
 
-  Map<String, String> getConfigTokens()
+  Map<String, Object> getConfigTokens()
   {
     metaModel.configTokens
   }

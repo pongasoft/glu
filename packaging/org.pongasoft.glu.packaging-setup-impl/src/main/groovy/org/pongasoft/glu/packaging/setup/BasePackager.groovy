@@ -132,23 +132,8 @@ ${out.join('\n')}
           if(to.path.contains('@'))
             to = shell.toResource(shell.replaceTokens(to.path, tokens))
 
-          switch(GluGroovyIOUtils.getFileExtension(templateOrFile))
-          {
-            case 'gtmpl':
-            case 'xtmpl':
-            case 'ctmpl':
-              to = to.parentResource.createRelative(to.filename[0..-7])
-              log.debug("processing config templateOrFile: ${templateOrFile}")
-              // process templateOrFile (token replacement)
-              shell.processTemplate(templateOrFile, to, tokens)
-              break
-
-            default:
-              // not a templateOrFile => simply copy
-              log.debug("copying config file: ${templateOrFile}")
-              shell.cp(templateOrFile, to)
-              break
-          }
+          log.debug("processing config templateOrFile: ${templateOrFile}")
+          shell.processTemplate(templateOrFile, to, tokens)
         }
       }
     }
