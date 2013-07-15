@@ -50,7 +50,6 @@ public class ZooKeeperClusterMetaModelImpl implements ZooKeeperClusterMetaModel
   {
     def res = [
       name: name,
-      fabrics: fabrics.keySet().collect { it },
       zooKeepers: zooKeepers.collect { it.toExternalRepresentation() }
     ]
 

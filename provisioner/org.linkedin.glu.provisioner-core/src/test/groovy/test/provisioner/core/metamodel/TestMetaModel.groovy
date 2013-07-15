@@ -17,6 +17,8 @@
 package test.provisioner.core.metamodel
 
 import org.linkedin.util.io.ram.RAMDirectory
+import org.linkedin.util.io.resource.FileResource
+import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
@@ -106,7 +108,7 @@ public class TestMetaModel extends GroovyTestCase
    */
   public void testTutorialGluMetaModel()
   {
-    def model = new File("../../packaging/org.linkedin.glu.packaging-all/src/cmdline/resources/models/tutorial/glu-meta-model.json.groovy").text
+    def model = FileResource.create("../../packaging/org.linkedin.glu.packaging-all/src/cmdline/resources/models/tutorial/glu-meta-model.json.groovy")
 
     def expectedModel = """
 {
@@ -457,13 +459,18 @@ public class TestMetaModel extends GroovyTestCase
     checkJson(model, expectedModel)
   }
 
+  private GluMetaModel checkJson(Resource model, String expectedModel)
+  {
+    JsonMetaModelSerializerImpl serializer = new JsonMetaModelSerializerImpl()
+    def metaModel = serializer.deserialize([model])
+    assertEquals((expectedModel ?: model.file.text).trim(), serializer.serialize(metaModel, true))
+    return metaModel
+  }
+
   private GluMetaModel checkJson(String model, String expectedModel)
   {
     RAMDirectory ram = new RAMDirectory()
     ram.add('model', model)
-    JsonMetaModelSerializerImpl serializer = new JsonMetaModelSerializerImpl()
-    def metaModel = serializer.deserialize([ram.toResource().createRelative('/model')])
-    assertEquals((expectedModel ?: model).trim(), serializer.serialize(metaModel, true))
-    return metaModel
+    checkJson(ram.toResource().createRelative('/model'), expectedModel)
   }
 }
