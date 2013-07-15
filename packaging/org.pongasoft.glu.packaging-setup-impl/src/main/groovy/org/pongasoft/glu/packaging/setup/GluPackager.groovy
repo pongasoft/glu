@@ -52,7 +52,7 @@ public class GluPackager
 
   Shell shell
 
-  Collection<Resource> configsRoots
+  Collection<Resource> configTemplatesRoots
   Resource packagesRoot
   Resource outputFolder
   Resource keysRoot
@@ -253,7 +253,7 @@ ${lines.join('\n')}
                               outputFolder: out,
                               inputPackage: getInputPackage('org.linkedin.glu.agent-server',
                                                             agentMetaModel.version),
-                              configsRoots: configsRoots,
+                              configTemplatesRoots: configTemplatesRoots,
                               metaModel: agentMetaModel,
                               dryMode: dryMode)
     return packager
@@ -267,7 +267,7 @@ ${lines.join('\n')}
                                 outputFolder: out,
                                 inputPackage: getInputPackage('org.linkedin.glu.console-server',
                                                               consoleMetaModel.version),
-                                configsRoots: configsRoots,
+                                configTemplatesRoots: configTemplatesRoots,
                                 metaModel: consoleMetaModel,
                                 dryMode: dryMode)
     packager.createPackages()
@@ -281,7 +281,7 @@ ${lines.join('\n')}
                                    outputFolder: out,
                                    inputPackage: getInputPackage('org.linkedin.zookeeper-server',
                                                                  zooKeeperClusterMetaModel.zooKeepers[0].version),
-                                   configsRoots: configsRoots,
+                                   configTemplatesRoots: configTemplatesRoots,
                                    metaModel: zooKeeperClusterMetaModel,
                                    dryMode: dryMode)
     packager.createPackages()
@@ -297,7 +297,7 @@ ${lines.join('\n')}
                            outputFolder: out,
                            inputPackage: getInputPackage('org.linkedin.glu.agent-cli',
                                                          gluMetaModel.gluVersion),
-                           configsRoots: configsRoots,
+                           configTemplatesRoots: configTemplatesRoots,
                            metaModel: agentCliMetaModel,
                            dryMode: dryMode)
 
@@ -316,7 +316,7 @@ ${lines.join('\n')}
                              outputFolder: out,
                              inputPackage: getInputPackage('org.linkedin.glu.console-cli',
                                                            gluMetaModel.gluVersion),
-                             configsRoots: configsRoots,
+                             configTemplatesRoots: configTemplatesRoots,
                              metaModel: consoleCliMetaModel,
                              dryMode: dryMode)
 

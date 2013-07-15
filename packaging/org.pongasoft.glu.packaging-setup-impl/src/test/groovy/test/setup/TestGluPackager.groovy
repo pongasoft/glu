@@ -18,9 +18,7 @@ package test.setup
 
 import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
-import org.pongasoft.glu.packaging.setup.ConsoleCliPackager
 import org.pongasoft.glu.packaging.setup.GluPackager
-import org.pongasoft.glu.packaging.setup.PackagedArtifact
 
 import java.nio.file.Files
 
@@ -54,7 +52,7 @@ public class TestGluPackager extends BasePackagerTest
       shell.mkdirs("/packages/org.linkedin.glu.console-server-${GLU_VERSION}/${jettyDistribution}")
 
       def packager = new GluPackager(shell: shell,
-                                     configsRoots: copyConfigs(shell.toResource('/configs')),
+                                     configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                      packagesRoot: packagesRoot,
                                      outputFolder: shell.mkdirs('/out'),
                                      keysRoot: keysRootResource,

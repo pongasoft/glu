@@ -45,7 +45,7 @@ public class TestAgentServerPackager extends BasePackagerTest
       def packager = new AgentServerPackager(packagerContext: createPackagerContext(shell),
                                              outputFolder: shell.mkdirs('/out'),
                                              inputPackage: inputPackage,
-                                             configsRoots: copyConfigs(shell.toResource('/configs')),
+                                             configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                              metaModel: testModel.agents[0])
 
       Map<MetaModel, PackagedArtifact> pkgs = packager.createPackages()
@@ -149,7 +149,7 @@ zooKeeperClusters << [
       def packager = new AgentServerPackager(packagerContext: createPackagerContext(shell),
                                              outputFolder: shell.mkdirs('/out'),
                                              inputPackage: inputPackage,
-                                             configsRoots: copyConfigs(shell.toResource('/configs')),
+                                             configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                              metaModel: toGluMetaModel(metaModel).agents[0])
 
       Map<MetaModel, PackagedArtifact> pkgs = packager.createPackages()

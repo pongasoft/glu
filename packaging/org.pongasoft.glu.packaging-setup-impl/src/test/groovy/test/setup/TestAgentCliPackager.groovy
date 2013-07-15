@@ -37,7 +37,7 @@ public class TestAgentCliPackager extends BasePackagerTest
       def packager = new AgentCliPackager(packagerContext: createPackagerContext(shell),
                                           outputFolder: shell.mkdirs('/out'),
                                           inputPackage: inputPackage,
-                                          configsRoots: copyConfigs(shell.toResource('/configs')),
+                                          configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                           metaModel: testModel.agentCli)
 
       PackagedArtifact artifact = packager.createPackage()
@@ -126,7 +126,7 @@ stateMachine = [
       def packager = new AgentCliPackager(packagerContext: createPackagerContext(shell),
                                           outputFolder: shell.mkdirs('/out'),
                                           inputPackage: inputPackage,
-                                          configsRoots: copyConfigs(shell.toResource('/configs')),
+                                          configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                           metaModel: toGluMetaModel(metaModel).agentCli)
 
       PackagedArtifact artifact = packager.createPackage()

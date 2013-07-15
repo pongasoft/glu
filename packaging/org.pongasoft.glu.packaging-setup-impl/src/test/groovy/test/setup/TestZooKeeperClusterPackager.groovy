@@ -22,7 +22,7 @@ public class TestZooKeeperClusterPackager extends BasePackagerTest
         new ZooKeeperClusterPackager(packagerContext: createPackagerContext(shell),
                                      outputFolder: shell.mkdirs('/out'),
                                      inputPackage: inputPackage,
-                                     configsRoots: copyConfigs(shell.toResource('/configs')),
+                                     configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                      metaModel: testModel.zooKeeperClusters['tutorialZooKeeperCluster'])
 
       Map<MetaModel, PackagedArtifact> pkgs = packager.createPackages()
@@ -122,7 +122,7 @@ zooKeeperClusters << [
         new ZooKeeperClusterPackager(packagerContext: createPackagerContext(shell),
                                      outputFolder: shell.mkdirs('/out'),
                                      inputPackage: inputPackage,
-                                     configsRoots: copyConfigs(shell.toResource('/configs')),
+                                     configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                      metaModel: toGluMetaModel(metaModel).zooKeeperClusters['zkc'])
 
       Map<MetaModel, PackagedArtifact> pkgs = packager.createPackages()
@@ -267,7 +267,7 @@ zooKeeperClusters << [
         new ZooKeeperClusterPackager(packagerContext: createPackagerContext(shell),
                                      outputFolder: shell.mkdirs('/out'),
                                      inputPackage: inputPackage,
-                                     configsRoots: copyConfigs(shell.toResource('/configs')),
+                                     configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                      metaModel: toGluMetaModel(metaModel).zooKeeperClusters['zkc'])
 
       Map<MetaModel, PackagedArtifact> pkgs = packager.createPackages()

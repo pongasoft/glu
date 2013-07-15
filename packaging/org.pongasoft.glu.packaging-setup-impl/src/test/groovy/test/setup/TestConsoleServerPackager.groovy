@@ -40,7 +40,7 @@ public class TestConsoleServerPackager extends BasePackagerTest
       def packager = new ConsoleServerPackager(packagerContext: createPackagerContext(shell),
                                                outputFolder: shell.mkdirs('/out'),
                                                inputPackage: inputPackage,
-                                               configsRoots: copyConfigs(shell.toResource('/configs')),
+                                               configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                                metaModel: testModel.consoles['tutorialConsole'])
 
       PackagedArtifact artifact = packager.createPackage()
@@ -157,7 +157,7 @@ zooKeeperClusters << [
       def packager = new ConsoleServerPackager(packagerContext: createPackagerContext(shell),
                                                outputFolder: shell.mkdirs('/out'),
                                                inputPackage: inputPackage,
-                                               configsRoots: copyConfigs(shell.toResource('/configs')),
+                                               configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                                metaModel: toGluMetaModel(metaModel).consoles['default'])
 
       PackagedArtifact artifact = packager.createPackage()

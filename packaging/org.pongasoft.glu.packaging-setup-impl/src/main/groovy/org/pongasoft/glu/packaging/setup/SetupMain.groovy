@@ -26,7 +26,6 @@ import org.linkedin.util.io.resource.FileResource
 import org.linkedin.util.io.resource.Resource
 import org.linkedin.zookeeper.cli.commands.UploadCommand
 import org.linkedin.zookeeper.client.ZKClient
-import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.impl.builder.GluMetaModelBuilder
@@ -80,7 +79,7 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
     cli.K(longOpt: 'gen-keys', 'generate the keys', args: 0, required: false)
     cli.Z(longOpt: 'configure-zookeeper-clusters', 'configure all zookeeper clusters', args: 0, required: false)
     cli._(longOpt: 'zookeeper-cluster-name', 'name of the ZooKeeper cluster to configure (multiple allowed)', args: 1, required: false)
-    cli._(longOpt: 'configs-root', "location of the configs (multiple allowed) [default: ${defaultConfigsResource}]", args: 1, required: false)
+    cli._(longOpt: 'config-templates-root', "location of the config templates (multiple allowed) [default: ${defaultConfigTemplatesRootResource}]", args: 1, required: false)
     cli._(longOpt: 'packages-root', "location of the packages [default: ${defaultPackagesRootResource}]", args: 1, required: false)
     cli._(longOpt: 'keys-root', "location of the keys (if relative) [default: <outputFolder>/keys]", args: 1, required: false)
     cli._(longOpt: 'keys-dname', "the (X.500) distinguished name to use for the keys certificate (ex: \"cn=Mark Smith, ou=JavaSoft, o=Sun, l=Cupertino, s=California, c=US\"), ", args: 1, required: false)
@@ -173,9 +172,9 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
     FileResource.create(userDir)
   }
 
-  protected Resource getDefaultConfigsResource()
+  protected Resource getDefaultConfigTemplatesRootResource()
   {
-    userDirResource.createRelative('configs')
+    userDirResource.createRelative('config-templates')
   }
 
   protected Resource getDefaultPackagesRootResource()
@@ -359,13 +358,13 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
     // meta model
     GluMetaModel gluMetaModel = loadGluMetaModel()
 
-    // configsRoots
-    def configsRoots = config.'configs-roots' ?: ['<default>']
-    configsRoots = configsRoots.collect { String configRoot ->
-      if(configRoot == '<default>')
-        defaultConfigsResource
+    // configTemplatesRoots
+    def configTemplatesRoots = config.'config-templates-roots' ?: ['<default>']
+    configTemplatesRoots = configTemplatesRoots.collect { String configTemplatesRoot ->
+      if(configTemplatesRoot == '<default>')
+        defaultConfigTemplatesRootResource
       else
-        createResource(configRoot)
+        createResource(configTemplatesRoot)
     }
 
     // packagesRoot
@@ -379,7 +378,7 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
                                             outputFolder.createRelative('keys').file.canonicalPath)
 
     new GluPackager(shell: shell,
-                    configsRoots: configsRoots,
+                    configTemplatesRoots: configTemplatesRoots,
                     packagesRoot: createResource(packagesRoot),
                     outputFolder: outputFolder,
                     keysRoot: createResource(keysRoot),

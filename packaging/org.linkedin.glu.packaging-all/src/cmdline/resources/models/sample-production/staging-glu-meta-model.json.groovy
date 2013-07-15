@@ -61,8 +61,6 @@ def stagingBetaFabric = "staging-beta"
  */
 def installPath = '/opt/glu/'
 
-def installCommand = 'scp '
-
 /**
  * Define your ZooKeeperClusters here.
  * In general you need one ZooKeeper cluster per data center.
@@ -131,9 +129,9 @@ dataSource.password = "yyy"
  */
 
 [
-  'agent-host1': stagingAlphaFabric,
+  'agent-host-1': stagingAlphaFabric,
   'agent-host-2': stagingAlphaFabric,
-  'agent-host3': stagingBetaFabric].each { agentHost, fabric ->
+  'agent-host-3': stagingBetaFabric].each { agentHost, fabric ->
 
   agents << [
     host: agentHost,

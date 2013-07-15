@@ -214,6 +214,8 @@ Step 4 also generates a set of convenient install scripts using the information 
 .. note::
    ``install-all.sh`` is essentially a script that combines all the others.
 
+.. _easy-propduction-setup-zooKeeper:
+
 Step 6: Configuring ZooKeeper ``[-Z]``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. note::

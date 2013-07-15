@@ -166,9 +166,6 @@ public class TestMetaModel extends GroovyTestCase
   "metaModelVersion": "1.0.0",
   "zooKeeperClusters": [
     {
-      "fabrics": [
-        "glu-dev-1"
-      ],
       "name": "tutorialZooKeeperCluster",
       "zooKeepers": [
         {
@@ -298,7 +295,6 @@ public class TestMetaModel extends GroovyTestCase
         "zkc.p1": "zkc.v1"
       },
       "name": "zkc-1",
-      "fabrics": ["fabric-1"],
       "zooKeepers": [
         {
           "version": "z11",
@@ -420,9 +416,6 @@ public class TestMetaModel extends GroovyTestCase
       "configTokens": {
         "zkc.p1": "zkc.v1"
       },
-      "fabrics": [
-        "fabric-1"
-      ],
       "name": "zkc-1",
       "zooKeepers": [
         {

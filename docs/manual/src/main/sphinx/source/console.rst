@@ -84,13 +84,7 @@ If you do not want a secure connection between the console and the agent, this i
 Plugins
 ^^^^^^^
 
-The console (orchestration engine) behavior can be tweaked and or enhanced with the use of plugins. Check the :ref:`goe-plugins` section for details on how to create and install a plugin. You add your plugin(s) to the console by modifying the following property::
-
-   orchestration.engine.plugins = [
-     'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin',
-     'org.acme.MyPlugin',
-     // etc...
-   ]
+The console (orchestration engine) behavior can be tweaked and or enhanced with the use of plugins. Check the :ref:`goe-plugins` section for details on how to create and install a plugin. 
 
 .. warning:: Since 4.1.0, *restricting file access on an agent* has been migrated to the ``StreamFileContentPlugin`` plugin and is now being configured by defining the 
              properties::

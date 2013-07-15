@@ -23,7 +23,7 @@ public abstract class BasePackager
 
   Resource outputFolder
   Resource inputPackage
-  Collection<Resource> configsRoots
+  Collection<Resource> configTemplatesRoots
 
   boolean dryMode = false
 
@@ -71,8 +71,8 @@ public abstract class BasePackager
 
   void processConfigs(String fromFolder, Map tokens, Resource toFolder)
   {
-    configsRoots.each { configsRoot ->
-      processConfigs(configsRoot.createRelative(fromFolder), tokens, toFolder)
+    configTemplatesRoots.each { configTemplatesRoot ->
+      processConfigs(configTemplatesRoot.createRelative(fromFolder), tokens, toFolder)
     }
   }
 

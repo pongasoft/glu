@@ -114,14 +114,14 @@ public abstract class BasePackagerTest extends GroovyTestCase
     new File('../org.linkedin.glu.packaging-all/src/cmdline/resources/models/tutorial/glu-meta-model.json.groovy').canonicalFile
   }
 
-  protected File getConfigsRoot()
+  protected File getConfigTemplatesRoot()
   {
-    new File('../org.linkedin.glu.packaging-setup/src/cmdline/resources/configs').canonicalFile
+    new File('../org.linkedin.glu.packaging-setup/src/cmdline/resources/config-templates').canonicalFile
   }
 
-  protected Resource getConfigsRootResource()
+  protected Resource getConfigTemplatesRootResource()
   {
-    rootShell.toResource(configsRoot)
+    rootShell.toResource(configTemplatesRoot)
   }
 
   protected File getKeysRootDir()
@@ -145,7 +145,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
    */
   protected Collection<Resource> copyConfigs(Resource toConfigRoot)
   {
-    Resource dir = rootShell.cp(configsRootResource, toConfigRoot)
+    Resource dir = rootShell.cp(configTemplatesRootResource, toConfigRoot)
     int configFilesCount = 0
     rootShell.eachChildRecurse(dir) { Resource r ->
       if(!r.isDirectory())
