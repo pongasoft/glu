@@ -87,8 +87,9 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
     cli._(longOpt: 'agents-only', "generate distribution for agents only", args: 0, required: false)
     cli._(longOpt: 'consoles-only', "generate distribution for consoles only", args: 0, required: false)
     cli._(longOpt: 'zookeeper-clusters-only', "generate distribution for ZooKeeper clusters only", args: 0, required: false)
-    cli.o(longOpt: 'output-folder', 'output folder', args: 1, required: false)
+    cli._(longOpt: 'compress', 'generate .tgz', args: 0, required: false)
     cli._(longOpt: 'accept-defaults', 'accept defaults values', args: 0, required: false)
+    cli.o(longOpt: 'output-folder', 'output folder', args: 1, required: false)
     cli.f(longOpt: 'setup-config-file', 'the setup config file', args: 1, required: false)
     cli.h(longOpt: 'help', 'display help')
 
@@ -377,13 +378,17 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
                                             'keys-root',
                                             outputFolder.createRelative('keys').file.canonicalPath)
 
+    // generate .tgz
+    boolean compress = Config.getOptionalBoolean(config, 'compress', false)
+
     new GluPackager(shell: shell,
                     configTemplatesRoots: configTemplatesRoots,
                     packagesRoot: createResource(packagesRoot),
                     outputFolder: outputFolder,
                     keysRoot: createResource(keysRoot),
                     gluMetaModel: gluMetaModel,
-                    dryMode: dryMode)
+                    dryMode: dryMode,
+                    compress: compress)
   }
 
 

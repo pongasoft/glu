@@ -26,6 +26,7 @@ import org.linkedin.util.io.resource.Resource
 import org.linkedin.util.reflect.ReflectUtils
 import org.pongasoft.glu.provisioner.core.metamodel.AgentCliMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
+import org.pongasoft.glu.provisioner.core.metamodel.AgentUpgradeMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.CliMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleCliMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
@@ -60,6 +61,7 @@ public class GluPackager
   Map<MetaModel, PackagedArtifact> packagedArtifacts = [:]
 
   boolean dryMode = false
+  boolean compress = false
 
   Map<MetaModel, PackagedArtifact> packageAll()
   {
@@ -202,7 +204,7 @@ ${lines.join('\n')}
       }
       else
       {
-        packagedArtifacts.putAll(packager.createPackages())
+        addPackagedArtifacts(packager.createPackages())
         displayPackagedArtifact(model, "agent package")
         checksums[packageName] = checksum
       }
@@ -212,8 +214,7 @@ ${lines.join('\n')}
   void packageConsoles()
   {
     gluMetaModel.consoles.values().each { ConsoleMetaModel model ->
-      Map<MetaModel, PackagedArtifact> pas = packageConsole(model)
-      packagedArtifacts.putAll(pas)
+      addPackagedArtifacts(packageConsole(model))
       displayPackagedArtifact(model, "console package")
     }
   }
@@ -221,8 +222,7 @@ ${lines.join('\n')}
   void packageZooKeeperClusters()
   {
     gluMetaModel.zooKeeperClusters.values().each { ZooKeeperClusterMetaModel model ->
-      Map<MetaModel, PackagedArtifact> pas = packageZooKeeperCluster(model)
-      packagedArtifacts.putAll(pas)
+      addPackagedArtifacts(packageZooKeeperCluster(model))
       model.zooKeepers.each { ZooKeeperMetaModel zkm ->
         displayPackagedArtifact(zkm, "ZooKeeper instance [${zkm.serverIdx}]")
       }
@@ -301,7 +301,7 @@ ${lines.join('\n')}
                            metaModel: agentCliMetaModel,
                            dryMode: dryMode)
 
-    packagedArtifacts.putAll(packager.createPackages())
+    addPackagedArtifacts(packager.createPackages())
 
     displayPackagedArtifact(agentCliMetaModel, "agent cli package")
   }
@@ -320,7 +320,7 @@ ${lines.join('\n')}
                              metaModel: consoleCliMetaModel,
                              dryMode: dryMode)
 
-    packagedArtifacts.putAll(packager.createPackages())
+    addPackagedArtifacts(packager.createPackages())
 
     displayPackagedArtifact(consoleCliMetaModel, "console cli package")
   }
@@ -353,5 +353,26 @@ ${lines.join('\n')}
     }
     else
       return null
+  }
+
+  protected void addPackagedArtifacts(Map<MetaModel, PackagedArtifact> pas)
+  {
+    if(compress)
+    {
+      pas.each { MetaModel metaModel, PackagedArtifact packagedArtifact ->
+        if(metaModel instanceof CliMetaModel || metaModel instanceof AgentUpgradeMetaModel)
+        {
+          def tarResource =
+            shell.tar(dir: packagedArtifact.location,
+                      tarDir: packagedArtifact.location.parentResource,
+                      compression: "gzip",
+                      includeRoot: !(metaModel instanceof AgentUpgradeMetaModel))
+          shell.delete(packagedArtifact.location)
+          packagedArtifact.location = tarResource
+        }
+      }
+    }
+
+    packagedArtifacts.putAll(pas)
   }
 }

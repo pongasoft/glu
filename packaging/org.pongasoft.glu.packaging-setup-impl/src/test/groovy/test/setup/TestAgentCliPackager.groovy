@@ -140,14 +140,11 @@ stateMachine = [
           "/README.md": 'this is the readme',
           "/lib": DIRECTORY,
           "/lib/acme.jar": 'this is the jar',
-          "/lib/glu-state-machine.jar": { Resource r ->
-            shell.withTempFile { Resource t ->
-              shell.unzip(r, t)
-              def er2 = [
-                '/META-INF': DIRECTORY,
-                '/META-INF/MANIFEST.MF': FILE,
-                '/glu': DIRECTORY,
-                '/glu/DefaultStateMachine.groovy': """
+          "/lib/glu-state-machine.jar": zipContent(shell, [
+            '/META-INF': DIRECTORY,
+            '/META-INF/MANIFEST.MF': FILE,
+            '/glu': DIRECTORY,
+            '/glu/DefaultStateMachine.groovy': """
 defaultTransitions =
 [
   'NONE': [[to: 's1', action: 'noneTOs1']],
@@ -157,10 +154,7 @@ defaultTransitions =
 
 defaultEntryState = 's2'
 """
-              ]
-              checkPackageContent(er2, t)
-            }
-          },
+          ]),
           "/conf": DIRECTORY,
           "/conf/clientConfig.properties": """#
 # Copyright (c) 2010-2010 LinkedIn, Inc

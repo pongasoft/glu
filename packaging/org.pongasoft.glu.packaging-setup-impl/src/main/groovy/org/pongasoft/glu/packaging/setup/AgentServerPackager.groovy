@@ -114,10 +114,12 @@ public class AgentServerPackager extends BasePackager
         _tokens.GLU_AGENT_ZOOKEEPER_ROOT = metaModel.gluMetaModel.zooKeeperRoot
 
       // Define which zookeeper to use
-      _tokens.GLU_ZOOKEEPER =
-        metaModel.fabric.zooKeeperCluster.zooKeeperConnectionString
-
-      parts << metaModel.fabric.zooKeeperCluster.name
+      if(metaModel.fabric)
+      {
+        _tokens.GLU_ZOOKEEPER =
+          metaModel.fabric.zooKeeperCluster.zooKeeperConnectionString
+        parts << metaModel.fabric.zooKeeperCluster.name
+      }
 
       def upgradeParts = [*parts]
 

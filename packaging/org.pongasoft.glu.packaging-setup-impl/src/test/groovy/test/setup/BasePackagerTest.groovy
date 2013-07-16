@@ -47,6 +47,30 @@ public abstract class BasePackagerTest extends GroovyTestCase
     new BinaryResource(resource: resource)
   }
 
+  public Closure zipContent(Shell shell, def expectedResources, boolean bulkFailure = true)
+  {
+    def closure = { Resource r ->
+      shell.withTempFile { Resource t ->
+        shell.unzip(r, t)
+        checkPackageContent(expectedResources, t, bulkFailure)
+      }
+    }
+
+    return closure
+  }
+
+  public Closure tarContent(Shell shell, def expectedResources, boolean bulkFailure = true)
+  {
+    def closure = { Resource r ->
+      shell.withTempFile { Resource t ->
+        shell.untar(r, t)
+        checkPackageContent(expectedResources, t, bulkFailure)
+      }
+    }
+
+    return closure
+  }
+
   public static final int CONFIG_TEMPLATES_COUNT = 21
 
   public static final String GLU_VERSION = 'g.v.0'
