@@ -165,20 +165,17 @@ def class ShellImpl implements Shell
   {
     file = toResource(file)
     toDir = toResource(toDir)
-    def compression = 'none'
     def command = "tar -xf ${file.file}"
 
     def mimeTypes = getMimeTypes(file)
 
     if(mimeTypes.find { it == 'application/x-gzip'})
     {
-      compression = 'gzip'
       command = "gunzip -c ${file.file} | tar -xf -"
     }
 
     if(mimeTypes.find { it == 'application/x-bzip2'})
     {
-      compression = 'bzip2'
       command = "bunzip2 -c ${file.file} | tar -xf -"
     }
 

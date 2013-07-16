@@ -33,6 +33,9 @@ public class GluMetaModelImpl implements GluMetaModel
   public static final String META_MODEL_VERSION = '1.0.0'
 
   Map<String, FabricMetaModel> fabrics
+  Collection<AgentMetaModel> agents
+  Map<String, ConsoleMetaModel> consoles
+  Map<String, ZooKeeperClusterMetaModel> zooKeeperClusters
   StateMachineMetaModel stateMachine
   String gluVersion
   String metaModelVersion = META_MODEL_VERSION
@@ -46,7 +49,7 @@ public class GluMetaModelImpl implements GluMetaModel
   @Override
   FabricMetaModel findFabric(String fabricName)
   {
-    return fabrics[fabricName]
+    return fabrics?.get(fabricName)
   }
 
   @Override
@@ -58,49 +61,31 @@ public class GluMetaModelImpl implements GluMetaModel
   @Override
   Collection<AgentMetaModel> getAgents()
   {
-    def agents = []
-
-    fabrics.values().each { FabricMetaModel model ->
-      agents.addAll(model.agents.values())
-    }
-
     return agents
   }
 
   @Override
   ConsoleMetaModel findConsole(String consoleName)
   {
-    fabrics.values().find { it.console.name == consoleName }?.console
+    getConsoles()?.values()?.find { it.name == consoleName }
   }
 
   @Override
   ZooKeeperClusterMetaModel findZooKeeperCluster(String zooKeeperClusterName)
   {
-    fabrics.values().find { it.zooKeeperCluster.name == zooKeeperClusterName }?.zooKeeperCluster
+    getZooKeeperClusters()?.values()?.find { it.name == zooKeeperClusterName }
   }
 
   @Override
   Map<String, ZooKeeperClusterMetaModel> getZooKeeperClusters()
   {
-    Map<String, ZooKeeperClusterMetaModel> res = [:]
-
-    fabrics.values().each { FabricMetaModel model ->
-      res[model.zooKeeperCluster.name] = model.zooKeeperCluster
-    }
-
-    return res
+    return zooKeeperClusters
   }
 
   @Override
   Map<String, ConsoleMetaModel> getConsoles()
   {
-    Map<String, ConsoleMetaModel> res = [:]
-
-    fabrics.values().each { FabricMetaModel model ->
-      res[model.console.name] = model.console
-    }
-
-    return res
+    return consoles
   }
 
   @Override

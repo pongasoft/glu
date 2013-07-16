@@ -532,6 +532,114 @@ public class TestMetaModel extends GroovyTestCase
     checkJson(model, expectedModel)
   }
 
+  /**
+   * Should work when no fabric defined
+   */
+  public void testNoFabric()
+  {
+    def model = """{
+  "gluVersion": "x.y.z",
+  "agents": [
+    {
+      "host": "ah1"
+    }
+  ],
+  "consoles": [
+     {
+      "host": "ch1"
+     }
+  ],
+
+  "zooKeeperClusters": [
+    {
+      "zooKeepers": [
+        {
+          "version": "z11",
+          "host": "z1h1"
+        }
+      ]
+    }
+  ]
+}"""
+
+    def expectedModel = """
+{
+  "agentCli": {
+    "configTokens": {
+    },
+    "version": "x.y.z"
+  },
+  "agents": [
+    {
+      "configTokens": {
+      },
+      "host": "ah1",
+      "port": 12906,
+      "ports": {
+        "configPort": 12907
+      },
+      "version": "x.y.z"
+    }
+  ],
+  "consoleCli": {
+    "configTokens": {
+    },
+    "version": "x.y.z"
+  },
+  "consoles": [
+    {
+      "configTokens": {
+      },
+      "externalHost": "ch1",
+      "externalPath": "/console",
+      "host": "ch1",
+      "internalPath": "/console",
+      "name": "default",
+      "plugins": [
+      ],
+      "port": 8080,
+      "ports": {
+        "externalPort": 8080
+      },
+      "version": "x.y.z"
+    }
+  ],
+  "fabrics": {
+  },
+  "gluVersion": "x.y.z",
+  "metaModelVersion": "1.0.0",
+  "zooKeeperClusters": [
+    {
+      "configTokens": {
+      },
+      "name": "default",
+      "zooKeepers": [
+        {
+          "configTokens": {
+          },
+          "host": "z1h1",
+          "port": 2181,
+          "ports": {
+            "leaderElectionPort": 3888,
+            "quorumPort": 2888
+          },
+          "version": "z11"
+        }
+      ]
+    }
+  ],
+  "zooKeeperRoot": "/org/glu"
+}
+"""
+
+    def gluMetaModel = checkJson(model, expectedModel)
+
+    assertEquals(1, gluMetaModel.agents.size())
+    assertEquals(1, gluMetaModel.zooKeeperClusters.size())
+    assertEquals(1, gluMetaModel.consoles.size())
+
+  }
+
   private GluMetaModel checkJson(Resource model, String expectedModel)
   {
     JsonMetaModelSerializerImpl serializer = new JsonMetaModelSerializerImpl()

@@ -53,7 +53,7 @@ glu.agent.commands.filesystem.dir=${configTokens.'commands.filesystem.dir' ?: '$
 # ZooKeeper configuration:
 
 # session timeout (ex: 2s)
-glu.agent.zkSessionTimeout=${configTokens.zkSessionTimeout ?: agentMetaModel.fabric.zooKeeperCluster.zooKeeperSessionTimeout ?: '5s'}
+glu.agent.zkSessionTimeout=${configTokens.zkSessionTimeout ?: agentMetaModel.fabric?.zooKeeperCluster?.zooKeeperSessionTimeout ?: '5s'}
 
 # The file which contains the location of zookeeper
 glu.agent.zkProperties=${configTokens.zkProperties ?: '${glu.agent.dataDir}/config/zk.properties'}

@@ -54,6 +54,7 @@ public class GluMetaModelBuilder
 
   GluMetaModelImpl gluMetaModel = new GluMetaModelImpl()
   Map<String, FabricMetaModelImpl> fabrics = [:]
+  Collection<AgentMetaModelImpl> agents = []
   Map<String, ConsoleMetaModelImpl> consoles = [:]
   Map<String, ZooKeeperClusterMetaModelImpl> zooKeeperClusters = [:]
 
@@ -88,7 +89,7 @@ public class GluMetaModelBuilder
       int errorLine = jpe.location.lineNr - 1 // 1 based
 
       def minLine = Math.max(0, errorLine - 5)
-      def maxLine = Math.min(lines.size(), errorLine + 5)
+      def maxLine = Math.min(lines.size() - 1, errorLine + 5)
 
       log.error """Problem with json model: ${jpe.message}
 ${'/' * 20}
@@ -228,12 +229,17 @@ ${'/' * 20}"""
 
     def fabric = findOrCreateFabric(agentModel.fabric)
 
-    if(fabric.agents.containsKey(agent.resolvedName))
-      throw new IllegalArgumentException("duplicate agent name [${agent.resolvedName}] for fabric [${fabric.name}]")
+    if(fabric)
+    {
+      if(fabric.agents.containsKey(agent.resolvedName))
+        throw new IllegalArgumentException("duplicate agent name [${agent.resolvedName}] for fabric [${fabric.name}]")
 
-    // linking the 2
-    agent.fabric = fabric
-    fabric.agents[agent.resolvedName] = agent
+      // linking the 2
+      agent.fabric = fabric
+      fabric.agents[agent.resolvedName] = agent
+    }
+
+    agents << agent
   }
 
   /**
@@ -292,10 +298,13 @@ ${'/' * 20}"""
   }
 
   /**
-   * @return a fabric (never <code>null</code>)
+   * @return a fabric (<code>null</code> if <code>modelFabricName</code> is <code>null</code>)
    */
   private FabricMetaModelImpl findOrCreateFabric(String modelFabricName)
   {
+    if(!modelFabricName)
+      return null
+
     FabricMetaModelImpl fabric = fabrics[modelFabricName]
 
     if(!fabric)
@@ -436,6 +445,10 @@ ${'/' * 20}"""
       zooKeeperCluster.zooKeepers = Collections.unmodifiableList(zooKeeperCluster.zooKeepers)
     }
     gluMetaModel.fabrics = Collections.unmodifiableMap(newFabrics)
+
+    gluMetaModel.agents = Collections.unmodifiableCollection(agents)
+    gluMetaModel.consoles = Collections.unmodifiableMap(consoles)
+    gluMetaModel.zooKeeperClusters = Collections.unmodifiableMap(zooKeeperClusters)
 
     return gluMetaModel
   }
