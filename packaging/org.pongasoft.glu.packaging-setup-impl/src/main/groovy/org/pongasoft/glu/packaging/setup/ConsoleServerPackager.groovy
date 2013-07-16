@@ -68,8 +68,7 @@ public class ConsoleServerPackager extends BasePackager
     def tokens = [
       consoleMetaModel: metaModel,
       envPropertyNames: ENV_PROPERTY_NAMES,
-      'jetty.distribution': jettyDistribution,
-      'console.war': "org.linkedin.glu.console-webapp-${metaModel.version}"
+      'jetty.distribution': jettyDistribution
     ]
 
     tokens[PACKAGER_CONTEXT_KEY] = packagerContext

@@ -40,7 +40,24 @@ public class TestMetaModel extends GroovyTestCase
 
     def expectedModel = """
 {
-  "metaModelVersion": "1.0.0"
+  "agentCli": {
+    "configTokens": {
+    }
+  },
+  "agents": [
+  ],
+  "consoleCli": {
+    "configTokens": {
+    }
+  },
+  "consoles": [
+  ],
+  "fabrics": {
+  },
+  "metaModelVersion": "1.0.0",
+  "zooKeeperClusters": [
+  ],
+  "zooKeeperRoot": "/org/glu"
 }
 """
 
@@ -67,6 +84,22 @@ public class TestMetaModel extends GroovyTestCase
 
     def expectedModel = """
 {
+  "agentCli": {
+    "configTokens": {
+    },
+    "version": "x.y.z"
+  },
+  "agents": [
+  ],
+  "consoleCli": {
+    "configTokens": {
+    },
+    "version": "x.y.z"
+  },
+  "consoles": [
+  ],
+  "fabrics": {
+  },
   "gluVersion": "x.y.z",
   "metaModelVersion": "1.0.0",
   "stateMachine": {
@@ -96,6 +129,8 @@ public class TestMetaModel extends GroovyTestCase
       ]
     }
   },
+  "zooKeeperClusters": [
+  ],
   "zooKeeperRoot": "/acme"
 }
 """
@@ -112,25 +147,52 @@ public class TestMetaModel extends GroovyTestCase
 
     def expectedModel = """
 {
+  "agentCli": {
+    "configTokens": {
+    },
+    "version": "@glu.version@"
+  },
   "agents": [
     {
+      "configTokens": {
+      },
       "fabric": "glu-dev-1",
       "host": "localhost",
-      "name": "agent-1"
+      "name": "agent-1",
+      "port": 12906,
+      "ports": {
+        "configPort": 12907
+      },
+      "version": "@glu.version@"
     }
   ],
+  "consoleCli": {
+    "configTokens": {
+    },
+    "version": "@glu.version@"
+  },
   "consoles": [
     {
       "configTokens": {
         "dataSource": "\\ndataSource.dbCreate ='update'\\ndataSource.url=\\"jdbc:hsqldb:file:\${System.properties['user.dir']}/database/prod;shutdown=true\\"\\n"
       },
+      "externalHost": "localhost",
+      "externalPath": "/console",
       "host": "localhost",
+      "internalPath": "/console",
       "name": "tutorialConsole",
       "plugins": [
         {
+          "classPath": [
+          ],
           "fqcn": "org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin"
         }
-      ]
+      ],
+      "port": 8080,
+      "ports": {
+        "externalPort": 8080
+      },
+      "version": "@glu.version@"
     }
   ],
   "fabrics": {
@@ -168,15 +230,25 @@ public class TestMetaModel extends GroovyTestCase
   "metaModelVersion": "1.0.0",
   "zooKeeperClusters": [
     {
+      "configTokens": {
+      },
       "name": "tutorialZooKeeperCluster",
       "zooKeepers": [
         {
+          "configTokens": {
+          },
           "host": "127.0.0.1",
+          "port": 2181,
+          "ports": {
+            "leaderElectionPort": 3888,
+            "quorumPort": 2888
+          },
           "version": "@zookeeper.version@"
         }
       ]
     }
-  ]
+  ],
+  "zooKeeperRoot": "/org/glu"
 }"""
 
     def metaModel = checkJson(model, expectedModel)
@@ -452,7 +524,8 @@ public class TestMetaModel extends GroovyTestCase
         }
       ]
     }
-  ]
+  ],
+  "zooKeeperRoot": "/org/glu"
 }
 """
 

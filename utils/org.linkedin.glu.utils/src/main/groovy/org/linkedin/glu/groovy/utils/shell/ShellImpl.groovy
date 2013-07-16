@@ -28,6 +28,7 @@ import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecutionThreadFactory
 import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
 import org.linkedin.glu.utils.concurrent.OneThreadPerTaskSubmitter
 import org.linkedin.glu.utils.concurrent.Submitter
+import org.linkedin.glu.utils.core.Externable
 import org.linkedin.groovy.util.ant.AntUtils
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
 import org.linkedin.groovy.util.config.Config
@@ -988,6 +989,13 @@ def class ShellImpl implements Shell
     } as boolean
   }
 
+  private static def REPLACE_TOKENS_UNKNOWN_TYPE_HANDLER = { o ->
+    if(o instanceof Externable)
+      o.toExternalRepresentation()
+    else
+      o
+  }
+
   /**
    * Replaces the tokens provided in the map in the input. Token replacement is using ant token
    * replacement class so in the input, the tokens are surrounded by the '@' sign.
@@ -1003,11 +1011,12 @@ def class ShellImpl implements Shell
     if(input == null)
       return null
 
-    tokens = GluGroovyCollectionUtils.flatten(tokens)
+    tokens = GluGroovyCollectionUtils.flatten(tokens, REPLACE_TOKENS_UNKNOWN_TYPE_HANDLER)
 
     ReplaceTokens rt = new ReplaceTokens(new StringReader(input))
     tokens?.each { k,v ->
-      rt.addConfiguredToken(new Token(key: k, value: v))
+      if(k != null && v != null)
+        rt.addConfiguredToken(new Token(key: k, value: v))
     }
 
     return rt.text
@@ -1027,7 +1036,7 @@ def class ShellImpl implements Shell
   {
     to = toResource(to)
 
-    tokens = GluGroovyCollectionUtils.flatten(tokens)
+    tokens = GluGroovyCollectionUtils.flatten(tokens, REPLACE_TOKENS_UNKNOWN_TYPE_HANDLER)
 
     withWriter(to) { Writer writer ->
       withReader(from) { Reader reader ->

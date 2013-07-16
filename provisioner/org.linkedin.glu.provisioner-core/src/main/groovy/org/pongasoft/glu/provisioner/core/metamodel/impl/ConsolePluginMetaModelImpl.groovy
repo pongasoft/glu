@@ -12,11 +12,9 @@ public class ConsolePluginMetaModelImpl implements ConsolePluginMetaModel
   @Override
   def toExternalRepresentation()
   {
-    def res = [fqcn: fqcn]
-
-    if(classPath)
-      res.classPath = classPath.collect { it.toString() }
-
-    return res
+    [
+      fqcn: getFqcn(),
+      classPath: getClassPath()?.collect { it.toString() } ?: []
+    ]
   }
 }

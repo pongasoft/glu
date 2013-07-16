@@ -32,10 +32,10 @@ public class KeysMetaModelImpl implements KeysMetaModel
   Object toExternalRepresentation()
   {
     [
-      agentKeyStore: agentKeyStore.toExternalRepresentation(),
-      agentTrustStore: agentTrustStore.toExternalRepresentation(),
-      consoleKeyStore: consoleKeyStore.toExternalRepresentation(),
-      consoleTrustStore: consoleTrustStore.toExternalRepresentation()
+      agentKeyStore: getAgentKeyStore()?.toExternalRepresentation(),
+      agentTrustStore: getAgentTrustStore()?.toExternalRepresentation(),
+      consoleKeyStore: getConsoleKeyStore()?.toExternalRepresentation(),
+      consoleTrustStore: getConsoleTrustStore()?.toExternalRepresentation()
     ]
   }
 

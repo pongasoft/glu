@@ -30,8 +30,8 @@ public class StateMachineMetaModelImpl implements StateMachineMetaModel
   def toExternalRepresentation()
   {
     [
-      defaultTransitions: defaultTransitions.transitions,
-      defaultEntryState: defaultEntryState,
+      defaultTransitions: getDefaultTransitions()?.transitions,
+      defaultEntryState: getDefaultEntryState(),
     ]
   }
 }

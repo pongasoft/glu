@@ -164,7 +164,8 @@ public class AgentServerPackager extends BasePackager
     if(!dryMode)
     {
       copyInputPackage(packagedArtifacts[metaModel].location)
-      Resource serverRoot = configure(packagedArtifacts[metaModel].location, tokens)
+      Resource packagePath = configure(packagedArtifacts[metaModel].location, tokens)
+      Resource serverRoot = packagePath.createRelative(metaModel.version)
 
       if(metaModel.gluMetaModel.stateMachine)
         generateStateMachineJarFile(metaModel.gluMetaModel.stateMachine,
@@ -179,12 +180,8 @@ public class AgentServerPackager extends BasePackager
 
   Resource configure(Resource packagePath, Map tokens)
   {
-    String version = packagePath.createRelative('version.txt').file.text
+    processConfigs('agent-server', tokens, packagePath)
 
-    Resource serverRoot = packagePath.createRelative(version)
-
-    processConfigs('agent-server', tokens, serverRoot)
-
-    return serverRoot
+    return packagePath
   }
 }

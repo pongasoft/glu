@@ -73,22 +73,21 @@ public class ConsoleMetaModelImpl extends ServerMetaModelImpl implements Console
   {
     def ext = super.toExternalRepresentation()
 
-    ext.name = name
+    ext.ports = [
+      externalPort: getExternalPort()
+    ]
 
-    if(externalHost)
-      ext.externalHost = externalHost
+    ext.name = getName()
 
-    if(internalPath)
-      ext.internalPath = internalPath
+    ext.externalHost = getExternalHost()
 
-    if(externalPath)
-      ext.externalPath = externalPath
+    ext.internalPath = getInternalPath()
 
-    if(plugins)
-      ext.plugins = plugins.collect { it.toExternalRepresentation() }
+    ext.externalPath = getExternalPath()
 
-    if(dataSourceDriverUri)
-      ext.dataSourceDriverUri = dataSourceDriverUri.toString()
+    ext.plugins = getPlugins()?.collect { it.toExternalRepresentation() } ?: []
+
+    ext.dataSourceDriverUri = getDataSourceDriverUri()?.toString()
 
     return ext
   }

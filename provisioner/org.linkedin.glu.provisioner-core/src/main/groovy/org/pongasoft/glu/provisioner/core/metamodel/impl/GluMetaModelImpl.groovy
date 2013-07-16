@@ -118,36 +118,18 @@ public class GluMetaModelImpl implements GluMetaModel
   @Override
   Object toExternalRepresentation()
   {
-    def res =[
-      metaModelVersion: metaModelVersion,
-      gluVersion: gluVersion
+    [
+      metaModelVersion: getMetaModelVersion(),
+      gluVersion: getGluVersion(),
+      stateMachine : getStateMachine()?.toExternalRepresentation(),
+      fabrics: getFabrics()?.collectEntries { k, v ->
+        [k, GluGroovyCollectionUtils.xorMap(v.toExternalRepresentation(), ['name'])] } ?: [:],
+      agents: getAgents()?.collect { it.toExternalRepresentation() } ?: [],
+      agentCli: getAgentCli()?.toExternalRepresentation(),
+      consoles: getConsoles()?.values()?.collect { it.toExternalRepresentation() } ?: [],
+      consoleCli: getConsoleCli()?.toExternalRepresentation(),
+      zooKeeperClusters: getZooKeeperClusters()?.values()?.collect { it.toExternalRepresentation() } ?: [],
+      zooKeeperRoot: getZooKeeperRoot()
     ]
-
-    if(stateMachine)
-      res.stateMachine = stateMachine.toExternalRepresentation()
-
-    if(fabrics)
-      res.fabrics = fabrics.collectEntries { k, v ->
-        [k, GluGroovyCollectionUtils.xorMap(v.toExternalRepresentation(), ['name'])] }
-
-    if(agents)
-      res.agents = agents.collect { it.toExternalRepresentation() }
-
-    if(agentCli)
-      res.agentCli = agentCli.toExternalRepresentation()
-
-    if(consoles)
-      res.consoles = consoles.values().collect { it.toExternalRepresentation() }
-
-    if(consoleCli)
-      res.consoleCli = consoleCli.toExternalRepresentation()
-
-    if(zooKeeperClusters)
-      res.zooKeeperClusters = zooKeeperClusters.values().collect { it.toExternalRepresentation() }
-
-    if(zooKeeperRoot != DEFAULT_ZOOKEEPER_ROOT)
-      res.zooKeeperRoot = zooKeeperRoot
-
-    return res
   }
 }

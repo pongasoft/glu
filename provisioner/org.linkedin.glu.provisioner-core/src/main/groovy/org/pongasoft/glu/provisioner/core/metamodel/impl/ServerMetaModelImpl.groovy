@@ -16,12 +16,11 @@
 
 package org.pongasoft.glu.provisioner.core.metamodel.impl
 
-import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 import org.pongasoft.glu.provisioner.core.metamodel.ServerMetaModel
 
 /**
  * @author yan@pongasoft.com  */
-public class ServerMetaModelImpl extends CliMetaModelImpl implements ServerMetaModel
+public abstract class ServerMetaModelImpl extends CliMetaModelImpl implements ServerMetaModel
 {
   public static final String MAIN_PORT_KEY = 'mainPort'
 
@@ -61,11 +60,7 @@ public class ServerMetaModelImpl extends CliMetaModelImpl implements ServerMetaM
   {
     def res = super.toExternalRepresentation()
 
-    if(mainPort != defaultPort)
-      res.port = mainPort
-
-    if(ports.size() > 1)
-      res.ports =  GluGroovyCollectionUtils.xorMap(ports, [MAIN_PORT_KEY])
+    res.port = getMainPort()
 
     return res
   }

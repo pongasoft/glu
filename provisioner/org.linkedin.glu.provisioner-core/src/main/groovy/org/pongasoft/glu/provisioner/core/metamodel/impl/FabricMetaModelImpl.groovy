@@ -44,17 +44,12 @@ public class FabricMetaModelImpl implements FabricMetaModel
   @Override
   Object toExternalRepresentation()
   {
-    def res = [name: name]
-
-    if(color)
-      res.color = color
-
-    if(keys)
-      res.keys = keys.toExternalRepresentation()
-
-    res.console = console.name
-    res.zooKeeperCluster = zooKeeperCluster.name
-
-    return res
+    [
+      name: getName(),
+      color: getColor(),
+      keys: getKeys()?.toExternalRepresentation(),
+      console: getConsole()?.name,
+      zooKeeperCluster: getZooKeeperCluster()?.name
+    ]
   }
 }

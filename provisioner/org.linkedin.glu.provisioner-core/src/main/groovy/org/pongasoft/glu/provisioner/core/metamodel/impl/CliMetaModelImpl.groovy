@@ -23,21 +23,12 @@ public class CliMetaModelImpl implements CliMetaModel
   @Override
   Object toExternalRepresentation()
   {
-    def res = [:]
-
-    if(version)
-      res.version = version
-
-    if(host)
-      res.host = host.toExternalRepresentation()
-
-    if(install)
-      res.install = install.toExternalRepresentation()
-
-    if(configTokens)
-      res.configTokens = configTokens
-
-    return res
+    [
+      version: getVersion(),
+      host: getHost()?.toExternalRepresentation(),
+      install: getInstall()?.toExternalRepresentation(),
+      configTokens: getConfigTokens() ?: [:]
+    ]
   }
 
 }

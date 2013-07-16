@@ -48,19 +48,11 @@ public class ZooKeeperClusterMetaModelImpl implements ZooKeeperClusterMetaModel
   @Override
   Object toExternalRepresentation()
   {
-    def res = [
-      name: name,
-      zooKeepers: zooKeepers.collect { it.toExternalRepresentation() }
+    [
+      name: getName(),
+      zooKeepers: getZooKeepers()?.collect { it.toExternalRepresentation() } ?: [],
+      zooKeeperSessionTimeout: getZooKeeperSessionTimeout()?.toString(),
+      configTokens: getConfigTokens() ?: [:]
     ]
-
-    if(zooKeeperSessionTimeout)
-      res.zooKeeperSessionTimeout = zooKeeperSessionTimeout.toString()
-
-    if(configTokens)
-    {
-      res.configTokens = configTokens
-    }
-
-    return res
   }
 }

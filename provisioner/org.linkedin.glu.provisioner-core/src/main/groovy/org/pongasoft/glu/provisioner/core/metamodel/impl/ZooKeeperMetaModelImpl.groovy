@@ -54,4 +54,18 @@ public class ZooKeeperMetaModelImpl extends ServerMetaModelImpl implements ZooKe
   {
     zooKeeperCluster.zooKeepers.findIndexOf { it.is(this) } + 1
   }
+
+  @Override
+  Object toExternalRepresentation()
+  {
+    def ext = super.toExternalRepresentation()
+
+    ext.ports = [
+      leaderElectionPort: getLeaderElectionPort(),
+      quorumPort: getQuorumPort()
+    ]
+
+    return ext
+  }
+
 }

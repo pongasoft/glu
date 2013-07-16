@@ -12,7 +12,7 @@ public class InstallMetaModelImpl implements InstallMetaModel
   Object toExternalRepresentation()
   {
     [
-      path: path
+      path: getPath()
     ]
   }
 }

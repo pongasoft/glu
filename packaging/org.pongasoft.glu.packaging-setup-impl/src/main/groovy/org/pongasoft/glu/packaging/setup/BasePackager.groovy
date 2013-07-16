@@ -1,6 +1,5 @@
 package org.pongasoft.glu.packaging.setup
 
-import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
 import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.util.io.resource.Resource

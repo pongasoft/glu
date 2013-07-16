@@ -66,10 +66,13 @@ public class AgentMetaModelImpl extends ServerMetaModelImpl implements AgentMeta
   {
     def ext = super.toExternalRepresentation()
 
-    if(name)
-      ext.name = name
+    ext.ports = [
+      configPort: getConfigPort()
+    ]
 
-    ext.fabric = fabric.name
+    ext.name = getName()
+
+    ext.fabric = getFabric()?.name
 
     return ext
   }

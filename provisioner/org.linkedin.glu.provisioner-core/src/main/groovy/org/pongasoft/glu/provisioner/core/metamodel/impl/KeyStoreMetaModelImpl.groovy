@@ -31,10 +31,10 @@ public class KeyStoreMetaModelImpl implements KeyStoreMetaModel
   Object toExternalRepresentation()
   {
     [
-      uri: uri.toString(),
-      checksum: checksum,
-      storePassword: storePassword,
-      keyPassword: keyPassword
+      uri: getUri()?.toString(),
+      checksum: getChecksum(),
+      storePassword: getStorePassword(),
+      keyPassword: getKeyPassword()
     ]
   }
 
