@@ -82,8 +82,11 @@ public class TestKeysGenerator extends GroovyTestCase
       assertTrue(consolePem.exists())
       def consolePemContent = shell.cat(consolePem)
 
-      assertTrue(consolePemContent.contains('-----BEGIN RSA PRIVATE KEY-----'))
-      assertTrue(consolePemContent.contains('-----END RSA PRIVATE KEY-----'))
+      // YP note: I have 2 versions of openssl installed... producing different outputs :(
+      // /usr/bin/openssl used by IDEA (old)
+      // /opt/local/bin/openssl (used by cli... most recent)
+      assertTrue(consolePemContent.contains('-----BEGIN PRIVATE KEY-----'))
+      assertTrue(consolePemContent.contains('-----END PRIVATE KEY-----'))
       assertTrue(consolePemContent.contains('-----BEGIN CERTIFICATE-----'))
       assertTrue(consolePemContent.contains('-----END CERTIFICATE-----'))
     }
