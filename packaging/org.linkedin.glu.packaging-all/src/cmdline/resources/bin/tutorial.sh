@@ -101,6 +101,8 @@ setup()
     echo "### Initializing console..."
     touch $GLU_TUTORIAL_CONSOLE_LINK/$JETTY_DISTRIBUTION/logs/console.log
     echo "### Setup complete."
+  else
+    echo "### $GLU_TUTORIAL_DIR already exists... skipping"
   fi
 }
 

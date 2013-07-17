@@ -14,6 +14,11 @@
  * the License.
  */
 
+/**
+ * The purpose of this model is to generate the same distributions that were bundled with glu
+ * prior to 5.1.0
+ */
+
 metaModelVersion = '1.0.0'
 gluVersion = '@glu.version@'
 
@@ -52,28 +57,28 @@ def keys = [
 
 fabrics[fabric] = [
   keys: keys,
-  console: 'tutorialConsole',
-  zooKeeperCluster: 'tutorialZooKeeperCluster'
+  console: 'default',
+  zooKeeperCluster: 'default'
 ]
 
 agents << [
-  name: 'agent-1',
-  host: 'localhost',
-  fabric: fabric
+  host: 'localhost'
 ]
 
 consoles << [
-  name: 'tutorialConsole',
   host: 'localhost',
   plugins: [
     [
       fqcn: 'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin'
     ]
   ],
+  configTokens: [
+    'console.bootstrap.fabrics': 'console.bootstrap.fabrics = []'
+  ]
 ]
 
 zooKeeperClusters << [
-  name: 'tutorialZooKeeperCluster',
+  name: 'default',
   zooKeepers: [
     [
       version: zooKeeperVersion,

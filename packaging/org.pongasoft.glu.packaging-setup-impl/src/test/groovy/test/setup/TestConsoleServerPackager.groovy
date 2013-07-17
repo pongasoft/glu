@@ -197,6 +197,7 @@ console.trackerService.zookeeperRoot = '/org/glu'
 // dataSource configuration
 <datasource>
 
+
 // specify the fabrics used by this console (at bootstrap)
 console.bootstrap.fabrics = [
 
@@ -398,8 +399,13 @@ console.trackerService.zookeeperRoot = '/org/glu'
 
 // dataSource configuration
 
-dataSource.dbCreate ='update'
-dataSource.url="jdbc:hsqldb:file:${System.properties['user.dir']}/database/prod;shutdown=true"
+def dataSourceUrl =
+  System.properties['org.linkedin.glu.console.dataSource.url'] ?:
+  "jdbc:hsqldb:file:${System.properties['user.dir']}/database/prod;shutdown=true"
+// specify the database connection string
+dataSource.dbCreate = "update"
+dataSource.url = dataSourceUrl
+
 
 
 // specify the fabrics used by this console (at bootstrap)

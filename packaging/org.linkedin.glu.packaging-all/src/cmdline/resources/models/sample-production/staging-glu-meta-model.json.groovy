@@ -27,8 +27,18 @@ gluVersion = '@glu.version@' // the glu version
 def zooKeeperVersion = '@zookeeper.version@' // the version for ZooKeeper distribution
 
 /**
+ * Define where each components should be installed on their target host.
+ * Note that a trailing / indicates it will be considered a directory in which to install
+ * the package.
+ *
+ * Otherwise provide the actual name you want (which you need to define for each type):
+ * '/opt/glu/agent-server'
+ */
+def installPath = '/opt/glu/'
+
+/**
  * Step 1 (generate keys) produce a block of code that needs to be copied right below
- * (note that if you do not use keys, simply replace the following section by:
+ * Note that if you do not use keys, simply replace the following section by:
  *
  * def keys = null
  *
@@ -50,16 +60,6 @@ def stagingBetaFabric = "staging-beta"
     zooKeeperCluster: 'stgZkCluster'
   ]
 }
-
-/**
- * Define where each components should be installed on their target host.
- * Note that a trailing / indicates it will be considered a directory in which to install
- * the package.
- *
- * Otherwise provide the actual name you want (which you need to define for each type):
- * '/opt/glu/agent-server'
- */
-def installPath = '/opt/glu/'
 
 /**
  * Define your ZooKeeperClusters here.
