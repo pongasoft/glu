@@ -71,7 +71,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
     return closure
   }
 
-  public static final int CONFIG_TEMPLATES_COUNT = 21
+  public static final int CONFIG_TEMPLATES_COUNT = 22
 
   public static final String GLU_VERSION = 'g.v.0'
   public static final String ZOOKEEPER_VERSION = 'z.v.1'

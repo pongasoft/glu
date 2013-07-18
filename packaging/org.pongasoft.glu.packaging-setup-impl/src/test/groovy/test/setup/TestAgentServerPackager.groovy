@@ -20,6 +20,7 @@ import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
 import org.pongasoft.glu.packaging.setup.AgentServerPackager
 import org.pongasoft.glu.packaging.setup.PackagedArtifact
+import org.pongasoft.glu.packaging.setup.PackagedArtifacts
 import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.MetaModel
 
@@ -48,9 +49,9 @@ public class TestAgentServerPackager extends BasePackagerTest
                                              configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                              metaModel: (testModel.agents as List)[0])
 
-      Map<MetaModel, PackagedArtifact> pkgs = packager.createPackages()
+      PackagedArtifacts pkgs = packager.createPackages()
 
-      PackagedArtifact artifact = pkgs[packager.metaModel]
+      PackagedArtifact artifact = pkgs.find(packager.metaModel)
 
       assertEquals(shell.toResource("/out/org.linkedin.glu.agent-server-agent-1-tutorialZooKeeperCluster-${GLU_VERSION}"), artifact.location)
       assertEquals('localhost', artifact.host)
@@ -96,7 +97,7 @@ GLU_AGENT_NAME="agent-1"
       checkPackageContent(expectedResources, artifact.location)
 
       // now check for upgrade
-      artifact = pkgs[packager.metaModel.agentUpgrade]
+      artifact = pkgs.find(packager.metaModel.agentUpgrade)
 
       assertEquals(shell.toResource("/out/org.linkedin.glu.agent-server-agent-1-tutorialZooKeeperCluster-upgrade-${GLU_VERSION}"), artifact.location)
       assertEquals('localhost', artifact.host)
@@ -152,9 +153,9 @@ zooKeeperClusters << [
                                              configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                              metaModel: (toGluMetaModel(metaModel).agents as List)[0])
 
-      Map<MetaModel, PackagedArtifact> pkgs = packager.createPackages()
+      PackagedArtifacts pkgs = packager.createPackages()
 
-      PackagedArtifact artifact = pkgs[packager.metaModel]
+      PackagedArtifact artifact = pkgs.find(packager.metaModel)
 
       assertEquals(shell.toResource("/out/org.linkedin.glu.agent-server-12345-zkc-${GLU_VERSION}"), artifact.location)
       assertEquals('ha', artifact.host)
@@ -197,7 +198,7 @@ GLU_AGENT_PORT="12345"
       checkPackageContent(expectedResources, artifact.location)
 
       // now check for upgrade
-      artifact = pkgs[packager.metaModel.agentUpgrade]
+      artifact = pkgs.find(packager.metaModel.agentUpgrade)
 
       assertEquals(shell.toResource("/out/org.linkedin.glu.agent-server-12345-zkc-upgrade-${GLU_VERSION}"), artifact.location)
       assertEquals('ha', artifact.host)

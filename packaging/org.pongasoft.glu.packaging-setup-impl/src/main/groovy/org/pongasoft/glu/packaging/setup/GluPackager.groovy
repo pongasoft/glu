@@ -23,7 +23,6 @@ import org.linkedin.util.codec.HexaCodec
 import org.linkedin.util.codec.OneWayCodec
 import org.linkedin.util.codec.OneWayMessageDigestCodec
 import org.linkedin.util.io.resource.Resource
-import org.linkedin.util.reflect.ReflectUtils
 import org.pongasoft.glu.provisioner.core.metamodel.AgentCliMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.AgentUpgradeMetaModel
@@ -58,12 +57,12 @@ public class GluPackager
   Resource outputFolder
   Resource keysRoot
 
-  Map<MetaModel, PackagedArtifact> packagedArtifacts = [:]
+  PackagedArtifacts packagedArtifacts = new PackagedArtifacts()
 
   boolean dryMode = false
   boolean compress = false
 
-  Map<MetaModel, PackagedArtifact> packageAll()
+  PackagedArtifacts packageAll()
   {
     packageAgents()
     packageConsoles()
@@ -76,8 +75,6 @@ public class GluPackager
 
   void generateInstallScripts(boolean generateInstallAllScript)
   {
-    def installAllScript = []
-
     [
       (ZooKeeperMetaModel.class): "zookeepers",
       (AgentMetaModel.class): "agents",
@@ -85,91 +82,40 @@ public class GluPackager
       (AgentCliMetaModel.class): "agent-cli",
       (ConsoleCliMetaModel.class): "console-cli",
     ].each { Class<? extends CliMetaModel> metaModelClass, String name ->
-
-      def installScript = []
-
-      installScript << ("#" * 20) + " [${name}] " + ("#" * 20)
-      buildInstallCommands(metaModelClass, installScript)
-      installScript << "#" * 20
-
-      generateInstallScript("install-${name}.sh", installScript)
-
-      installAllScript.addAll(installScript)
+      generateInstallScript("install-${name}.sh", packagedArtifacts.filter(metaModelClass))
     }
 
     if(generateInstallAllScript)
-      generateInstallScript("install-all.sh", installAllScript)
+      generateInstallScript("install-all.sh", packagedArtifacts.filter(CliMetaModel))
   }
 
-  protected Resource generateInstallScript(String name, def lines)
+  protected Resource generateInstallScript(String name, PackagedArtifacts pas)
   {
-    def content = """#!/bin/bash
+    // bin/install.sh.gtmpl
+    Resource template =
+      configTemplatesRoots.collect { it.createRelative('bin/install.sh.gtmpl') }.find { it.exists() }
 
-if [ -z "\$SCP_CMD" ]; then
-  SCP_CMD="scp"
-fi
+    Resource installScript = null
 
-if [ -z "\$SCP_OPTIONS" ]; then
-  SCP_OPTIONS="-r"
-fi
-
-if [ -z "\$SCP_USER" ]; then
-  SCP_USER=\$USER
-fi
-
-${lines.join('\n')}
-
-"""
-    def installScript = shell.saveContent(outputFolder.createRelative("bin/${name}"), content)
-    shell.chmodPlusX(installScript)
-
-    log.info "Generated install script ${installScript.file.canonicalPath}"
-
-    return installScript
-  }
-
-  /**
-   * Build install commands
-   */
-  protected <T extends CliMetaModel> void buildInstallCommands(Class<T> metaModelClass,
-                                                               def installScript)
-  {
-    filter(metaModelClass).each { T metaModel,  PackagedArtifact pa ->
-      installScript << buildInstallCommand(metaModel, pa)
-    }
-  }
-
-  /**
-   * Build a single install command
-   */
-  protected String buildInstallCommand(CliMetaModel cli, PackagedArtifact artifact)
-  {
-    if(artifact.host)
+    if(template)
     {
-      if(cli.install?.path)
-      {
-        "\$SCP_CMD \$SCP_OPTIONS \"${artifact.location.file.canonicalPath}\" \"\$SCP_USER@${artifact.host}:${cli.install.path}\""
-      }
-      else
-      {
-        "# manually install ${artifact.location.file.canonicalPath} on host ${artifact.host}"
-      }
+      installScript =
+        shell.processTemplate(template,
+                              outputFolder.createRelative("bin/${name}"),
+                              [
+                                packagerContext: createPackagerContext(),
+                                packagedArtifacts: pas
+                              ])
+
+      log.info "Generated install script ${installScript.file.canonicalPath}"
     }
     else
     {
-      "# manually install ${artifact.location.file.canonicalPath}"
+      log.debug "No install script template found... skipping"
     }
 
-  }
 
-  /**
-   * Filter the map by class
-   */
-  public <T extends MetaModel> Map<T, PackagedArtifact> filter(Class<T> metaModelClass)
-  {
-    packagedArtifacts.findAll {k, v ->
-      ReflectUtils.isSubClassOrInterfaceOf(k.getClass(), metaModelClass)
-    } as Map<T, PackagedArtifact>
+    return installScript
   }
 
   void packageAgents()
@@ -179,9 +125,9 @@ ${lines.join('\n')}
     gluMetaModel.agents.each { AgentMetaModel model ->
       AgentServerPackager packager = buildPackager(model)
 
-      Map<MetaModel, PackagedArtifact> pas = packager.computePackagedArtifacts()
+      PackagedArtifacts pas = packager.computePackagedArtifacts()
 
-      PackagedArtifact agent = pas[model]
+      PackagedArtifact agent = pas.find(model)
 
       def checksum = computeChecksum(agent)
 
@@ -234,7 +180,7 @@ ${lines.join('\n')}
   {
     if(!dryMode)
     {
-      PackagedArtifact pa = packagedArtifacts[metaModel]
+      PackagedArtifact pa = packagedArtifacts.find(metaModel)
       if(pa)
       {
         String str = "Generated ${displayName} ${pa.location}"
@@ -259,7 +205,7 @@ ${lines.join('\n')}
     return packager
   }
 
-  protected Map<MetaModel, PackagedArtifact> packageConsole(ConsoleMetaModel consoleMetaModel)
+  protected PackagedArtifacts packageConsole(ConsoleMetaModel consoleMetaModel)
   {
     def out = shell.mkdirs(outputFolder.createRelative('consoles'))
     def packager =
@@ -273,7 +219,7 @@ ${lines.join('\n')}
     packager.createPackages()
   }
 
-  protected Map<MetaModel, PackagedArtifact> packageZooKeeperCluster(ZooKeeperClusterMetaModel zooKeeperClusterMetaModel)
+  protected PackagedArtifacts packageZooKeeperCluster(ZooKeeperClusterMetaModel zooKeeperClusterMetaModel)
   {
     def out = shell.mkdirs(outputFolder.createRelative('zookeeper-clusters'))
     def packager =
@@ -355,24 +301,25 @@ ${lines.join('\n')}
       return null
   }
 
-  protected void addPackagedArtifacts(Map<MetaModel, PackagedArtifact> pas)
+  protected void addPackagedArtifacts(PackagedArtifacts pas)
   {
     if(compress)
     {
-      pas.each { MetaModel metaModel, PackagedArtifact packagedArtifact ->
-        if(metaModel instanceof CliMetaModel || metaModel instanceof AgentUpgradeMetaModel)
+      pas.each { PackagedArtifact packagedArtifact ->
+        if(packagedArtifact.metaModel instanceof CliMetaModel ||
+           packagedArtifact.metaModel instanceof AgentUpgradeMetaModel)
         {
           def tarResource =
             shell.tar(dir: packagedArtifact.location,
                       tarDir: packagedArtifact.location.parentResource,
                       compression: "gzip",
-                      includeRoot: !(metaModel instanceof AgentUpgradeMetaModel))
+                      includeRoot: !(packagedArtifact.metaModel instanceof AgentUpgradeMetaModel))
           shell.delete(packagedArtifact.location)
           packagedArtifact.location = tarResource
         }
       }
     }
 
-    packagedArtifacts.putAll(pas)
+    packagedArtifacts = packagedArtifacts.addArtifacts(pas)
   }
 }

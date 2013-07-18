@@ -18,7 +18,6 @@ package org.pongasoft.glu.packaging.setup
 
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleCliMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.MetaModel
 
 /**
  * @author yan@pongasoft.com  */
@@ -27,9 +26,9 @@ public class ConsoleCliPackager extends BasePackager
   ConsoleCliMetaModel metaModel
 
   @Override
-  Map<MetaModel, PackagedArtifact> createPackages()
+  PackagedArtifacts createPackages()
   {
-    [(metaModel): createPackage()]
+    new PackagedArtifacts(createPackage())
   }
 
   PackagedArtifact createPackage()
@@ -52,7 +51,8 @@ public class ConsoleCliPackager extends BasePackager
       configure(packagePath, tokens)
     }
 
-    return new PackagedArtifact(location: packagePath)
+    return new PackagedArtifact(location: packagePath,
+                                metaModel: metaModel)
   }
 
   Resource configure(Resource packagePath, Map tokens)

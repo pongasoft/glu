@@ -291,10 +291,9 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
 
     def zooKeeperClusterNames = (config.'zookeeper-cluster-names' ?: []) as Set
 
-    packager.filter(ZooKeeperClusterMetaModel).each { ZooKeeperClusterMetaModel model,
-                                                      PackagedArtifact pa ->
-      if(!zooKeeperClusterNames || zooKeeperClusterNames.contains(model.name))
-        configureZooKeeperCluster(model, pa.location)
+    packager.packagedArtifacts.filter(ZooKeeperClusterMetaModel).each { PackagedArtifact<ZooKeeperClusterMetaModel> pa ->
+      if(!zooKeeperClusterNames || zooKeeperClusterNames.contains(pa.metaModel.name))
+        configureZooKeeperCluster(pa.metaModel, pa.location)
     }
   }
 

@@ -18,7 +18,6 @@ package org.pongasoft.glu.packaging.setup
 
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.AgentCliMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.MetaModel
 
 /**
  * @author yan@pongasoft.com  */
@@ -27,9 +26,9 @@ public class AgentCliPackager extends BasePackager
   AgentCliMetaModel metaModel
 
   @Override
-  Map<MetaModel, PackagedArtifact> createPackages()
+  PackagedArtifacts createPackages()
   {
-    [(metaModel): createPackage()]
+    new PackagedArtifacts(createPackage())
   }
 
   PackagedArtifact createPackage()
@@ -55,7 +54,8 @@ public class AgentCliPackager extends BasePackager
                                     packagePath.createRelative('lib'))
     }
 
-    return new PackagedArtifact(location: packagePath)
+    return new PackagedArtifact(location: packagePath,
+                                metaModel: metaModel)
   }
 
   Resource configure(Resource packagePath, Map tokens)

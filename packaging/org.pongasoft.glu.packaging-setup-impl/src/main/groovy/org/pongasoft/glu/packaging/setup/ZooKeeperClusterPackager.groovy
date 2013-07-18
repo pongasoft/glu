@@ -3,7 +3,6 @@ package org.pongasoft.glu.packaging.setup
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.FabricMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.MetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperMetaModel
 
@@ -13,7 +12,7 @@ public class ZooKeeperClusterPackager extends BasePackager
 {
   ZooKeeperClusterMetaModel metaModel
 
-  Map<MetaModel, PackagedArtifact> createPackages()
+  PackagedArtifacts createPackages()
   {
     def parts = ['zookeeper-cluster']
 
@@ -23,22 +22,23 @@ public class ZooKeeperClusterPackager extends BasePackager
     Resource packagePath =
       configure(outputFolder.createRelative(parts.join('-')))
 
-    Map<MetaModel, PackagedArtifact> zooKeepers = createPackages(packagePath)
+    PackagedArtifacts zooKeepers = createPackages(packagePath)
 
-    return [
-      (metaModel): new PackagedArtifact(location: packagePath),
-      *:zooKeepers
-    ]
+    return zooKeepers.addArtifact(new PackagedArtifact(location: packagePath,
+                                               metaModel: metaModel))
   }
 
-  Map<MetaModel, PackagedArtifact> createPackages(Resource clusterPackagePath)
+  PackagedArtifacts createPackages(Resource clusterPackagePath)
   {
-    metaModel.zooKeepers.collectEntries { ZooKeeperMetaModel zk ->
-      [(zk): createPackage(clusterPackagePath, zk)]
+    def pas = metaModel.zooKeepers.collect { ZooKeeperMetaModel zk ->
+      createPackage(clusterPackagePath, zk)
     }
+
+    new PackagedArtifacts(pas)
   }
 
-  PackagedArtifact createPackage(Resource clusterPackagePath, ZooKeeperMetaModel zk)
+  PackagedArtifact<ZooKeeperMetaModel> createPackage(Resource clusterPackagePath,
+                                                     ZooKeeperMetaModel zk)
   {
     String packageName = ensureVersion(zk.version)
 
@@ -63,9 +63,10 @@ public class ZooKeeperClusterPackager extends BasePackager
       copyInputPackage(packagePath)
       configure(packagePath, zk)
     }
-    return new PackagedArtifact(location: packagePath,
-                                host: host,
-                                port: port)
+    return new PackagedArtifact<ZooKeeperMetaModel>(location: packagePath,
+                                                    host: host,
+                                                    port: port,
+                                                    metaModel: zk)
   }
 
   /**

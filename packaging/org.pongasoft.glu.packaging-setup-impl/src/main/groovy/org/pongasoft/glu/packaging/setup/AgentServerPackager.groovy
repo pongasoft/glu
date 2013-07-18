@@ -19,7 +19,6 @@ package org.pongasoft.glu.packaging.setup
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.AgentMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.MetaModel
 
 /**
  * @author yan@pongasoft.com  */
@@ -61,7 +60,7 @@ public class AgentServerPackager extends BasePackager
 
   AgentMetaModel metaModel
 
-  private Map<MetaModel, PackagedArtifact> _packagedArtifacts = null
+  private PackagedArtifacts _packagedArtifacts = null
   private Map<String, Object> _tokens = null
 
   Map<String, Object> getConfigTokens()
@@ -69,7 +68,7 @@ public class AgentServerPackager extends BasePackager
     metaModel.configTokens
   }
 
-  Map<MetaModel, PackagedArtifact> computePackagedArtifacts()
+  PackagedArtifacts computePackagedArtifacts()
   {
     if(!_packagedArtifacts)
     {
@@ -132,26 +131,25 @@ public class AgentServerPackager extends BasePackager
       Resource packagePath = outputFolder.createRelative(parts.join('-'))
       Resource upgradePackagePath = outputFolder.createRelative(upgradeParts.join('-'))
 
-      _packagedArtifacts = [:]
-
-      _packagedArtifacts[metaModel] =
+      _packagedArtifacts = new PackagedArtifacts([
         new PackagedArtifact(location: packagePath,
                              host: metaModel.host.resolveHostAddress(),
                              port: agentPort,
-                             tokens: _tokens)
-
-      _packagedArtifacts[metaModel.agentUpgrade] =
+                             tokens: _tokens,
+                             metaModel: metaModel),
         new PackagedArtifact(location: upgradePackagePath,
                              host: metaModel.host.resolveHostAddress(),
                              port: agentPort,
-                             tokens: _tokens)
+                             tokens: _tokens,
+                             metaModel: metaModel.agentUpgrade)
+      ])
     }
 
     return _packagedArtifacts
   }
 
   @Override
-  Map<MetaModel, PackagedArtifact> createPackages()
+  PackagedArtifacts createPackages()
   {
     def packagedArtifacts = computePackagedArtifacts()
 
@@ -165,16 +163,16 @@ public class AgentServerPackager extends BasePackager
 
     if(!dryMode)
     {
-      copyInputPackage(packagedArtifacts[metaModel].location)
-      Resource packagePath = configure(packagedArtifacts[metaModel].location, tokens)
+      copyInputPackage(packagedArtifacts.find(metaModel).location)
+      Resource packagePath = configure(packagedArtifacts.find(metaModel).location, tokens)
       Resource serverRoot = packagePath.createRelative(metaModel.version)
 
       if(metaModel.gluMetaModel.stateMachine)
         generateStateMachineJarFile(metaModel.gluMetaModel.stateMachine,
                                     serverRoot.createRelative('lib'))
 
-      shell.delete(packagedArtifacts[metaModel.agentUpgrade].location)
-      shell.cp(serverRoot, packagedArtifacts[metaModel.agentUpgrade].location)
+      shell.delete(packagedArtifacts.find(metaModel.agentUpgrade).location)
+      shell.cp(serverRoot, packagedArtifacts.find(metaModel.agentUpgrade).location)
     }
 
     return packagedArtifacts

@@ -18,7 +18,6 @@ package org.pongasoft.glu.packaging.setup
 
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
-import org.pongasoft.glu.provisioner.core.metamodel.MetaModel
 
 /**
  * @author yan@pongasoft.com  */
@@ -49,9 +48,9 @@ public class ConsoleServerPackager extends BasePackager
   }
 
   @Override
-  Map<MetaModel, PackagedArtifact> createPackages()
+  PackagedArtifacts createPackages()
   {
-    [(metaModel): createPackage()]
+    new PackagedArtifacts(createPackage())
   }
 
   PackagedArtifact createPackage()
@@ -92,7 +91,8 @@ public class ConsoleServerPackager extends BasePackager
     }
     return new PackagedArtifact(location: packagePath,
                                 host: metaModel.host.resolveHostAddress(),
-                                port: metaModel.mainPort)
+                                port: metaModel.mainPort,
+                                metaModel: metaModel)
   }
 
   Resource configure(Resource packagePath, Map tokens)

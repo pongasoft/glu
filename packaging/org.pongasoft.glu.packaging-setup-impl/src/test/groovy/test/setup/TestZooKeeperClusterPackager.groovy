@@ -3,8 +3,8 @@ package test.setup
 import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
 import org.pongasoft.glu.packaging.setup.PackagedArtifact
+import org.pongasoft.glu.packaging.setup.PackagedArtifacts
 import org.pongasoft.glu.packaging.setup.ZooKeeperClusterPackager
-import org.pongasoft.glu.provisioner.core.metamodel.MetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperMetaModel
 
 /**
@@ -25,9 +25,9 @@ public class TestZooKeeperClusterPackager extends BasePackagerTest
                                      configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                      metaModel: testModel.zooKeeperClusters['tutorialZooKeeperCluster'])
 
-      Map<MetaModel, PackagedArtifact> pkgs = packager.createPackages()
+      PackagedArtifacts pkgs = packager.createPackages()
 
-      PackagedArtifact artifact = pkgs[packager.metaModel]
+      PackagedArtifact artifact = pkgs.find(packager.metaModel)
 
       def zkPackageName = "org.linkedin.zookeeper-server-${ZOOKEEPER_VERSION}"
 
@@ -76,9 +76,9 @@ clientPort=2181
 
       checkPackageContent(expectedResources, artifact.location)
 
-      assertEquals(1, pkgs.keySet().findAll { it instanceof ZooKeeperMetaModel }.size())
+      assertEquals(1, pkgs.findAll { it.metaModel instanceof ZooKeeperMetaModel }.size())
 
-      PackagedArtifact zk = pkgs[packager.metaModel.zooKeepers[0]]
+      PackagedArtifact zk = pkgs.find(packager.metaModel.zooKeepers[0])
 
       assertEquals(shell.toResource("/out/zookeeper-cluster-tutorialZooKeeperCluster/${zkPackageName}"),
                    zk.location)
@@ -125,9 +125,9 @@ zooKeeperClusters << [
                                      configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                      metaModel: toGluMetaModel(metaModel).zooKeeperClusters['zkc'])
 
-      Map<MetaModel, PackagedArtifact> pkgs = packager.createPackages()
+      PackagedArtifacts pkgs = packager.createPackages()
 
-      PackagedArtifact artifact = pkgs[packager.metaModel]
+      PackagedArtifact artifact = pkgs.find(packager.metaModel)
 
       assertEquals(shell.toResource("/out/zookeeper-cluster-zkc"),
                    artifact.location)
@@ -205,18 +205,16 @@ server.2=h2:2888:3888
 
       checkPackageContent(expectedResources, artifact.location)
 
-      assertEquals(2, pkgs.keySet().findAll { it instanceof ZooKeeperMetaModel }.size())
+      assertEquals(2, pkgs.findAll { it.metaModel instanceof ZooKeeperMetaModel }.size())
 
-      PackagedArtifact zk = pkgs[packager.metaModel.zooKeepers[0]]
-
-      PackagedArtifact zk1 = pkgs[packager.metaModel.zooKeepers[0]]
+      PackagedArtifact zk1 = pkgs.find(packager.metaModel.zooKeepers[0])
 
       assertEquals(shell.toResource("/out/zookeeper-cluster-zkc/${zk1PackageName}"),
                    zk1.location)
       assertEquals('h1', zk1.host)
       assertEquals(2181, zk1.port)
 
-      PackagedArtifact zk2 = pkgs[packager.metaModel.zooKeepers[1]]
+      PackagedArtifact zk2 = pkgs.find(packager.metaModel.zooKeepers[1])
 
       assertEquals(shell.toResource("/out/zookeeper-cluster-zkc/${zk2PackageName}"),
                    zk2.location)
@@ -270,9 +268,9 @@ zooKeeperClusters << [
                                      configTemplatesRoots: copyConfigs(shell.toResource('/configs')),
                                      metaModel: toGluMetaModel(metaModel).zooKeeperClusters['zkc'])
 
-      Map<MetaModel, PackagedArtifact> pkgs = packager.createPackages()
+      PackagedArtifacts pkgs = packager.createPackages()
 
-      PackagedArtifact artifact = pkgs[packager.metaModel]
+      PackagedArtifact artifact = pkgs.find(packager.metaModel)
 
       assertEquals(shell.toResource("/out/zookeeper-cluster-zkc"),
                    artifact.location)
@@ -344,9 +342,9 @@ clientPort=1234
 
       checkPackageContent(expectedResources, artifact.location, false)
 
-      assertEquals(1, pkgs.keySet().findAll { it instanceof ZooKeeperMetaModel }.size())
+      assertEquals(1, pkgs.findAll { it.metaModel instanceof ZooKeeperMetaModel }.size())
 
-      PackagedArtifact zk1 = pkgs[packager.metaModel.zooKeepers[0]]
+      PackagedArtifact zk1 = pkgs.find(packager.metaModel.zooKeepers[0])
 
       assertEquals(shell.toResource("/out/zookeeper-cluster-zkc/${zkPackageName}"),
                    zk1.location)

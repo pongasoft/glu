@@ -17,13 +17,15 @@
 package org.pongasoft.glu.packaging.setup
 
 import org.linkedin.util.io.resource.Resource
+import org.pongasoft.glu.provisioner.core.metamodel.MetaModel
 
 /**
  * @author yan@pongasoft.com  */
-public class PackagedArtifact
+public class PackagedArtifact<T extends MetaModel>
 {
   Resource location
   String host
   int port
   Map<String, Object> tokens
+  T metaModel
 }

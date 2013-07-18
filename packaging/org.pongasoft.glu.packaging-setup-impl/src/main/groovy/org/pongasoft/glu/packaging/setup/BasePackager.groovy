@@ -3,7 +3,6 @@ package org.pongasoft.glu.packaging.setup
 import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.util.io.resource.Resource
-import org.pongasoft.glu.provisioner.core.metamodel.MetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.StateMachineMetaModel
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -43,7 +42,7 @@ public abstract class BasePackager
     fullPackageName - "-${version}"
   }
 
-  abstract Map<MetaModel, PackagedArtifact>  createPackages()
+  abstract PackagedArtifacts createPackages()
 
   Shell getShell()
   {

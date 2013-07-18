@@ -65,6 +65,10 @@ public class TestGluPackager extends BasePackagerTest
 
       shell.ls('/out/bin').each { def r ->
         assertTrue(Files.isExecutable(r.file.toPath()))
+
+//        println "/" * 20 + r.filename + "/" * 20
+//        println r.file.text
+//        println "/" * (40 + r.filename.size())
       }
 
       // make sure
