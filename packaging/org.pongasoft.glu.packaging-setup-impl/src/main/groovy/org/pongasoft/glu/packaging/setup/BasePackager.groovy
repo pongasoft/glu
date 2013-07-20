@@ -119,22 +119,36 @@ ${out.join('\n')}
 
   void processConfigs(Resource fromFolder, Map tokens, Resource toFolder)
   {
+    processConfigs(shell, fromFolder, tokens, toFolder ?: outputFolder)
+  }
+
+  /**
+   * Recursively process all the configs in a given folder
+   */
+  static Collection<Resource> processConfigs(Shell shell,
+                                             Resource fromFolder,
+                                             Map tokens,
+                                             Resource toFolder)
+  {
+    Collection<Resource> processedTemplates = []
+
     if(fromFolder?.exists())
     {
       GroovyIOUtils.eachChildRecurse(fromFolder.chroot('.')) { Resource templateOrFile ->
         if(!templateOrFile.isDirectory())
         {
-          Resource to =
-            (toFolder ?: outputFolder).createRelative(templateOrFile.path)
+          Resource to = toFolder.createRelative(templateOrFile.path)
 
           if(to.path.contains('@'))
             to = shell.toResource(shell.replaceTokens(to.path, tokens))
 
-          log.debug("processing config templateOrFile: ${templateOrFile}")
-          shell.processTemplate(templateOrFile, to, tokens)
+          log.debug("processing config templateOrFile: ${templateOrFile} => ${to}")
+          processedTemplates << shell.processTemplate(templateOrFile, to, tokens)
         }
       }
     }
+
+    return processedTemplates
   }
 
   protected Resource generateStateMachineJarFile(StateMachineMetaModel stateMachineMetaModel,

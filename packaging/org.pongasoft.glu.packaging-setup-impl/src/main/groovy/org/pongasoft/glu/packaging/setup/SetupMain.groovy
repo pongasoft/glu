@@ -20,6 +20,7 @@ import org.linkedin.glu.groovy.utils.shell.ShellImpl
 import org.linkedin.groovy.util.config.Config
 import org.linkedin.groovy.util.config.MissingConfigParameterException
 import org.linkedin.groovy.util.io.GroovyIOUtils
+import org.linkedin.groovy.util.lang.GroovyLangUtils
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.util.clock.Timespan
 import org.linkedin.util.io.resource.FileResource
@@ -29,6 +30,7 @@ import org.linkedin.zookeeper.client.ZKClient
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.ZooKeeperClusterMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.impl.builder.GluMetaModelBuilder
+import org.pongasoft.glu.provisioner.core.metamodel.impl.builder.JsonMetaModelSerializerImpl
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -41,11 +43,30 @@ public class SetupMain
   public static final String MODULE = SetupMain.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
+  public static enum ExitValue
+  {
+    NO_ERROR(0),
+    DUPLICATE_KEYS_ERROR(1),
+    MISSING_META_MODEL_ERROR(2),
+    ZOOKEEPER_UPLOAD_ERROR(3),
+    ZOOKEEPER_CONNECT_ERROR(4),
+    MISSING_CONFIG_PARAMETER_ERROR(5),
+    UNKNOWN_ERROR(100),
+    HANDLING_EXCEPTION_ERROR(200)
+
+    int value
+
+    ExitValue(int value)
+    {
+      this.value = value
+    }
+  }
+
   public static class AbortException extends Exception
   {
-    int exitValue = 0
+    ExitValue exitValue = ExitValue.NO_ERROR
 
-    AbortException(String message, int exitValue)
+    AbortException(String message, ExitValue exitValue)
     {
       super(message)
       this.exitValue = exitValue
@@ -78,6 +99,7 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
     cli.D(longOpt: 'gen-dist', 'generate the distributions', args: 0, required: false)
     cli.K(longOpt: 'gen-keys', 'generate the keys', args: 0, required: false)
     cli.Z(longOpt: 'configure-zookeeper-clusters', 'configure all zookeeper clusters', args: 0, required: false)
+    cli.J(longOpt: 'show-json-model', 'shows the fully expanded model as json', args: 0, required: false)
     cli._(longOpt: 'zookeeper-cluster-name', 'name of the ZooKeeper cluster to configure (multiple allowed)', args: 1, required: false)
     cli._(longOpt: 'config-templates-root', "location of the config templates (multiple allowed) [default: ${defaultConfigTemplatesRootResource}]", args: 1, required: false)
     cli._(longOpt: 'packages-root', "location of the packages [default: ${defaultPackagesRootResource}]", args: 1, required: false)
@@ -89,6 +111,7 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
     cli._(longOpt: 'zookeeper-clusters-only', "generate distribution for ZooKeeper clusters only", args: 0, required: false)
     cli._(longOpt: 'compress', 'generate .tgz', args: 0, required: false)
     cli._(longOpt: 'accept-defaults', 'accept defaults values', args: 0, required: false)
+    cli._(longOpt: 'stacktrace', 'shows full stack trace of exceptions', args: 0, required: false)
     cli.o(longOpt: 'output-folder', 'output folder', args: 1, required: false)
     cli.f(longOpt: 'setup-config-file', 'the setup config file', args: 1, required: false)
     cli.h(longOpt: 'help', 'display help')
@@ -187,17 +210,8 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
   {
     acceptDefaults = config.containsKey('accept-defaults')
 
-    String out = Config.getOptionalString(config, 'output-folder', null)
-
-    if(!out)
-    {
-      out = promptForValue("Enter the output directory", pwd)
-    }
-
-    outputFolder = createResource(out)
-
     def actions = [
-      'gen-keys', 'gen-dist', 'configure-zookeeper-clusters'].findAll {
+      'gen-keys', 'gen-dist', 'configure-zookeeper-clusters', 'show-json-model'].findAll {
       Config.getOptionalString(config, it, null)
     }
 
@@ -206,7 +220,23 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
       action = action.replace('-', '_')
       properties."${action}"()
     }
+  }
 
+  protected Resource ensureOutputFolder()
+  {
+    if(!outputFolder)
+    {
+      String out = Config.getOptionalString(config, 'output-folder', null)
+
+      if(!out)
+      {
+        out = promptForValue("Enter the output directory", pwd)
+      }
+
+      outputFolder = createResource(out)
+    }
+
+    return outputFolder
   }
 
   /**
@@ -214,6 +244,9 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
    */
   def gen_keys = {
     println "Generating keys..."
+
+    ensureOutputFolder()
+
     char[] masterPassword = System.console().readPassword("Enter a master password:")
     def km = new KeysGenerator(shell: shell,
                                outputFolder: outputFolder,
@@ -244,7 +277,7 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
     catch(IllegalStateException e)
     {
       throw new AbortException("${e.message} => if you want to generate new keys, either provide another folder or delete them first",
-                               1)
+                               ExitValue.DUPLICATE_KEYS_ERROR)
     }
   }
 
@@ -253,6 +286,8 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
    */
   def gen_dist = {
     log.info "Generating distributions"
+
+    ensureOutputFolder()
 
     def packager = buildPackager(false)
 
@@ -285,6 +320,8 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
   def configure_zookeeper_clusters = {
     log.info "Configuring ZooKeeper clusters"
 
+    ensureOutputFolder()
+
     def packager = buildPackager(true)
 
     packager.packageZooKeeperClusters()
@@ -295,6 +332,15 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
       if(!zooKeeperClusterNames || zooKeeperClusterNames.contains(pa.metaModel.name))
         configureZooKeeperCluster(pa.metaModel, pa.location)
     }
+  }
+
+  /**
+   * --show-json-model command
+   */
+  def show_json_model = { out ->
+    GluMetaModel gluMetaModel = loadGluMetaModel()
+    JsonMetaModelSerializerImpl serializer = new JsonMetaModelSerializerImpl()
+    (out ?: System.out) << serializer.serialize(gluMetaModel, true)
   }
 
   /**
@@ -321,13 +367,15 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
           log.info "uploading ${child.path} to ${model.zooKeeperConnectionString}"
           UploadCommand cmd = new UploadCommand()
           if(cmd.execute(zkClient, ['-f', child.file.canonicalPath, child.path]) != 0)
-            throw new AbortException("Error while uploading to ZooKeeper cluster [${model.zooKeeperConnectionString}]", 3)
+            throw new AbortException("Error while uploading to ZooKeeper cluster [${model.zooKeeperConnectionString}]",
+                                     ExitValue.ZOOKEEPER_UPLOAD_ERROR)
         }
       }
     }
     catch(TimeoutException ignored)
     {
-      throw new AbortException("could not connect to ZooKeeper [${model.zooKeeperConnectionString}]", 4)
+      throw new AbortException("could not connect to ZooKeeper [${model.zooKeeperConnectionString}]",
+                               ExitValue.ZOOKEEPER_CONNECT_ERROR)
     }
     finally
     {
@@ -343,7 +391,7 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
   {
     def metaModels = config.arguments
     if(!metaModels)
-      throw new AbortException("missing meta model(s)", 2)
+      throw new AbortException("missing meta model(s)", ExitValue.MISSING_META_MODEL_ERROR)
 
     GluMetaModelBuilder builder = new GluMetaModelBuilder()
     metaModels.each { String metaModel ->
@@ -390,6 +438,38 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
                     compress: compress)
   }
 
+  protected ExitValue handleException(Throwable th, PrintStream out = System.err)
+  {
+    GroovyLangUtils.noExceptionWithValueOnException(ExitValue.HANDLING_EXCEPTION_ERROR) {
+      boolean showStackTrace = Config.getOptionalBoolean(config, 'stacktrace', false)
+      try
+      {
+        throw th
+      }
+      catch (MissingConfigParameterException e)
+      {
+        log.error(e.message)
+        if(showStackTrace)
+          th.printStackTrace(out)
+        cli.usage()
+        return ExitValue.MISSING_CONFIG_PARAMETER_ERROR
+      }
+      catch(AbortException e)
+      {
+        out.println(e.message)
+        if(showStackTrace)
+          th.printStackTrace(out)
+        return e.exitValue
+      }
+      catch(Throwable the)
+      {
+        log.error("Unknown exception: ${the.message}")
+        if(showStackTrace)
+          the.printStackTrace(out)
+        return ExitValue.UNKNOWN_ERROR
+      }
+    } as ExitValue
+  }
 
   public static void main(String[] args)
   {
@@ -402,20 +482,15 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
       {
         clientMain.start()
       }
-      catch (MissingConfigParameterException e)
+      catch(Throwable th)
       {
-        log.error(e.message)
-        clientMain.cli.usage()
-      }
-      catch(AbortException e)
-      {
-        System.err.println(e.message)
-        System.exit(e.exitValue)
+        System.exit(clientMain.handleException(th).value)
       }
     }
 
     System.exit(0)
   }
+
 
   protected def getConfig(cli, options)
   {

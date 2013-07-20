@@ -138,13 +138,13 @@ def dbs = [
     dataSourceDriverUri: 'http://jcenter.bintray.com/mysql/mysql-connector-java/5.1.25/mysql-connector-java-5.1.25.jar',
     dataSource: """
 def dataSourceUrl = "jdbc:mysql://${mysqlHost}/glu"
-db.dbCreate = "update"
-db.url = dataSourceUrl
-db.logSql=false // set to true for details (+ open trace logging level)
-db.dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
-db.driverClassName = "com.mysql.jdbc.Driver"
-db.username= "${mysqlUsername}"
-db.password = "${mysqlPassword}"
+dataSource.dbCreate = "update"
+dataSource.url = dataSourceUrl
+dataSource.logSql=false // set to true for details (+ open trace logging level)
+dataSource.dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
+dataSource.driverClassName = "com.mysql.jdbc.Driver"
+dataSource.username= "${mysqlUsername}"
+dataSource.password = "${mysqlPassword}"
 """,
   ]
 ]

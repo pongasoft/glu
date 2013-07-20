@@ -82,40 +82,37 @@ public class GluPackager
       (AgentCliMetaModel.class): "agent-cli",
       (ConsoleCliMetaModel.class): "console-cli",
     ].each { Class<? extends CliMetaModel> metaModelClass, String name ->
-      generateInstallScript("install-${name}.sh", packagedArtifacts.filter(metaModelClass))
+      generateInstallScript(name, packagedArtifacts.filter(metaModelClass))
     }
 
     if(generateInstallAllScript)
-      generateInstallScript("install-all.sh", packagedArtifacts.filter(CliMetaModel))
+      generateInstallScript("all", packagedArtifacts.filter(CliMetaModel))
   }
 
-  protected Resource generateInstallScript(String name, PackagedArtifacts pas)
+  protected Collection<Resource> generateInstallScript(String name, PackagedArtifacts pas)
   {
-    // bin/install.sh.gtmpl
-    Resource template =
-      configTemplatesRoots.collect { it.createRelative('bin/install.sh.gtmpl') }.find { it.exists() }
+    def tokens = [
+      packagerContext: createPackagerContext(),
+      packagedArtifacts: pas,
+      'install.script.name': name
+    ]
 
-    Resource installScript = null
+    Collection<Resource> processedTemplates = []
 
-    if(template)
-    {
-      installScript =
-        shell.processTemplate(template,
-                              outputFolder.createRelative("bin/${name}"),
-                              [
-                                packagerContext: createPackagerContext(),
-                                packagedArtifacts: pas
-                              ])
-
-      log.info "Generated install script ${installScript.file.canonicalPath}"
+    configTemplatesRoots.each { configTemplatesRoot ->
+      def pts = BasePackager.processConfigs(shell,
+                                            configTemplatesRoot.createRelative('bin'),
+                                            tokens,
+                                            outputFolder.createRelative('bin'))
+      processedTemplates.addAll(pts)
     }
+
+    if(processedTemplates)
+      log.info "Generated install script ${processedTemplates.join(', ')}"
     else
-    {
       log.debug "No install script template found... skipping"
-    }
 
-
-    return installScript
+    return processedTemplates
   }
 
   void packageAgents()

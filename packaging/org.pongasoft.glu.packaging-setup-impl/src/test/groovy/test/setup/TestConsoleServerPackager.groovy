@@ -126,8 +126,12 @@ consoles << [
     plugins: '<extra plugin config>',
     ldap: '<ldap config>',
     log4j: '<log4j config>',
-    console: '<console config>',
-    'console.defaults': '<console.defaults>',
+    'console.defaults': '<console.defaults config>',
+    'console.defaults.override': '<console.defaults.override config>',
+    security: '<security config>',
+    tuning: '<tuning config>',
+    commands: '<commands config>',
+    misc: '<misc config>',
   ]
 ]
 
@@ -243,16 +247,28 @@ console.commandsService.commandExecutionIOStorage.memory.maxNumberOfElements = 2
 // By default (undefined), it is unlimited
 // console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 100
 
-<log4j config>
+log4j = <log4j config>
 
 // ldap configuration
 <ldap config>
 
 // console defaults
-console.defaults = <console.defaults>
+console.defaults = <console.defaults config>
 
-// extra configuration
-<console config>
+// console.defaults.override
+<console.defaults.override config>
+
+// security
+<security config>
+
+// tuning
+<tuning config>
+
+// commands
+<commands config>
+
+// extra/misc configuration
+<misc config>
 
 ''',
           "/conf/pre_master_conf.sh": """#!/bin/bash
@@ -452,7 +468,6 @@ console.commandsService.commandExecutionIOStorage.memory.maxNumberOfElements = 2
 // By default (undefined), it is unlimited
 // console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 100
 
-
 log4j = {
     appenders {
     file name:'file',
@@ -602,7 +617,19 @@ plans: [
 ]
 
 
-// extra configuration
+// console.defaults.override
+
+
+// security
+
+
+// tuning
+
+
+// commands
+
+
+// extra/misc configuration
 
 
 '''

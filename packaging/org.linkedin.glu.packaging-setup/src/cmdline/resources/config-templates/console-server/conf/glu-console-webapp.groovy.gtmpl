@@ -90,9 +90,7 @@ console.commandsService.commandExecutionIOStorage.memory.maxNumberOfElements = 2
 // By default (undefined), it is unlimited
 // console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 100
 
-<%=
-configTokens.log4j ?: """
-log4j = {
+log4j = <%= configTokens.log4j ?: """{
     appenders {
     file name:'file',
       file:'logs/console.log',
@@ -131,7 +129,7 @@ log4j = {
 ${configTokens.ldap ?: ''}
 
 // console defaults
-console.defaults = <%= configTokens['console.defaults'] ?: """[
+console.defaults = <%= configTokens.'console.defaults' ?: """[
   // customCss can be a String (use triple quote notation in order to make it easy) or a URI
   customCss: null,
 
@@ -243,6 +241,18 @@ plans: [
 """
 %>
 
-// extra configuration
-${configTokens.console ?: ''}
+// console.defaults.override
+${configTokens.'console.defaults.override' ?: ''}
+
+// security
+${configTokens.security ?: ''}
+
+// tuning
+${configTokens.tuning ?: ''}
+
+// commands
+${configTokens.commands ?: ''}
+
+// extra/misc configuration
+${configTokens.misc ?: ''}
 

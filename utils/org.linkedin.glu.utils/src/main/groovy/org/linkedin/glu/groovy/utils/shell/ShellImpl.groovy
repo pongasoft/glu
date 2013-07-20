@@ -1067,7 +1067,7 @@ def class ShellImpl implements Shell
           def groovyTemplate = new GStringTemplateEngine().createTemplate(cat(templateResource))
           def processedTemplate = groovyTemplate.make(tokens)
 
-          toResource = handleTemplateExtension(templateResource, toResource, toIsDirectory, '.gtmpl')
+          toResource = handleTemplateExtension(templateResource, toResource, toIsDirectory, 'gtmpl')
 
           withWriter(toResource) { Writer writer -> processedTemplate.writeTo(writer) }
           break
@@ -1075,7 +1075,7 @@ def class ShellImpl implements Shell
         case 'ctmpl':
           def binding = new Binding([*:tokens])
 
-          toResource = handleTemplateExtension(templateResource, toResource, toIsDirectory, '.ctmpl')
+          toResource = handleTemplateExtension(templateResource, toResource, toIsDirectory, 'ctmpl')
 
           binding.shell = tokens.shell ?: this
           binding.toResource = toResource
@@ -1088,7 +1088,7 @@ def class ShellImpl implements Shell
           break
 
         case 'xtmpl':
-          toResource = handleTemplateExtension(templateResource, toResource, toIsDirectory, '.xtmpl')
+          toResource = handleTemplateExtension(templateResource, toResource, toIsDirectory, 'xtmpl')
           replaceTokens(templateResource, toResource, tokens)
           break
 
@@ -1117,11 +1117,13 @@ def class ShellImpl implements Shell
                                            String templateExtension)
   {
     if(toIsDirectory)
-      toResource = toResource.createRelative(templateResource.filename - templateExtension)
+      toResource =
+        toResource.createRelative(templateResource.filename - ".${templateExtension}")
     else
     {
-      if(toResource.filename == templateResource.filename)
-        toResource = toResource.parentResource.createRelative(templateResource.filename - templateExtension)
+      if(GluGroovyIOUtils.getFileExtension(toResource) == templateExtension)
+        toResource =
+          toResource.parentResource.createRelative(toResource.filename - ".${templateExtension}")
     }
 
     return toResource
