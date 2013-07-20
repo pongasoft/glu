@@ -1,5 +1,20 @@
-Latest changes
-==============
+Release Notes
+=============
+
+5.1.0 (2013/07/20)
+------------------
+
+This release contains a brand new way of configuring and installing glu which should make it much easier to deploy glu in production. The documentation has been enhanced throughout to reflect the changes, including several new pages (:doc:`easy-production-setup`, :doc:`meta-model`, :doc:`glu-config`, :doc:`setup-tool`, :doc:`migration-guide`).
+
+.. note::
+   Although this release contains a huge number of changes (from github stats: *66 commits, 197 files changed, 13,791 additions, 2,887 deletions*), glu per se has not really changed: only the glu setup is different.
+
+.. tip::
+   If you are already familiar with glu, check the (new) :ref:`migration steps <migration-guide-5.0.0-5.1.0>` section. In particular the :ref:`migration-guide-5.0.0-5.1.0-quick-and-easy` section can allow you to quickly recreate a more familiar structure.
+
+* Implemented `glu-58 <https://github.com/pongasoft/glu/issues/58>`_: `Easy production setup`
+* Fixed `glu-142 <https://github.com/pongasoft/glu/issues/142>`_: `Reliance on -z flag whilst using the tar command`
+* Fixed `glu-231 <https://github.com/pongasoft/glu/issues/231>`_: `Cannot start console in development mode (grailsw) with java 1.7 v 25`
 
 5.0.0 (2013/04/23)
 ------------------

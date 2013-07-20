@@ -12,8 +12,8 @@
    License for the specific language governing permissions and limitations under
    the License.
 
-Production Setup
-================
+Easy Production Setup
+=====================
 
 This document describes how to setup glu for production.
 
