@@ -105,6 +105,9 @@ Json Groovy DSL
 ^^^^^^^^^^^^^^^
 The json groovy dsl uses the convenience of groovy to express the model: instead of defining the model in one chunk, you build it pieces at a time which makes it a lot easier to build and read. You can also use the power of groovy, like variable replacements (``${xxx}``) syntax, loops, iterations, if conditions, etc...
 
+.. tip::
+    This syntax is for convenience only. If you want to see the metal model you create in its final json format (fully expanded with all defaults values filled in), simply use the ``-J`` option of the :ref:`setup tool <setup-tool_J>`)
+
 Here are the top entries of the dsl::
 
   metaModelVersion

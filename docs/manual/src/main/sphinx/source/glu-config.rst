@@ -46,6 +46,8 @@ Configuration concepts
 
 * The setup tool also lets you provide additional templates to further tweak what goes inside the distributions (for example, you can replace the glu logo with your own, substitute a library with another one, change any startup script, etc...).
 
+.. _glu-config-setup-workflow:
+
 Understanding the setup workflow
 --------------------------------
 When you generate the distributions (:ref:`easy-propduction-setup-gen-dist`), this is what happens:
@@ -59,6 +61,8 @@ When you generate the distributions (:ref:`easy-propduction-setup-gen-dist`), th
 
 
  .. note:: :ref:`config templates <glu-config-templates>` are explained later, but the simplest template is simply a regular file that needs to be copied as-is in the distribution. 
+
+.. _glu-config-config-templates:
 
 ``config-templates`` folder
 ---------------------------

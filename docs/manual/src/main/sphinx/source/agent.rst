@@ -474,49 +474,23 @@ The glu agent requires java 1.6 to be installed on the host it is running on. As
 
 .. _agent-configuration:
 
-Agent boot sequence and configuration
--------------------------------------
-The agent can be configured in many ways.
-
-* arguments on the command line (use -h to see the list of available options)
-* ``pre_master_conf.sh``
-* ``post_master_conf.sh``
-* configuration file
-* zookeeper configuration
-
-.. note:: Some configuration parameters are configuring the java vm itself (like the VM size) and as such have to be provided before the agent boots up
-
-In order of preference, this is what happens during the boot sequence:
-
-1. arguments provided on the command line are read and will take precedence
-
-2. if a file called ``pre_master_conf.sh`` is found (in the ``conf`` folder next to ``master_conf.sh``), this shell script will be executed first: this is the place where you can assign some environment variables. 
-   Example::
-
-      GLU_ZOOKEEPER=zk01.acme.com:2181;zk02.acme.com:2181
-
-3. ``master_conf.sh`` is executed: it will set a bunch of environment variables (see below for the complete list)
-
-4. if a file called ``post_master_conf.sh`` is found (in the ``conf`` folder next to ``master_conf.sh``), this shell script will be executed last: this is the place where you can override or tweak some environment variables set previously
-   Example::
-
-     JVM_EXTRA_ARGS="$JVM_EXTRA_ARGS <my special configuration>"
-
-5. the VM is started and the configuration file defined by the ``MAIN_CLASS_ARGS`` environment variable is read (default to ``conf/agentConfig.properties``)
-
-   .. note:: this argument is actually a URI so it does not have to be local!
-
-6. if the java property ``glu.agent.configURL`` is defined, then the configuration file pointed to will be read as well (default to ``zookeeper:${glu.agent.zookeeper.root}/agents/fabrics/${glu.agent.fabric}/config/config.properties``)
-
-   .. note:: the default value is actually reading its configuration from ZooKeeper (by using the ``zookeeper:`` URI format) in a fabric dependent location!
-
-.. note:: This is not a glu specific feature but you can always provide environment variables to the boot script the normal way you would in any other shell script.
-   Example::
-
-     GLU_ZOOKEEPER=zk01.acme.com:2181;zk02.acme.com:2181 ./bin/agentctl.sh start
+Agent configuration
+-------------------
+The agent uses the configuration mechanisms offered by the :ref:`meta model <meta-model-agent>`.
 
 Configuration properties
 ^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following properties can be set in the meta model this way::
+
+   agents << [
+      ...,
+      configTokens: [
+        JVM_SIZE: '-Xmx128m',
+        ... etc ...
+      ]
+   ],
+
 
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 |Opt                 |Env.                          |Java Property                          |Default                                                                                    |Explanation                     |
@@ -559,8 +533,8 @@ Configuration properties
 |                    |                              |                                       |                                                                                           |to (REST api address)           |
 |                    |                              |                                       |                                                                                           |                                |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
-|``-f``              |``GLU_AGENT_FABRIC``          |``glu.agent.fabric``                   |Undefined but required (see                                                                |The :term:`fabric` this agent   |
-|                    |                              |                                       |:ref:`agent-fabric-configuration`)                                                         |belongs to                      |
+|``-f``              |``GLU_AGENT_FABRIC``          |``glu.agent.fabric``                   |Undefined (read from ZooKeeper by default)                                                 |The :term:`fabric` this agent   |
+|                    |                              |                                       |                                                                                           |belongs to                      |
 |                    |                              |                                       |                                                                                           |                                |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 |NA                  |``GLU_AGENT_APPS``            |``glu.agent.apps``                     |``$GLU_AGENT_HOME/../apps``                                                                |The root of a directory where   |
@@ -716,41 +690,7 @@ Configuration properties
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 
 .. tip:: 
-   The number of configuration properties may seem a little bit overwhelming at first but most of them have default values. 
-
-   In the end the only configuration property really required for booting are the location of ZooKeeper and the fabric (because there are no sensible default value). Then the agent can boot at this stage and read the rest of its configuration from ZooKeeper (with a default of ``zookeeper:/org/glu/agent/fabrics/<fabric>/config/config.properties``) which should have been loaded during the :ref:`production-setup-prepare-zookeeper` of the setup (which mostly contains your own set of keys for security).
-
-.. _agent-fabric-configuration:
-
-Assigning a fabric
-^^^^^^^^^^^^^^^^^^
-
-When the agent boots it needs to know in which :term:`fabric` it belongs. As seen previously there are several ways of providing this information to the agent:
-
-1. using the ``-f`` command line option
-2. using the ``GLU_AGENT_FABRIC`` environment variable (in ``pre_master_conf.sh`` or on the command line when booting)
-
-There is a third way to set the fabric. If you boot the agent without providing the fabric information you will see a message in the log file (of the agent)::
-
-  [FabricTracker] Waiting for fabric @ zookeeper:/org/glu/agents/names/<agentName>/fabric
-
-.. note:: ``<agentName>`` will contain the name of the agent (either computed or set)
-
-The boot process will wait to go further until a fabric is assigned in ZooKeeper. From there you have 2 ways to proceed:
-
-1. Using the ZooKeeper cli to set the fabric::
-
-    # example with fabric name "glu-dev-1" and agentName "agent-1"
-    ./bin/zookeeper-cli.sh put glu-dev-1 /org/glu/agents/names/agent-1/fabric
-
-   .. tip:: the message in the agent log file gives you the exact path to use for ZooKeeper
-
-2. Using the console, you can go the ``Admin/View agents fabric`` page and you will be able to set it from there:
-
-.. image:: /images/console-set-agents-fabric.png
-   :align: center
-   :alt: Assigning the agent fabric from the console
-
+   The number of configuration properties may seem a little bit overwhelming at first but most of them have default values. Furthermore, the :ref:`easy-propduction-setup-gen-dist` phase sets the only required property for you (which is the location of its ZooKeeper cluster)!
 
 Installation
 ------------

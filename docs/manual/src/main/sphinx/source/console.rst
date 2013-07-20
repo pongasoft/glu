@@ -26,90 +26,118 @@ The best way to get a feel of what the console looks like and what can be achiev
 
 Installation
 ------------
-Check the section :ref:`production-setup-console` for details about how to install the console.
+The :ref:`distribution generation <easy-propduction-setup-gen-dist>` phase generates a full web application container (jetty) that is ready to be used. 
+
+.. _console-as-a-server:
+
+Console as a server
+^^^^^^^^^^^^^^^^^^^
+Simply follow :ref:`easy-propduction-setup-install` in order to install the server that was generated for you.
+
+.. tip::
+   This is the recommended way for deploying the console.
+
+.. _console-as-a-war:
+
+Console as a war
+^^^^^^^^^^^^^^^^
+If you want to deploy the console in another web container then do the following:
+
+ * generate the :ref:`distributions <easy-propduction-setup-gen-dist>` the normal way
+ * then create the war file manually::
+
+    cd <outputFolder>/consoles/org.linkedin.glu.console-server-<version>/
+    cd glu/repository/exploded-wars/org.linkedin.glu.console-webapp-<version>/
+    jar cfm /tmp/org.linkedin.glu.console-webapp-<version>.war META-INF/MANIFEST.MF *
+
+ * make the configuration file that was generated (``<outputFolder>/consoles/org.linkedin.glu.console-server-<version>/glu-console-webapp.groovy``) available to your application server by using one of the following 3 techniques
+
+  1. store it under ``$HOME/.org.linkedin.glu/glu-console-webapp.groovy``
+  2. store it under ``conf/glu-console-webapp.groovy`` (relative to wherever the VM ``user.dir`` is set to)
+  3. pass a system property ``-Dorg.linkedin.glu.console.config.location=/fullpath/to/file`` (or use the ``JAVA_OPTIONS`` environment variable)
 
 .. _console-configuration:
 
-Configuration file
-------------------
+Configuration
+-------------
 
-When the console boots it reads a configuration file. There are 3 ways to provide this configuration file to the console:
+The console is configured by defining the proper parameters (``configTokens``) in the :ref:`meta model <meta-model-console>` or providing the proper ``config-templates`` for more control.
 
-1. store it under ``$HOME/.org.linkedin.glu/glu-console-webapp.groovy``
-2. store it under ``conf/glu-console-webapp.groovy`` (relative to wherever the VM ``user.dir`` is set to)
-3. pass a system property ``-Dorg.linkedin.glu.console.config.location=/fullpath/to/file`` (or use the ``JAVA_OPTIONS`` environment variable)
-
-Through this file, the console allows you to configure several areas including some aspects of the UI.
-
-.. note:: if you modify the configuration file, you need to stop and restart the console for the changes to take effect
+.. note::
+   All code examples (unless noted otherwise) are showing extracts of the meta model.
 
 Console <-> Agent Connection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The console (orchestration engine) talks to all the agents using a REST api over https (or http if you do disable security).
+The console (orchestration engine) talks to all the agents using a REST api over https (or http if you do disable security). If you define a set of keys for the fabric hosted by the console, then the communication will happen over https, otherwise it will happen over http::
 
-The following section allows you to configure how the console talks to the agent::
+  // enable https communication
+  def keys = [ 
+     ...
+  ]
 
-  console.sslEnabled=true
+  // disable https communication
+  // def keys = null 
 
-  def keysDir = System.properties['org.linkedin.glu.console.keys.dir'] ?: 
-                "${System.properties['user.dir']}/keys"
+  fabrics["myFabric"] = [
+    keys: keys,
+    console: 'myConsole',
+    ...
+  ]
 
-  console.keystorePath="${keysDir}/console.keystore"
-  console.keystorePassword = "nacEn92x8-1"
-  console.keyPassword = "nWVxpMg6Tkv"
+  consoles << [
+    name: 'myConsole',
+    ...
+    ],
+  ]
 
-  console.secretkeystorePath="${keysDir}/console.secretkeystore"
-
-  console.truststorePath="${keysDir}/agent.truststore"
-  console.truststorePassword = "nacEn92x8-1"
-
-TODO: add link to key management.
-
-If you do not want a secure connection between the console and the agent, this is how you would configure it::
-
-  console.sslEnabled=false
-
-  // the following entries *must* be present (but can be left empty)
-  console.keystorePath=""
-  console.keystorePassword = ""
-  console.keyPassword = ""
-  console.secretkeystorePath=""
-  console.truststorePath=""
-  console.truststorePassword = ""
-
-
-.. warning:: Disabling the secure connection means that the agents will happily serve any request irrelevant of where it is coming from, which could be a serious security hole.
+.. warning:: 
+   Disabling the secure connection means that the agents will happily serve any request irrelevant of where it is coming from, which could be a serious security hole and as result is not recommended!
 
 Plugins
 ^^^^^^^
 
 The console (orchestration engine) behavior can be tweaked and or enhanced with the use of plugins. Check the :ref:`goe-plugins` section for details on how to create and install a plugin. 
 
-.. warning:: Since 4.1.0, *restricting file access on an agent* has been migrated to the ``StreamFileContentPlugin`` plugin and is now being configured by defining the 
-             properties::
+.. warning:: 
+   Since 4.1.0, *restricting file access on an agent* has been migrated to the ``StreamFileContentPlugin`` plugin and is now being configured by defining the properties::
 
-               // path to the root of the unrestricted location (empty means no restriction)
-               // this property is used by StreamFileContentPlugin
-               plugins.StreamFileContentPlugin.unrestrictedLocation = "/export/content/glu"
+     consoles << [
+        name: 'myConsole',
+        ...,
+        configTokens: [
+          plugins: """
+     // path to the root of the unrestricted location (empty means no restriction)
+     // this property is used by StreamFileContentPlugin
+     plugins.StreamFileContentPlugin.unrestrictedLocation = ""
 
-               // role for unrestricted
-               plugins.StreamFileContentPlugin.unrestrictedRole = 'ADMIN'
+     // role for unrestricted
+     plugins.StreamFileContentPlugin.unrestrictedRole = 'ADMIN'
+          """
+        ]
+     ],
+
 
 .. _console-configuration-database:
 
 Database
 ^^^^^^^^
 
-The console uses a database to store some of its data (like the audit log, user information, etc...). At this moment in time, the console uses `HSQLDB <http://hsqldb.org/>`_ for its database. You may want to change the location of the database folder by providing a ``org.linkedin.glu.console.dataSource.url`` system property (``-Dorg.linkedin.glu.console.dataSource.url=/path/to/database/root`` when starting the webapp container (or using the ``JAVA_OPTIONS`` environment variable)) or directly modifying the following section in the configuration file::
+The console uses a database to store some of its data (like the audit log, user information, etc...). The built-in database that comes bundled with glu is `HSQLDB <http://hsqldb.org/>`_. The default location of the database is under the ``database/prod`` folder at the root of the jetty server. You may want to change this location by modifying the following section in the configuration file::
 
-   def dataSourceUrl =
-     System.properties['org.linkedin.glu.console.dataSource.url'] ?:
-     "jdbc:hsqldb:file:${System.properties['user.dir']}/database/prod;shutdown=true"
-
-   // specify the database connection string
+   consoles << [
+      name: 'myConsole',
+      ...,
+      configTokens: [
+        dataSource: """
    dataSource.dbCreate = "update"
-   dataSource.url = dataSourceUrl
+   dataSource.url = "jdbc:hsqldb:file:/path/to/database;shutdown=true"
+        """
+      ]
+   ],
+
+.. warning::
+   It is not recommended to use the HSQLDB database in a real production environment. Please consider using another database like MySql (see next section).
 
 .. _console-configuration-database-mysql:
 
@@ -130,23 +158,28 @@ Here are the steps to follow in order to use MySql instead of HSQLDB (the steps 
 
   .. warning:: This values are obviously just example values (they simply need to be plugged in the right place in the configuration file (see below)).
 
-* Download the MySql `driver <http://www.mysql.com/downloads/connector/j/>`_
+* Edit the meta model in this fashion::
 
-* Copy the driver (in this example it is called ``mysql-connector-java-5.1.17-bin.jar``) to ``console-server/jetty-distribution-7.2.2.v20101205/lib/ext``
+   consoles << [
+      name: 'myConsole',
+      ...,
+      dataSourceDriverUri: 'http://jcenter.bintray.com/mysql/mysql-connector-java/5.1.25/mysql-connector-java-5.1.25.jar',
+      configTokens: [
+        dataSource: """
+   def dataSourceUrl = "jdbc:mysql://hostWhereMySqlIsRunning/glu"
+   dataSource.dbCreate = "update"
+   dataSource.url = dataSourceUrl
+   dataSource.logSql=false // set to true for details (+ open trace logging level)
+   dataSource.dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
+   dataSource.driverClassName = "com.mysql.jdbc.Driver"
+   dataSource.username= "glua" // this is from the glu user creation step
+   dataSource.password = "password" // this is from the glu user creation step
+        """
+      ]
+    ],
 
-  .. note:: You may need to run ``./bin/tutorial.sh setup`` in order to create the proper folder structure first!
-
-* Edit the glu configuration file (``console-server/conf/glu-console-webapp.groovy``) to input the proper values::
-
-    // 'glu' is the name of the database created previously
-    def dataSourceUrl = "jdbc:mysql://localhost/glu"
-    dataSource.dbCreate = "update"
-    dataSource.url = dataSourceUrl
-    dataSource.logSql=false // set to true for details (+ open trace logging level)
-    dataSource.dialect = "org.hibernate.dialect.MySQL5InnoDBDialect"
-    dataSource.driverClassName = "com.mysql.jdbc.Driver"
-    dataSource.username= "glua" // user created previously
-    dataSource.password = "password" // password assigned previously
+.. tip::
+   You may want to check the quick production meta model that comes bundled with glu as it demonstrates the configuration steps.
 
 * Start the console
 
@@ -180,7 +213,7 @@ Here are the steps to follow in order to use MySql instead of HSQLDB (the steps 
             timeouts, or using the Connector/J connection property 'autoReconnect=true' to avoid 
             this problem
 
-          it has been `reported <https://github.com/pongasoft/glu/issues/141>`_ that in order to fix the issue, you can add the following configuration properties in the glu configuration
+          it has been `reported <https://github.com/pongasoft/glu/issues/141>`_ that in order to fix the issue, you can add the following configuration properties
           file::
 
             dataSource.properties.validationQuery = "SELECT 1"
@@ -198,45 +231,38 @@ Other databases: Oracle, PostgresSQL
 
 Some databases (like Oracle and PostgresSQL) do not allow to have a table named ``USER``. In order to use one of this database, you need to add the following property to the glu configuration file (``console-server/conf/glu-console-webapp.groovy``)::
 
-    console.datasource.table.user.mapping = "db_user" 
+   consoles << [
+      name: 'myConsole',
+      ...,
+      configTokens: [
+        dataSource: """
+   ... // dataSource configuration goes here
+   console.datasource.table.user.mapping = "db_user"
+        """
+      ]
+   ],
 
 Logging
 ^^^^^^^
 
-The log4j section allows you to configure where and how the console logs its output. It is a DSL and you can view more details on how to configure it directly on the `grails web site <http://grails.org/doc/1.3.x/guide/3.%20Configuration.html#3.1.2%20Logging>`_::
+The log4j section allows you to configure where and how the console logs its output. It is a DSL and you can view more details on how to configure it directly on the `grails web site <http://grails.org/doc/1.3.x/guide/3.%20Configuration.html#3.1.2%20Logging>`_. If you want to provide your own log4j configuration simply edit the following section::
 
-   log4j = {
-       appenders {
-	 file name:'file',
-	 file:'logs/console.log',
-	 layout:pattern(conversionPattern: '%d{yyyy/MM/dd HH:mm:ss.SSS} %p [%c{1}] %m%n')
-       }
-
-       root {
-	 info 'file'
-	 additivity = false
-       }
-
-       error  'org.codehaus.groovy.grails.web.servlet',  //  controllers
-		  'org.codehaus.groovy.grails.web.pages', //  GSP
-		  'org.codehaus.groovy.grails.web.sitemesh', //  layouts
-		  'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
-		  'org.codehaus.groovy.grails.web.mapping', // URL mapping
-		  'org.codehaus.groovy.grails.commons', // core / classloading
-		  'org.codehaus.groovy.grails.plugins', // plugins
-		  'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
-		  'org.springframework',
-		  'org.hibernate'
-
-       info 'grails',
-	    'org.linkedin'
-
-       //debug 'com.linkedin.glu.agent.tracker', 'com.linkedin.glu.zookeeper.client'
-
-       //trace 'org.hibernate.SQL', 'org.hibernate.type'
-
-       warn   'org.mortbay.log', 'org.restlet.Component.LogService', 'org.restlet'
+   consoles << [
+      name: 'myConsole',
+      ...,
+      configTokens: [
+        log4j: """
+   {
+      appenders {
+       file name:'file',
+       file:'logs/console.log',
+       layout:pattern(conversionPattern: '%d{yyyy/MM/dd HH:mm:ss.SSS} %p [%c{1}] %m%n')
+      }
+    ... etc ...
    }
+        """
+      ]
+   ],
 
 .. note:: This has nothing to do with the audit log!
 
@@ -247,45 +273,67 @@ LDAP
 
 You can configure LDAP for handling user management in the console. See :ref:`console-user-management` for details. Here is the relevant section in the configuration file::
 
-  // This section is optional if you do not want to use ldap
-  ldap.server.url="ldaps://ldap.acme.com:3269"
-  ldap.search.base="dc=acme,dc=com"
-  ldap.search.user="cn=glu,ou=glu,dc=acme,dc=com"
-  ldap.search.pass="helloworld"
-  ldap.username.attribute="sAMAccountName"
+   consoles << [
+      name: 'myConsole',
+      ...,
+      configTokens: [
+        ldap: """
+   ldap.server.url="ldaps://ldap.acme.com:3269"
+   ldap.search.base="dc=acme,dc=com"
+   ldap.search.user="cn=glu,ou=glu,dc=acme,dc=com"
+   ldap.search.pass="helloworld"
+   ldap.username.attribute="sAMAccountName"
+        """
+      ]
+   ],
 
 .. _console-configuration-security-levels:
 
 Security Levels
 ^^^^^^^^^^^^^^^
 
-You can define your own security level (`USER`, `RELEASE` or `ADMIN`) per URL by defining a property like this in your configuration file::
+You can define your own security level (`USER`, `RELEASE` or `ADMIN`) per URL by defining a property like this::
 
   console.security.roles.'<path>' = '<role>'
 
-You can define your own security level (`USER`, `RELEASE` or `ADMIN`) per REST call by defining a property like this in your configuration file::
+You can define your own security level (`USER`, `RELEASE` or `ADMIN`) per REST call by defining a property like this::
 
   console.security.roles.'<method>:<path>' = '<role>'
 
 Here are some examples::
 
-  // a URL for the web interface
-  console.security.roles.'/model/load' = 'USER'
+   consoles << [
+      name: 'myConsole',
+      ...,
+      configTokens: [
+        security: """
+   // a URL for the web interface
+   console.security.roles.'/model/load' = 'USER'
 
-  // a REST call
-  console.security.roles.'POST:/rest/v1/$fabric/model/static' = 'RELEASE'
+   // a REST call
+   console.security.roles.'POST:/rest/v1/$fabric/model/static' = 'RELEASE'
+        """
+      ]
+   ],
 
 .. note:: You can check the `Config <https://github.com/pongasoft/glu/blob/master/console/org.linkedin.glu.console-webapp/grails-app/conf/Config.groovy>`_ file for an exhaustive list of all the URLs and REST calls.
 
-.. tip:: If you have more than one entry to change, you can use a simpler 
-         notation::
+.. tip:: 
+   If you have more than one entry to change, you can use a simpler notation::
 
-            console.security.roles.putAll([
-              '/agents/kill/$id/$pid': 'ADMIN',
-              '/plan/execute/$id': 'ADMIN',
-              '/plan/filter/$id': 'ADMIN'
-            ])
-
+     consoles << [
+        name: 'myConsole',
+        ...,
+        configTokens: [
+          security: """
+     console.security.roles.putAll([
+       '/agents/kill/$id/$pid': 'ADMIN',
+       '/plan/execute/$id': 'ADMIN',
+       '/plan/filter/$id': 'ADMIN'
+     ])
+          """
+        ]
+     ],
 
 .. tip:: You can customize or bypass entirely the way glu handles security by implemeting your own :ref:`plugin <goe-plugins>`
 
@@ -297,17 +345,34 @@ Deployments auto-archive
 
 The plans page displays the list of deployments that have happened recently. Since 3.3.0, items in this list are automatically archived after 30 minutes. You can tune this property or simply disable automatic archiving by adding the following property::
 
-  // set it to "0" if you want to disable auto archiving entirely
-  console.deploymentService.autoArchiveTimeout = "30m"
+   consoles << [
+      name: 'myConsole',
+      ...,
+      configTokens: [
+        tuning: """
+   // set it to "0" if you want to disable auto archiving entirely
+   console.deploymentService.autoArchiveTimeout = "30m"
+        """
+      ]
+   ],
+
 
 Limiting the number of parallel steps
 """""""""""""""""""""""""""""""""""""
 
-When running deployments in parallel, there is, by default, no limitation on how many steps can be executed at the same time. Depending on the size of your system, this may put a lot of stress on your infrastructure (like the network, binary repositories, etc...). In order to limit how many steps can run in parallel, you can define this property in the glu configuration file (``console-server/conf/glu-console-webapp.groovy``)::
+When running deployments in parallel, there is, by default, no limitation on how many steps can be executed at the same time. Depending on the size of your system, this may put a lot of stress on your infrastructure (like the network, binary repositories, etc...). In order to limit how many steps can run in parallel, you set it this way::
 
-  // The following property limits how many (leaf) steps get executed in parallel during a deployment
-  // By default (undefined), it is unlimited
-  console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 500
+   consoles << [
+      name: 'myConsole',
+      ...,
+      configTokens: [
+        tuning: """
+   // The following property limits how many (leaf) steps get executed in parallel during a deployment
+   // By default (undefined), it is unlimited
+   console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 500
+        """
+      ]
+   ],
 
 Plan
 ^^^^
@@ -317,8 +382,17 @@ Skipping missing agents
 
 By default, a missing agent generates a noop entry in the plan, or in other words it is skipped when the plan runs. If you want to change this behavior and generate an entry (which will fail on execution), then change the following property to ``false``::
 
-  // set to false if you want missing agents to not be skipped anymore in plan computation
-  console.plannerService.planner.skipMissingAgents = true
+   consoles << [
+      name: 'myConsole',
+      ...,
+      configTokens: [
+        misc: """
+   // set to false if you want missing agents to not be skipped anymore in plan computation
+   console.plannerService.planner.skipMissingAgents = true
+        """
+      ]
+   ],
+
 
 UI configuration
 ^^^^^^^^^^^^^^^^
@@ -329,6 +403,38 @@ The UI is configured in the ``console.defaults`` section of the configuration fi
   [
     ... configuration goes here ...
   ]
+
+You can either provide your entire ``console.defaults`` section::
+
+   consoles << [
+      name: 'myConsole',
+      ...,
+      configTokens: [
+        'console.defaults': """
+   [
+     ... configuration goes here ...
+   ]
+        """
+      ]
+   ],
+
+
+or simply override specific values::
+
+   consoles << [
+      name: 'myConsole',
+      ...,
+      configTokens: [
+        'console.defaults.override': """
+   console.defaults.customCss = ...
+   console.defaults.dashboardAgentLinksToAgent = true
+   ...
+        """
+      ]
+   ],
+
+.. note::
+   The following sections will simply call out the specific entries within the ``console.defaults`` map, but you can use either method to change them.
 
 .. _console-configuration-custom-css:
 
@@ -349,6 +455,9 @@ If you want to customize the look and feel of the console and override or tweak 
 
       // as a URI (for security reasons should be local!)
       customCss: new URI("/glu/repository/css/custom.css")
+
+.. tip::
+   Since 5.1.0 there is also another way to entirely change the css files. Check the :ref:`console-further-customizations` section.
 
 Default Dashboard
 """""""""""""""""
@@ -570,17 +679,26 @@ Commands
 
 If the ``commands`` feature is enabled, then you can configure what happens with the result (IO) of the command execution::
 
-      def commandsDir =
-        System.properties['org.linkedin.glu.console.commands.dir'] ?: "${System.properties['user.dir']}/commands"
+   consoles << [
+      name: 'myConsole',
+      ...,
+      configTokens: [
+        'console.defaults.override': """
+   def commandsDir =
+     System.properties['org.linkedin.glu.console.commands.dir'] ?: "${System.properties['user.dir']}/commands"
+   
+   // storage type supported right now are 'filesystem' and 'memory'
+   console.commandsService.storageType = 'filesystem'
+   
+   // when storage is filesystem => where the commands are stored
+   console.commandsService.commandExecutionIOStorage.filesystem.rootDir = commandsDir
+   
+   // when storage is memory => how many elements maximum to store (then start evicting...)
+   console.commandsService.commandExecutionIOStorage.memory.maxNumberOfElements = 25
+        """
+      ]
+   ],
 
-      // storage type supported right now are 'filesystem' and 'memory'
-      console.commandsService.storageType = 'filesystem'
-
-      // when storage is filesystem => where the commands are stored
-      console.commandsService.commandExecutionIOStorage.filesystem.rootDir = commandsDir
-
-      // when storage is memory => how many elements maximum to store (then start evicting...)
-      console.commandsService.commandExecutionIOStorage.memory.maxNumberOfElements = 25
 
 .. note:: By default, the IO of a command is stored on the filesystem in a path structure that is like 
           this. This allows for easy maintenance!::
@@ -665,6 +783,30 @@ When a user logs in the first time it is assigned a `default` dashboard. This da
         [ name: "state",      source: "state",                       visible: false]
       ]
 
+.. _console-further-customizations:
+
+Further customizations
+----------------------
+The console is distributed as an exploded war file. As a result it is possible to customize the console further like entirely replacing css files, images and javascript. To do so, you use the :ref:`glu-config-config-templates` concepts.
+
+* 1. Create a directory structure::
+
+       config-templates/console-server/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-@consoleMetaModel.version@/
+
+  .. note:: the ``@`` sign in the directory name is not an error. It is a replacement token that is processed during the distribution phase.
+
+* 2. This gives you access to the root of the webapp with 3 essential folders: ``css``, ``images`` and ``js``. Simply put your :ref:`templates <glu-config-templates>` in the proper subfolder.
+
+* 3. Run the setup tool with the ``--config-templates`` option.
+
+For example, if you wanted to change the glu logo with your own logo::
+
+  # create directory structure
+  mkdir -p /tmp/myFolder/config-templates/console-server/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-@consoleMetaModel.version@/images
+  # copy your logo with the proper name
+  cp <my logo>.png /tmp/myFolder/config-templates/console-server/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-@consoleMetaModel.version@/images/glu_480_white.png
+  # run the setup tool
+  $GLU_HOME/bin/setup.sh -D -o xxxx --config-templates "<default>" --config-templates /tmp/myFolder/config-templates my-model.json.groovy
 
 .. _console-script-log-files:
 
@@ -745,5 +887,5 @@ Even if you use LDAP, a user can assign himself a console password (useful if th
 
 Console tabs
 ^^^^^^^^^^^^
-Documentation coming soon. In the meantime, take a look at the :doc:`tutorial <tutorial>`.
+Take a look at the :doc:`tutorial <tutorial>` in order to get a feel for each tab.
 

@@ -17,7 +17,7 @@ Production Setup
 
 This document describes how to setup glu for production.
 
-.. note:: Since 5.1.0, this page describes the *easy* production setup using the now built-in setup tools. If you want to revert to manual configuration (or are using a version prior to 5.1.0), please refer to the :doc:`old page <production-setup>`.
+.. note:: Since 5.1.0, this page describes the *easy* production setup using the now built-in setup tool. If you want to revert to manual configuration (or are using a version prior to 5.1.0), please refer to the :doc:`old page <production-setup>`.
 
 Requirements
 ------------
@@ -63,6 +63,68 @@ The tool ``$GLU_HOME/bin/setup.sh`` is used for all the steps and you can get he
 
 .. tip::
    By default, the setup tool uses the current directory for its output. It is then recommended to ``cd`` into the target directory and issue ``$GLU_HOME/bin/setup.sh`` commands. Note that you can also use the ``-o xxxx`` to specify the target directory, or enter it when prompted.
+
+Easy Steps
+----------
+If you are trying out glu and you want to be up and running quickly (especially in a distributed environment) without digging too much into the details of all possible ways of configuring glu), then simply follow these quick and easy instructions. Otherwise simply skip to :ref:`easy-propduction-setup-detailed-steps`.
+
+* create a folder to generate all glu distribution (feel free to change!)::
+
+    mkdir /tmp/glu-trial
+    cd /tmp/glu-trial
+
+* generate the keys (you will be prompted for a password)::
+
+    $GLU_HOME/bin/setup.sh -K -o keys
+
+* copy quick production model locally (since we are going to edit it)::
+
+    mkdir models
+    cp $GLU_HOME/models/quick-production/glu-meta-model.json.groovy models/
+
+* edit the model (you just copied) ``models/glu-meta-model.json.groovy``:
+
+  * 1. copy/paste the section (keys) from the output of the previous command
+  * 2. change the various hosts to the hosts where you want to deploy the glu components
+  * 3. pay attention to the ``mysqlHost`` section
+  * 4. pay attention to the ``installPath`` which is where the distributions will be installed
+
+* generate the distributions::
+
+    $GLU_HOME/bin/setup.sh -D -o dists models/glu-meta-model.json.groovy
+
+* execute the script to install glu (uses ``scp`` for remote, ``cp`` for ``localhost``): you may want to take a look at the script first (this uses ``installPath``)::
+
+    ./dists/bin/install-all.sh
+
+* start ZooKeeper cluster
+
+  * login on each machine where there is a ZooKeeper instance and start it::
+
+      ./bin/zookeeperctl.sh start
+
+* configure the cluster (will work only if you have started it!)::
+
+    $GLU_HOME/bin/setup.sh -Z -o dists models/glu-meta-model.json.groovy
+
+* start the agents
+
+  * login on each machine where you installed an agent and start it::
+
+      ./bin/agentctl.sh start
+
+* start the console
+
+  * login on the machine where you installed the console and start it (if you are using mysql, you need to :ref:`create the user and start the database <console-configuration-database-mysql>`) first::
+
+      ./bin/consolectl.sh start
+
+You should now have glu up and running.
+
+.. _easy-propduction-setup-detailed-steps:
+
+Detailed steps
+--------------
 
 .. _easy-propduction-setup-gen-keys:
 
@@ -214,6 +276,15 @@ Step 4 also generates a set of convenient install scripts using the information 
 .. note::
    ``install-all.sh`` is essentially a script that combines all the others.
 
+.. tip::
+   The install script itself can also be part of the :ref:`template processing phase <glu-config-setup-workflow>` that happens during the generation distribution and as a result you can also have your own::
+
+      # create a file under /tmp/myFolder/config-templates/bin/install-@install.script.name@.sh.gtmpl
+      # the content of this file is a template which has access to the packagedArtifacts 
+      # variable (see the one built-in)
+      # run the setup tool this way
+      $GLU_HOME/bin/setup.sh -D -o xxxx --config-templates "<default>" --config-templates /tmp/myFolder/config-templates my-model.json.groovy
+
 .. _easy-propduction-setup-zooKeeper:
 
 Step 6: Configuring ZooKeeper ``[-Z]``
@@ -273,6 +344,9 @@ You can now start the console(s)::
 
 .. tip::
    The documentation is automatically available when you start the server, under ``http://<consolehost>:8080/glu/docs/html/index.html``
+
+.. note::
+   If you want to deploy the console in a different web application server then check the section :ref:`console-as-a-war`.
 
 You can now log in to the console using ``admin/admin`` for credentials and change the password.
 

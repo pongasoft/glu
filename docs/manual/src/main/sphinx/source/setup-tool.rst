@@ -29,6 +29,8 @@ The setup tool is used during the :doc:`production setup <easy-production-setup>
 
 The tool has essentially 3 modes which are used during the setup process.
 
+.. _setup-tool_K:
+
 1. Generating keys ``[-K]``
 ---------------------------
 
@@ -40,11 +42,13 @@ This command is used to generate the keys for glu (securing the communication to
 
 Example usage::
 
-  setup.sh -o /tmp/keys --keys-dname "CN=Yan P., OU=IT, O=Acme, L=Mountain View, S=CA, C=US"
+  setup.sh -K -o /tmp/keys --keys-dname "CN=Yan P., OU=IT, O=Acme, L=Mountain View, S=CA, C=US"
 
 * ``-K`` (or ``--gen-keys``): to generate the keys
 * ``-o``: the directory in which to generate the set of keys 
 * ``--keys-dname``: to provide your own `X.500 distinguished name <http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/keytool.html#DName>`_ for the certificates.
+
+.. _setup-tool_D:
 
 2. Generating the distributions ``[-D]``
 ----------------------------------------
@@ -57,8 +61,8 @@ This command is used to generate the distributions, which are ready to install/r
 
 Example usage::
 
-  setup.sh -o /tmp/distributions/staging --config-templates "<default>" \
-           --config-templates /tmp/glu-meta-model/config-templates /tmp/glu-meta-model/*.json.groovy
+  setup.sh -D -o /tmp/distributions/staging --config-templates "<default>" \
+           --config-templates /tmp/glu-meta-model/config-templates /tmp/glu-meta-model/my-meta-model.json.groovy
 
 * ``-D`` (or ``--gen-dist``): to generate the distributions
 * ``-o``: the directory in which to generate the distributions
@@ -72,6 +76,8 @@ Example usage::
 
 .. note::
    ``config-templates`` is cumulative, meaning you can define as many as you want and they will all be processed. The order is **important**. It is strongly recommended to always use ``--config-templates "<default>"`` first, then your own.
+
+.. _setup-tool_Z:
 
 3. Configure ZooKeeper clusters ``[-Z]``
 ----------------------------------------
@@ -87,7 +93,7 @@ This command is used to upload the configuration (that was generated during the 
 
 Example usage::
 
-  setup.sh -o /tmp/distributions/staging -Z
+  setup.sh -Z -o /tmp/distributions/staging /tmp/glu-meta-model/my-meta-model.json.groovy
 
 * ``-Z`` (or ``--configure-zookeeper-clusters``): to configure the ZooKeeper clusters
 * ``-o``: the directory in which the distributions were generated (provided during ``-D``)
@@ -98,3 +104,16 @@ Example usage::
 
 .. note::
    ``zookeeper-cluster-name`` is cumulative so you can provide more than one.
+
+.. _setup-tool_J:
+
+4. Showing the json model ``[-J]``
+----------------------------------
+This command is used to render the meta model in json format.
+
+.. tip::
+   The meta model comes with a lot of default values (example: the agent port is ``12906``), which means that if you do not define it in the meta model, the default value will be used. This representation fully expand and show all default values.
+
+Example usage::
+
+  setup.sh -J /tmp/glu-meta-model/my-meta-model.json.groovy

@@ -17,7 +17,12 @@ Production Setup (prior to 5.1.0)
 
 This document describes how to setup glu for production.
 
-.. note:: Since 5.1.0, this page describes the old/manual way of configuring glu in a production environment.
+.. note:: 
+   Since 5.1.0:
+
+   * this page describes the old/manual way of configuring glu in a production environment.
+   * the directory structure mentioned in this document can be recreated by :ref:`running a tool <migration-guide-5.0.0-5.1.0-quick-and-easy>`
+
 
 Requirements
 ------------
