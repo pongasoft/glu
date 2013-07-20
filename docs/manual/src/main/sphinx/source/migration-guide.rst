@@ -26,7 +26,7 @@ Recommended
 * create a glu meta model that represents your current glu setup
 
   .. note:: 
-     the hardest part will (most likely) be to generate the ``keys`` section: you need to take the values that you generated manually and plug them in your meta model). Here is what this section looks like with the keys that comes bundled with glu::
+     the hardest part will (most likely) be to generate the ``keys`` section: you need to take the values that you generated manually and plug them in your meta model. Here is what this section looks like with the keys that comes bundled with glu::
 
       def keys = [
         agentKeyStore: [

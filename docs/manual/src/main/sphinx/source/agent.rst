@@ -445,7 +445,7 @@ Auto Upgrade
 The agent has the capability of being able to upgrade itself.
 
 .. note::
-   Since glu 5.1.0, the agent upgrade artifact is generated as part of the :ref:`distribution generation step <easy-propduction-setup-gen-dist>` and can be found under ``<outputFolder>/agents/org.linkedin.glu.agent-server-<clusterName>-upgrade-<version>`` (simply tar this folder or use the ``--compress`` option when running the ``setup.sh`` command).
+   Since glu 5.1.0, the agent upgrade artifact is generated as part of the :ref:`distribution generation step <easy-production-setup-gen-dist>` and can be found under ``<outputFolder>/agents/org.linkedin.glu.agent-server-<clusterName>-upgrade-<version>`` (simply tar this folder or use the ``--compress`` option when running the ``setup.sh`` command).
 
 Using the command line
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -501,6 +501,9 @@ The following properties can be set in the meta model this way::
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 |``-z``              |``GLU_ZOOKEEPER``             |``glu.agent.zkConnectString``          |Undefined but                                                                              |Connection string to ZooKeeper  |
 |                    |                              |                                       |required!                                                                                  |                                |
+|                    |                              |                                       |                                                                                           |.. note:: Set for you           |
+|                    |                              |                                       |                                                                                           |   automatically based on       |
+|                    |                              |                                       |                                                                                           |   information in meta model    |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 |``-n``              |``GLU_AGENT_NAME``            |``glu.agent.name``                     |Canonical hostname                                                                         |Name of the agent (this property|
 |                    |                              |                                       |                                                                                           |is very important because this  |
@@ -549,10 +552,10 @@ The following properties can be set in the meta model this way::
 |NA                  |``GLU_AGENT_ZOOKEEPER_ROOT``  |``glu.agent.zookeeper.root``           |``/org/glu``                                                                               |The root path for everything    |
 |                    |                              |                                       |                                                                                           |written to ZooKeeper            |
 |                    |                              |                                       |                                                                                           |                                |
-|                    |                              |                                       |                                                                                           |.. note:: if you change this    |
-|                    |                              |                                       |                                                                                           |   value, you will need to make |
-|                    |                              |                                       |                                                                                           |   a similar change in the      |
-|                    |                              |                                       |                                                                                           |   console!                     |
+|                    |                              |                                       |                                                                                           |.. note:: use ``zooKeeperRoot`` |
+|                    |                              |                                       |                                                                                           |   in the meta model instead    |
+|                    |                              |                                       |                                                                                           |   which will change it where   |
+|                    |                              |                                       |                                                                                           |   needed appropriately.        |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 |NA                  |``APP_NAME``                  |``org.linkedin.app.name``              |``org.linkedin.glu.agent-server``                                                          |This parameter is used mostly to|
 |                    |                              |                                       |                                                                                           |distinguish the process running |
@@ -652,8 +655,8 @@ The following properties can be set in the meta model this way::
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 |NA                  |NA                            |``glu.agent.zkSessionTimeout``         |``5s``                                                                                     |Timeout for ZooKeeper           |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
-|NA                  |NA                            |``glu.agent.configURL``                |``${glu.agent.zookeeper.root}/agents/fabrics/${glu.agent.fabric}/config/config.properties``|The location of (more)          |
-|                    |                              |                                       |                                                                                           |configuration for the agent     |
+|NA                  |NA                            |``glu.agent.configURL``                |``${glu.agent.zookeeper.root}/agents/fabrics/``                                            |The location of (more)          |
+|                    |                              |                                       |``${glu.agent.fabric}/config/config.properties``                                           |configuration for the agent     |
 |                    |                              |                                       |                                                                                           |(default to a fabric dependent  |
 |                    |                              |                                       |                                                                                           |location in ZooKeeper).         |
 |                    |                              |                                       |                                                                                           |                                |
@@ -662,9 +665,9 @@ The following properties can be set in the meta model this way::
 |                    |                              |                                       |                                                                                           |exported over https or not      |
 |                    |                              |                                       |                                                                                           |                                |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
-|NA                  |NA                            |``glu.agent.keystorePath``             |``zookeeper:${glu.agent.zookeeper.root} /agents                                            |Location of the keystore which  |
-|                    |                              |                                       |/fabrics /${glu.agent.fabric} /config                                                      |contains the private key of the |
-|                    |                              |                                       |/agent.keystore``                                                                          |agent                           |
+|NA                  |NA                            |``glu.agent.keystorePath``             |``zookeeper:${glu.agent.zookeeper.root}/agents``                                           |Location of the keystore which  |
+|                    |                              |                                       |``/fabrics /${glu.agent.fabric}/config``                                                   |contains the private key of the |
+|                    |                              |                                       |``/agent.keystore``                                                                        |agent                           |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 |NA                  |NA                            |``glu.agent.keystoreChecksum``         |Must be computed                                                                           |Checksum for the keystore       |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
@@ -673,9 +676,9 @@ The following properties can be set in the meta model this way::
 |NA                  |NA                            |``glu.agent.keyPassword``              |Must be computed                                                                           |Password for the key (inside the|
 |                    |                              |                                       |                                                                                           |keystore)                       |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
-|NA                  |NA                            |``glu.agent.truststorePath``           |``zookeeper:${glu.agent.zookeeper.root} /agents                                            |Location of the trustore which  |
-|                    |                              |                                       |/fabrics /${glu.agent.fabric} /config                                                      |contains the public key of the  |
-|                    |                              |                                       |/console.truststore``                                                                      |console                         |
+|NA                  |NA                            |``glu.agent.truststorePath``           |``zookeeper:${glu.agent.zookeeper.root}/agents``                                           |Location of the trustore which  |
+|                    |                              |                                       |``/fabrics /${glu.agent.fabric}/config``                                                   |contains the public key of the  |
+|                    |                              |                                       |``/console.truststore``                                                                    |console                         |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 |NA                  |NA                            |``glu.agent.truststoreChecksum``       |Must be computed                                                                           |Checksum for the truststore     |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
@@ -690,11 +693,11 @@ The following properties can be set in the meta model this way::
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 
 .. tip:: 
-   The number of configuration properties may seem a little bit overwhelming at first but most of them have default values. Furthermore, the :ref:`easy-propduction-setup-gen-dist` phase sets the only required property for you (which is the location of its ZooKeeper cluster)!
+   The number of configuration properties may seem a little bit overwhelming at first but most of them have default values. Furthermore, the :ref:`easy-production-setup-gen-dist` phase sets the only required property for you (which is the location of its ZooKeeper cluster)!
 
 Installation
 ------------
-Check the section :ref:`easy-propduction-setup-install` for details about how to install the agent the first time.
+Check the section :ref:`easy-production-setup-install` for details about how to install the agent the first time.
 
 Once the agent is installed, you can simply use the :ref:`auto upgrade <agent-auto-upgrade>` capability to upgrade it.
 
@@ -711,7 +714,7 @@ The agent offers a REST API over https, setup with client authentication. In thi
 
 Key setup
 ^^^^^^^^^
-The keys needed by the agent are generated during the :ref:`keys generation step <easy-propduction-setup-gen-dist>`. 
+The keys needed by the agent are generated during the :ref:`keys generation step <easy-production-setup-gen-dist>`.
 
 Multiple agents on one host
 ---------------------------

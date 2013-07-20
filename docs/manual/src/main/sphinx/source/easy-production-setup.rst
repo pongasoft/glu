@@ -66,7 +66,7 @@ The tool ``$GLU_HOME/bin/setup.sh`` is used for all the steps and you can get he
 
 Easy Steps
 ----------
-If you are trying out glu and you want to be up and running quickly (especially in a distributed environment) without digging too much into the details of all possible ways of configuring glu), then simply follow these quick and easy instructions. Otherwise simply skip to :ref:`easy-propduction-setup-detailed-steps`.
+If you are trying out glu and you want to be up and running quickly (especially in a distributed environment) without digging too much into the details of all possible ways of configuring glu), then simply follow these quick and easy instructions. Otherwise simply skip to :ref:`easy-production-setup-detailed-steps`.
 
 * create a folder to generate all glu distribution (feel free to change!)::
 
@@ -84,10 +84,10 @@ If you are trying out glu and you want to be up and running quickly (especially 
 
 * edit the model (you just copied) ``models/glu-meta-model.json.groovy``:
 
-  * 1. copy/paste the section (keys) from the output of the previous command
-  * 2. change the various hosts to the hosts where you want to deploy the glu components
-  * 3. pay attention to the ``mysqlHost`` section
-  * 4. pay attention to the ``installPath`` which is where the distributions will be installed
+  1. copy/paste the section (keys) from the output of the previous command
+  2. change the various hosts to the hosts where you want to deploy the glu components
+  3. pay attention to the ``mysqlHost`` section (check :ref:`console-configuration-database-mysql` for details for MySql)
+  4. pay attention to the ``installPath`` which is where the distributions will be installed
 
 * generate the distributions::
 
@@ -121,12 +121,12 @@ If you are trying out glu and you want to be up and running quickly (especially 
 
 You should now have glu up and running.
 
-.. _easy-propduction-setup-detailed-steps:
+.. _easy-production-setup-detailed-steps:
 
 Detailed steps
 --------------
 
-.. _easy-propduction-setup-gen-keys:
+.. _easy-production-setup-gen-keys:
 
 Step 1: Generate the keys ``[-K]``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -216,7 +216,7 @@ Check the documentation :doc:`configuring glu <glu-config>` for more details.
    .. warning::
       Make sure though that you use a 'real' database for production setups as is demonstrated in the sample production meta model.
 
-.. _easy-propduction-setup-gen-dist:
+.. _easy-production-setup-gen-dist:
 
 Step 4: Generate the distributions ``[-D]``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -249,7 +249,7 @@ For example (using the sample meta model with the keys generated in Step 1)::
   2013/07/11 09:49:33.741 INFO [GluPackager] Generated install script /private/tmp/prod-1/distributions/staging/bin/install-all.sh
   2013/07/11 09:49:33.741 INFO [SetupMain] All distributions generated successfully.
 
-.. _easy-propduction-setup-install:
+.. _easy-production-setup-install:
 
 Step 5: Install the distributions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -285,7 +285,7 @@ Step 4 also generates a set of convenient install scripts using the information 
       # run the setup tool this way
       $GLU_HOME/bin/setup.sh -D -o xxxx --config-templates "<default>" --config-templates /tmp/myFolder/config-templates my-model.json.groovy
 
-.. _easy-propduction-setup-zooKeeper:
+.. _easy-production-setup-zooKeeper:
 
 Step 6: Configuring ZooKeeper ``[-Z]``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

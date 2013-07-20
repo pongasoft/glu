@@ -174,7 +174,6 @@ public class TestMetaModel extends GroovyTestCase
   "consoles": [
     {
       "configTokens": {
-        "dataSource": "\\ndataSource.dbCreate ='update'\\ndataSource.url=\\"jdbc:hsqldb:file:\${System.properties['user.dir']}/database/prod;shutdown=true\\"\\n"
       },
       "externalHost": "localhost",
       "externalPath": "/console",

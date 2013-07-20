@@ -26,13 +26,13 @@ The best way to get a feel of what the console looks like and what can be achiev
 
 Installation
 ------------
-The :ref:`distribution generation <easy-propduction-setup-gen-dist>` phase generates a full web application container (jetty) that is ready to be used. 
+The :ref:`distribution generation <easy-production-setup-gen-dist>` phase generates a full web application container (jetty) that is ready to be used.
 
 .. _console-as-a-server:
 
 Console as a server
 ^^^^^^^^^^^^^^^^^^^
-Simply follow :ref:`easy-propduction-setup-install` in order to install the server that was generated for you.
+Simply follow :ref:`easy-production-setup-install` in order to install the server that was generated for you.
 
 .. tip::
    This is the recommended way for deploying the console.
@@ -43,7 +43,7 @@ Console as a war
 ^^^^^^^^^^^^^^^^
 If you want to deploy the console in another web container then do the following:
 
- * generate the :ref:`distributions <easy-propduction-setup-gen-dist>` the normal way
+ * generate the :ref:`distributions <easy-production-setup-gen-dist>` the normal way
  * then create the war file manually::
 
     cd <outputFolder>/consoles/org.linkedin.glu.console-server-<version>/

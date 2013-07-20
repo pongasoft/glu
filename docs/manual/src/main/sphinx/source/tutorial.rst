@@ -88,7 +88,7 @@ The second command tails the log for each component.
 .. note:: The setup command has created a new directory ``$GLU_HOME/tutorial`` which will be now referred to as ``GLU_TUTORIAL_HOME``. Once you are done with the tutorial (and you have stopped all components), it is safe to delete this directory as it is easy to regenerate it. You may also generate the tutorial in another location if you want to::
 
             ./bin/tutorial.sh -d /tmp/tutorial start
-            ./bin/tutorial.sh -d /tmp/turoail tail
+            ./bin/tutorial.sh -d /tmp/tutorial tail
 
 
 Login to the console
@@ -97,29 +97,17 @@ Point your browser to http://localhost:8080/console
 
 .. note:: Depending on the speed of your system, it may take a little while for all the components to be started. You will know when you see the *Console started.* message in the tailed log file.
 
-1. login::
+login::
 
     username: admin
     password: admin
 
-  .. image:: /images/tutorial/tutorial-console-login-600.png
+.. image:: /images/tutorial/tutorial-console-login-600.png
      :align: center
      :alt: console login screen
  
-  .. note:: 
-     The very first time the console is started, an admin account is created. In production mode, it is highly recommended to change the default password!
-
-2. The very first time, you will be prompted to create a fabric::
-
-    Name             : glu-dev-1
-    Zk Connect String: localhost:2181
-    Zk Timeout       : 30s
-
-  .. image:: /images/tutorial/tutorial-console-create-fabric.png
-     :align: center
-     :alt: create fabric
-
-When the console is launched for the very first time, the database is empty and you need to add a fabric to it. In this case we create the fabric called ``glu-dev-1`` (which is the same name used in the setup) and we associate it to the local ZooKeeper.
+.. note:: 
+   The very first time the console is started, an admin account is created. In production mode, it is highly recommended to change the default password!
 
 View the agent
 --------------

@@ -39,7 +39,7 @@ Configuration concepts
    :alt: glu configuration
 
 * glu comes bundled with several components (:term:`clis <cli>` and :term:`servers <server>`) distributed as *raw* packages under the ``packages/`` top folder.
-* glu also comes bundled with a tool (``setup.sh``), that is used as part of the :ref:`setup process <easy-propduction-setup-gen-dist>` to generate the distributions (which are ready to install/run packages).
+* glu also comes bundled with a tool (``setup.sh``), that is used as part of the :ref:`setup process <easy-production-setup-gen-dist>` to generate the distributions (which are ready to install/run packages).
 * In order for the setup tool to generate the right set of packages tailored for **your** environment, you need to define, at the very least, a glu :term:`meta model` which essentially describes where each component needs to go (on which host they are installed).
 
   * In addition, the meta model lets you tweak several configuration parameters if the default ones are not satisfactory.
@@ -50,7 +50,7 @@ Configuration concepts
 
 Understanding the setup workflow
 --------------------------------
-When you generate the distributions (:ref:`easy-propduction-setup-gen-dist`), this is what happens:
+When you generate the distributions (:ref:`easy-production-setup-gen-dist`), this is what happens:
 
   * the glu meta model is parsed to build an in-memory representation of the model
   * based on information in the glu meta model, for each *raw* package

@@ -106,7 +106,6 @@ setup()
     rm -rf $GLU_PRE_510_DISTS
 
     echo "### Setup complete."
-  fi
   else
     echo "### $GLU_PRE_510_DIR already exists... skipping"
   fi

@@ -206,7 +206,7 @@ Example::
   ]
 
 .. note::
-   The format of the ``keys`` entry is not shown as this is simply generated for you during the :ref:`setup process <easy-propduction-setup-gen-keys>`.
+   The format of the ``keys`` entry is not shown as this is simply generated for you during the :ref:`setup process <easy-production-setup-gen-keys>`.
 
 .. note::
    If you do not care about securing the channel while talking to the agents then simply set keys to ``null`` (``keys: null``).
@@ -360,7 +360,7 @@ A ZooKeeper cluster is a set of ZooKeeper that work as a cluster. This is not a 
    The name of the ZooKeeper cluster is the one used in the ``fabrics`` definition.
 
 .. note::
-   The main configuration for the cluster is the generation of the files that will then be uploaded in ZooKeeper in :ref:`easy-propduction-setup-zooKeeper`. Check the templates under ``zookeeper-cluster/agents`` and ``zookeeper-cluster/fabrics`` to know which ``configTokens`` are used by the default templates. 
+   The main configuration for the cluster is the generation of the files that will then be uploaded in ZooKeeper in :ref:`easy-production-setup-zooKeeper`. Check the templates under ``zookeeper-cluster/agents`` and ``zookeeper-cluster/fabrics`` to know which ``configTokens`` are used by the default templates.
 
 .. _meta-model-zooKeeper:
 
