@@ -58,73 +58,56 @@ Install the tutorial
 --------------------
 Download the binary called ``<version>/org.linkedin.glu.packaging-all-<version>.tgz`` from `bintray <https://bintray.com/pkg/show/general/pongasoft/glu/releases>`_ glu repository.
   
-Untar/Unzip in a location of your choice. From now on, this location will be referred to as ``GLU_TUTORIAL_ROOT``.
+Untar/Unzip in a location of your choice. 
 
-Initial setup
--------------
-In a shell terminal enter::
-
-    cd $GLU_TUTORIAL_ROOT
-    ./bin/tutorial.sh setup
-    
-This step does the following:
-
-1. it loads the keys in ZooKeeper (``agent.keystore``, ``console.truststore``) for the fabric ``glu-dev-1``
-2. it loads the agent configuration in ZooKeeper (``config.properties``) for the fabric ``glu-dev-1``
-3. it configures and assigns ``agent-1`` to fabric ``glu-dev-1``
-
-.. image:: /images/tutorial/tutorial-setup.png
-   :align: center
-   :alt: output of setup command
+.. note:: From now on, this location will be referred to as ``GLU_HOME``.
 
 Start all components
 --------------------
-From the same terminal enter::
+In a shell terminal enter::
 
-   ./bin/tutorial.sh start
-   ./bin/tutorial.sh tail
+    cd $GLU_HOME
+    ./bin/tutorial.sh start
+    ./bin/tutorial.sh tail
 
-This will start 3 components:
+The first command does the following:
 
-* ZooKeeper
-* the agent
-* the console (which contains the orchestration engine)
+1. using the :term:`meta model` (``$GLU_HOME/models/tutorial/glu-meta-model.json.groovy``), it generates the various components and configures them for the turorial:
+
+    * 1 agent (``agent-1``) running on localhost (port 12906). ``agent-1`` is configured to be part of the ``glu-dev-1`` fabric.
+    * 1 console running on localhost (port 8080) (the console contains the orchestration engine)
+    * 1 ZooKeeper instance running on localhost (port 2181)
+
+2. then it starts the (3) components previously generated and configured
 
 The second command tails the log for each component.
 
-.. note::
-   Depending on the speed of your system, sometimes the console takes a little while to create its log file. In order to see it in the output of the tail command, you may have to reissue the command after waiting a little while.
-
 .. tip::
    The console includes this documentation as well, available at http://localhost:8080/glu/docs/html/tutorial.html
+
+.. note:: The setup command has created a new directory ``$GLU_HOME/tutorial`` which will be now referred to as ``GLU_TUTORIAL_HOME``. Once you are done with the tutorial (and you have stopped all components), it is safe to delete this directory as it is easy to regenerate it. You may also generate the tutorial in another location if you want to::
+
+            ./bin/tutorial.sh -d /tmp/tutorial start
+            ./bin/tutorial.sh -d /tmp/tutorial tail
+
 
 Login to the console
 --------------------
 Point your browser to http://localhost:8080/console
 
-1. login::
+.. note:: Depending on the speed of your system, it may take a little while for all the components to be started. You will know when you see the *Console started.* message in the tailed log file.
+
+login::
 
     username: admin
     password: admin
 
-  .. image:: /images/tutorial/tutorial-console-login-600.png
+.. image:: /images/tutorial/tutorial-console-login-600.png
      :align: center
      :alt: console login screen
  
-  .. note:: 
-     The very first time the console is started, an admin account is created. In production mode, it is highly recommended to change the default password!
-
-2. The very first time, you will be prompted to create a fabric::
-
-    Name             : glu-dev-1
-    Zk Connect String: localhost:2181
-    Zk Timeout       : 30s
-
-  .. image:: /images/tutorial/tutorial-console-create-fabric.png
-     :align: center
-     :alt: create fabric
-
-When the console is launched for the very first time, the database is empty and you need to add a fabric to it. In this case we create the fabric called ``glu-dev-1`` (which is the same name used in the setup) and we associate it to the local ZooKeeper.
+.. note:: 
+   The very first time the console is started, an admin account is created. In production mode, it is highly recommended to change the default password!
 
 View the agent
 --------------
@@ -354,7 +337,7 @@ Now the system (also known as desired state) and the current state match. There 
 
 Reloading the model and experiencing a failure
 ----------------------------------------------
-1. Manually edit the file: ``$GLU_TUTORIAL_ROOT/console-server/glu/repository/systems/sample-webapp-system.json``
+1. Manually edit the file: ``$GLU_TUTORIAL_HOME/console-server/glu/repository/systems/sample-webapp-system.json``
 
 2. Change the contextPath in the very last entry from ``/cp4`` to ``/fail`` and change the name of the model to ``Tutorial System Model (with failure)`` and save your changes (it will make it easier to differentiate the model in the UI by giving it a different name). 
 
@@ -407,7 +390,7 @@ Using the console cli
 
 4. Go to the root directory::
 
-      cd $GLU_TUTORIAL_ROOT
+      cd $GLU_TUTORIAL_HOME      # $GLU_HOME/tutorial
 
 5. Now issue the following command (``-b`` is to make it more readable)::
 

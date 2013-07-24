@@ -17,6 +17,7 @@
 package org.linkedin.glu.commands.impl
 
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
+import org.linkedin.glu.groovy.utils.io.StreamType
 import org.linkedin.glu.utils.concurrent.Submitter
 
 /**

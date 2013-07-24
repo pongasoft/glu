@@ -16,6 +16,7 @@
 
 package org.linkedin.glu.commands.impl
 
+import org.linkedin.glu.groovy.utils.io.StreamType
 import org.linkedin.util.io.resource.Resource
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 

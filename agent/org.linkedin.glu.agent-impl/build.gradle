@@ -36,7 +36,6 @@ dependencies {
   runtime spec.external.ivy
 
   testRuntime project(':utils:org.linkedin.glu.utils.log4j-test-config')
-  testRuntime spec.external.ivy
 }
 
 idea.module.iml {

@@ -16,6 +16,8 @@
 
 package org.linkedin.glu.commands.impl
 
+import org.linkedin.glu.groovy.utils.io.StreamType
+
 /**
  * @author yan@pongasoft.com */
 public class NoCommandStreamStorage extends AbstractCommandStreamStorage

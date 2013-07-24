@@ -17,6 +17,7 @@
 package org.linkedin.glu.commands.impl
 
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.linkedin.glu.groovy.utils.io.StreamType
 import org.linkedin.groovy.util.config.Config
 import java.util.concurrent.TimeoutException
 import org.linkedin.glu.groovy.utils.io.InputGeneratorStream

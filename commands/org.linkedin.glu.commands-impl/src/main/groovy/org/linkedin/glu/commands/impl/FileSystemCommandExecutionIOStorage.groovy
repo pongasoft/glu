@@ -16,6 +16,7 @@
 
 package org.linkedin.glu.commands.impl
 
+import org.linkedin.glu.groovy.utils.io.StreamType
 import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.annotations.Initializable

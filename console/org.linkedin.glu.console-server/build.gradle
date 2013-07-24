@@ -48,6 +48,8 @@ def scriptProjects =
 cmdline {
   folders = []
 
+  noPackageInstallTask = true
+
   dependsOn = [
     ':console:org.linkedin.glu.console-webapp:war',
     ':samples:org.linkedin.glu.samples.sample-webapp:war',
@@ -77,10 +79,16 @@ cmdline {
   // licenses
   resources << [ packageIncludes ]
 
-  // console.war
+  // jetty
   resources << [
-    from: consoleWebapp,
-    into: new File(assemblePackageFile, 'glu/repository/wars'),
+    from: tarTree(jettyArchive),
+    replaceTokens: false
+  ]
+
+  // exploded console
+  resources << [
+    from: zipTree(consoleWebapp),
+    into: new File(assemblePackageFile, "glu/repository/exploded-wars/${consoleWebappProject.name}-${consoleWebappProject.version}"),
     replaceTokens: false
   ]
 
@@ -88,13 +96,6 @@ cmdline {
   resources << [
     from: sampleWebapp,
     into: new File(assemblePackageFile, 'glu/repository/wars'),
-    replaceTokens: false
-  ]
-
-  // keys
-  resources << [
-    from: consoleKeys,
-    into: new File(assemblePackageFile, 'keys'),
     replaceTokens: false
   ]
 

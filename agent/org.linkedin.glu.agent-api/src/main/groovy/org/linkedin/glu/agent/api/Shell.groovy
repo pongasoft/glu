@@ -308,6 +308,22 @@ def interface Shell
   Resource unzip(file, toDir)
 
   /**
+   * If neither <code>tarFile</code> nor <code>tarDir</code> is provided, then the resulting
+   * tar file will be created in a temporary directory.
+   *
+   * @param args.dir the directory to tar ({@see #toResource(Object)} for possible values)
+   * @param args.tarFile the resulting tar file name/location ({@see #toResource(Object)}
+   *                     for possible values) (optional) (cannot be used with <code>tarDir</code>)
+   * @param args.tarDir the directory to store the resulting tar file ({@see #toResource(Object)}
+   *                    for possible values) (optional) (cannot be used with <code>tarFile</code>)
+   * @param args.compression what kind of compression to use (ex: gzip, bzip2)
+   * @param args.includeRoot a boolean to include the root (args.dir) in the tar file or not
+   *                         (default to <code>true</code>)
+   * @return the resulting tar file resource
+   */
+  Resource tar(args)
+
+  /**
    * Untars the provided file in a temporary location. Note that the implementation will try
    * to detect if the file is also gziped and unzip it first (equivalent to <code>tar -zxf</code>)
    *
@@ -722,6 +738,29 @@ def interface Shell
   Resource replaceTokens(def from, def to, Map tokens)
 
   /**
+   * Processes the template provided with the tokens provided and generate the output in
+   * <code>to</code>.
+   *
+   * <ul>
+   *   <li>if the template ends with <code>.xtmpl</code> it will be processed through the
+   *       {@link #replaceTokens(java.lang.String, java.util.Map)} mechanism</li>
+   *   <li>if the template ends with <code>.gtmpl</code> it will be processed through the groovy
+   *       template engine</li>
+   *   <li>if the template ends with <code>.ctmpl</code> it will be treated as groovy script with
+   *       all tokens variables provided, as well as <code>shell</code> (this class),
+   *       and <code>toResource</code> (the <code>Resource</code> representing <code>to</code>)</li>
+   *   <li>if the template has no template specific extension, it is equivalent to
+   *       <code>cp(template, to)</code></li>
+   * </ul>
+   *
+   * @param template ({@see #toResource(Object)} for possible values)
+   * @param to ({@see #toResource(Object)} for possible values)}
+   * @param tokens a map of tokens
+   * @return <code>to</code> as a {@link Resource}
+   */
+  Resource processTemplate(def template, def to, Map tokens)
+
+  /**
    * Processes the content to the token replacement method.
    *
    * @see #saveContent(Object, String)
@@ -745,6 +784,13 @@ def interface Shell
    * @return whatever the closure returns
    */
   def withWriter(file, Closure closure)
+
+  /**
+   * Computes the sha1 of a file/resource. Returns it as an hex string (40 chars)
+   *
+   * @return as an hex string (40 chars)
+   */
+  String sha1(file)
 
   /**
    * Runs the closure in a protected block that will not throw an exception but will return

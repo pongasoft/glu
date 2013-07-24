@@ -17,81 +17,144 @@
 # the License.
 #
 
-BASEDIR=`cd $(dirname $0)/.. ; pwd`
+# from http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+BASEDIR="$( cd -P "$( dirname "$SOURCE" )/.." && pwd )"
 cd $BASEDIR
 
-GLU_FABRIC=glu-dev-1
-GLU_AGENT_NAME=agent-1
+GLU_HOME=$BASEDIR
+GLU_VERSION=@glu.version@
+ZOOKEEPER_VERSION=@zookeeper.version@
+JETTY_DISTRIBUTION=@jetty.distribution@
+
+GLU_TUTORIAL_AGENT_NAME=agent-1
+GLU_TUTORIAL_CONSOLE_NAME=tutorialConsole
+GLU_TUTORIAL_ZOOKEEPER_CLUSTER_NAME=tutorialZooKeeperCluster
+GLU_TUTORIAL_ZOOKEEPER_HOST=127.0.0.1
+
+init()
+{
+  if [ -z "$GLU_TUTORIAL_DIR" ]; then
+    GLU_TUTORIAL_DIR=$GLU_HOME/tutorial
+  fi
+
+  GLU_TUTORIAL_DISTS=$GLU_TUTORIAL_DIR/distributions/tutorial
+  GLU_TUTORIAL_BIN=$GLU_TUTORIAL_DIR/bin
+
+  GLU_TUTORIAL_AGENT_ROOT=$GLU_TUTORIAL_DISTS/agents/org.linkedin.glu.agent-server-$GLU_TUTORIAL_AGENT_NAME-$GLU_TUTORIAL_ZOOKEEPER_CLUSTER_NAME-$GLU_VERSION
+  GLU_TUTORIAL_AGENT_CLI_ROOT=$GLU_TUTORIAL_DISTS/agent-cli/org.linkedin.glu.agent-cli-$GLU_VERSION
+  GLU_TUTORIAL_CONSOLE_ROOT=$GLU_TUTORIAL_DISTS/consoles/org.linkedin.glu.console-server-$GLU_TUTORIAL_CONSOLE_NAME-$GLU_VERSION
+  GLU_TUTORIAL_CONSOLE_CLI_ROOT=$GLU_TUTORIAL_DISTS/console-cli/org.linkedin.glu.console-cli-$GLU_VERSION
+  GLU_TUTORIAL_ZOOKEEPER_ROOT=$GLU_TUTORIAL_DISTS/zookeeper-clusters/zookeeper-cluster-$GLU_TUTORIAL_ZOOKEEPER_CLUSTER_NAME/org.linkedin.zookeeper-server-$ZOOKEEPER_VERSION
+
+  GLU_TUTORIAL_AGENT_LINK=$GLU_TUTORIAL_DIR/agent-server
+  GLU_TUTORIAL_AGENT_CLI_LINK=$GLU_TUTORIAL_DIR/agent-cli
+  GLU_TUTORIAL_CONSOLE_LINK=$GLU_TUTORIAL_DIR/console-server
+  GLU_TUTORIAL_CONSOLE_CLI_LINK=$GLU_TUTORIAL_DIR/console-cli
+  GLU_TUTORIAL_ZOOKEEPER_LINK=$GLU_TUTORIAL_DIR/zookeeper-server
+  
+}
 
 usage()
 {
   echo ""
-  echo "   Usage:  tutorial.sh start|stop|status|tail"
+  echo "   Usage:  tutorial.sh [-d <tutorial_dir>] start|stop|status|tail"
   echo ""
 }
 
 setup()
 {
- echo "### Starting ZooKeeper..."
- $BASEDIR/bin/zookeeper-server.sh start
- echo "### Setting up keys and agent configuration..."
- $BASEDIR/bin/setup-zookeeper.sh -f $GLU_FABRIC
- echo "### Setting $GLU_AGENT_NAME in $GLU_FABRIC..."
- $BASEDIR/bin/setup-agent.sh -f $GLU_FABRIC -n $GLU_AGENT_NAME -d $BASEDIR/agent-server
- echo "### Stopping ZooKeeper..."
- $BASEDIR/bin/zookeeper-server.sh stop
- echo "### Initializing Console..."
- $BASEDIR/bin/console-server.sh check
- echo "### Done."
+  if [ ! -d $GLU_TUTORIAL_DIR ]; then
+    echo "### Setting up tutorial..."
+    $GLU_HOME/bin/setup.sh -D --keys-root $GLU_HOME/models/tutorial/keys -o $GLU_TUTORIAL_DISTS $GLU_HOME/models/tutorial/glu-meta-model.json.groovy
+
+    # getting rid of install scripts
+    rm -rf $GLU_TUTORIAL_BIN
+
+    echo "### Creating shortcuts..."
+    mkdir $GLU_TUTORIAL_BIN
+    ln -s $GLU_TUTORIAL_AGENT_ROOT $GLU_TUTORIAL_AGENT_LINK
+    ln -s $GLU_TUTORIAL_AGENT_LINK/bin/agentctl.sh $GLU_TUTORIAL_BIN/agent-server.sh
+
+    ln -s $GLU_TUTORIAL_AGENT_CLI_ROOT $GLU_TUTORIAL_AGENT_CLI_LINK
+    ln -s $GLU_TUTORIAL_AGENT_CLI_LINK/bin/agent-cli.sh $GLU_TUTORIAL_BIN/agent-cli.sh
+
+    ln -s $GLU_TUTORIAL_CONSOLE_ROOT $GLU_TUTORIAL_CONSOLE_LINK
+    ln -s $GLU_TUTORIAL_CONSOLE_LINK/bin/consolectl.sh $GLU_TUTORIAL_BIN/console-server.sh
+
+    ln -s $GLU_TUTORIAL_CONSOLE_CLI_ROOT $GLU_TUTORIAL_CONSOLE_CLI_LINK
+    ln -s $GLU_TUTORIAL_CONSOLE_CLI_LINK/bin/console-cli.py $GLU_TUTORIAL_BIN/console-cli.sh
+
+    ln -s $GLU_TUTORIAL_ZOOKEEPER_ROOT $GLU_TUTORIAL_ZOOKEEPER_LINK
+    ln -s $GLU_TUTORIAL_ZOOKEEPER_LINK/bin/zookeeperctl.sh $GLU_TUTORIAL_BIN/zookeeper-server.sh
+
+    echo "### Configuring ZooKeeper..."
+    $GLU_TUTORIAL_BIN/zookeeper-server.sh start
+    $GLU_HOME/bin/setup.sh -Z -o $GLU_TUTORIAL_DISTS $GLU_HOME/models/tutorial/glu-meta-model.json.groovy
+    $GLU_TUTORIAL_BIN/zookeeper-server.sh stop
+
+    echo "### Initializing console..."
+    touch $GLU_TUTORIAL_CONSOLE_LINK/$JETTY_DISTRIBUTION/logs/console.log
+    echo "### Setup complete."
+  else
+    echo "### $GLU_TUTORIAL_DIR already exists... skipping"
+  fi
 }
 
 start()
 {
+  if [ ! -d $GLU_TUTORIAL_DIR ]; then
+    setup
+    # make sure that ZooKeeper is actually stopped
+    sleep 2
+  fi
  echo "### Starting ZooKeeper..."
- JVMFLAGS="-Dorg.linkedin.app.name=org.linkedin.zookeeper-server" $BASEDIR/bin/zookeeper-server.sh start
+ JVMFLAGS="-Dorg.linkedin.app.name=org.linkedin.zookeeper-server" $GLU_TUTORIAL_BIN/zookeeper-server.sh start
  echo "### Starting Agent..."
- $BASEDIR/bin/agent-server.sh start
+ $GLU_TUTORIAL_BIN/agent-server.sh start
  echo "### Starting Console..."
- $BASEDIR/bin/console-server.sh start
+ $GLU_TUTORIAL_BIN/console-server.sh start
  echo "### Done."
 }
 
 stop()
 {
  echo "### Stopping Console..."
- $BASEDIR/bin/console-server.sh stop
+ $GLU_TUTORIAL_BIN/console-server.sh stop
  echo "### Stopping Agent..."
- $BASEDIR/bin/agent-server.sh stop
+ $GLU_TUTORIAL_BIN/agent-server.sh stop
  echo "### Stopping ZooKeeper..."
- $BASEDIR/bin/zookeeper-server.sh stop
+ $GLU_TUTORIAL_BIN/zookeeper-server.sh stop
  echo "### Done."
 }
 
 status()
 {
  echo "### ZooKeeper Status"
- $BASEDIR/bin/zookeeper-server.sh status
+ $GLU_TUTORIAL_BIN/zookeeper-server.sh status
  echo "### Agent Status"
- $BASEDIR/bin/agent-server.sh status
+ $GLU_TUTORIAL_BIN/agent-server.sh status
  echo "### Console Status"
- $BASEDIR/bin/console-server.sh check
+ $GLU_TUTORIAL_BIN/console-server.sh check
 }
 
 tail()
 {
- exec tail -f $BASEDIR/console-server/@jetty.distribution@/logs/console.log \
-              $BASEDIR/agent-server/data/logs/org.linkedin.glu.agent-server.out \
-              $BASEDIR/org.linkedin.zookeeper-server-@zookeeper.version@/logs/zookeeper.log
+ exec tail -f $GLU_TUTORIAL_CONSOLE_LINK/$JETTY_DISTRIBUTION/logs/console.log \
+              $GLU_TUTORIAL_AGENT_LINK/data/logs/org.linkedin.glu.agent-server.out \
+              $GLU_TUTORIAL_ZOOKEEPER_LINK/logs/zookeeper.log
 }
 
 # get script options
-while getopts "n:f:" opt ; do
+while getopts "d:" opt ; do
   case $opt in
-    n  )
-         GLU_AGENT_NAME=$OPTARG
-         ;;
-    f  )
-         GLU_FABRIC=$OPTARG
+    d  )
+         GLU_TUTORIAL_DIR=$OPTARG
          ;;
     \? ) usage
          exit 1
@@ -99,13 +162,16 @@ while getopts "n:f:" opt ; do
   esac
 done
 
+# initializes variables
+init
+
 # Check to make sure we have the correct version of Java.
 JAVA_VER=$("$JAVA_HOME/bin/java" -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
 if [ "$JAVA_VER" -ge 16 ]; then
 	echo "### Suitable JVM found under $JAVA_HOME"
 	$JAVA_HOME/bin/java -version
 else
-	echo "### Java @ $JAVA_HOME too old." 
+	echo "### Java @ $JAVA_HOME too old."
 	exit 1;
 fi
 

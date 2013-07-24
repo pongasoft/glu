@@ -21,6 +21,7 @@ package org.linkedin.glu.agent.cli
 import org.linkedin.glu.agent.api.Agent
 import org.linkedin.glu.agent.rest.client.AgentFactory
 import org.linkedin.glu.agent.rest.client.AgentFactoryImpl
+import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
 import org.linkedin.groovy.util.config.Config
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.util.lifecycle.Startable
@@ -29,7 +30,6 @@ import org.linkedin.groovy.util.config.MissingConfigParameterException
 import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.utils.tags.TagsSerializer
 import org.linkedin.glu.groovy.util.state.DefaultStateMachine
-import org.linkedin.glu.agent.rest.common.AgentRestUtils
 import org.linkedin.glu.agent.api.TimeOutException
 import org.linkedin.util.clock.Timespan
 import org.linkedin.glu.groovy.utils.concurrent.FutureTaskExecution
@@ -168,7 +168,7 @@ class ClientMain implements Startable
 
     InputStream mis  = agent.streamCommandResults(args).stream
 
-    exitValue = AgentRestUtils.demultiplexExecStream(mis, System.out, System.err) as int
+    exitValue = GluGroovyIOUtils.demultiplexExecStream(mis, System.out, System.err) as int
   }
 
   boolean waitForCommandNoTimeOutException(Agent agent, def args)

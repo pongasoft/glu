@@ -12,10 +12,18 @@
    License for the specific language governing permissions and limitations under
    the License.
 
-Production Setup
-================
+Old Production Setup (prior to 5.1.0)
+=====================================
 
 This document describes how to setup glu for production.
+
+.. warning::
+   Since 5.1.0:
+
+   * this page describes the old/manual way of configuring glu in a production environment.
+   * the recommended way of configuring and installing glu is described in the document :doc:`easy-production-setup`
+   * the directory structure mentioned in this document can be recreated by :ref:`running a tool <migration-guide-5.0.0-5.1.0-quick-and-easy>`
+
 
 Requirements
 ------------
@@ -50,10 +58,12 @@ Untar/Unzip in a location of your choice::
   org.linkedin.zookeeper-server-1.2.2/
   setup/
 
+.. note:: Since 5.1.0, this directory structure does not apply anymore. In order to to achieve a similar directory structure, simply run the command `./bin/tutorial.sh setup` and you will end up with a directory called `tutorial` which contains a similar structure.
+
 .. tip::
    This documentation is available under ``console-server/glu/docs/html/index.html``
 
-.. _production-setup-zookeeper:
+.. _production-old-setup-zookeeper:
 
 Step 2: Setup ZooKeeper
 -----------------------
@@ -73,7 +83,7 @@ You have 2 options there:
 
      .. note:: this file is the same for each server
 
-.. _production-keys:
+.. _production-old-keys:
 
 Step 3: Generate your own set of keys
 -------------------------------------
@@ -240,7 +250,7 @@ You use the ``keytool`` utility (bundled with java)::
 
 .. note:: this trustore will be used in the agent and the password (``BBBBBBB``) will be assigned to ``glu.agent.truststorePassword``
 
-.. _production-setup-passwords:
+.. _production-old-setup-passwords:
 
 Step 4: Encrypt passwords and compute checksums
 -----------------------------------------------
@@ -315,15 +325,15 @@ At the end of this step, it may be a little confusing so let's recap what you sh
 |                          |                    |create it)          |                                                      |
 +--------------------------+--------------------+--------------------+------------------------------------------------------+
 
-.. _production-setup-prepare-zookeeper:
+.. _production-old-setup-prepare-zookeeper:
 
 Step 5: Prepare ZooKeeper
 -------------------------
 
-By now you should have ZooKeeper up and running (if you have followed :ref:`production-setup-zookeeper`).
+By now you should have ZooKeeper up and running (if you have followed :ref:`production-old-setup-zookeeper`).
 
 1. Copy ``agent.keystore`` and ``console.trustore`` into ``setup/zookeeper-config``
-2. Edit ``setup/zookeeper-config/config.properties`` to put your own values for the passwords and checksums (see :ref:`production-setup-passwords`)
+2. Edit ``setup/zookeeper-config/config.properties`` to put your own values for the passwords and checksums (see :ref:`production-old-setup-passwords`)
    .. note:: you can also add/modify most of the configuration properties for the agent (see :ref:`agent-configuration`).
 
 Use the tool provided to create a :term:`fabric`, load the keys in ZooKeeper as well as the agent configuration::
@@ -334,15 +344,15 @@ Use the tool provided to create a :term:`fabric`, load the keys in ZooKeeper as 
 
 .. tip:: if you want to create more than one fabric, you can reuse the same tool
 
-.. _production-setup-agent:
+.. _production-old-setup-agent:
 
 Step 6: Install the agent
 -------------------------
 
 You can now install the agent on each host you will want to do deployment. The agent is contained in the folder called ``agent-server``. Check the :ref:`agent-configuration` for details on how to configure the agent. What is important is to provide the following configuration to the agent:
 
-* the fabric (as set in :ref:`production-setup-prepare-zookeeper`)
-* the ZooKeeper connection string (which, if you have followed the recommendations in :ref:`production-setup-zookeeper`, will contain a comma separated list of servers (example: ``zk01.acme.com:2181,zk02.acme.com:2181,zk03.acme.com:2181``))
+* the fabric (as set in :ref:`production-old-setup-prepare-zookeeper`)
+* the ZooKeeper connection string (which, if you have followed the recommendations in :ref:`production-old-setup-zookeeper`, will contain a comma separated list of servers (example: ``zk01.acme.com:2181,zk02.acme.com:2181,zk03.acme.com:2181``))
 * the agent name (unless the default is fine)
 
 .. tip:: Once the agent is installed, you can use the :ref:`auto upgrade <agent-auto-upgrade>` capability built into the agent
@@ -355,7 +365,7 @@ After installing the agents you can start them.
 There is a way to test at this point that everything is working fine by using the agent cli. In order to do that:
 
 1. Copy ``agent.truststore`` and ``console.keystore`` into ``agent-cli/conf/keys``
-2. Edit ``agent-cli/conf/clientConfig.properties`` to put your own values for the passwords (see :ref:`production-setup-passwords`)
+2. Edit ``agent-cli/conf/clientConfig.properties`` to put your own values for the passwords (see :ref:`production-old-setup-passwords`)
 
 You can then issue the following command::
 
@@ -364,7 +374,7 @@ You can then issue the following command::
 
 If the keys, passwords and everything is fine, you will get ``[/]`` which is a list of all the mount points currently installed on the agent (all agents have a root :term:`mount point`).
 
-.. _production-setup-console:
+.. _production-old-setup-console:
 
 Step 8: Install the console
 ---------------------------
@@ -388,7 +398,7 @@ Option 2: Use the server
 The console is also packaged as a server (using jetty) (``console-server/``) and comes with a default configuration file (under ``console-server/conf/glu-console-webapp.groovy``)
 
 1. Copy ``agent.truststore`` and ``console.keystore`` into ``console-server/keys``
-2. Edit ``conf/glu-console-webapp.groovy`` to put your own values for the passwords (see :ref:`production-setup-passwords`)
+2. Edit ``conf/glu-console-webapp.groovy`` to put your own values for the passwords (see :ref:`production-old-setup-passwords`)
 
 In order to start the console simply issue::
 

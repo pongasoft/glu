@@ -18,7 +18,7 @@ package test.orchestration.engine.commands
 
 import groovy.mock.interceptor.MockFor
 import org.linkedin.glu.commands.impl.MemoryCommandExecutionIOStorage
-import org.linkedin.glu.commands.impl.StreamType
+import org.linkedin.glu.groovy.utils.io.StreamType
 
 import org.linkedin.glu.groovy.utils.io.InputGeneratorStream
 import org.linkedin.glu.orchestration.engine.agents.AgentsService

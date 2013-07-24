@@ -131,7 +131,7 @@ console.commandsService.commandExecutionIOStorage.filesystem.rootDir="${buildDir
 def warFile = new File("${buildDir}/distributions/${project.name}-${project.version}.war")
 
 task war(dependsOn: lib) << {
-  ant.exec(dir: '.', executable: grailsExe) {
+  ant.exec(dir: '.', executable: grailsExe, failonerror: true) {
     arg(line: "-Dgrails.project.war.file=${warFile} -Dbuild.version=${project.version} war")
   }
 }

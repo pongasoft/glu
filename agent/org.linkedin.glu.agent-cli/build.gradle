@@ -23,9 +23,5 @@ dependencies {
 
 cmdline {
   resources << packageIncludes
-  resources << [
-    from: consoleKeys,
-    into: new File(assemblePackageFile, 'conf/keys'),
-    replaceTokens: false
-  ]
+  noPackageInstallTask = true
 }

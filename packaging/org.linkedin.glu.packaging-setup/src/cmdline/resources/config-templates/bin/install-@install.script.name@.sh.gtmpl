@@ -1,0 +1,87 @@
+#!/bin/bash
+
+#
+# Copyright (c) 2013 Yan Pujante
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+#
+
+if [ -z "\$SSH_CMD" ]; then
+  SSH_CMD="ssh"
+fi
+
+if [ -z "\$SCP_CMD" ]; then
+  SCP_CMD="scp"
+fi
+
+if [ -z "\$SCP_OPTIONS" ]; then
+  SCP_OPTIONS="-r"
+fi
+
+if [ -z "\$SCP_USER" ]; then
+  SCP_USER=\$USER
+fi
+
+if [ -z "\$CP_CMD" ]; then
+  CP_CMD="cp"
+fi
+
+if [ -z "\$CP_OPTIONS" ]; then
+  CP_OPTIONS="-R"
+fi
+
+if [ -z "\$MKDIR_CMD" ]; then
+  MKDIR_CMD="mkdir"
+fi
+
+if [ -z "\$MKDIR_OPTIONS" ]; then
+  MKDIR_OPTIONS="-p"
+fi
+
+echo "You may be prompted for the password for user \$SCP_USER if you don't use ssh keys."
+
+<% def localhost = ['localhost', '127.0.0.1', '::1'] as Set %>
+<% packagedArtifacts.groupBy({ it.metaModel.class }, { it.host }).each { metaModelClass, grp -> %>
+################## ${metaModelClass.simpleName - 'MetaModelImpl'} ##################
+<% grp.each { host, pas ->
+  pas.each { pa ->
+    if(host)
+    {
+      if(pa.metaModel.install?.path)
+      {
+        switch(host)
+        {
+          case { host in localhost }:
+            if(pa.metaModel.install.path.endsWith('/')) {
+              out << "\$MKDIR_CMD \$MKDIR_OPTIONS \"${pa.metaModel.install.path}\"\n"
+            }
+            out << "\$CP_CMD \$CP_OPTIONS \"${pa.location.file.canonicalPath}\" \"${pa.metaModel.install.path}\"\n"
+            break
+
+          default:
+            if(pa.metaModel.install.path.endsWith('/')) {
+              out << "\$SSH_CMD \$SCP_USER@${pa.host} \"[ -d '${pa.metaModel.install.path}' ] || \$MKDIR_CMD \$MKDIR_OPTIONS '${pa.metaModel.install.path}' ]\"\n"
+            }
+            out << "\$SCP_CMD \$SCP_OPTIONS \"${pa.location.file.canonicalPath}\" \"\$SCP_USER@${pa.host}:${pa.metaModel.install.path}\"\n"
+            break
+        }
+      }
+      else
+        out << "# manually install ${pa.location.file.canonicalPath} on host ${pa.host}\n"
+    }
+    else
+      out << "# manually install ${pa.location.file.canonicalPath}\n"
+  }
+} /* grp.each */ %>
+########################################
+<% } /* packagedArtifacts.groupBy */%>

@@ -70,33 +70,7 @@ Defining your own state machine
 
              This section is for advanced users only. You can safely skip it and come back later if you feel like you need to change the default state machine.
 
-In the event when the default state machine does not match your needs, you can define your own (system wide) state machine and configure glu to use it.
-
-For this you need to create a jar file which contains a file called ``glu/DefaultStateMachine.groovy``. This file needs to look like this::
-
-    defaultTransitions =
-    [
-      NONE: [[to: 's1', action: 'noneTOs1']],
-      s1: [[to: 'NONE', action: 's1TOnone'], [to: 's2', action: 's1TOs2']],
-      s2: [[to: 's1', action: 's2TOs1']]
-    ]
-
-    defaultEntryState = 's2'
-
-* ``defaultTransitions`` defines the transitions for the state machine
-* ``defaultEntryState`` defines which state in the state machine is the one that is considered to not be in error (``running`` in the case of the default state machine)
-
-Making it available to glu
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-In order for glu to use your state machine you simply need to drop the jar file you created in the previous step in the following locations:
-
-* for the console, in the ``console-server/glu/repository/plugins`` folder
-* for the agent, in the ``agent-server/<version>/lib`` folder
-* for the agent cli, in the ``agent-cli/lib`` folder
-
-.. note:: 
-   Those folder are relative to the *standard* distribution of glu. If you package it yourself, then make sure that the jar file is in the classpath of your server.
+In the event when the default state machine does not match your needs, you can define your own (system wide) state machine and configure glu to use it. See the :ref:`section <meta-model-stateMachine>` on how to configure a different state machine.
 
 Configuring the console
 ^^^^^^^^^^^^^^^^^^^^^^^

@@ -1740,19 +1740,25 @@ A plugin is simply a class with (groovy) closures, each of them defining a speci
 How do you install a plugin?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The orchestration engine is currently bundled in the console web application. In order to install your plugins(s), you need to package them as jar file(s) and make sure they are available in the classpath of your web server. If you deploy the console as the provided console server, then simply drop your plugins (jar files) in the ``glu/repository/plugins`` folder.
+In order to install your plugins(s), you need to first package them as jar file(s). Then it is just a matter of editing the appropriate section in the :ref:`meta model <meta-model-console>` to let glu know where they are. For example::
 
-.. note:: If your plugin has external dependencies, they also need to be made available in the classpath of your web server! For the console server, simply drop them in ``jetty-distribution-<version>/lib/ext``.
+  consoles << [
+    host: 'localhost',
+    plugins: [
+      [
+        fqcn: 'org.acme.glu.plugin.MyPlugin', 
+        classPath: ['http://repository/myplugin.jar', 'http://repository/dependency.jar']
+      ],
+      // ... more plugins
+    ],
+  ]
 
-.. warning:: If you use the provided console server wrapper (which underneath uses jetty), then you can simply drop your plugins jar files under ``glu/repository/plugins`` (and your dependencies under ``jetty-distribution-<version>/lib/ext``)  and you are done. On the other hand, if you use your own web server (tomcat, etc...) or your own version of jetty, make sure to configure it properly: the plugins need to be available from the same class space as the webapp. For example, with jetty, dropping your plugins jar files under the ``jetty-distribution-<version>/lib/ext`` does not work! Check the files ``bin/consolectl.sh`` and ``conf/console-jetty-context.xml`` to see how this is accomplished with jetty.
+* ``fqcn`` is the fully qualified class name of your plugin
 
-You then need to tell the console about it. For this you change the configuration file (``conf/glu-console-webapp.groovy``), by adding the class name(s) of your plugin(s)::
+  .. note::
+     The class of your plugin **must** be present in one of the jar files specified in the ``classPath`` section
 
-   orchestration.engine.plugins = [
-     'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin',
-     'org.acme.MyPlugin',
-     // etc...
-   ]
+* ``classPath`` is a list of URIs containing the various jars comprising your plugin (base class + dependencies).
 
 List of hooks available
 ^^^^^^^^^^^^^^^^^^^^^^^

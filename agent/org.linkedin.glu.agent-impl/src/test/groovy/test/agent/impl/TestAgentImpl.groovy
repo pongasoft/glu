@@ -24,7 +24,6 @@ import org.linkedin.glu.agent.impl.AgentImpl
 import org.linkedin.glu.agent.impl.capabilities.ShellImpl
 import org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory
 import org.linkedin.glu.agent.impl.script.RootScript
-import org.linkedin.glu.agent.impl.script.ScriptDefinition
 import org.linkedin.glu.agent.impl.storage.RAMStorage
 import org.linkedin.glu.agent.impl.storage.Storage
 import org.linkedin.glu.agent.api.ScriptExecutionException

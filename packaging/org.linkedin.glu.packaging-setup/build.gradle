@@ -17,36 +17,12 @@
 
 apply plugin: 'org.linkedin.cmdline'
 
-allRepositories.utilsZookeeperDistribution.configure()
-
-configurations {
-  zookeeperPackages
-}
-
 dependencies {
-  zookeeperPackages spec.external.utilsZookeeperCliPackage
+  lib project(":packaging:org.pongasoft.glu.packaging-setup-impl")
 }
 
 cmdline {
-  replacementTokens = [
-    'zookeeper.version': spec.versions.utilsZookeeper
-  ]
   folders = []
   resources << packageIncludes
-
-  // keys
-  resources << [
-    from: agentKeys,
-    into: new File(assemblePackageFile, 'zookeeper-config'),
-    replaceTokens: false
-  ]
-}
-
-// customizing package-assemble task to add zookeeper cli
-project.'package-assemble'.doFirst {
-  File basePackage = project.convention.plugins.cmdline.assemblePackageFile
-
-  configurations.zookeeperPackages.resolve().each { zkp ->
-    ant.untar(src: zkp, dest: basePackage, compression: 'gzip')
-  }
+  noPackageInstallTask = true
 }
