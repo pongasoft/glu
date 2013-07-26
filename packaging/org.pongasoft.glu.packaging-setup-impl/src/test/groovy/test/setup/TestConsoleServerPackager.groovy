@@ -82,6 +82,14 @@ public class TestConsoleServerPackager extends BasePackagerTest
           "/${jettyDistribution}/contexts/glu-jetty-context.xml": DEFAULT_GLU_JETTY_CONTEXT,
           "/${jettyDistribution}/lib": DIRECTORY,
           "/${jettyDistribution}/lib/acme.jar": 'this is the jar',
+          "/glu": DIRECTORY,
+          "/glu/repository": DIRECTORY,
+          "/glu/repository/exploded-wars": DIRECTORY,
+          "/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-${GLU_VERSION}": DIRECTORY,
+          "/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-${GLU_VERSION}/WEB-INF": DIRECTORY,
+          "/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-${GLU_VERSION}/WEB-INF/web.xml": { r ->
+            assertTrue(r.file.text.contains('<session-timeout>30</session-timeout>'))
+          },
         ]
 
       checkPackageContent(expectedResources, artifact.location)
@@ -132,6 +140,7 @@ consoles << [
     tuning: '<tuning config>',
     commands: '<commands config>',
     misc: '<misc config>',
+    sessionTimeoutInMinutes: 15
   ]
 ]
 
@@ -308,6 +317,9 @@ JVM_SIZE="-Xmx555m"
           "/glu/repository/exploded-wars/${consoleWar}/WEB-INF/lib/db-driver.jar": "this is the driver",
           "/glu/repository/exploded-wars/${consoleWar}/WEB-INF/lib/plugin1.jar": "this is the plugin1",
           "/glu/repository/exploded-wars/${consoleWar}/WEB-INF/lib/plugin2.jar": "this is the plugin2",
+          "/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-${GLU_VERSION}/WEB-INF/web.xml": { r ->
+            assertTrue(r.file.text.contains('<session-timeout>15</session-timeout>'))
+          },
         ]
 
       checkPackageContent(expectedResources, artifact.location)
