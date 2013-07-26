@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -226,7 +226,7 @@ class PlannerServiceImpl implements PlannerService
                                                        currentEntrySystemFilter)
     }
 
-    doComputeDeploymentPlans(params, metadata, [params.state], filter)
+    doComputeDeploymentPlans(params, metadata, params.states ?: [params.state], filter)
   }
 
   /**

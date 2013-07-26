@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011-2012 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,6 +17,7 @@
 
 package org.linkedin.glu.console.controllers
 
+import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 import org.linkedin.glu.provisioner.plan.api.IStepFilter
 import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
@@ -47,11 +48,20 @@ public class PlanController extends ControllerBase
    * Default plans
    */
   def static DEFAULT_PLANS = [
-    [planType: "deploy"],
-    [planType: "bounce"],
-    [planType: "redeploy"],
-    [planType: "undeploy"],
+    [planAction: "deploy", planType: "deploy"],
+    [planAction: "bounce", planType: "bounce"],
+    [planAction: "bounce", planType: "redeploy"],
+    [planAction: "undeploy", planType: "undeploy"],
     [
+      planAction: "reconfigure",
+      planType: "transition",
+      displayName: "Reconfigure",
+      states: ["installed", "running"],
+      expectedEntryStates: ["running", "stopped", "installed"],
+      currentEntryStates: ["running", "stopped"]
+    ],
+    [
+      planAction: "start",
       planType: "transition",
       displayName: "Start",
       state: "running",
@@ -59,6 +69,7 @@ public class PlanController extends ControllerBase
       currentEntryStates: ["stopped"]
     ],
     [
+      planAction: "stop",
       planType: "transition",
       displayName: "Stop",
       state: "stopped",
@@ -68,6 +79,7 @@ public class PlanController extends ControllerBase
   ]
 
   Clock clock = SystemClock.instance()
+  ConsoleConfig consoleConfig
   DeploymentService deploymentService
   PlannerService plannerService
   AgentsService agentsService
@@ -390,39 +402,14 @@ public class PlanController extends ControllerBase
 
     if(params.planAction)
     {
-      switch(params.planAction)
+      args = processPlanAction(params, args)
+
+      if(!args)
       {
-        case 'start':
-          args.state = 'running'
-          args.planType = 'transition'
-          break;
-
-        case 'deploy':
-          args.planType = 'deploy'
-          break;
-
-        case 'stop':
-          args.state = 'stopped'
-          args.planType = 'transition'
-          break;
-
-        case 'undeploy':
-          args.planType = 'undeploy'
-          break;
-
-        case 'bounce':
-          args.planType = 'bounce'
-          break;
-
-        case 'redeploy':
-          args.planType = 'redeploy'
-          break;
-
-        default:
-          response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                             "invalid action: ${params.planAction}")
-          render ''
-          return
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                           "invalid action: ${params.planAction}")
+        render ''
+        return
       }
     }
     else
@@ -469,6 +456,36 @@ public class PlanController extends ControllerBase
       response.setStatus(HttpServletResponse.SC_NO_CONTENT, 'no plan created (no delta)')
       render ''
     }
+  }
+
+  private def processPlanAction(def params, def args)
+  {
+    def res = processPlanAction(params, args, consoleConfig.defaults.plans)
+    if(!res)
+      res = processPlanAction(params, args, DEFAULT_PLANS)
+    return res
+  }
+
+  private def processPlanAction(def params, def args, def plansDefinition)
+  {
+    if(plansDefinition)
+    {
+      def planDefinition =
+        plansDefinition.find { planDefinition -> planDefinition.planAction == params.planAction }
+
+      if(planDefinition)
+      {
+        args.planType = planDefinition.planType
+
+        ['state', 'states', 'expectedEntryStates', 'currentEntryStates'].each { p ->
+          args[p] = params[p] ?: planDefinition[p]
+        }
+
+        return args
+      }
+    }
+
+    return null
   }
 
   /**
