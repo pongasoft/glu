@@ -39,6 +39,11 @@ body {
   text-shadow: none;
 }
 
+.navbar-fixed-top .dropdown-menu {
+  max-height: 20em;
+  overflow-y: auto;
+}
+
 .container {
   width: 99%;
 }
