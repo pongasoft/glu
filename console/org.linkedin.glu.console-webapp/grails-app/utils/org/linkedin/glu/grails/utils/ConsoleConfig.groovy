@@ -53,7 +53,7 @@ class ConsoleConfig implements GrailsApplicationAware
   void setGrailsApplication(GrailsApplication grailsApplication)
   {
     config = grailsApplication.config
-    defaults = config.console.defaults
+    defaults = config.console.defaults ?: [:]
   }
 
   def getDefault(String name)
