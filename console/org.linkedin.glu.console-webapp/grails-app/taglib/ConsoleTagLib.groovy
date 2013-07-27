@@ -1031,7 +1031,7 @@ public class ConsoleTagLib
 
     if(name)
     {
-      text = "<span class=\"systemId\">${systemId[0..9]}</span> [${name.encodeAsHTML()}]"
+      text = "<span class=\"systemId\">${systemId[0..<Math.min(systemId.size(), 10)]}</span> [${name.encodeAsHTML()}]"
     }
     else
       text = "<span class=\"systemId\">${systemId}</span>"
