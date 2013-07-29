@@ -39,7 +39,6 @@
 <g:set var="isFirstPage" value="${offset == '0'}"/>
 <g:render template="/commands/command_js"/>
 <g:javascript>
-<g:if test="${isFirstPage}">
 function shouldRefresh()
 {
   return document.getElementById('autoRefresh').checked;
@@ -48,7 +47,7 @@ function autoRefresh()
 {
   if(shouldRefresh())
   {
-    setTimeout('refresh()', ${params.refreshRate ?: '2000'});
+    setTimeout('refreshHistory()', ${params.refreshRate ?: '2000'});
     show('#autoRefreshSpinner');
     showHide();
   }
@@ -57,18 +56,14 @@ function autoRefresh()
     hide('#autoRefreshSpinner');
   }
 }
+function refreshHistory()
+{
+  ${g.remoteFunction(controller: 'commands', action: 'renderHistory', params: [offset: offset, max: max], update:[success: 'asyncDetailsHistory', failure: 'asyncErrorHistory'], onComplete: 'autoRefresh();')}
+}
 function refresh()
 {
-  if(shouldRefresh())
-  {
-    ${g.remoteFunction(controller: 'commands', action: 'renderHistory', params: [offset: offset, max: max], update:[success: 'asyncDetails', failure: 'asyncError'], onComplete: 'autoRefresh();')}
-  }
-  else
-  {
-    hide('#autoRefreshSpinner');
-  }
+  refreshHistory();
 }
-</g:if>
 function showHide()
 {
   <g:each in="${filters.keySet()}" var="filter">
@@ -87,19 +82,14 @@ function showHide()
   <div><g:include controller="commands" action="renderCommand" id="${params.commandId}"/></div>
 </g:if>
 
-<h4><g:if test="${isFirstPage}">Auto Refresh: <cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
-    <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/></g:if>
+<h4>Auto Refresh: <g:if test="${isFirstPage}"><cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
+    <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/></g:if><g:else><g:checkBox name="autoRefresh" id="autoRefresh" disabled="true" checked="false"/></g:else>
 <g:each in="${filters}" var="filter">
   |  ${filter.value}: <cl:checkBoxInitFromParams name="${filter.key}" id="${filter.key}" onclick="showHide();"/>
 </g:each>
 </h4>
-<g:if test="${isFirstPage}">
-<div id="asyncDetails"></div>
-<div id="asyncError"></div>
-</g:if>
-<g:else>
-  <g:include controller="commands" action="renderHistory" params="[offset: offset, max: max]"/>
-</g:else>
+<div id="asyncDetailsHistory"></div>
+<div id="asyncErrorHistory"></div>
 
 </body>
 </html>
