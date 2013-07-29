@@ -25,5 +25,5 @@ public class TimeOutException extends AgentException
   private static final long serialVersionUID = 1L;
 
   public TimeOutException() { super(); }
-  public TimeOutException(String msg) { super(msg); }
+  public TimeOutException(String msg) { super((String) msg); }
 }

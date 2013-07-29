@@ -31,7 +31,7 @@ public class NoSuchActionException extends AgentException
 
   public NoSuchActionException(String s)
   {
-    super(s);
+    super((String) s);
   }
 
   public NoSuchActionException(String s, Throwable throwable)
@@ -41,6 +41,6 @@ public class NoSuchActionException extends AgentException
 
   public NoSuchActionException(Throwable throwable)
   {
-    super(throwable);
+    super((Throwable) throwable);
   }
 }

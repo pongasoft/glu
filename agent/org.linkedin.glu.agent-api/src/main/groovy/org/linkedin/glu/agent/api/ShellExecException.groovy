@@ -30,9 +30,14 @@ public class ShellExecException extends ScriptException
   {
   }
 
-  ShellExecException(s)
+  ShellExecException(String s)
   {
-    super(s)
+    super((String) s)
+  }
+
+  ShellExecException(Throwable throwable)
+  {
+    super((Throwable) throwable)
   }
 
   ShellExecException(s, throwable)

@@ -659,7 +659,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
     catch(TimeoutException e)
     {
       // adapting timeout exception...
-      def toex = new TimeOutException(e.message)
+      def toex = new TimeOutException((String) e.message)
       toex.initCause(e)
       throw toex
     }
