@@ -135,7 +135,7 @@ ${'/' * 20}"""
     if(metaModelVersion != GluMetaModelImpl.META_MODEL_VERSION)
       throw new IllegalArgumentException("unsupported meta model version ${metaModelVersion}")
 
-    gluMetaModel.gluVersion = jsonModel.gluVersion
+    gluMetaModel.gluVersion = jsonModel.gluVersion ?: System.getProperty('glu.version')
 
     // agents
     jsonModel.agents?.each { deserializeAgent(it) }

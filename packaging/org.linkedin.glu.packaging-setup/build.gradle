@@ -25,4 +25,7 @@ cmdline {
   folders = []
   resources << packageIncludes
   noPackageInstallTask = true
+  replacementTokens = [
+    'glu.version': project.version,
+  ]
 }

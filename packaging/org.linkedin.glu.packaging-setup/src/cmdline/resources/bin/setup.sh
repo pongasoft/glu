@@ -19,6 +19,7 @@
 # locations
 CURRDIR=`pwd`
 BASEDIR=`cd $(dirname $0)/.. ; pwd`
+GLU_VERSION=@glu.version@
 
 cd $BASEDIR
 
@@ -45,4 +46,4 @@ JVM_LOG4J="-Dlog4j.configuration=file:$BASEDIR/conf/log4j.xml -Djava.util.loggin
 JVM_DEBUG=
 #JVM_DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
 
-java $JVM_LOG4J $JVM_DEBUG $JVM_CLASSPATH -Duser.pwd=$CURRDIR org.pongasoft.glu.packaging.setup.SetupMain "$@"
+java $JVM_LOG4J $JVM_DEBUG $JVM_CLASSPATH -Duser.pwd=$CURRDIR -Dglu.version=$GLU_VERSION org.pongasoft.glu.packaging.setup.SetupMain "$@"

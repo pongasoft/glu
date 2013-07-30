@@ -115,10 +115,10 @@ public abstract class BasePackagerTest extends GroovyTestCase
   protected void setUp() throws Exception
   {
     super.setUp()
+    System.setProperty('glu.version', GLU_VERSION)
     GluMetaModelBuilder builder = new GluMetaModelBuilder()
     builder.deserializeFromJsonGroovyDsl(rootShell.replaceTokens(testModelFile.text,
                                                                  [
-                                                                   'glu.version': GLU_VERSION,
                                                                    'zookeeper.version': ZOOKEEPER_VERSION
                                                                  ]))
     testModel = builder.toGluMetaModel()
