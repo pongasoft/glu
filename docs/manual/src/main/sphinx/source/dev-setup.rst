@@ -52,10 +52,7 @@ Directory structure
   REST client (which talks to the resources) (used in both agent-cli and console-webapp)
 
 * ``agent/org.linkedin.glu.agent-cli``:
-  The command line which can talk to the agent directly::
-
-        ../../gradlew package // to create the package
-        ../../gradlew package-install // to install locally (for dev)
+  The command line which can talk to the agent directly.
 
 * ``agent/org.linkedin.glu.agent-cli-impl``:
   Contains the implementation of the agent cli
@@ -67,22 +64,10 @@ Directory structure
   Contains the implementation of the agent server cli.
 
 * ``agent/org.linkedin.glu.agent-server-upgrade``:
-  Create the upgrade package (to be used when uprading an already installed agent)::
-
-        ../../gradlew package // create the upgrade package
+  Create the upgrade package (to be used when uprading an already installed agent).
 
 * ``agent/org.linkedin.glu.agent-server``:
-  The actual server::
-
-        ../../gradlew package // create the package
-
-        ../../gradlew package-install // to install locally (for dev)
-        ../../gradlew setup // setup dev fabric and keys in zookeeper (used in conjunction with gradle install)
-
-        ../../gradlew setup-x-y // setup x agents in y fabrics: automatically setup zookeeper with the right set of
-                                // data and create x agents package with a wrapper shell script to start them all
-
-        ../../gradlew clean-setup // to delete the setup
+  The actual server.
 
 * ``console/org.linkedin.glu.console-webapp``:
   The console webapp (grails application)::
@@ -92,16 +77,10 @@ Directory structure
                               // libraries in lib to boot the app
 
 * ``console/org.linkedin.glu.console-cli``:
-  The cli for the console (written in python) to use the REST api of the console::
-
-        ../../gradlew package // create the package
-        ../../gradlew package-install // to install locally (for dev)
+  The cli for the console (written in python) to use the REST api of the console.
 
 * ``console/org.linkedin.glu.console-server``:
-  The ``console/org.linkedin.glu.console-webapp`` project generates the war (or is used in dev through grails). This project creates a ready to run console embedding jetty::
-
-        ../../gradlew package // create the package
-        ../../gradlew package-install // to install locally (for dev)
+  The ``console/org.linkedin.glu.console-webapp`` project generates the war (or is used in dev through grails). This project creates a ready to run console embedding jetty.
 
 * ``docs/manual``:
   The manual/documentation. To build simply issue::
@@ -121,6 +100,13 @@ Directory structure
 
         ../../gradlew package // create the package
         ../../gradlew package-install // to install locally (for dev)
+
+        ../../gradlew dev-setup     // generate a distribution with 1 agent in 1 fabric
+                                    // shell script (devsetupctl.sh) allows to start/stop
+        ../../gradlew dev-setup-x-y // generate a distribution with x agents in y fabrics
+                                    // shell script (devsetupctl.sh) allows to start/stop
+
+        ../../gradlew clean-dev-setup // to delete the setup
 
 * ``packaging/org.linkedin.glu.packaging-setup``:
   Creates a package with convenient shell scripts to setup the keys and agent in ZooKeeper::

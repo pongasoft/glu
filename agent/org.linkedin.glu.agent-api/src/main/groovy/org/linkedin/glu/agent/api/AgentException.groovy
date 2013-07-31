@@ -32,7 +32,6 @@ public class AgentException extends Exception
   public AgentException(String s)
   {
     super((String) s);
-    println "called string ${s}"
   }
 
   public AgentException(String s, Throwable throwable)
@@ -43,7 +42,5 @@ public class AgentException extends Exception
   public AgentException(Throwable throwable)
   {
     super((Throwable) throwable);
-    println "called throwable ${throwable}"
-
   }
 }
