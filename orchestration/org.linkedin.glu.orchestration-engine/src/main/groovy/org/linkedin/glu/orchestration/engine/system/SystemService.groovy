@@ -42,6 +42,12 @@ public interface SystemService
   SystemModel parseSystemModel(def source)
 
   /**
+   * The source can be a <code>URI</code> or a <code>String</code> or an <code>InputStream</code>
+   * @return the model
+   */
+  SystemModel parseSystemModel(def source, String filename)
+
+  /**
    * Saves the new model as the current system. This method has a side effect in the sense that
    * the id of the provided system will be set (computed) if not set.
    *

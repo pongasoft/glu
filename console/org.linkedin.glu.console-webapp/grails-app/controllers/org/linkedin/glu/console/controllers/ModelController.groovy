@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +16,9 @@
  */
 
 package org.linkedin.glu.console.controllers
+
+import org.linkedin.glu.provisioner.core.model.builder.ModelBuilderParseException
+import org.linkedin.groovy.util.net.GroovyNetUtils
 
 import javax.servlet.http.HttpServletResponse
 
@@ -141,6 +144,11 @@ public class ModelController extends ControllerBase
         redirect(controller: 'dashboard')
       }
     }
+    catch(ModelBuilderParseException e)
+    {
+      render(view: 'choose', model: [syntaxError: e])
+      return
+    }
     catch(Throwable th)
     {
       flashException(th)
@@ -154,17 +162,21 @@ public class ModelController extends ControllerBase
   private def saveCurrentSystem()
   {
     def source
+    def filename
 
     if(params.jsonUri)
     {
       source = new URI(params.jsonUri)
+      filename = GroovyNetUtils.guessFilename(source)
     }
     else
     {
-      source = request.getFile('jsonFile').inputStream
+      def multiPartFile = request.getFile('jsonFile')
+      source = multiPartFile.inputStream
+      filename = multiPartFile.originalFilename
     }
 
-    SystemModel model = systemService.parseSystemModel(source)
+    SystemModel model = systemService.parseSystemModel(source, filename)
 
     return saveCurrentSystem(model)
   }
@@ -197,17 +209,36 @@ public class ModelController extends ControllerBase
     try
     {
       def source
-      
+      def filename
+
       if(params.modelUrl)
       {
         source = new URI(params.modelUrl)
+        filename = GroovyNetUtils.guessFilename(source)
       }
       else
       {
         source = request.inputStream
+        switch(request.contentType)
+        {
+          case 'text/json':
+            filename = '<inputStream>.json'
+            break
+
+          case 'text/json+groovy':
+            filename = '<inputStream>.json.groovy'
+            break
+
+          default:
+            filename = null
+            break
+        }
+
+        if(params.filename)
+          filename = params.filename
       }
 
-      SystemModel model = systemService.parseSystemModel(source)
+      SystemModel model = systemService.parseSystemModel(source, filename)
 
       def res = saveCurrentSystem(model)
 
@@ -226,6 +257,10 @@ public class ModelController extends ControllerBase
       }
       else
         response.sendError HttpServletResponse.SC_NOT_FOUND
+    }
+    catch(ModelBuilderParseException e)
+    {
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "${e.message}\n${e.excerpt}")
     }
     catch(Throwable th)
     {

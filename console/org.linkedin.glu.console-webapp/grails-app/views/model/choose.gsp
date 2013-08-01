@@ -28,6 +28,14 @@
     <li class="active"><a href="#">Load</a></li>
   </ul>
 
+  <g:if test="${syntaxError}">
+    <div id="syntaxError" class="syntax-error alert alert-error fade in" >
+      <h4>${syntaxError.message}</h4>
+<pre>
+${syntaxError.excerpt}
+</pre>
+    </div>
+  </g:if>
   <div class="row">
     <div class="span12">
       <g:form action="upload" method="post" enctype="multipart/form-data">

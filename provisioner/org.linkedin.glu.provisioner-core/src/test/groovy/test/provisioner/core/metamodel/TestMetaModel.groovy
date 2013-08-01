@@ -42,24 +42,26 @@ public class TestMetaModel extends GroovyTestCase
 {
   "agentCli": {
     "configTokens": {
-    }
+    },
+    "version": "g.v.0"
   },
   "agents": [
   ],
   "consoleCli": {
     "configTokens": {
-    }
+    },
+    "version": "g.v.0"
   },
   "consoles": [
   ],
   "fabrics": {
   },
+  "gluVersion": "g.v.0",
   "metaModelVersion": "1.0.0",
   "zooKeeperClusters": [
   ],
   "zooKeeperRoot": "/org/glu"
-}
-"""
+}"""
 
     checkJson(model, expectedModel)
   }
@@ -150,7 +152,7 @@ public class TestMetaModel extends GroovyTestCase
   "agentCli": {
     "configTokens": {
     },
-    "version": "@glu.version@"
+    "version": "g.v.0"
   },
   "agents": [
     {
@@ -163,13 +165,13 @@ public class TestMetaModel extends GroovyTestCase
       "ports": {
         "configPort": 12907
       },
-      "version": "@glu.version@"
+      "version": "g.v.0"
     }
   ],
   "consoleCli": {
     "configTokens": {
     },
-    "version": "@glu.version@"
+    "version": "g.v.0"
   },
   "consoles": [
     {
@@ -191,7 +193,7 @@ public class TestMetaModel extends GroovyTestCase
       "ports": {
         "externalPort": 8080
       },
-      "version": "@glu.version@"
+      "version": "g.v.0"
     }
   ],
   "fabrics": {
@@ -225,7 +227,7 @@ public class TestMetaModel extends GroovyTestCase
       "zooKeeperCluster": "tutorialZooKeeperCluster"
     }
   },
-  "gluVersion": "@glu.version@",
+  "gluVersion": "g.v.0",
   "metaModelVersion": "1.0.0",
   "zooKeeperClusters": [
     {
@@ -641,7 +643,7 @@ public class TestMetaModel extends GroovyTestCase
 
   private GluMetaModel checkJson(Resource model, String expectedModel)
   {
-    JsonMetaModelSerializerImpl serializer = new JsonMetaModelSerializerImpl()
+    JsonMetaModelSerializerImpl serializer = new JsonMetaModelSerializerImpl(gluVersion: 'g.v.0')
     def metaModel = serializer.deserialize([model])
     assertEquals((expectedModel ?: model.file.text).trim(), serializer.serialize(metaModel, true))
     return metaModel

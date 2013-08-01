@@ -1410,7 +1410,7 @@ Load static model
   Body can be of 2 types depending on the ``Content-Type`` header:
 
   1. ``application/x-www-form-urlencoded`` then body should contain ``modelUrl=xxx`` with the url pointing to the model (the console will 'download' it)
-  2. ``text/json`` then body should be the model itself (`example <https://gist.github.com/755981>`_)
+  2. ``text/json`` or ``text/json+groovy`` then body should be the model itself (`example <https://gist.github.com/755981>`_)
 
 * Response:
 
@@ -1418,6 +1418,28 @@ Load static model
   * ``204`` (``NO_CONTENT``) if model was loaded successfully and is equal to the previous one
   * ``400`` (``BAD_REQUEST``) if the model is not valid (should be a properly json formatted document)
   * ``404`` (``NOT_FOUND``) when error (note error handling needs to be revisited)
+
+* Example::
+
+    # 1. using modelUrl
+    curl -v -u "glua:password" --data "modelUrl=file%3A%2FUsers%2Fypujante%2Fgithub%2Forg.pongasoft%2Fglu%2Fconsole%2Forg.linkedin.glu.console-server%2Fsrc%2Fcmdline%2Fresources%2Fglu%2Frepository%2Fsystems%2Fhello-world-system.json" http://localhost:8080/console/rest/v1/glu-dev-1/model/static
+    > POST /console/rest/v1/glu-dev-1/model/static HTTP/1.1
+    > Content-Type: application/x-www-form-urlencoded
+    > ...
+    >
+    < HTTP/1.1 201 Created
+    < ...
+    id=facc4ef65539a5c558436f034b5e63e5ba1fd0ef
+
+    # 2. using input stream
+    curl -v -u "glua:password" -H "Content-Type: text/json" --data-binary @ /Users/ypujante/github/org.pongasoft/glu/console/org.linkedin.glu.console-server/src/cmdline/resources/glu/repository/systems/hello-world-system.json http://localhost:8080/console/rest/v1/glu-dev-1/model/static
+    > POST /console/rest/v1/glu-dev-1/model/static HTTP/1.1
+    > Content-Type: text/json
+    > ...
+    >
+    < HTTP/1.1 201 Created
+    < ...
+    id=facc4ef65539a5c558436f034b5e63e5ba1fd0ef
 
 .. _goe-rest-api-get-model-static:
 

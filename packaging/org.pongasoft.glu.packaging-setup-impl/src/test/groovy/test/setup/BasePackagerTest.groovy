@@ -121,7 +121,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
                                                                  [
                                                                    'zookeeper.version': ZOOKEEPER_VERSION
                                                                  ]))
-    testModel = builder.toGluMetaModel()
+    testModel = builder.toModel()
   }
 
   protected GluMetaModel toGluMetaModel(String gluMetaModelString)
@@ -130,7 +130,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
 
     builder.deserializeFromJsonGroovyDsl(gluMetaModelString)
 
-    return builder.toGluMetaModel()
+    return builder.toModel()
   }
 
   protected File getTestModelFile()
