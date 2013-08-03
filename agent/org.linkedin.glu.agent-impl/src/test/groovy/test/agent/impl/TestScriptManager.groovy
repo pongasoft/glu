@@ -26,6 +26,7 @@ import org.linkedin.glu.agent.api.NoSuchMountPointException
 import org.linkedin.glu.agent.impl.capabilities.MOPImpl
 import org.linkedin.glu.agent.impl.script.AgentContext
 import org.linkedin.glu.agent.impl.script.AgentContextImpl
+import org.linkedin.glu.agent.impl.script.NoSharedClassLoaderScriptLoader
 import org.linkedin.glu.agent.impl.script.ScriptManagerImpl
 import org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory
 import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
@@ -84,11 +85,14 @@ def class TestScriptManager extends GroovyTestCase
 
     def rootShell = new ShellImpl(fileSystem: new FileSystemImpl(new File("/")))
 
+    def scriptLoader = new NoSharedClassLoaderScriptLoader()
+
     def agentContext = [
       getShellForScripts: {shell},
       getRootShell: { rootShell },
       getMop: {new MOPImpl()},
-      getClock: { SystemClock.instance() }
+      getClock: { SystemClock.instance() },
+      getScriptLoader: { scriptLoader }
     ] as AgentContext
 
     sm = new ScriptManagerImpl(agentContext: agentContext)

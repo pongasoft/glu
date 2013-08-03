@@ -24,6 +24,9 @@ import org.linkedin.glu.agent.api.Agent
 import org.linkedin.glu.agent.api.Shell
 import org.linkedin.glu.agent.impl.AgentImpl
 import org.linkedin.glu.agent.impl.capabilities.ShellImpl
+import org.linkedin.glu.agent.impl.script.NoSharedClassLoaderScriptLoader
+import org.linkedin.glu.agent.impl.script.ScriptLoader
+import org.linkedin.glu.agent.impl.script.SharedClassLoaderScriptLoader
 import org.linkedin.glu.agent.impl.storage.DualWriteStorage
 import org.linkedin.glu.agent.impl.storage.FileSystemStorage
 import org.linkedin.glu.agent.impl.storage.Storage
@@ -463,6 +466,7 @@ class AgentMain implements LifecycleListener, Configurable
       new AgentContextImpl(shellForScripts: createShell(rootShell, "${prefix}.agent.scriptRootDir"),
                            shellForCommands: rootShell,
                            rootShell: rootShell,
+                           scriptLoader: createScriptLoader(),
                            mop: new MOPImpl())
 
     _storage = createStorage()
@@ -649,6 +653,26 @@ class AgentMain implements LifecycleListener, Configurable
       rootShell.fileSystem.newFileSystem(GroovyIOUtils.toFile(Config.getRequiredString(_config,
                                                                                        root)))
     return rootShell.newShell(fs)
+  }
+
+  protected ScriptLoader createScriptLoader()
+  {
+    def useSharedClassLoader =
+      Config.getOptionalBoolean(_config, "${prefix}.agent.scripts.sharedClassLoader", false)
+
+    ScriptLoader res
+
+    if(useSharedClassLoader)
+    {
+      res = new SharedClassLoaderScriptLoader()
+      log.info "Using shared class loader for loading scripts."
+    }
+    else
+    {
+      res = new NoSharedClassLoaderScriptLoader()
+    }
+
+    return res
   }
 
   protected ShellImpl createRootShell()

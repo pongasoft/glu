@@ -39,4 +39,9 @@ def class ScriptConfig
     agentContext = args.agentContext
     shell = args.shell
   }
+
+  ScriptLoader getScriptLoader()
+  {
+    agentContext.scriptLoader
+  }
 }

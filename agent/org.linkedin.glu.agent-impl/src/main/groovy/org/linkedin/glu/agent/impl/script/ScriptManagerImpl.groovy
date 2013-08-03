@@ -23,7 +23,7 @@ import org.linkedin.glu.agent.api.DuplicateMountPointException
 import org.linkedin.glu.agent.api.NoSuchMountPointException
 import org.linkedin.glu.agent.api.ScriptException
 import org.linkedin.glu.agent.api.Agent
-
+import org.linkedin.groovy.util.lang.GroovyLangUtils
 import org.slf4j.Logger
 
 import org.linkedin.glu.agent.api.ScriptIllegalStateException
@@ -323,7 +323,9 @@ def class ScriptManagerImpl implements ScriptManager
         findScript(node.parentMountPoint).removeChild(node)
 
         // we clean up the temp space
-        node.shell.rmdirs(node.shell.fileSystem.tmpRoot)
+        GroovyLangUtils.noException {
+          node.shell.rmdirs(node.shell.fileSystem.tmpRoot)
+        }
 
         def scriptConfig = new ScriptConfig(shell: node.shell,
                                             agentContext: agentContext)

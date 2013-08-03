@@ -50,7 +50,7 @@ public class PlanController extends ControllerBase
   def static DEFAULT_PLANS = [
     [planAction: "deploy", planType: "deploy"],
     [planAction: "bounce", planType: "bounce"],
-    [planAction: "bounce", planType: "redeploy"],
+    [planAction: "redeploy", planType: "redeploy"],
     [planAction: "undeploy", planType: "undeploy"],
     [
       planAction: "reconfigure",
@@ -480,6 +480,8 @@ public class PlanController extends ControllerBase
         ['state', 'states', 'expectedEntryStates', 'currentEntryStates'].each { p ->
           args[p] = params[p] ?: planDefinition[p]
         }
+
+        args = args.findAll { k, v -> v != null }
 
         return args
       }
