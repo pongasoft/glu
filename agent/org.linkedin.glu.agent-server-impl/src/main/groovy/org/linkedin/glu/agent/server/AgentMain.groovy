@@ -66,7 +66,6 @@ import org.linkedin.groovy.util.log.JulToSLF4jBridge
 import org.linkedin.glu.agent.rest.resources.TagsResource
 import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.glu.agent.impl.storage.TagsStorage
-import org.linkedin.glu.agent.impl.storage.WriteOnlyStorage
 import org.linkedin.util.lifecycle.Configurable
 import org.linkedin.glu.agent.rest.resources.AgentConfigResource
 import org.linkedin.glu.agent.rest.resources.CommandsResource
@@ -133,6 +132,7 @@ class AgentMain implements LifecycleListener, Configurable
   protected AgentContextImpl _agentContext
   protected def _restServer
   protected DualWriteStorage _dwStorage = null
+  protected ZooKeeperStorage _zkStorage = null
   protected Storage _storage = null
 
   protected final Object _lock = new Object()
@@ -476,11 +476,7 @@ class AgentMain implements LifecycleListener, Configurable
       scriptManager = new StateKeeperScriptManager(scriptManager: scriptManager,
                                                    storage: _storage)
 
-
-    _zkClient?.registerListener(this)
-
     TagsStorage tagsStorage = new TagsStorage(_storage, "${prefix}.agent.tags".toString())
-
 
     def agentArgs =
     [
@@ -501,6 +497,9 @@ class AgentMain implements LifecycleListener, Configurable
 
     startRestServer()
 
+    // we register the listener only after the rest api is opened
+    _zkClient?.registerListener(this)
+
     if(withTerminationHandler)
       registerTerminationHandler()
 
@@ -519,8 +518,11 @@ class AgentMain implements LifecycleListener, Configurable
 
     synchronized(_lock) {
       _receivedShutdown = true
-      _lock.notify()
+      _lock.notifyAll()
     }
+
+    // first thing is to delete the ephemeral node
+    _zkStorage?.clearAgentProperties()
 
     // first we make sure that no calls can come in and that all pending calls have
     // gone through
@@ -752,11 +754,11 @@ class AgentMain implements LifecycleListener, Configurable
     if(invalidStates)
       log.warn("cleaned up invalid states [${invalidStates.size()}]")
 
-    WriteOnlyStorage zkStorage = createZooKeeperStorage()
+    _zkStorage = createZooKeeperStorage()
 
-    if(zkStorage)
+    if(_zkStorage)
     {
-      _dwStorage = new DualWriteStorage(storage, zkStorage)
+      _dwStorage = new DualWriteStorage(storage, _zkStorage)
       storage = _dwStorage
     }
 
@@ -803,6 +805,7 @@ class AgentMain implements LifecycleListener, Configurable
   public void onConnected()
   {
     _zkSync()
+    log.info "Connected to ZooKeeper."
   }
 
   private _zkSync = {

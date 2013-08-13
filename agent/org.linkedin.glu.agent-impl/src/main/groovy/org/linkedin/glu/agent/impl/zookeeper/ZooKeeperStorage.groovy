@@ -186,6 +186,16 @@ class ZooKeeperStorage implements WriteOnlyStorage
     return agentProperties
   }
 
+  void clearAgentProperties()
+  {
+    if(log.isDebugEnabled())
+      log.debug "Deleting agent ephemeral node"
+
+    zkSafe(_zkAgentProperties) { IZKClient zk ->
+      zk.delete('/')
+    }
+  }
+
   @Override
   AgentProperties updateAgentProperty(String name, String value)
   {

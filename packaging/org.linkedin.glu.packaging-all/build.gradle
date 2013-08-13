@@ -343,6 +343,14 @@ tail()
   exec tail -f \$GLU_SETUP_DIST_DIR/zookeeper-clusters/*/*/logs/zookeeper.log \$GLU_SETUP_DIST_DIR/consoles/*/jetty-*/logs/console.log \$GLU_SETUP_DIST_DIR/agents/*/data/logs/org.linkedin.glu.agent-server.out
 }
 
+usage()
+{
+  echo ""
+  echo "   Usage:  devsetupctl.sh start|stop|tail|tail-all|start-agents|stop-agents|start-zookeepers|stop-zookeepers|start-consoles|stop-consoles"
+  echo ""
+  exit 0
+}
+
 setup
 
 # correct the index so the command argument is always \$1
@@ -515,6 +523,7 @@ private boolean getOptionalBooleanProperty(String propertyName,
     case 'true':
     case 'yes':
     case 'on':
+    case '':
       return true
 
     case 'false':
