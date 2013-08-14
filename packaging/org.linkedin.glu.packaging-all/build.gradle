@@ -465,8 +465,8 @@ zooKeeperClusters << [
     metaModel << """
 fabrics['${fabric}'] = [
   keys: keys,
-  ${!project.noConsoleServer ? "console: 'devSetupConsole',": ''}
-  ${!project.noZooKeeper ? "zooKeeperCluster: 'devSetupZooKeeperCluster',": ''}
+${project.noConsoleServer ? '//' : ''}  console: 'devSetupConsole',
+${project.noZooKeeper ? '//' : ''}  zooKeeperCluster: 'devSetupZooKeeperCluster',
 ]
 """
   }
@@ -481,7 +481,7 @@ agents << [
   name: '${name}',
   host: 'localhost',
   port: ${basePort},
-  fabric: '${fabric}',
+${project.noZooKeeper ? '//' : ''}  fabric: '${fabric}',
   configTokens: [
     GLU_AGENT_APPS: '\$GLU_AGENT_HOME/apps'
   ]
