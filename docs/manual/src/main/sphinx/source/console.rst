@@ -374,6 +374,21 @@ When running deployments in parallel, there is, by default, no limitation on how
       ]
    ],
 
+.. _console-configuration-session-timeout:
+
+Session timeout
+"""""""""""""""
+
+You can change the session timeout by defining the following property (and as the name of the property implies, you need to provide the value in minutes)::
+
+   consoles << [
+      name: 'myConsole',
+      ...,
+      configTokens: [
+        sessionTimeoutInMinutes: 60 // 1 hour
+      ]
+   ],
+
 Plan
 ^^^^
 

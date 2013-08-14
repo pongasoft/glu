@@ -481,12 +481,22 @@ The agent uses the configuration mechanisms offered by the :ref:`meta model <met
 Configuration properties
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The following properties can be set in the meta model this way::
+The properties defined with an environment variable can be set in the meta model this way::
 
    agents << [
       ...,
       configTokens: [
-        JVM_SIZE: '-Xmx128m',
+        'JVM_SIZE': '-Xmx128m',
+        ... etc ...
+      ]
+   ],
+
+The properties defined with a java property (only) variable can be set in the meta model this way (simply remove ``glu.agent`` from the name of the property) (check the `template <https://github.com/pongasoft/glu/blob/master/packaging/org.linkedin.glu.packaging-setup/src/cmdline/resources/config-templates/agent-server/@agentMetaModel.version@/conf/agentConfig.properties.gtmpl>`_)::
+
+   agents << [
+      ...,
+      configTokens: [
+        'scripts.sharedClassLoader': true,
         ... etc ...
       ]
    ],
@@ -690,6 +700,9 @@ The following properties can be set in the meta model this way::
 |NA                  |NA                            |``glu.agent.commands.storageType``     |``filesystem`` (only supported value right now)                                            |type of storage for commands    |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 |NA                  |NA                            |``glu.agent.commands.filesystem.dir``  |``${glu.agent.dataDir}/commands``                                                          |root dir for commands storage   |
++--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
+|NA                  |NA                            |``glu.agent.scripts.sharedClassLoader``|``false``                                                                                  |use shared class loader for     |
+|                    |                              |                                       |                                                                                           |scripts                         |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 
 .. tip:: 

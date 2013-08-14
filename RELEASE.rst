@@ -1,6 +1,35 @@
 Release Notes
 =============
 
+5.2.0 (2013/08/14)
+------------------
+
+This release contains a few bug fixes and enhancements.
+
+New and noteworthy:
+^^^^^^^^^^^^^^^^^^^
+* you can configure the agent outside the (upgrade) tarball (although since 5.1.0 this is less useful): ``$AGENT_ROOT/conf/pre_master_conf.sh`` and ``$AGENT_ROOT/conf/post_master_conf.sh``
+* you can change the :ref:`session timeout <console-configuration-session-timeout>` in the console
+* you can use a :ref:`json groovy dsl <static-model-json-groovy-dsl>` for the system model (check the `repository <https://github.com/pongasoft/glu/tree/master/console/org.linkedin.glu.console-server/src/cmdline/resources/glu/repository/systems>`_ for examples on how to use the dsl).
+* you can configure the agent with a shared class loader to minimize memory footprint
+* the agent is now properly registered in ZooKeeper **after** opening the rest api
+
+Tickets:
+^^^^^^^^^
+* Implemented `glu-215 <https://github.com/pongasoft/glu/issues/215>`_: `Add ability to configure agent outside the "tarball"`
+* Fixed `glu-220 <https://github.com/pongasoft/glu/issues/220>`_: `java.lang.IllegalArgumentException: not a boolean : [:]`
+* Fixed `glu-222 <https://github.com/pongasoft/glu/issues/222>`_: `Only Admin users can tail Commands output`
+* Fixed `glu-224 <https://github.com/pongasoft/glu/issues/224>`_: `StringIndexOutOfBoundsException when listing models`
+* Implemented `glu-225 <https://github.com/pongasoft/glu/issues/225>`_: `Allow to configure session timeout in console`
+* Fixed `glu-227 <https://github.com/pongasoft/glu/issues/227>`_: `Glu Console Fabric menu is too large for users' screen resolution`
+* Implemented `glu-228 <https://github.com/pongasoft/glu/issues/228>`_: `Reconfigure Plan`
+* Merged `glu-230 <https://github.com/pongasoft/glu/issues/230>`_: `Add 'agents' command to the console-cli tool` (Thank you sodul)
+* Fixed `glu-232 <https://github.com/pongasoft/glu/issues/232>`_: `High overhead for each mountpoint on agent`
+* Fixed `glu-235 <https://github.com/pongasoft/glu/issues/235>`_: `in agent => java.lang.IllegalStateException: Can't overwrite cause`
+* Fixed `glu-236 <https://github.com/pongasoft/glu/issues/236>`_: `gradle setup no longer working in agent-server`
+* Fixed `glu-237 <https://github.com/pongasoft/glu/issues/237>`_: `Agent is "up" before being accessible via rest`
+* Implemented `glu-238 <https://github.com/pongasoft/glu/issues/238>`_: `Add json groovy dsl for static model`
+
 5.1.0 (2013/07/20)
 ------------------
 

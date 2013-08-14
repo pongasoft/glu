@@ -15,6 +15,12 @@
 Migration Guide
 ===============
 
+.. _migration-guide-5.1.0-5.2.0:
+
+5.1.0 -> 5.2.0
+--------------
+No specific migration steps.
+
 .. _migration-guide-5.0.0-5.1.0:
 
 5.0.0 -> 5.1.0
@@ -91,3 +97,45 @@ This will create a familiar folder (``$GLU_HOME/pre-510``) with the same distrib
 Start from scratch
 ^^^^^^^^^^^^^^^^^^
 If your glu setup is fairly small, it may just be easier to start from scratch, generate a new set of keys and follow the instructions for :doc:`easy-production-setup`.
+
+.. _migration-guide-4.7.2-5.0.0:
+
+4.7.2 -> 5.0.0
+--------------
+The only migration step required for this upgrade is to make sure that you are using java 1.7.
+
+.. warning::
+   In order to migrate to 5.0.0 from an earlier version you should **first** upgrade to ``4.7.2``!
+
+.. _migration-guide-4.7.1-4.7.2:
+
+
+4.7.1 -> 4.7.2
+--------------
+No specific migration steps.
+
+.. note::
+   Once you have upgraded to ``4.7.2`` using jdk1.6, you should now be able to change java to 1.7 and restart all your components. This is a prerequisite to migrate to 5.0.0!
+
+.. _migration-guide-4.6.2-4.7.1:
+
+4.6.2 -> 4.7.1
+--------------
+.. warning::
+   ``4.7.0`` contains a critical bug and should not be used. It is also recommended to use ``4.7.2`` instead of ``4.7.1`` if you are upgrading from an earlier version.
+
+This release contains a major upgrade of all the libraries used by glu. The purpose of this release is to allow glu to finally be able to run under any java VM including java 1.7 (as java 1.6 is now no longer supported by Oracle). Here are the requirements in terms of VM version(s):
+
++----------------+-----------------------------------+
+|glu version     |java version(s)                    |
++================+===================================+
+| 5.0.0+         |java 1.7                           |
++----------------+-----------------------------------+
+| 4.7.x          |java 1.6 (any VM) or java 1.7      |
++----------------+-----------------------------------+
+| 4.6.x and below|java 1.6 (with Sun/Oracle VM only!)|
++----------------+-----------------------------------+
+
+.. note:: One notable change is the use of the latest version of ZooKeeper (3.4.5). Although the ZooKeeper servers do not need to be upgraded (backward compatible), it is advised to upgrade them and you should follow the procedure described on the ZooKeeper web site.
+
+Besides (optionally) upgrading the ZooKeeper servers, there are no specific migration steps for this release.
