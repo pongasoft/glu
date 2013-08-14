@@ -39,7 +39,7 @@ allRepositories.build = {
 
   mavenRepo name: 'restlet', url: "http://maven.restlet.org"
 
-  bintray.jcenter()
+  jcenter()
 }
 
 /**

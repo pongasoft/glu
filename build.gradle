@@ -44,7 +44,7 @@ buildscript {
  }
 
   dependencies {
-    classpath 'org.pongasoft:org.linkedin.gradle-plugins:2.2.3'
+    classpath 'org.pongasoft:org.linkedin.gradle-plugins:2.2.4'
   }
 }
 
@@ -132,6 +132,6 @@ task clean(type: Delete) {
   delete topBuildDir
 }
 
-task wrapper(type: Wrapper) {
-  gradleVersion = '1.6'
+wrapper {
+  gradleVersion = '1.7'
 }
