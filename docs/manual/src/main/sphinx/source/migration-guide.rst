@@ -21,6 +21,8 @@ Migration Guide
 --------------
 No specific migration steps.
 
+If you are compiling glu, please refer to the :doc:`dev-setup` page as the quick setup guide has changed.
+
 .. _migration-guide-5.0.0-5.1.0:
 
 5.0.0 -> 5.1.0

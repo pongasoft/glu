@@ -214,6 +214,17 @@ tasks.addRule("Pattern: dev-setup-<agentCount>-<fabricCount>") { String taskName
  * Cleans what was setup
  ***************************************************************/
 task 'clean-dev-setup' << {
+  def devSetupCtlFile = new File(devSetupDir, "bin/devsetupctl.sh")
+  def distFolder = new File(devSetupDir, "dists")
+
+  if(devSetupCtlFile.exists() && distFolder.exists())
+  {
+    logger.lifecycle("Stopping previous setup")
+    exec {
+      commandLine devSetupCtlFile.canonicalPath, "stop"
+    }
+  }
+
   delete devSetupDir
   logger.lifecycle("Deleted ${devSetupDir}")
 }
