@@ -166,13 +166,21 @@ done
 init
 
 # Check to make sure we have the correct version of Java.
-JAVA_VER=$("$JAVA_HOME/bin/java" -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
-if [ "$JAVA_VER" -ge 16 ]; then
-	echo "### Suitable JVM found under $JAVA_HOME"
-	$JAVA_HOME/bin/java -version
-else
-	echo "### Java @ $JAVA_HOME too old."
-	exit 1;
+if [ -z "$JAVA_CMD" ]; then
+  if [ -f $JAVA_HOME/bin/java ]; then
+    JAVA_CMD=$JAVA_HOME/bin/java
+  else
+    JAVA_CMD=java
+  fi
+fi
+
+JAVA_VER=$("$JAVA_CMD" -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
+if [ "$JAVA_VER" -lt 17 ]; then
+	echo "### ERROR START ###########"
+	echo "### Java @ $JAVA_CMD too old (required java 1.7)"
+	$JAVA_CMD -version
+	echo "### ERROR END   ###########"
+  exit 1;
 fi
 
 # correct the index so the command argument is always $1
