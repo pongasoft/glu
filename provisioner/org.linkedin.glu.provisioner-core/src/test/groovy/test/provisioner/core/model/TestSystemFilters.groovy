@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,9 +17,14 @@
 
 package test.provisioner.core.model
 
+import org.linkedin.glu.provisioner.core.model.FlattenSystemFilter
+import org.linkedin.glu.provisioner.core.model.PropertySystemFilter
+import org.linkedin.glu.provisioner.core.model.SystemEntryKeyModelFilter
+import org.linkedin.glu.provisioner.core.model.SystemEntryStateSystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.core.model.SystemFilterBuilder
+import org.linkedin.glu.provisioner.core.model.TagsSystemFilter
 
 /**
  * @author ypujante@linkedin.com */
@@ -140,6 +145,16 @@ class TestSystemFilters extends GroovyTestCase
 
     checkFiltering("tags.hasAny('e:tag3;a:tag1')", "tags.hasAny('a:tag1;e:tag3')", ["h1:/m/1", "h1:/m/2", "h2:/m/1"])
     checkFiltering("tags.hasAny(['e:tag3', 'a:tag1'])", "tags.hasAny('a:tag1;e:tag3')", ["h1:/m/1", "h1:/m/2", "h2:/m/1"])
+  }
+
+  public void testNullSystemEntry()
+  {
+    assertFalse(new PropertySystemFilter(name: 'metadata.foo', value: 'abc').filter(null))
+    assertFalse(new FlattenSystemFilter(name: 'metadata.foo', value: 'abc').filter(null))
+    assertFalse(new SystemEntryKeyModelFilter(keys: ['/a']).filter(null))
+    assertFalse(new SystemEntryStateSystemFilter(states: ['running']).filter(null))
+    assertFalse(new TagsSystemFilter(['osx'], true).filter(null))
+    assertFalse(new TagsSystemFilter(['osx'], false).filter(null))
   }
 
   private checkFiltering(String filterString, String expectedToString, expectedEntries)
