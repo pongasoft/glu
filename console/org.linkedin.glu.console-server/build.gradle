@@ -99,13 +99,6 @@ cmdline {
     replaceTokens: false
   ]
 
-  // jetty archive
-  resources << [
-    from: jettyArchive,
-    into: new File(assemblePackageFile, 'glu/repository/tgzs'),
-    replaceTokens: false
-  ]
-
   // scripts
   scriptProjects.each { scriptProject ->
     scriptProject.tasks.withType(SingleArtifactTask.class).each { t ->
@@ -116,4 +109,11 @@ cmdline {
       ]
     }
   }
+}
+
+project.'package-assemble'.doLast {
+  File basePackage = project.convention.plugins.cmdline.assemblePackageFile
+
+  // getting rid of the unnecessary javadoc that comes with jetty!
+  delete new File(basePackage, "${jettyDistribution}/javadoc")
 }

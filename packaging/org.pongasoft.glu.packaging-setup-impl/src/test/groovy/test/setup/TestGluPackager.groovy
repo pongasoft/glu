@@ -185,6 +185,8 @@ public class TestGluPackager extends BasePackagerTest
             "/${console}/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-${GLU_VERSION}": DIRECTORY,
             "/${console}/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-${GLU_VERSION}/WEB-INF": DIRECTORY,
             "/${console}/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-${GLU_VERSION}/WEB-INF/web.xml": FILE,
+            "/${console}/glu/repository/tgzs": DIRECTORY,
+            "/${console}/glu/repository/tgzs/${jettyDistribution}.tar.gz": FILE,
           ], bulkFailure),
           '/zookeeper-clusters': DIRECTORY,
           "/${zkc}": DIRECTORY,

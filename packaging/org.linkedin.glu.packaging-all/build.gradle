@@ -222,6 +222,7 @@ task 'clean-dev-setup' << {
     logger.lifecycle("Stopping previous setup")
     exec {
       commandLine devSetupCtlFile.canonicalPath, "stop"
+      ignoreExitValue true
     }
   }
 

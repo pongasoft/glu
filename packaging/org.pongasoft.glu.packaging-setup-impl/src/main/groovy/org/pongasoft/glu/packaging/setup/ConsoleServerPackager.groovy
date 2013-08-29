@@ -16,6 +16,7 @@
 
 package org.pongasoft.glu.packaging.setup
 
+import org.linkedin.groovy.util.config.Config
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 
@@ -88,6 +89,12 @@ public class ConsoleServerPackager extends BasePackager
       if(metaModel.gluMetaModel.stateMachine)
         generateStateMachineJarFile(metaModel.gluMetaModel.stateMachine,
                                     packagePath.createRelative('glu/repository/plugins'))
+      if(Config.getOptionalBoolean(configTokens, 'includeJettyDistribution', true))
+      {
+        shell.tar(dir: packagePath.createRelative(jettyDistribution),
+                  tarFile: packagePath.createRelative("glu/repository/tgzs/${jettyDistribution}.tar.gz"),
+                  compression: 'gzip')
+      }
     }
     return new PackagedArtifact(location: packagePath,
                                 host: metaModel.host.resolveHostAddress(),

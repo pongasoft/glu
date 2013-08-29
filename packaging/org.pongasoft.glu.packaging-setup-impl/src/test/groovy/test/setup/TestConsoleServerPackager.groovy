@@ -90,6 +90,15 @@ public class TestConsoleServerPackager extends BasePackagerTest
           "/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-${GLU_VERSION}/WEB-INF/web.xml": { r ->
             assertTrue(r.file.text.contains('<session-timeout>30</session-timeout>'))
           },
+          "/glu/repository/tgzs": DIRECTORY,
+          "/glu/repository/tgzs/${jettyDistribution}.tar.gz": tarContent(shell, [
+            "/${jettyDistribution}": DIRECTORY,
+            "/${jettyDistribution}/contexts": DIRECTORY,
+            "/${jettyDistribution}/contexts/console-jetty-context.xml": TUTORIAL_CONSOLE_JETTY_CONTEXT,
+            "/${jettyDistribution}/contexts/glu-jetty-context.xml": DEFAULT_GLU_JETTY_CONTEXT,
+            "/${jettyDistribution}/lib": DIRECTORY,
+            "/${jettyDistribution}/lib/acme.jar": 'this is the jar',
+          ]),
         ]
 
       checkPackageContent(expectedResources, artifact.location)
@@ -129,6 +138,7 @@ consoles << [
   version: '${GLU_VERSION}',
   dataSourceDriverUri: '${driverResource.toURI()}',
   configTokens: [
+    includeJettyDistribution: false,
     dataSource: '<datasource>',
     JVM_SIZE: '-Xmx555m',
     plugins: '<extra plugin config>',
