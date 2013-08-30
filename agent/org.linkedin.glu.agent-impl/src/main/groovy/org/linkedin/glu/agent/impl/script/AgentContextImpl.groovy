@@ -19,6 +19,7 @@ package org.linkedin.glu.agent.impl.script
 import org.linkedin.glu.agent.api.Shell
 import org.linkedin.util.clock.Clock
 import org.linkedin.util.clock.SystemClock
+import org.linkedin.zookeeper.client.IZKClient
 
 /**
  * @author yan@pongasoft.com */
@@ -30,4 +31,5 @@ public class AgentContextImpl implements AgentContext
   Shell shellForCommands
   MOP mop
   ScriptLoader scriptLoader
+  IZKClient zooKeeper
 }

@@ -467,7 +467,8 @@ class AgentMain implements LifecycleListener, Configurable
                            shellForCommands: rootShell,
                            rootShell: rootShell,
                            scriptLoader: createScriptLoader(),
-                           mop: new MOPImpl())
+                           mop: new MOPImpl(),
+                           zooKeeper: _zkClient)
 
     _storage = createStorage()
     def scriptManager = new ScriptManagerImpl(agentContext: _agentContext)

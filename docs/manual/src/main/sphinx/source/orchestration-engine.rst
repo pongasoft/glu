@@ -1432,7 +1432,7 @@ Load static model
     id=facc4ef65539a5c558436f034b5e63e5ba1fd0ef
 
     # 2. using input stream
-    curl -v -u "glua:password" -H "Content-Type: text/json" --data-binary @ /Users/ypujante/github/org.pongasoft/glu/console/org.linkedin.glu.console-server/src/cmdline/resources/glu/repository/systems/hello-world-system.json http://localhost:8080/console/rest/v1/glu-dev-1/model/static
+    curl -v -u "glua:password" -H "Content-Type: text/json" --data-binary @/Users/ypujante/github/org.pongasoft/glu/console/org.linkedin.glu.console-server/src/cmdline/resources/glu/repository/systems/hello-world-system.json http://localhost:8080/console/rest/v1/glu-dev-1/model/static
     > POST /console/rest/v1/glu-dev-1/model/static HTTP/1.1
     > Content-Type: text/json
     > ...

@@ -116,6 +116,9 @@ Table of all the properties usable from a ``GluScript``:
 +---------------------------------------------------+---------------------------------------------------------+
 |:ref:`timers <agent-capabilities-timers>`          |Schedule/Cancel timers                                   |
 +---------------------------------------------------+---------------------------------------------------------+
+|:ref:`agentZooKeeper                               |Access to the ZooKeeper connection used by the agent     |
+|<agent-integration-zookeeper>`                     |                                                         |
++---------------------------------------------------+---------------------------------------------------------+
 
 .. _glu-script-parent-script:
 

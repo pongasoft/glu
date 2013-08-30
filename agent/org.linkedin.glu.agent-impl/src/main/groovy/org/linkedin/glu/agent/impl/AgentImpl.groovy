@@ -89,7 +89,8 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
                            shellForCommands: args.shellForCommands ?: _rootShell,
                            rootShell: _rootShell,
                            scriptLoader: args.scriptLoader ?: new NoSharedClassLoaderScriptLoader(),
-                           mop: new MOPImpl())
+                           mop: new MOPImpl(),
+                           zooKeeper: args.zooKeeper)
     _agentLogDir = args.agentLogDir
     _sigar = args.sigar
 

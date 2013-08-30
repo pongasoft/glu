@@ -207,17 +207,18 @@ def class ScriptManagerImpl implements ScriptManager
 
     scriptProperties.putAll(
     [
-            getMountPoint: { sd.mountPoint },
-            getChildren: { locateChildrenNodes(sd.mountPoint) },
-            getShell: { scriptConfig.shell },
-            getRootShell: { agentContext.rootShell },
-            getParent: { getScript(sd.parent) },
-            getParams: { self.scriptDefinition.initParameters },
-            getState: { stateManager.state },
-            getStateManager: { stateManager },
-            getLog: { log },
-            getSelf: { getScript(mountPoint) },
-            getTimers: { timers }
+      getMountPoint: { sd.mountPoint },
+      getChildren: { locateChildrenNodes(sd.mountPoint) },
+      getShell: { scriptConfig.shell },
+      getRootShell: { agentContext.rootShell },
+      getParent: { getScript(sd.parent) },
+      getParams: { self.scriptDefinition.initParameters },
+      getState: { stateManager.state },
+      getStateManager: { stateManager },
+      getLog: { log },
+      getSelf: { getScript(mountPoint) },
+      getTimers: { timers },
+      getAgentZooKeeper: { agentContext.zooKeeper }
     ])
 
     script =

@@ -384,6 +384,11 @@ In order for a field to be declared *exportable* it must follow the following ru
 .. note::
    If you shutdown and restart the agent, the fields in your script will be restored to their last known value before shutdown if and only if the field was exportable, or in other words, if you declare your field ``transient`` its value won't be preserved accross restart!
 
+In addition, the ZooKeeper connection used by the agent is exported via the ``agentZooKeeper`` glu script property. This property is of type ``org.linkedin.zookeeper.client.IZKClient`` and lets you read and write whatever data you want in ZooKeeper.
+
+.. warning::
+   The agent will **not** cleanup any data stored using ``agentZooKeeper`` when the script is uninstalled! Make sure you do your own cleanup (usually in the ``uninstall`` phase).
+
 OS level functionalities
 ^^^^^^^^^^^^^^^^^^^^^^^^
 The agent also offers some OS level functionalities
