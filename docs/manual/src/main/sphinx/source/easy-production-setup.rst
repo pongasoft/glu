@@ -283,7 +283,7 @@ Step 4 also generates a set of convenient install scripts using the information 
       # the content of this file is a template which has access to the packagedArtifacts 
       # variable (see the one built-in)
       # run the setup tool this way
-      $GLU_HOME/bin/setup.sh -D -o xxxx --config-templates "<default>" --config-templates /tmp/myFolder/config-templates my-model.json.groovy
+      $GLU_HOME/bin/setup.sh -D -o xxxx --config-templates-root "<default>" --config-templates-root /tmp/myFolder/config-templates my-model.json.groovy
 
 .. _easy-production-setup-zooKeeper:
 

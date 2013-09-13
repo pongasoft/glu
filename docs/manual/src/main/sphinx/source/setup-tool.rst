@@ -61,13 +61,13 @@ This command is used to generate the distributions, which are ready to install/r
 
 Example usage::
 
-  setup.sh -D -o /tmp/distributions/staging --config-templates "<default>" \
-           --config-templates /tmp/glu-meta-model/config-templates /tmp/glu-meta-model/my-meta-model.json.groovy
+  setup.sh -D -o /tmp/distributions/staging --config-templates-root "<default>" \
+           --config-templates-root /tmp/glu-meta-model/config-templates /tmp/glu-meta-model/my-meta-model.json.groovy
 
 * ``-D`` (or ``--gen-dist``): to generate the distributions
 * ``-o``: the directory in which to generate the distributions
-* ``--config-templates "<default>"``: use the config templates that comes with glu
-* ``--config-templates xxx``: use your own (cumulative)
+* ``--config-templates-root "<default>"``: use the config templates that comes with glu
+* ``--config-templates-root xxx``: use your own (cumulative)
 * ``--agents-only``: generate the distributions only for agents
 * ``--consoles-only``: generate the distributions only for consoles
 * ``--zookeeper-clusters-only``: generate the distributions only for ZooKeeper clusters
@@ -75,7 +75,7 @@ Example usage::
 * ``--packages-root``: only used if you do not want to use the packages that come with glu (rarely used)
 
 .. note::
-   ``config-templates`` is cumulative, meaning you can define as many as you want and they will all be processed. The order is **important**. It is strongly recommended to always use ``--config-templates "<default>"`` first, then your own.
+   ``--config-templates-root`` is cumulative, meaning you can define as many as you want and they will all be processed. The order is **important**. It is strongly recommended to always use ``--config-templates-root "<default>"`` first, then your own.
 
 .. _setup-tool_Z:
 

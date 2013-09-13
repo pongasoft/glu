@@ -812,7 +812,7 @@ The console is distributed as an exploded war file. As a result it is possible t
 
 * 2. This gives you access to the root of the webapp with 3 essential folders: ``css``, ``images`` and ``js``. Simply put your :ref:`templates <glu-config-templates>` in the proper subfolder.
 
-* 3. Run the setup tool with the ``--config-templates`` option.
+* 3. Run the setup tool with the ``--config-templates-root`` option.
 
 For example, if you wanted to change the glu logo with your own logo::
 
@@ -821,7 +821,7 @@ For example, if you wanted to change the glu logo with your own logo::
   # copy your logo with the proper name
   cp <my logo>.png /tmp/myFolder/config-templates/console-server/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-@consoleMetaModel.version@/images/glu_480_white.png
   # run the setup tool
-  $GLU_HOME/bin/setup.sh -D -o xxxx --config-templates "<default>" --config-templates /tmp/myFolder/config-templates my-model.json.groovy
+  $GLU_HOME/bin/setup.sh -D -o xxxx --config-templates-root "<default>" --config-templates-root /tmp/myFolder/config-templates my-model.json.groovy
 
 .. _console-script-log-files:
 
