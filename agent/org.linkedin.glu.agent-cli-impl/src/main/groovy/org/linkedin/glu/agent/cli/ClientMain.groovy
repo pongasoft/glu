@@ -288,7 +288,10 @@ class ClientMain implements Startable
                         parent: Config.getOptionalString(config, 'parent', '/'),
                         initParameters: extractArgs(config))
 
-    moveToState(agent, mountPoint, 'installed')
+    // installed state is the "first" state after NONE
+    def installedState = stateMachine.transitions[StateMachine.NONE][0].to
+
+    moveToState(agent, mountPoint, installedState)
   }
 
   // uninstall
@@ -312,7 +315,7 @@ class ClientMain implements Startable
                           initParameters: extractArgs(config))
     }
 
-    moveToState(agent, mountPoint, 'running')
+    moveToState(agent, mountPoint, DefaultStateMachine.DEFAULT_ENTRY_STATE)
   }
 
   protected def moveToState(agent, mountPoint, toState)
