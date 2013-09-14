@@ -31,6 +31,9 @@ grails.project.source.level = 1.7
 //grails.plugin.location.'external-domain-classes' =
 //  externalDomainClassesInPlacePluginPath.canonicalPath
 
+// in place plugin
+grails.plugin.location.'decorate-grails-methods-plugin' = 'decorate-grails-methods-plugin'
+
 grails.project.dependency.resolution = {
   // inherit Grails' default dependencies
   inherits("global") {
@@ -72,6 +75,7 @@ grails.project.dependency.resolution = {
     runtime ":jquery:1.8.3"
     runtime ":resources:1.1.6"
     runtime ":external-domain-classes:1.0.0"
+//    runtime ":decorate-grails-methods-plugin:1.0.0"
 
     // Uncomment these (or add new ones) to enable additional resources capabilities
     //runtime ":zipped-resources:1.0"

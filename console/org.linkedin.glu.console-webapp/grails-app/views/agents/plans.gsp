@@ -40,21 +40,21 @@
 <body>
 <g:if test="${agent}">
   <ul class="nav nav-tabs">
-    <li><g:link controller="agents" action="list">List</g:link></li>
-    <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
-    <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
+    <li><cl:link controller="agents" action="list">List</cl:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><cl:link controller="commands" action="list">All Commands</cl:link></li></cl:whenFeatureEnabled>
+    <li><cl:link action="view" id="${params.id}">agent [${params.id}]</cl:link></li>
     <li class="active"><a href="#">Plans</a></li>
-    <cl:whenFeatureEnabled feature="commands"><li><g:link action="commands" id="${params.id}">Commands</g:link></li></cl:whenFeatureEnabled>
-    <li><g:link action="ps" id="${params.id}">All Processes</g:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><cl:link action="commands" id="${params.id}">Commands</cl:link></li></cl:whenFeatureEnabled>
+    <li><cl:link action="ps" id="${params.id}">All Processes</cl:link></li>
   </ul>
   <g:render template="/plan/selectPlan" model="[title: title, hasDelta: hasDelta]"/>
 </g:if>
 <g:else>
   <ul class="nav nav-tabs">
-    <li><g:link controller="agents" action="list">List</g:link></li>
+    <li><cl:link controller="agents" action="list">List</cl:link></li>
     <li class="active"><a href="#">agent [${params.id}]</a></li>
   </ul>
-  <h2>No such agent ${params.id} [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h2>
+  <h2>No such agent ${params.id} [<cl:link controller="fabric" action="listAgentFabrics">Fix it</cl:link>]</h2>
 </g:else>
 </body>
 </html>

@@ -25,9 +25,9 @@
     </head>
     <body>
     <ul class="nav nav-tabs">
-      <li><g:link action="list">User List</g:link></li>
+      <li><cl:link action="list">User List</cl:link></li>
       <li class="active"><a href="#">User [${userInstance.username}]</a></li>
-      <li><g:link controller="user" action="edit" id="${userInstance.id}">Edit</g:link></li>
+      <li><cl:link controller="user" action="edit" id="${userInstance.id}">Edit</cl:link></li>
     </ul>
         <div class="body">
             <div class="dialog">

@@ -53,12 +53,12 @@ function autoRefresh()
 }
 function refreshHistory()
 {
-  ${g.remoteFunction(controller: 'commands', action: 'renderHistory', params: [agentId: params.id, offset: offset, max: max], update:[success: 'asyncDetailsHistory', failure: 'asyncErrorHistory'], onComplete: 'autoRefresh();')}
+  ${cl.remoteFunction(controller: 'commands', action: 'renderHistory', params: [agentId: params.id, offset: offset, max: max], update:[success: 'asyncDetailsHistory', failure: 'asyncErrorHistory'], onComplete: 'autoRefresh();')}
 }
 function refreshCommand()
 {
   <g:if test="${params.commandId}">
-    ${g.remoteFunction(controller: 'commands', action: 'renderCommand', id: params.commandId, update:[success: 'asyncDetailsCommand', failure: 'asyncErrorCommand'])}
+    ${cl.remoteFunction(controller: 'commands', action: 'renderCommand', id: params.commandId, update:[success: 'asyncDetailsCommand', failure: 'asyncErrorCommand'])}
   </g:if>
 }
 function refresh()
@@ -76,12 +76,12 @@ function showHide()
 </head>
 <body onload="refresh();">
 <ul class="nav nav-tabs">
-  <li><g:link controller="agents" action="list">List</g:link></li>
-  <li><g:link controller="commands" action="list">All Commands</g:link></li>
-  <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
-  <li><g:link action="plans" id="${params.id}">Plans</g:link></li>
+  <li><cl:link controller="agents" action="list">List</cl:link></li>
+  <li><cl:link controller="commands" action="list">All Commands</cl:link></li>
+  <li><cl:link action="view" id="${params.id}">agent [${params.id}]</cl:link></li>
+  <li><cl:link action="plans" id="${params.id}">Plans</cl:link></li>
   <li class="active"><a href="#">Commands</a></li>
-  <li><g:link action="ps" id="${params.id}">All Processes</g:link></li>
+  <li><cl:link action="ps" id="${params.id}">All Processes</cl:link></li>
 </ul>
 <div class="row">
   <div class="span20">

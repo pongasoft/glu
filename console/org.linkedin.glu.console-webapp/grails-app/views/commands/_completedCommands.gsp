@@ -37,8 +37,8 @@
   <tbody>
   <g:each in="${commandExecutions}" var="ce">
     <tr>
-      <g:if test="${!params.agentId}"><td class="agentFilter"><g:link controller="agents" action="commands" id="${ce.agent}">${ce.agent.encodeAsHTML()}</g:link><g:link controller="agents" action="view" id="${ce.agent}"><img class="shortcut" src="${g.resource(dir: 'images', file: 'magnifier.png')}" alt="view agent"/></g:link></td></g:if>
-      <td class="commandFilter"><g:link controller="agents" action="commands" id="${ce.agent}" params="[commandId: ce.commandId]" title="${ce.commandId.encodeAsHTML()}">${ce.command.encodeAsHTML()}</g:link></td>
+      <g:if test="${!params.agentId}"><td class="agentFilter"><cl:link controller="agents" action="commands" id="${ce.agent}">${ce.agent.encodeAsHTML()}</cl:link><cl:link controller="agents" action="view" id="${ce.agent}"><img class="shortcut" src="${g.resource(dir: 'images', file: 'magnifier.png')}" alt="view agent"/></cl:link></td></g:if>
+      <td class="commandFilter"><cl:link controller="agents" action="commands" id="${ce.agent}" params="[commandId: ce.commandId]" title="${ce.commandId.encodeAsHTML()}">${ce.command.encodeAsHTML()}</cl:link></td>
       <td class="streamsFilter shell"><g:each in="['stdin', 'stderr', 'stdout']" var="streamType"><div class="${streamType}"><cl:renderCommandBytes command="${ce}" streamType="${streamType}"/></div></g:each></td>
       <td class="exitValueFilter">${ce.exitValue?.encodeAsHTML()}</td>
       <td class="usernameFilter">${ce.username.encodeAsHTML()}</td>

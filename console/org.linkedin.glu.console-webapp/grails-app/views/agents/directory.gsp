@@ -24,19 +24,19 @@
 </head>
 <body>
 <ul class="nav nav-tabs">
-  <li><g:link controller="agents" action="list">List</g:link></li>
-  <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
-  <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
-  <li><g:link action="plans" id="${params.id}">Plans</g:link></li>
-  <cl:whenFeatureEnabled feature="commands"><li><g:link action="commands" id="${params.id}">Commands</g:link></li></cl:whenFeatureEnabled>
-  <li><g:link action="ps" id="${params.id}">All Processes</g:link></li>
+  <li><cl:link controller="agents" action="list">List</cl:link></li>
+  <cl:whenFeatureEnabled feature="commands"><li><cl:link controller="commands" action="list">All Commands</cl:link></li></cl:whenFeatureEnabled>
+  <li><cl:link action="view" id="${params.id}">agent [${params.id}]</cl:link></li>
+  <li><cl:link action="plans" id="${params.id}">Plans</cl:link></li>
+  <cl:whenFeatureEnabled feature="commands"><li><cl:link action="commands" id="${params.id}">Commands</cl:link></li></cl:whenFeatureEnabled>
+  <li><cl:link action="ps" id="${params.id}">All Processes</cl:link></li>
   <li class="active"><a href="#">Directory [${params.location.encodeAsHTML()}]</a></li>
 </ul>
 <g:if test="${dir != null}">
   <table class="table table-bordered tight-table">
     <g:if test="${new File(params.location).parent}">
       <tr>
-        <td><g:link action="fileContent" id="${params.id}" params="[location: new File(params.location).parent]">../</g:link></td>
+        <td><cl:link action="fileContent" id="${params.id}" params="[location: new File(params.location).parent]">../</cl:link></td>
         <td></td>
         <td>-</td>
       </tr>
@@ -44,7 +44,7 @@
     <g:each in="${dir.keySet().sort()}" var="${filename}">
       <g:set var="entry" value="${dir[filename]}"/>
       <tr>
-        <td><g:link action="fileContent" id="${params.id}" params="[location: entry.canonicalPath, maxLine: 500]">${filename.encodeAsHTML()}<g:if test="${entry.isDirectory}">/</g:if><g:if test="${new File(params.location, filename).path != entry.canonicalPath}">@ -&gt; ${entry.canonicalPath.encodeAsHTML()}</g:if></g:link></td>
+        <td><cl:link action="fileContent" id="${params.id}" params="[location: entry.canonicalPath, maxLine: 500]">${filename.encodeAsHTML()}<g:if test="${entry.isDirectory}">/</g:if><g:if test="${new File(params.location, filename).path != entry.canonicalPath}">@ -&gt; ${entry.canonicalPath.encodeAsHTML()}</g:if></cl:link></td>
         <td><cl:formatDate date="${new Date(entry.lastModified)}"/></td>
         <td><g:if test="${entry.isDirectory}">-</g:if><g:else>${entry.length} (${new MemorySize(entry.length as long).canonicalString})</g:else></td>
       </tr>

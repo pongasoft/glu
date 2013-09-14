@@ -67,6 +67,41 @@ public class ConsoleTagLib
 
   SimpleDateFormat _dateFormat = new SimpleDateFormat('MM/dd/yy HH:mm:ss z')
 
+  /**
+   * "Replaces" g.link to account for fabric and make urls copy/paste friendly
+   */
+  def link = { args, body ->
+    out << g.link(doAdjustArgs(args), body)
+  }
+
+  /**
+   * "Replaces" g.createLink to account for fabric and make urls copy/paste friendly
+   */
+  def createLink = { args ->
+    out << g.createLink(doAdjustArgs(args))
+  }
+
+  def remoteFunction = { args ->
+    out << g.remoteFunction(doAdjustArgs(args))
+  }
+
+  /**
+   * Add the fabric parameter if necessary
+   */
+  private def doAdjustArgs(args)
+  {
+    def fabricName = request.fabric?.name
+
+    if(fabricName && !args.params?.fabric)
+    {
+      def params = args.params ?: [:]
+      params.fabric = fabricName
+      args.params = params
+    }
+
+    return args
+  }
+
   def clearFlash = {
     flash.clear()
   }
@@ -216,7 +251,7 @@ public class ConsoleTagLib
           if(GluGroovyLangUtils.getOptionalBoolean(consoleConfig.defaults.dashboardAgentLinksToAgent,
                                                    true))
           {
-            out << g.link(controller: 'agents', action: 'view', id: value.encodeAsHTML()) {
+            out << cl.link(controller: 'agents', action: 'view', id: value.encodeAsHTML()) {
               out << value.encodeAsHTML()
             }
           }
@@ -226,7 +261,7 @@ public class ConsoleTagLib
                                               groupBy: column.name) {
               out << value.encodeAsHTML()
             }
-            out << g.link(controller: 'agents', action: 'view', id: value) {
+            out << cl.link(controller: 'agents', action: 'view', id: value) {
               out << '<i class="icon-zoom-in"> </i>'
             }
           }
@@ -341,7 +376,7 @@ public class ConsoleTagLib
           if(renderRemoveLink)
           {
             out << '['
-            out << g.link(controller: 'dashboard',
+            out << cl.link(controller: 'dashboard',
                           action: 'redelta',
                           params: [
                           'session.systemFilter': "-${filter.toDSL()}",
@@ -364,12 +399,12 @@ public class ConsoleTagLib
     def systemFilter = args.systemFilter
     def groupBy = args.groupBy ?: name
 
-    out << g.link(controller: 'dashboard',
-                  action: 'redelta',
-                  params: [
-                    'session.systemFilter': "+${systemFilter}",
+    out << cl.link(controller: 'dashboard',
+                   action: 'redelta',
+                   params: [
+                     'session.systemFilter': "+${systemFilter}",
 //                    'session.groupBy': groupBy,
-                    ]) {
+                   ]) {
       out << body()
     }
   }
@@ -490,7 +525,7 @@ public class ConsoleTagLib
     def pid = args.pid
     if(pid)
     {
-      out << g.link('class': args.class, controller: 'agents', action: 'ps', id: agent, params: [pid: pid]) {
+      out << cl.link('class': args.class, controller: 'agents', action: 'ps', id: agent, params: [pid: pid]) {
         out << body()
       }
     }
@@ -598,7 +633,7 @@ public class ConsoleTagLib
       out << g.checkBox(name: 'stepId',
                         value: step.id,
                         id: step.id,
-                        checked: true, 
+                        checked: true,
                         'class': inputClass)
 
     if(step instanceof LeafStep)
@@ -617,10 +652,10 @@ public class ConsoleTagLib
         switch(k)
         {
           case 'agent':
-            return g.link(action: 'view', controller: 'agents', id: v) { v.encodeAsHTML() }
+            return cl.link(action: 'view', controller: 'agents', id: v) { v.encodeAsHTML() }
 
           case 'mountPoint':
-            return g.link(action: 'view', controller: 'agents', id: step.metadata.agent, fragment: v) { v.encodeAsHTML() }
+            return cl.link(action: 'view', controller: 'agents', id: step.metadata.agent, fragment: v) { v.encodeAsHTML() }
 
           default:
             return "${k.encodeAsHTML()}=${v.encodeAsHTML()}"
@@ -701,7 +736,7 @@ public class ConsoleTagLib
     if(stepExecution)
     {
       if(!stepExecution.isCompleted())
-        out << "- [ ${g.link(controller: 'plan', action: 'cancelStep', id: deployment.id, params: [stepId: step.id]) { out << 'Cancel'}} ]"
+        out << "- [ ${cl.link(controller: 'plan', action: 'cancelStep', id: deployment.id, params: [stepId: step.id]) { out << 'Cancel'}} ]"
     }
   }
 
@@ -738,7 +773,7 @@ public class ConsoleTagLib
       if(step.metadata.name)
       {
         if(step.metadata.agent && step.metadata.mountPoint) {
-          out << g.link(controller: 'agents', action: 'view', 'class': 'step-link', id: step.metadata.agent, fragment: step.metadata.mountPoint) {
+          out << cl.link(controller: 'agents', action: 'view', 'class': 'step-link', id: step.metadata.agent, fragment: step.metadata.mountPoint) {
             step.metadata.name.encodeAsHTML()
           }
         }
@@ -751,10 +786,10 @@ public class ConsoleTagLib
           switch(k)
           {
             case 'agent':
-              return g.link(action: 'view', controller: 'agents', id: v) { v.encodeAsHTML() }
+              return cl.link(action: 'view', controller: 'agents', id: v) { v.encodeAsHTML() }
 
             case 'mountPoint':
-              return g.link(action: 'view', controller: 'agents', id: step.metadata.agent, fragment: v) { v.encodeAsHTML() }
+              return cl.link(action: 'view', controller: 'agents', id: step.metadata.agent, fragment: v) { v.encodeAsHTML() }
 
             default:
               return "${k.encodeAsHTML()}=${v.encodeAsHTML()}"
@@ -830,7 +865,7 @@ public class ConsoleTagLib
       out << '<ul class="dropdown-menu">'
       fabricNames.each { fabricName ->
         out << "<li>"
-        out << g.link(controller: 'dashboard', action: 'redelta', params: [fabric: fabricName]) { fabricName.encodeAsHTML() }
+        out << cl.link(controller: 'dashboard', action: 'delta', params: [fabric: fabricName]) { fabricName.encodeAsHTML() }
         out << "</li>"
       }
       out << '</ul>'
@@ -850,7 +885,7 @@ public class ConsoleTagLib
     out << "<a href=\"#\" class=\"dropdown-toggle\" data-toggle=\"dropdown\">${request.userSession?.currentCustomDeltaDefinitionName?.encodeAsHTML()}<b class=\"caret\"></b></a>"
     out << "<ul class=\"dropdown-menu\">"
     out << "<li>"
-    out << g.link('class': 'btn', controller: 'dashboard', action: 'redelta', params: ['session.reset': true]) {
+    out << cl.link('class': 'btn', controller: 'dashboard', action: 'redelta', params: ['session.reset': true]) {
       "Reset"
     }
     out << "</li>"
@@ -869,7 +904,7 @@ public class ConsoleTagLib
         def redirectParams = [:]
         redirectParams[UserPreferencesFilters.CUSTOM_DELTA_DEFINITION_COOKIE_NAME] = name
         redirectParams['session.clear'] = true
-        out << g.link(controller: 'dashboard', action: 'redelta', params: redirectParams) {
+        out << cl.link(controller: 'dashboard', action: 'redelta', params: redirectParams) {
           name.encodeAsHTML()
         }
         out << "</li>"
@@ -889,7 +924,7 @@ public class ConsoleTagLib
   def renderDashboardShortcutFilters = {
     if(!request.system)
       return
-    
+
     consoleConfig.defaults.shortcutFilters?.each { shortcutFilter ->
       def name = shortcutFilter.name
       def source = shortcutFilter.source ?: "metadata.${name}".toString()
@@ -946,10 +981,10 @@ public class ConsoleTagLib
           def filter = v.filter
           // YP note: there seems to be a bug (caching) with grails when using an array with
           // params and g.link... need to build by hand!
-          def href = "${g.createLink(controller: 'dashboard', action: 'delta')}?session.systemFilter=${URLEncoder.encode(filter)}"
+          def href = "${cl.createLink(controller: 'dashboard', action: 'delta')}&session.systemFilter=${URLEncoder.encode(filter, "UTF-8")}"
           if(selectedFilter)
           {
-            href = "${href}&session.systemFilter=-${URLEncoder.encode(selectedFilter.toDSL())}"
+            href = "${href}&session.systemFilter=-${URLEncoder.encode(selectedFilter.toDSL(), "UTF-8")}"
           }
           out << "<a href=\"${href}\">${v.displayName.encodeAsHTML()}</a>"
           out << "</li>"
@@ -957,7 +992,7 @@ public class ConsoleTagLib
         if(selectedFilter)
         {
           out << "<li>"
-          out << g.link(controller: 'dashboard', action: 'redelta', params: ["session.systemFilter": "-${selectedFilter.toDSL()}".toString()]) {
+          out << cl.link(controller: 'dashboard', action: 'redelta', params: ["session.systemFilter": "-${selectedFilter.toDSL()}".toString()]) {
             'All'
           }
           out << '</li>'
@@ -1038,7 +1073,7 @@ public class ConsoleTagLib
 
 
     if(renderLinkToSystem)
-      out << g.link(controller: 'model', action: 'view', id: systemId, title: systemId) {
+      out << cl.link(controller: 'model', action: 'view', id: systemId, title: systemId) {
         text
       }
     else
@@ -1046,7 +1081,7 @@ public class ConsoleTagLib
   }
 
   /**
-   * Return the class for the given navbar entry 
+   * Return the class for the given navbar entry
    */
   def navbarEntryClass = { args ->
     def entry = args.entry
@@ -1143,10 +1178,10 @@ public class ConsoleTagLib
         out << logs.collect { String logType, File logFile ->
           if(logFile)
           {
-            g.link(controller: 'agents',
-                   action: 'fileContent',
-                   id: agent,
-                   params: [location: logFile.path, maxLine: 500]) {
+            cl.link(controller: 'agents',
+                    action: 'fileContent',
+                    id: agent,
+                    params: [location: logFile.path, maxLine: 500]) {
               out << logType
             }
           }

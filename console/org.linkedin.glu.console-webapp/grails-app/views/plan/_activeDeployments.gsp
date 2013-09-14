@@ -29,7 +29,7 @@
   <g:each in="${deployments}" var="deployment">
     <g:set var="planExecution" value="${deployment.planExecution}"/>
     <tr class="${planExecution.completionStatus?.status ?: 'RUNNING'}">
-      <td class="descriptionFilter"><g:link action="deployments" id="${deployment.id}">${deployment.description}</g:link></td>
+      <td class="descriptionFilter"><cl:link action="deployments" id="${deployment.id}">${deployment.description}</cl:link></td>
       <td class="usernameFilter">${deployment.username}</td>
       <td class="startTimeFilter"><cl:formatDate date="${new Date(deployment.progressTracker.planStartTime)}"/></td>
       <td class="durationFilter"><cl:formatDuration duration="${planExecution.duration}"/></td>

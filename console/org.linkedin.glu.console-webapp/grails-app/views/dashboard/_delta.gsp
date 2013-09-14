@@ -21,10 +21,10 @@
       <th>Model</th>
       <td><cl:renderSystemId system="${request.system}"/></td>
       <th>Summary</th>
-      <td class="summary-checkbox"><g:checkBox name="session.summary" onclick="parent.location='${g.createLink(controller: 'dashboard', action: 'redelta', params: ['session.summary': !request.userSession.customDeltaDefinition.summary])}'" value="${request.userSession.customDeltaDefinition.summary}"/></td>
+      <td class="summary-checkbox"><g:checkBox name="session.summary" onclick="parent.location='${cl.createLink(controller: 'dashboard', action: 'redelta', params: ['session.summary': !request.userSession.customDeltaDefinition.summary])}'" value="${request.userSession.customDeltaDefinition.summary}"/></td>
       <th>Errors Only</th>
-      <td class="errorsOnly-checkbox"><g:checkBox name="session.errorsOnly" onclick="parent.location='${g.createLink(controller: 'dashboard', action: 'redelta', params: ['session.errorsOnly': !request.userSession.customDeltaDefinition.errorsOnly])}'" value="${request.userSession.customDeltaDefinition.errorsOnly}"/></td>
-      <th>Filter <g:if test="${request.system.filters}">[<g:link controller="dashboard" action="redelta" params="['session.systemFilter': '-']">x</g:link>]</g:if></th>
+      <td class="errorsOnly-checkbox"><g:checkBox name="session.errorsOnly" onclick="parent.location='${cl.createLink(controller: 'dashboard', action: 'redelta', params: ['session.errorsOnly': !request.userSession.customDeltaDefinition.errorsOnly])}'" value="${request.userSession.customDeltaDefinition.errorsOnly}"/></td>
+      <th>Filter <g:if test="${request.system.filters}">[<cl:link controller="dashboard" action="redelta" params="['session.systemFilter': '-']">x</cl:link>]</g:if></th>
       <td class="systemFilter"><div class="systemFilter"><cl:renderSystemFilter filter="${request.system.filters}"/></div></td>
     </tr>
   </table>
@@ -34,13 +34,13 @@
       <thead>
       <tr>
         <th>${delta.firstColumn.name?.encodeAsHTML()}</th>
-        <th><g:link controller="dashboard" action="redelta" params="['session.summary': !request.userSession.customDeltaDefinition.summary]">I:${delta.counts['instances']}</g:link></th>
-        <th><g:link controller="dashboard" action="redelta" params="['session.errorsOnly': !request.userSession.customDeltaDefinition.errorsOnly]">E:${delta.counts['errors']}</g:link></th>
+        <th><cl:link controller="dashboard" action="redelta" params="['session.summary': !request.userSession.customDeltaDefinition.summary]">I:${delta.counts['instances']}</cl:link></th>
+        <th><cl:link controller="dashboard" action="redelta" params="['session.errorsOnly': !request.userSession.customDeltaDefinition.errorsOnly]">E:${delta.counts['errors']}</cl:link></th>
         <g:each in="${delta.tailColumns.name}" var="column" status="columnIdx">
-          <th><g:link controller="dashboard" action="redelta" params="['session.groupBy': column]">
+          <th><cl:link controller="dashboard" action="redelta" params="['session.groupBy': column]">
             <g:if test="${delta.counts[column] == null}">${column.encodeAsHTML()}</g:if>
             <g:else>${column.encodeAsHTML()}:${delta.counts[column]}</g:else>
-          </g:link></th>
+          </cl:link></th>
         </g:each>
       </tr>
       </thead>

@@ -21,12 +21,12 @@ function renderCommandStream(commandId, streamType, success)
   ${g.remoteFunction(controller: 'commands', id: <javascript commandId>, action: 'streams', params: [streamType: <javascript streamType>], update:[success: '<javascript variable>'])}
 
 --}%
-  jQuery.ajax({type:'GET',data:{'streamType': streamType}, url:'/console/commands/' + commandId + '/streams',success:function(data,textStatus){jQuery('#' + success).html(data);},error:function(XMLHttpRequest,textStatus,errorThrown){}});
+  jQuery.ajax({type:'GET',data:{'streamType': streamType, 'fabric': '${request.fabric.name}'}, url:'/console/commands/' + commandId + '/streams',success:function(data,textStatus){jQuery('#' + success).html(data);},error:function(XMLHttpRequest,textStatus,errorThrown){}});
 }
 function renderCommand(commandId, success) {
   if(!isHidden('#' + success))
   {
-    jQuery.ajax({type:'GET',url:'/console/commands/renderCommand/' + commandId,success:function(data,textStatus){jQuery('#' + success).parent().html(data);},error:function(XMLHttpRequest,textStatus,errorThrown){}});
+    jQuery.ajax({type:'GET',data:{'fabric': '${request.fabric.name}'}, url:'/console/commands/renderCommand/' + commandId,success:function(data,textStatus){jQuery('#' + success).parent().html(data);},error:function(XMLHttpRequest,textStatus,errorThrown){}});
   }
 }
 </g:javascript>

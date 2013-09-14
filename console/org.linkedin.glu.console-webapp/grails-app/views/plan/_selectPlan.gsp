@@ -47,7 +47,7 @@
             <div id="missingAgents" class="modal hide" role="dialog" aria-labelledby="possibleSources" aria-hidden="true">
               <div class="modal-header">
                   <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-              <h4>Missing agents [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h4>
+              <h4>Missing agents [<cl:link controller="fabric" action="listAgentFabrics">Fix it</cl:link>]</h4>
               <div class="modal-body">
                 <ul>
                   <g:each in="${missingAgents}" var="agentName">

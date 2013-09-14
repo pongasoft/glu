@@ -106,8 +106,8 @@
       <tr>
         <td>${entry.key.encodeAsHTML()}</td>
         <td>${entry.value.encodeAsHTML()}</td>
-        <td><g:link controller="fabric" action="clearAgentFabric" id="${entry.key.encodeAsHTML()}" onClick="return confirm('Are you sure you want to clear the agent-fabric link?');">Fabric</g:link></td>
-        <td><g:link controller="agents" action="clear" id="${entry.key.encodeAsHTML()}" onClick="return confirm('Are you sure you want to clear ALL knowledge of the agent?');">All</g:link></td>
+        <td><cl:link controller="fabric" action="clearAgentFabric" id="${entry.key.encodeAsHTML()}" onClick="return confirm('Are you sure you want to clear the agent-fabric link?');">Fabric</cl:link></td>
+        <td><cl:link controller="agents" action="clear" id="${entry.key.encodeAsHTML()}" onClick="return confirm('Are you sure you want to clear ALL knowledge of the agent?');">All</cl:link></td>
       </tr>
     </g:each>
   </table>

@@ -24,7 +24,7 @@
 <body>
 <div class="body">
   <ul class="nav nav-tabs">
-    <li><g:link action="list">List</g:link></li>
+    <li><cl:link action="list">List</cl:link></li>
     <li class="active"><a href="#">Load</a></li>
   </ul>
 

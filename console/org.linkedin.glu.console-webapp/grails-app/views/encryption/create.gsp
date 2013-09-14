@@ -24,9 +24,9 @@
 </head>
 <body>
 <ul class="nav nav-tabs">
-  <li><g:link action="list">List</g:link></li>
+  <li><cl:link action="list">List</cl:link></li>
   <li class="active"><a href="#">New</a></li>
-  <li><g:link action="encrypt">Encrypt/Decrypt</g:link></li>
+  <li><cl:link action="encrypt">Encrypt/Decrypt</cl:link></li>
 </ul>
 <div class="body">
   <h3>Create New Encryption Key</h3>

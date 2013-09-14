@@ -707,22 +707,22 @@ class AgentsController extends ControllerBase
 
         if(pid)
         {
-          link = g.createLink(controller: 'agents',
-                                  action: 'ps',
-                                  id: agent.agentName,
-                                  params: [pid: mp.data?.scriptState?.script?.pid])
+          link = cl.createLink(controller: 'agents',
+                               action: 'ps',
+                               id: agent.agentName,
+                               params: [pid: mp.data?.scriptState?.script?.pid])
           mpActions[link] = "ps"
         }
 
         if(mp.transitionState)
         {
-          link = g.createLink(controller: 'agents',
-                              action: 'interruptAction',
-                              id: agent.agentName,
-                              params: [mountPoint: mp.mountPoint,
-                                       transitionAction: mp.transitionAction,
-                                       state: mp.currentState,
-                                           timeout: '10s'])
+          link = cl.createLink(controller: 'agents',
+                               action: 'interruptAction',
+                               id: agent.agentName,
+                               params: [mountPoint: mp.mountPoint,
+                                 transitionAction: mp.transitionAction,
+                                 state: mp.currentState,
+                                 timeout: '10s'])
           mpActions[link] = "interrupt ${mp.transitionAction}"
         }
         else
@@ -734,13 +734,13 @@ class AgentsController extends ControllerBase
             stateActions = [*stateActions, *(mountPointActions["*"] ?: [])]
 
             stateActions?.each { stateAction ->
-              link = g.createLink(controller: 'agents',
-                                  action: 'create_plan',
-                                  id: agent.agentName,
-                                  params: [
-                                   mountPoint: mp.mountPoint,
-                                   *:stateAction,
-                                  ])
+              link = cl.createLink(controller: 'agents',
+                                   action: 'create_plan',
+                                   id: agent.agentName,
+                                   params: [
+                                     mountPoint: mp.mountPoint,
+                                     *:stateAction,
+                                   ])
               mpActions[link] = stateAction.displayName ?: stateAction.planType.capitalize()
             }
           }

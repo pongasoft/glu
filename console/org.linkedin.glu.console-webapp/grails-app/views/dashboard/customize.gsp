@@ -21,9 +21,9 @@
 </head>
 <body>
 <ul class="nav nav-tabs">
-  <li><g:link
-    action="delta">${request.userSession.currentCustomDeltaDefinitionName.encodeAsHTML()}</g:link></li>
-  <li><g:link controller="dashboard" action="plans">Plans</g:link></li>
+  <li><cl:link
+    action="delta">${request.userSession.currentCustomDeltaDefinitionName.encodeAsHTML()}</cl:link></li>
+  <li><cl:link controller="dashboard" action="plans">Plans</cl:link></li>
   <li class="active"><a href="#">Customize</a></li>
 </ul>
 <g:form method="post" controller="dashboard" action="customize">

@@ -25,8 +25,8 @@
     </head>
     <body>
     <ul class="nav nav-tabs">
-      <li><g:link action="list">User List</g:link></li>
-      <li><g:link action="show" id="${userInstance.id}">User [${userInstance.username}]</g:link></li>
+      <li><cl:link action="list">User List</cl:link></li>
+      <li><cl:link action="show" id="${userInstance.id}">User [${userInstance.username}]</cl:link></li>
       <li class="active"><a href="#">Edit</a></li>
     </ul>
         <div class="body">

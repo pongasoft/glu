@@ -58,7 +58,7 @@ function autoRefresh()
 }
 function refreshHistory()
 {
-  ${g.remoteFunction(controller: 'commands', action: 'renderHistory', params: [offset: offset, max: max], update:[success: 'asyncDetailsHistory', failure: 'asyncErrorHistory'], onComplete: 'autoRefresh();')}
+  ${cl.remoteFunction(controller: 'commands', action: 'renderHistory', params: [offset: offset, max: max], update:[success: 'asyncDetailsHistory', failure: 'asyncErrorHistory'], onComplete: 'autoRefresh();')}
 }
 function refresh()
 {
@@ -74,7 +74,7 @@ function showHide()
 </head>
 <body onload="refresh();">
 <ul class="nav nav-tabs">
-  <li><g:link controller="agents" action="list">List</g:link></li>
+  <li><cl:link controller="agents" action="list">List</cl:link></li>
   <li class="active"><a href="#">All Commands</a></li>
 </ul>
 

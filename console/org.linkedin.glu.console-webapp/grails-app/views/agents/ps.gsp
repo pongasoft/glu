@@ -29,12 +29,12 @@
 <body>
 <g:if test="${params.pid}">
   <ul class="nav nav-tabs">
-    <li><g:link controller="agents" action="list">List</g:link></li>
-    <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
-    <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
-    <li><g:link action="plans" id="${params.id}">Plans</g:link></li>
-    <cl:whenFeatureEnabled feature="commands"><li><g:link action="commands" id="${params.id}">Commands</g:link></li></cl:whenFeatureEnabled>
-    <li><g:link action="ps" id="${params.id}">All Processes</g:link></li>
+    <li><cl:link controller="agents" action="list">List</cl:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><cl:link controller="commands" action="list">All Commands</cl:link></li></cl:whenFeatureEnabled>
+    <li><cl:link action="view" id="${params.id}">agent [${params.id}]</cl:link></li>
+    <li><cl:link action="plans" id="${params.id}">Plans</cl:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><cl:link action="commands" id="${params.id}">Commands</cl:link></li></cl:whenFeatureEnabled>
+    <li><cl:link action="ps" id="${params.id}">All Processes</cl:link></li>
     <li class="active"><a href="#">process[${params.pid}]</a></li>
   </ul>
   <g:if test="${ps[params.pid]}">
@@ -58,11 +58,11 @@
 </g:if>
 <g:else>
   <ul class="nav nav-tabs">
-    <li><g:link controller="agents" action="list">List</g:link></li>
-    <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
-    <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
-    <li><g:link action="plans" id="${params.id}">Plans</g:link></li>
-    <cl:whenFeatureEnabled feature="commands"><li><g:link action="commands" id="${params.id}">Commands</g:link></li></cl:whenFeatureEnabled>
+    <li><cl:link controller="agents" action="list">List</cl:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><cl:link controller="commands" action="list">All Commands</cl:link></li></cl:whenFeatureEnabled>
+    <li><cl:link action="view" id="${params.id}">agent [${params.id}]</cl:link></li>
+    <li><cl:link action="plans" id="${params.id}">Plans</cl:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><cl:link action="commands" id="${params.id}">Commands</cl:link></li></cl:whenFeatureEnabled>
     <li class="active"><a href="#">All Processes</a></li>
   </ul>
   <table class="table table-bordered tight-table zebra-striped">
@@ -76,7 +76,7 @@
     <g:set var="process" value="${ps[pid.toString()]}"/>
     <g:if test="${process.exe?.Name}">
       <tr>
-        <td><g:link action="ps" id="${params.id}" params="[pid: pid]">${pid}</g:link></td>
+        <td><cl:link action="ps" id="${params.id}" params="[pid: pid]">${pid}</cl:link></td>
         <td>${process.exe.Name.split('/')[-1]}</td>
         <td>${process.cpu?.Percent}</td>
         <td>

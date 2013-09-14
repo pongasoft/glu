@@ -32,7 +32,7 @@
     </tr>
     <g:each in="${fabrics}" var="fabric">
       <tr>
-        <td class="${request.fabric?.name == fabric.name ? 'current' : 'not-current'}"><g:link controller="dashboard" action="redelta" params="[fabric: fabric.name]">${fabric.name.encodeAsHTML()}</g:link> <span style="background-color: ${fabric.color}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        <td class="${request.fabric?.name == fabric.name ? 'current' : 'not-current'}"><cl:link controller="dashboard" action="redelta" params="[fabric: fabric.name]">${fabric.name.encodeAsHTML()}</cl:link> <span style="background-color: ${fabric.color}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
 </td>
       </tr>
     </g:each>

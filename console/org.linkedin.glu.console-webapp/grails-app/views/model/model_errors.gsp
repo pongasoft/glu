@@ -24,8 +24,8 @@
 <div class="body">
   <h1>The model was loaded successfully with the following warnings</h1>
 
-  <h2><g:link controller="dashboard">Continue anyway</g:link></h2>
-  <h2><g:link controller="model" action="choose">Fix the model and reload it</g:link></h2>
+  <h2><cl:link controller="dashboard">Continue anyway</cl:link></h2>
+  <h2><cl:link controller="model" action="choose">Fix the model and reload it</cl:link></h2>
 
   <g:if test="${errors.containers}">
     <table>

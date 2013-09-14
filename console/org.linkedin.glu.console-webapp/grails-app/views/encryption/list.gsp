@@ -24,8 +24,8 @@
 <body>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#">List</a></li>
-  <li><g:link action="create">New</g:link></li>
-  <li><g:link action="encrypt">Encrypt/Decrypt</g:link></li>
+  <li><cl:link action="create">New</cl:link></li>
+  <li><cl:link action="encrypt">Encrypt/Decrypt</cl:link></li>
 </ul>
 <h3>Number of keys in KeyStore: ${count}</h3>
 <table class="table table-bordered table-condensed noFullWidth">

@@ -37,9 +37,9 @@
 </head>
 <body>
 <ul class="nav nav-tabs">
-  <li><g:link action="delta">${request.userSession.currentCustomDeltaDefinitionName.encodeAsHTML()}</g:link></li>
+  <li><cl:link action="delta">${request.userSession.currentCustomDeltaDefinitionName.encodeAsHTML()}</cl:link></li>
   <li class="active"><a href="#">Plans</a></li>
-  <li><g:link controller="dashboard" action="customize">Customize</g:link></li>
+  <li><cl:link controller="dashboard" action="customize">Customize</cl:link></li>
 </ul>
 <g:if test="${request.system}">
   <g:render template="/plan/selectPlan" model="[title: title, hasDelta: hasDelta]"/>

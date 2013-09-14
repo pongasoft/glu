@@ -26,7 +26,7 @@
 <div class="body">
   <ul class="nav nav-tabs">
     <li class="active"><a href="#">User List</a></li>
-    <li><g:link action="create">New</g:link></li>
+    <li><cl:link action="create">New</cl:link></li>
   </ul>
   <div class="paginateButtons">
     <g:paginate total="${userInstanceTotal}" max="100"/>
@@ -42,7 +42,7 @@
       <tbody>
       <g:each in="${userInstanceList}" status="i" var="userInstance">
         <tr class="${(i % 2) == 0 ? 'odd' : 'even'}">
-          <td><g:link action="show" id="${userInstance.id}">${fieldValue(bean: userInstance, field: 'username')}</g:link></td>
+          <td><cl:link action="show" id="${userInstance.id}">${fieldValue(bean: userInstance, field: 'username')}</cl:link></td>
           <td>${ConsoleUtils.sortByName(userInstance.roles)}</td>
         </tr>
       </g:each>

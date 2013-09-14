@@ -24,8 +24,8 @@
 </head>
 <body>
 <ul class="nav nav-tabs">
-  <li><g:link action="list">List</g:link></li>
-  <li><g:link action="create">New</g:link></li>
+  <li><cl:link action="list">List</cl:link></li>
+  <li><cl:link action="create">New</cl:link></li>
   <li class="active"><a href="#">Encrypt/Decrypt</a></li>
 </ul>
 <div class="body">

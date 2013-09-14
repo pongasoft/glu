@@ -24,7 +24,7 @@
 </head>
 <body>
 <ul class="nav nav-tabs">
-  <li><g:link action="list">Fabric List</g:link></li>
+  <li><cl:link action="list">Fabric List</cl:link></li>
   <li class="active"><a href="#">New</a></li>
 </ul>
 <div class="body">
