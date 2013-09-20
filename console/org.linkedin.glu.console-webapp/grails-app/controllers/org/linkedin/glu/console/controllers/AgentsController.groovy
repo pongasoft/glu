@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,6 +21,8 @@ import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
+import org.linkedin.util.lang.MemorySize
+
 import java.security.AccessControlException
 import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
@@ -277,7 +279,7 @@ class AgentsController extends ControllerBase
    */
   def clearError = {
     handleNoAgent {
-      agentsService.clearError(fabric: request.fabric, *:params)
+      agentsService.clearError(*:params, fabric: request.fabric)
       redirect(action: 'view', id: params.id)
     }
   }
@@ -287,7 +289,7 @@ class AgentsController extends ControllerBase
    */
   def uninstallScript = {
     handleNoAgent {
-      agentsService.uninstallScript(fabric: request.fabric, *:params)
+      agentsService.uninstallScript(*:params, fabric: request.fabric)
       redirect(action: 'view', id: params.id)
     }
   }
@@ -297,7 +299,7 @@ class AgentsController extends ControllerBase
    */
   def forceUninstallScript = {
     handleNoAgent {
-      agentsService.forceUninstallScript(fabric: request.fabric, *:params)
+      agentsService.forceUninstallScript(*:params, fabric: request.fabric)
       redirect(action: 'view', id: params.id)
     }
   }
@@ -308,7 +310,7 @@ class AgentsController extends ControllerBase
   def fullStackTrace = {
     try
     {
-      def state = agentsService.getFullState(fabric: request.fabric, *:params)
+      def state = agentsService.getFullState(*:params, fabric: request.fabric)
       if(state?.scriptState?.stateMachine?.error)
       {
         render(template: 'fullStackTrace', model: [exception: state.scriptState.stateMachine.error])
@@ -335,7 +337,7 @@ class AgentsController extends ControllerBase
       }
       request.system = system
 
-      def metadata = [agent: params.id, mountPoint: params.mountPoint, *:params]
+      def metadata = [*:params, agent: params.id, mountPoint: params.mountPoint]
       ['controller', 'action', 'id', '__nvbe'].each { metadata.remove(it) }
 
       params.system = system
@@ -368,7 +370,7 @@ class AgentsController extends ControllerBase
     params.action = params.transitionAction
     try
     {
-      agentsService.interruptAction(fabric: request.fabric, *:params)
+      agentsService.interruptAction(*:params, fabric: request.fabric)
     }
     catch (Exception e)
     {
@@ -383,7 +385,7 @@ class AgentsController extends ControllerBase
    */
   def tailLog = {
     handleNoAgent {
-      agentsService.tailLog(fabric: request.fabric, *:params) {
+      agentsService.tailLog(*:params, fabric: request.fabric) {
         response.contentType = "text/plain"
         response.outputStream << it
       }
@@ -394,18 +396,53 @@ class AgentsController extends ControllerBase
    * getFileContent
    */
   def fileContent = {
+    if(params.file)
+    {
+      render(view: 'file', model: [location: params.file])
+      return
+    }
+
     handleNoAgent {
       try
       {
-        agentsService.streamFileContent(fabric: request.fabric, *:params) { res ->
+        agentsService.streamFileContent(*:params, fabric: request.fabric) { res ->
           if(res instanceof InputStream)
           {
-            response.contentType = "text/plain"
+            if(params.binaryOutput)
+            {
+              response.contentType = "application/octet-stream"
+              response.addHeader('Content-Disposition',
+                                 "attachment; filename=\"${new File(params.location).name.encodeAsURL()}\"")
+            }
+            else
+              response.contentType = "text/plain"
+
             response.outputStream << res
           }
           else
           {
-            render(view: 'directory', model: [dir: res])
+            if(params.offset)
+            {
+              if(res?.tailStream)
+              {
+                GluGroovyCollectionUtils.xorMap(res, ['tailStream']).each { k, v ->
+                  response.addHeader("X-glu-${k}", v.toString())
+                }
+                if(res.length > 0)
+                  response.addHeader("X-glu-length-as-MemorySize",
+                                     MemorySize.parse(res.length.toString()).canonicalString)
+                if(res.lastModified)
+                  response.addHeader('X-glu-lastModified-as-String',
+                                     cl.formatDate(time: res.lastModified).toString())
+
+                  response.contentType = "text/plain"
+                  response.outputStream << res.tailStream
+              }
+              else
+                render 'No such file'
+            }
+            else
+              render(view: 'directory', model: [dir: res])
           }
         }
       }

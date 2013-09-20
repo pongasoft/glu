@@ -29,6 +29,8 @@ import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
 import org.linkedin.glu.utils.concurrent.OneThreadPerTaskSubmitter
 import org.linkedin.glu.utils.concurrent.Submitter
 import org.linkedin.glu.utils.core.Externable
+import org.linkedin.glu.utils.io.EmptyInputStream
+import org.linkedin.glu.utils.io.LimitedInputStream
 import org.linkedin.groovy.util.ant.AntUtils
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
 import org.linkedin.groovy.util.config.Config
@@ -903,6 +905,73 @@ def class ShellImpl implements Shell
         commandLine << '-c' << MemorySize.parse(args.maxSize.toString()).sizeInBytes
       commandLine << file.canonicalPath
       return forkAndExec(commandLine)
+    }
+    else
+      return null
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  def tailFromOffset(def args)
+  {
+    File file = toResource(args.location)?.file
+
+    if(file && file.exists())
+    {
+      InputStream tailStream
+
+      try
+      {
+        long length = file.size()
+        long offset =
+          GluGroovyLangUtils.computeOffsetFromMemorySize(Config.getOptionalString(args, "offset", "-"))
+
+        if(offset < 0)
+          offset = length + offset
+
+        long bytesToRead = length
+
+        if(offset > 0)
+          bytesToRead -= Math.min(length, offset)
+
+        if(bytesToRead == 0)
+        {
+          // nothing to read
+          tailStream = EmptyInputStream.INSTANCE
+        }
+        else
+        {
+          tailStream = new FileInputStream(file)
+
+          if(offset > 0)
+            tailStream.skip(offset)
+
+          // if the file grows beyond length before the stream is completely read
+          // we do not want to read the "extra" data
+          tailStream = new LimitedInputStream(new BufferedInputStream(tailStream), bytesToRead)
+        }
+
+        return [
+          tailStream: tailStream,
+          tailStreamMaxLength: bytesToRead,
+          length: length,
+          lastModified: file.lastModified(),
+          canonicalPath: file.canonicalPath,
+          isSymbolicLink: Files.isSymbolicLink(file.toPath())
+        ]
+      }
+      catch(FileNotFoundException ignored)
+      {
+        // rare case when the file gets deleted between file.exists() and new FileInputStream(file)!
+        GluGroovyLangUtils.noException { tailStream?.close() }
+        return null
+      }
+      catch(Throwable th)
+      {
+        GluGroovyLangUtils.noException { tailStream?.close() }
+        throw th
+      }
     }
     else
       return null

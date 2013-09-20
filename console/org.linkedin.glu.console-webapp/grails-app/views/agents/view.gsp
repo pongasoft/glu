@@ -35,8 +35,8 @@
   &nbsp;
   <h2 class="${model.state}">${model.agent.agentName} (V${model.agent.version}) <cl:renderTags tags="${model.agent.tags}" linkable="${true}"/> </h2>
   <ul class="summary">
-    <li>Logs: <cl:link action="tailLog" id="${model.agent.agentName}" params="[maxLine: 500]">main</cl:link> |
-      <cl:link action="tailLog" id="${model.agent.agentName}" params="[log:'gc.log', maxLine: 500]">gc</cl:link><g:if test="${model.agent.agentProperties['glu.agent.logDir']}"> |
+    <li>Logs: <cl:link action="fileContent" id="${model.agent.agentName}" params="[file: model.agent.agentProperties['glu.agent.logDir'] + '/org.linkedin.glu.agent-server.out']">main</cl:link> |
+    <cl:link action="fileContent" id="${model.agent.agentName}" params="[file: model.agent.agentProperties['glu.agent.logDir'] + '/gc.log']">gc</cl:link><g:if test="${model.agent.agentProperties['glu.agent.logDir']}"> |
       <cl:link action="fileContent" id="${model.agent.agentName}" params="[location: model.agent.agentProperties['glu.agent.logDir']]">more...</cl:link></g:if>
     </li>
     <li>

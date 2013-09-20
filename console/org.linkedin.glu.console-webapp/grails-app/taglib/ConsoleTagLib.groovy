@@ -1181,7 +1181,7 @@ public class ConsoleTagLib
             cl.link(controller: 'agents',
                     action: 'fileContent',
                     id: agent,
-                    params: [location: logFile.path, maxLine: 500]) {
+                    params: [(logFile == logsDir ? 'location': 'file'): logFile.path]) {
               out << logType
             }
           }

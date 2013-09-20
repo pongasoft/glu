@@ -30,6 +30,8 @@ import org.linkedin.glu.agent.impl.script.StateKeeperScriptManager
 import org.hyperic.sigar.Sigar
 import org.hyperic.sigar.SigarException
 import org.linkedin.glu.agent.api.AgentException
+
+import java.nio.file.Files
 import java.util.concurrent.TimeoutException
 import org.linkedin.util.lifecycle.Shutdownable
 
@@ -479,21 +481,31 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
       if(location.isDirectory())
       {
         def resources = _rootShell.ls(location)
+        resources << location
         def res = [:]
         resources.each {
           def file = it.file
           def details = [:]
-          res[file.name] = details
+          if(it != location)
+            res[file.name] = details
+          else
+            res['.'] = details
           details.canonicalPath = file.canonicalPath
           details.length = file.length()
           details.lastModified = file.lastModified()
           details.isDirectory = file.isDirectory()
+          details.isSymbolicLink = Files.isSymbolicLink(file.toPath())
         }
         return res
       }
       else
       {
-        return _rootShell.tail(args)
+        if(args.containsKey('offset'))
+        {
+          return _rootShell.tailFromOffset(args)
+        }
+        else
+          return _rootShell.tail(args)
       }
     }
   }

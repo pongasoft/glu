@@ -18,6 +18,7 @@ package org.linkedin.glu.groovy.utils
 
 import org.linkedin.groovy.util.lang.GroovyLangUtils
 import org.linkedin.glu.utils.exceptions.MultipleExceptions
+import org.linkedin.util.lang.MemorySize
 
 /**
  * @author yan@pongasoft.com */
@@ -130,4 +131,21 @@ public class GluGroovyLangUtils extends GroovyLangUtils
     }
     return target
   }
+
+  /**
+   * Given a string in <code>MemorySize</code> format return the number of bytes (while accounting
+   * for the fact that the size may be negative (offset)
+   */
+  public static long computeOffsetFromMemorySize(String offsetString)
+  {
+    if(!offsetString || offsetString == '-')
+      return 0
+
+    if(offsetString.startsWith('-'))
+      return -(MemorySize.parse(offsetString[1..-1]).sizeInBytes)
+    else
+      return MemorySize.parse(offsetString).sizeInBytes
+
+  }
+
 }

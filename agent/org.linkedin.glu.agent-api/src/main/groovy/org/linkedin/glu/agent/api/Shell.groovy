@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -707,6 +707,22 @@ def interface Shell
    * @return the input stream to read the content of the tail
    */
   InputStream tail(args)
+
+  /**
+   * Tail the location from the offset to the end of the file. This api lets you implement
+   * something similar to <code>tail -f</code>. Note that it is the responsibility of the caller
+   * to properly close the stream returned!
+   *
+   * @params args.location the location of the file to tail
+   * @params args.offset the offset in the file where to start (in bytes). If negative, then
+   *                     count backward from the end of the file (optional, default to <code>0</code>)
+   * @return <code>null</code> if the location does not exist or a map with
+   *         * <code>tailStream</code>, the stream to read from (<code>InputStream</code>)
+   *         * <code>tailStreamMaxSize</code> how many bytes maximum <code>tailStream</code> contains
+   *           (note that <code>tailStream</code> may contain less, but will never contain more!)
+   *         * <code>totalSize</code> the total size of the file
+   */
+  def tailFromOffset(def args)
 
   /**
    * @return <code>true</code> if there is a socket open on the server/port combination

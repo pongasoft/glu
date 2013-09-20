@@ -18,11 +18,17 @@
 
 package org.linkedin.glu.agent.rest.client
 
+import org.json.JSONArray
 import org.json.JSONObject
 import org.linkedin.glu.agent.api.Agent
 import org.linkedin.glu.agent.api.AgentException
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.api.NoSuchMountPointException
+import org.linkedin.glu.agent.rest.common.AgentRestUtils
+import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.linkedin.glu.utils.io.EmptyInputStream
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.groovy.util.rest.RestException
 import org.linkedin.util.io.PathUtils
@@ -35,10 +41,8 @@ import org.restlet.representation.EmptyRepresentation
 import org.restlet.representation.Representation
 import org.restlet.resource.ClientResource
 import org.restlet.resource.ResourceException
-import org.json.JSONArray
-import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
-import org.linkedin.glu.agent.rest.common.AgentRestUtils
-import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * This is the implementation of the {@link Agent} interface using a REST api under the cover
@@ -49,7 +53,7 @@ import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 class AgentRestClient implements Agent
 {
   public static final String MODULE = AgentRestClient.class.getName();
-  public static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MODULE);
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   private final Uniform _client
   private final Map<String, Reference> _references
@@ -242,26 +246,65 @@ class AgentRestClient implements Agent
       return null
   }
 
+  private static def FILE_CONTENT_EXPECTED_HEADERS =
+    [
+      'tailStreamMaxLength' : { it as long },
+      'length': { it as long },
+      'lastModified': { it as long },
+      'canonicalPath': { it as String },
+      'isSymbolicLink': { GluGroovyLangUtils.getOptionalBoolean(it, false) },
+    ]
+
   def getFileContent(args)
   {
     def ref = _references.file
     ref = addPath(ref, args.location)
 
-    GluGroovyCollectionUtils.subMap(args, ['maxLine', 'maxSize']).each { k,v ->
-      if(v)
+    GluGroovyCollectionUtils.subMap(args, ['maxLine', 'maxSize', 'offset', 'includeMimeTypes']).each { k,v ->
+      if(v != null)
       {
         ref.addQueryParameter(k.toString(), v.toString())
       }
     }
 
-    def response = handleResponse(ref) { ClientResource client ->
-      client.get()
+    def map = [:]
+
+    def response =
+      handleResponse(ref,
+                     [
+                       (Status.CLIENT_ERROR_NOT_FOUND): { ClientResource client ->
+                         return null
+                       }
+                     ]) { ClientResource client ->
+
+      Representation res = client.get()
+
+      def headers = client.responseAttributes.'org.restlet.http.headers'
+
+        FILE_CONTENT_EXPECTED_HEADERS.each { k, Closure dynamicCast ->
+        def value = headers?.getFirstValue("X-glu-file-${k}".toString())
+        if(value != null)
+          map[k] = dynamicCast(value)
+      }
+
+      return res
     }
 
-    if(response == null)
-      return new ByteArrayInputStream([] as byte[]) 
+    if(args.containsKey('offset'))
+    {
+      if(!map)
+      {
+        return null
+      }
 
-    return getRes(response)
+      map.tailStream = getRes(response) ?: EmptyInputStream.INSTANCE
+
+      return map
+    }
+    else
+    {
+      return getRes(response)
+    }
   }
 
   @Override
@@ -532,6 +575,13 @@ class AgentRestClient implements Agent
 
   private <T> T handleResponse(Reference reference, Closure closure)
   {
+    handleResponse(reference, null, closure)
+  }
+
+  private <T> T handleResponse(Reference reference,
+                               Map<Status, Closure> statusErrorHandlers,
+                               Closure closure)
+  {
     def clientResource = new ClientResource(reference)
     clientResource.next = _client
 
@@ -545,12 +595,12 @@ class AgentRestClient implements Agent
       }
       else
       {
-        handleError(clientResource)
+        handleError(clientResource, null, statusErrorHandlers)
       }
     }
     catch(ResourceException e)
     {
-      handleError(clientResource, e)
+      handleError(clientResource, e, statusErrorHandlers)
     }
 
     return null
@@ -570,12 +620,14 @@ class AgentRestClient implements Agent
     return (T) clientResource.status
   }
 
-  private void handleError(ClientResource clientResource, Throwable throwable = null)
+  private void handleError(ClientResource clientResource,
+                           Throwable throwable,
+                           Map<Status, Closure> statusErrorHandlers)
   {
     def representation = extractRepresentation(clientResource, clientResource.responseEntity)
     if(representation instanceof Status)
     {
-      handleRecoverableError(representation)
+      handleRecoverableError(clientResource, representation, statusErrorHandlers)
     }
     else
     {
@@ -591,11 +643,20 @@ class AgentRestClient implements Agent
     }
   }
 
-  protected void handleRecoverableError(Status status)
+  protected def handleRecoverableError(ClientResource clientResource,
+                                       Status status,
+                                       Map<Status, Closure> statusErrorHandlers)
   {
-    if(status.isRecoverableError())
-      throw new RecoverableAgentException(status)
+    if(statusErrorHandlers && statusErrorHandlers[status])
+    {
+      statusErrorHandlers[status](clientResource)
+    }
     else
-      throw new AgentException(status.toString())
+    {
+      if(status.isRecoverableError())
+        throw new RecoverableAgentException(status)
+      else
+        throw new AgentException(status.toString())
+    }
   }
 }

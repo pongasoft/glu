@@ -609,3 +609,7 @@ a.skip {
 	position: absolute;
 	left: -9999px;
 }
+
+.text-file-content {
+  white-space: pre;
+}

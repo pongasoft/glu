@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -238,12 +238,33 @@ public interface Agent
   InputStream tailAgentLog(args) throws AgentException
 
   /**
-   * Returns the content of the file at the given location. If the file is a directory then
-   * returns ls() (<code>Map</code>) otherwise returns tail() (<code>InputStream</code>)
+   * Returns the content of the file at the given location. The difference between
+   * <code>maxSize</code> and <code>offset</code> is essentially the fact that with
+   * <code>offset</code> you get a map with additional information.
    *
    * @params args.location which file to read the content
    * @params args.maxLine the number of lines maximum to read
-   * @params args.maxSize the maximum size to read
+   * @params args.maxSize the maximum size to read (can be a <code>MemorySize</code>)
+   * @params args.offset the offset in the file where to start (in bytes). If negative, then
+   *                     count backward from the end of the file.
+   *                     (see {@link Shell#tailFromOffset(Object)})
+   *
+   * @return * If the file is a directory then ls() (<code>Map</code>) with key is filename
+   *           and value is another <code>Map</code>:
+   *            - <code>length</code> the total size of the file
+   *            - <code>lastModified</code> when the file was modified last
+   *            - <code>canonicalPath</code> the file canonical path
+   *            - <code>isDirectory</code> <code>boolean</code> for directory yes/no
+   *            - <code>isSymbolicLink</code> <code>boolean</code> for symbolic link yes/no
+   *         * If <code>offset</code> is specified, then return a map with
+   *            - <code>tailStream</code>, the stream to read from (<code>InputStream</code>)
+   *            - <code>tailStreamMaxLength</code> how many bytes maximum <code>tailStream</code> contains
+   *              (note that <code>tailStream</code> may contain less, but will never contain more!)
+   *            - <code>length</code> the total size of the file
+   *            - <code>lastModified</code> when the file was modified last
+   *            - <code>canonicalPath</code> the file canonical path
+   *            - <code>isSymbolicLink</code> <code>boolean</code> for symbolic link yes/no
+   *         * Otherwise returns tail() (<code>InputStream</code>)
    */
   def getFileContent(args) throws AgentException
 

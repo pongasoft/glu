@@ -325,3 +325,7 @@ li.filter-LogicSystemFilterChain {
   max-height: 50em;
   overflow-y: auto;
 }
+
+.file-actions {
+  float: right;
+}
