@@ -464,7 +464,11 @@ def interface Shell extends FileSystem
    *         * <code>tailStreamMaxLength</code> how many bytes maximum <code>tailStream</code> contains
    *           (note that <code>tailStream</code> may contain less, but will never contain more!)
    *         * <code>length</code> the total size of the file
+   *         * <code>created</code> when the file was created
    *         * <code>lastModified</code> when the file was modified last
+   *         * <code>lastAccessed</code> when the file was accessed last
+   *           (note that since this call accesses the file, it returns the time it was last
+   *           accessed prior to accessing it!)
    *         * <code>canonicalPath</code> the file canonical path
    *         * <code>isSymbolicLink</code> <code>boolean</code> for symbolic link yes/no
    */

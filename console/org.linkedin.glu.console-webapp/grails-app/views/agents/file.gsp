@@ -14,7 +14,7 @@
   - the License.
   --}%
 
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="org.linkedin.util.io.PathUtils; org.linkedin.glu.grails.utils.ConsoleConfig" contentType="text/html;charset=UTF-8" %>
 <g:set var="file" value="${new File(params.file)}"/>
 <g:set var="directory" value="${file.parentFile}"/>
 <html>
@@ -31,6 +31,7 @@
   overflow-y: auto;
 }
   </style>
+  <script type="text/javascript" src="${resource(dir:'js',file:'console.js')}"></script>
   <g:javascript>
 nextOffset = null;
 nextTimer = null;
@@ -107,7 +108,7 @@ function renderContent(data, textStatus, jqXHR) {
     $('#file-lastModified').html(jqXHR.getResponseHeader("X-glu-lastModified-as-String"));
     if(data !== "")
     {
-      $('#file-content').append(data);
+      $('#file-content').append(encodeAsHTML(data));
       $('#file-content').scrollTop($("#file-content")[0].scrollHeight);
     }
     asyncFetchContent(totalSize);
@@ -118,8 +119,28 @@ function renderContent(data, textStatus, jqXHR) {
     nextOffset = 0;
     $('#file-size').html('-');
     $('#file-lastModified').html('-');
-    $('#file-content').append('<div class="stderr">File does not exist.</div>');
-    $('#file-content').addClass('ERROR');
+
+    if(jqXHR.getResponseHeader('X-glu-grails-view') == 'login')
+    {
+      $('#file-content').append('<div class="stderr">You are no longer logged in... Please login again.</div>');
+      return;
+    }
+
+    if(jqXHR.getResponseHeader('X-glu-unauthorized'))
+    {
+      $('#file-content').append('<div class="stderr">Unauthorized.</div>');
+      return;
+    }
+
+    if(data != "")
+    {
+      $('#file-content').html(encodeAsHTML(data));
+      $('#file-content').scrollTop($("#file-content")[0].scrollHeight);
+    }
+    else
+    {
+      $('#file-content').append('<div class="stderr">File does not exist.</div>');
+    }
   }
 }
 function asyncFetchContent(offset)
@@ -135,7 +156,7 @@ function asyncFetchContent(offset)
 }
 function fetchContent(offset) {
     jQuery.ajax({
-      type:'POST',
+      type:'GET',
       data:{'location': '${file.path}', 'offset': offset},
       url: '${cl.createLink(controller: 'agents', action: 'fileContent', id: params.id)}',
       success: function(data, textStatus, jqXHR){renderContent(data, textStatus, jqXHR);}});
@@ -147,7 +168,7 @@ function changeFontSize(selector, increment) {
  }
   </g:javascript>
 </head>
-<body onload="fetchContent('-1k');">
+<body onload="fetchContent('-${ConsoleConfig.getInstance().defaults.defaultTailSize ?: '5k'}');">
 <ul class="nav nav-tabs">
   <li><cl:link controller="agents" action="list">List</cl:link></li>
   <cl:whenFeatureEnabled feature="commands"><li><cl:link controller="commands" action="list">All Commands</cl:link></li></cl:whenFeatureEnabled>

@@ -62,6 +62,7 @@ import org.linkedin.util.clock.Chronos
 import org.linkedin.glu.groovy.utils.test.GluGroovyTestUtils
 
 import java.nio.file.Files
+import java.nio.file.attribute.BasicFileAttributes
 
 /**
  * The code which is in {@link AgentRestClient} is essentially the code to use for calling the rest
@@ -553,75 +554,116 @@ gc: 1000
 
         agent.rootShell.saveContent(tempResource, "0123456789")
 
+        BasicFileAttributes attributes =
+          Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
         def res = arc.getFileContent(location: tempFile, offset: 0)
         assertEquals("0123456789", res.tailStream.text)
         assertEquals(10, res.length)
         assertEquals(10, res.tailStreamMaxLength)
-        assertEquals(tempResource.file.lastModified(), res.lastModified)
+        assertEquals(attributes.creationTime().toMillis(), res.created)
+        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
         res = arc.getFileContent(location: tempFile, offset: -3)
         assertEquals("789", res.tailStream.text)
         assertEquals(10, res.length)
         assertEquals(3, res.tailStreamMaxLength)
-        assertEquals(tempResource.file.lastModified(), res.lastModified)
+        assertEquals(attributes.creationTime().toMillis(), res.created)
+        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
         res = arc.getFileContent(location: tempFile, offset: 10)
         assertEquals("", res.tailStream.text)
         assertEquals(10, res.length)
         assertEquals(0, res.tailStreamMaxLength)
-        assertEquals(tempResource.file.lastModified(), res.lastModified)
+        assertEquals(attributes.creationTime().toMillis(), res.created)
+        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
         agent.rootShell.saveContent(tempResource, "012345678901")
 
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
         res = arc.getFileContent(location: tempFile, offset: 10)
         assertEquals("01", res.tailStream.text)
         assertEquals(12, res.length)
         assertEquals(2, res.tailStreamMaxLength)
-        assertEquals(tempResource.file.lastModified(), res.lastModified)
+        assertEquals(attributes.creationTime().toMillis(), res.created)
+        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
         res = arc.getFileContent(location: tempFile, offset: 12)
         assertEquals("", res.tailStream.text)
         assertEquals(12, res.length)
         assertEquals(0, res.tailStreamMaxLength)
-        assertEquals(tempResource.file.lastModified(), res.lastModified)
+        assertEquals(attributes.creationTime().toMillis(), res.created)
+        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
         res = arc.getFileContent(location: tempFile, offset: -25)
         assertEquals("012345678901", res.tailStream.text)
         assertEquals(12, res.length)
         assertEquals(12, res.tailStreamMaxLength)
-        assertEquals(tempResource.file.lastModified(), res.lastModified)
+        assertEquals(attributes.creationTime().toMillis(), res.created)
+        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
         res = arc.getFileContent(location: tempFile, offset: 34)
         assertEquals("", res.tailStream.text)
         assertEquals(12, res.length)
         assertEquals(0, res.tailStreamMaxLength)
-        assertEquals(tempResource.file.lastModified(), res.lastModified)
+        assertEquals(attributes.creationTime().toMillis(), res.created)
+        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
+        // symbolic link
         agent.rootShell.withTempFile { Resource t2 ->
           Files.createSymbolicLink(t2.file.toPath(), tempResource.file.toPath())
 
+          attributes = Files.readAttributes(t2.file.toPath(), BasicFileAttributes)
           res = arc.getFileContent(location: t2.file.path, offset: 10)
           assertEquals("01", res.tailStream.text)
           assertEquals(12, res.length)
           assertEquals(2, res.tailStreamMaxLength)
-          assertEquals(tempResource.file.lastModified(), res.lastModified)
+          assertEquals(attributes.creationTime().toMillis(), res.created)
+          assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
+          assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
           assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
           assertTrue(res.isSymbolicLink)
         }
+
+        // empty file
+        agent.rootShell.saveContent(tempResource, "")
+
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
+        res = arc.getFileContent(location: tempFile, offset: 10)
+        assertEquals("", res.tailStream.text)
+        assertEquals(0, res.length)
+        assertEquals(0, res.tailStreamMaxLength)
+        assertEquals(attributes.creationTime().toMillis(), res.created)
+        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
       }
     }
   }

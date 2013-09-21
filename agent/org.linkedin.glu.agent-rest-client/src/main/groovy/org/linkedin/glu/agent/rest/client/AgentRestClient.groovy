@@ -250,7 +250,9 @@ class AgentRestClient implements Agent
     [
       'tailStreamMaxLength' : { it as long },
       'length': { it as long },
+      'created': { it as long },
       'lastModified': { it as long },
+      'lastAccessed': { it as long },
       'canonicalPath': { it as String },
       'isSymbolicLink': { GluGroovyLangUtils.getOptionalBoolean(it, false) },
     ]
@@ -260,7 +262,7 @@ class AgentRestClient implements Agent
     def ref = _references.file
     ref = addPath(ref, args.location)
 
-    GluGroovyCollectionUtils.subMap(args, ['maxLine', 'maxSize', 'offset', 'includeMimeTypes']).each { k,v ->
+    GluGroovyCollectionUtils.subMap(args, ['maxLine', 'maxSize', 'offset']).each { k,v ->
       if(v != null)
       {
         ref.addQueryParameter(k.toString(), v.toString())
@@ -290,20 +292,14 @@ class AgentRestClient implements Agent
       return res
     }
 
-    if(args.containsKey('offset'))
+    if(map)
     {
-      if(!map)
-      {
-        return null
-      }
-
       map.tailStream = getRes(response) ?: EmptyInputStream.INSTANCE
-
       return map
     }
     else
     {
-      return getRes(response)
+      return getRes(response) ?: null
     }
   }
 

@@ -52,7 +52,10 @@ import javax.management.ObjectName
 import javax.management.remote.JMXConnectorFactory
 import javax.management.remote.JMXServiceURL
 import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.NoSuchFileException
 import java.nio.file.NotDirectoryException
+import java.nio.file.attribute.BasicFileAttributes
 import java.security.MessageDigest
 import java.util.concurrent.TimeoutException
 import java.util.regex.Pattern
@@ -917,13 +920,18 @@ def class ShellImpl implements Shell
   {
     File file = toResource(args.location)?.file
 
-    if(file && file.exists())
+    if(file)
     {
       InputStream tailStream
 
       try
       {
-        long length = file.size()
+        BasicFileAttributes attributes = Files.readAttributes(file.toPath(),
+                                                              BasicFileAttributes,
+                                                              LinkOption.NOFOLLOW_LINKS)
+
+        // we don't care about the size of the symbolic link!
+        long length = attributes.isSymbolicLink() ? file.size() : attributes.size()
         long offset =
           GluGroovyLangUtils.computeOffsetFromMemorySize(Config.getOptionalString(args, "offset", "-"))
 
@@ -956,12 +964,20 @@ def class ShellImpl implements Shell
           tailStream: tailStream,
           tailStreamMaxLength: bytesToRead,
           length: length,
-          lastModified: file.lastModified(),
+          created: attributes.creationTime().toMillis(),
+          lastModified: attributes.lastModifiedTime().toMillis(),
+          lastAccessed: attributes.lastAccessTime().toMillis(),
           canonicalPath: file.canonicalPath,
-          isSymbolicLink: Files.isSymbolicLink(file.toPath())
+          isSymbolicLink: attributes.isSymbolicLink()
         ]
       }
       catch(FileNotFoundException ignored)
+      {
+        // rare case when the file gets deleted between file.exists() and new FileInputStream(file)!
+        GluGroovyLangUtils.noException { tailStream?.close() }
+        return null
+      }
+      catch(NoSuchFileException ignored)
       {
         // rare case when the file gets deleted between file.exists() and new FileInputStream(file)!
         GluGroovyLangUtils.noException { tailStream?.close() }

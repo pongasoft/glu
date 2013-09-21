@@ -405,6 +405,11 @@ class AgentsController extends ControllerBase
     handleNoAgent {
       try
       {
+        // this is for backward compatibility with previous agents which don't know the offset
+        // parameter
+        if(params.offset)
+          params.maxLine = 500
+
         agentsService.streamFileContent(*:params, fabric: request.fabric) { res ->
           if(res instanceof InputStream)
           {
@@ -439,17 +444,25 @@ class AgentsController extends ControllerBase
                   response.outputStream << res.tailStream
               }
               else
-                render 'No such file'
+                render ''
             }
             else
               render(view: 'directory', model: [dir: res])
           }
         }
       }
-      catch (AccessControlException e)
+      catch (AccessControlException ignored)
       {
-        flash.error = "Not authorized to view ${params.location}"
-        redirect(action: 'view', id: params.id)
+        if(params.offset)
+        {
+          response.addHeader("X-glu-unauthorized", params.location)
+          render ''
+        }
+        else
+        {
+          flash.error = "Not authorized to view ${params.location}"
+          redirect(action: 'view', id: params.id)
+        }
         return
       }
     }
@@ -709,6 +722,11 @@ class AgentsController extends ControllerBase
       flash.error = "Missing agent [${e.message}]"
       redirect(action: 'view', id: params.id)
     }
+  }
+
+  def rest_agent_get_file_content = {
+    println params
+    render ''
   }
 
   private computeAgentModel(Fabric fabric, agent, mountPoints, hasDelta)

@@ -70,7 +70,7 @@
         <cl:link title="Refresh" action="fileContent" id="${params.id}" params="[location: directory]"><i class="icon-refresh"> </i></cl:link>
       </td>
       <td><span id="filename-only">${directory.name.encodeAsHTML()}</span><span id="fullpath" class="hidden">${directory.path.encodeAsHTML()}</span><div class="file-actions"><a href="#" id="toggle-fullpath-icon" title="Show/Hide full path" onclick="toggleFullPath();"><i class="icon-zoom-in"> </i></a></div></td>
-      <td><cl:formatDate date="${new Date(dir['.']?.lastModified)}"/></td>
+      <td><cl:formatDate time="${dir['.']?.lastModified}"/></td>
     </tr>
     </tbody>
   </table>

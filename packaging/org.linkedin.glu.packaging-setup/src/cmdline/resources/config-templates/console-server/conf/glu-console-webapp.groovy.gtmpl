@@ -237,6 +237,9 @@ plans: [
     [
       commands: true
     ],
+
+  // size to use when tailing a file by default (MemorySize ok)
+  defaultTailSize: '1k',
 ]
 """
 %>

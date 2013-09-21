@@ -70,3 +70,20 @@ function selectOne(containerId, className)
     }
   }
 }
+
+/**
+ * Similar to grails encodeAsHTML but in javascript.
+ * Credits to http://jsperf.com/htmlencoderegex/35
+ */
+encodeAsHTML = (function () {
+  'use strict';
+  var DOMText = document.createTextNode("test");
+  var DOMNative = document.createElement("span");
+  DOMNative.appendChild(DOMText);
+
+  //main work for each case
+  return function (html) {
+    DOMText.nodeValue = html;
+    return DOMNative.innerHTML
+  };
+}());

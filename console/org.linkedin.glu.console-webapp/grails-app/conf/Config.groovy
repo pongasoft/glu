@@ -171,6 +171,8 @@ console.dev.defaults =
     [
       commands: true
     ],
+
+    defaultTailSize: '5k',
   ]
 
 /**
@@ -470,6 +472,7 @@ environments {
              'org.linkedin'
 
         //debug 'org.linkedin.zookeeper.tracker', 'org.linkedin.glu.agent.tracker'
+        //debug 'org.apache.http'
 
               debug 'org.linkedin.glu.console.domain'
 
