@@ -419,7 +419,7 @@ The UI is configured in the ``console.defaults`` section of the configuration fi
     ... configuration goes here ...
   ]
 
-You can either provide your entire ``console.defaults`` section::
+In order to use your own values, you can either provide (in the meta model) your entire ``console.defaults`` section::
 
    consoles << [
       name: 'myConsole',
@@ -672,6 +672,19 @@ This (optional) entry defines the actions available for a given mountPoint on th
 The *standard* plan types are: ``deploy``, ``redeploy``, ``undeploy``, ``bounce`` and ``transition`` (which requires a ``state`` attribute).
 
 .. tip:: By using the :ref:`plugin hook <goe-plugins>` ``PlannerService_pre_computePlans`` you can add your own plan types!
+
+.. _console-configuration-tail:
+
+Tail
+""""
+
+This section defines the default size and refresh rate (how long between polls) for the tail feature::
+
+    tail: [
+      size: '10k', // size to use when tailing a file by default (MemorySize)
+      refreshRate: '5s' // how long between polls (Timespan)
+    ],
+
 
 .. _console-dashboard:
 

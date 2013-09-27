@@ -168,7 +168,7 @@ function changeFontSize(selector, increment) {
  }
   </g:javascript>
 </head>
-<body onload="fetchContent('-${ConsoleConfig.getInstance().defaults.tail?.size ?: '1k'}');">
+<body onload="fetchContent('-${ConsoleConfig.getInstance().defaults.tail?.size ?: '10k'}');">
 <ul class="nav nav-tabs">
   <li><cl:link controller="agents" action="list">List</cl:link></li>
   <cl:whenFeatureEnabled feature="commands"><li><cl:link controller="commands" action="list">All Commands</cl:link></li></cl:whenFeatureEnabled>

@@ -130,7 +130,7 @@ View the agent
 
 View log files
 --------------
-1. Click on ``'main'`` (next to ``Logs:``) which shows the last 500 lines of the main log file of the agent (if you scroll to the bottom you should see the same message that the tail command (started previously is showing)).
+1. Click on ``'main'`` (next to ``Logs:``) which (dynamically) tail the main log file of the agent (you should see the same message that the tail command (started previously is showing)).
 
   .. image:: /images/tutorial/tutorial-view-agent-2.png
      :align: center

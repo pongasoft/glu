@@ -15,6 +15,13 @@
 Migration Guide
 ===============
 
+.. _migration-guide-5.2.0-5.3.0:
+
+5.2.0 -> 5.3.0
+--------------
+* In order to benefit fully from the new tail feature, you need to upgrade the agent to 5.3.0. If you upgrade the console only, the tail will simply not refresh. You can use the auto upgrade capability of the agent to upgrade.
+* If you have been using the variable ``agentZooKeeper`` in your glu script, it will conflict with the new one introduced in 5.3.0 and it is strongly suggested you rename yours.
+
 .. _migration-guide-5.1.0-5.2.0:
 
 5.1.0 -> 5.2.0

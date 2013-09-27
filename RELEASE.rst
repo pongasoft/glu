@@ -1,21 +1,54 @@
 Release Notes
 =============
 
+5.3.0 (2013/09/27)
+------------------
+
+This release contains a major overhaul of the directory/file listing feature for a given agent.
+
+.. tip::
+   In order to benefit fully from the new feature, the agent needs to be upgraded (check the :ref:`migration steps <migration-guide-5.2.0-5.3.0>` for details).
+
+New and noteworthy
+^^^^^^^^^^^^^^^^^^
+* It is now possible to continuously tail any file located on any agent (initial tail size and refresh rate are both :ref:`configurable <console-configuration-tail>`) as well as view it in the browser or download the content. The directory listing view has also been enhanced to add the same functionality.
+* glu scripts now have access to the ZooKeeper instance used by the agent (using the ``agentZooKeeper`` property).
+* All URLs in the console are now `enhanced` to include the fabric which makes them copy/paste friendly.
+* The agent cli now supports a different state machine (``--start`` (``-S``) and ``--install`` (``-I``) behave according to the state machine definition).
+* The max form post size is now configurable (in the console meta model)::
+
+    configTokens: [
+      maxFormConfigSize: '500k'
+    ]
+
+* The full package size has been reduced.
+
+Tickets
+^^^^^^^
+* Implemented `glu-153 <https://github.com/pongasoft/glu/issues/153>`_: `Make URLs copy/paste friendly`
+* Implemented `glu-183 <https://github.com/pongasoft/glu/issues/183>`_: `Add support for different state machine in agent-cli`
+* Implemented `glu-187 <https://github.com/pongasoft/glu/issues/187>`_: `Add "tail -f" for log files`
+* Implemented `glu-240 <https://github.com/pongasoft/glu/issues/240>`_: `Add ZooKeeper access from glu script`
+* Fixed `glu-241 <https://github.com/pongasoft/glu/issues/241>`_: `inconsistent use of java vs $JAVA_HOME/bin/java`
+* Fixed `glu-242 <https://github.com/pongasoft/glu/issues/242>`_: `NPE when selecting "bounce" or "stop" plans with a tags filter`
+* Implemented `glu-243 <https://github.com/pongasoft/glu/issues/243>`_: `Remove redundant/irrelevant data in package (all)`
+* Fixed `glu-245 <https://github.com/pongasoft/glu/issues/245>`_: `Exception: Form Too large`
+
 5.2.0 (2013/08/14)
 ------------------
 
 This release contains a few bug fixes and enhancements.
 
-New and noteworthy:
-^^^^^^^^^^^^^^^^^^^
+New and noteworthy
+^^^^^^^^^^^^^^^^^^
 * you can configure the agent outside the (upgrade) tarball (although since 5.1.0 this is less useful): ``$AGENT_ROOT/conf/pre_master_conf.sh`` and ``$AGENT_ROOT/conf/post_master_conf.sh``
 * you can change the :ref:`session timeout <console-configuration-session-timeout>` in the console
 * you can use a :ref:`json groovy dsl <static-model-json-groovy-dsl>` for the system model (check the `repository <https://github.com/pongasoft/glu/tree/master/console/org.linkedin.glu.console-server/src/cmdline/resources/glu/repository/systems>`_ for examples on how to use the dsl).
 * you can configure the agent with a shared class loader to minimize memory footprint
 * the agent is now properly registered in ZooKeeper **after** opening the rest api
 
-Tickets:
-^^^^^^^^^
+Tickets
+^^^^^^^
 * Implemented `glu-215 <https://github.com/pongasoft/glu/issues/215>`_: `Add ability to configure agent outside the "tarball"`
 * Fixed `glu-220 <https://github.com/pongasoft/glu/issues/220>`_: `java.lang.IllegalArgumentException: not a boolean : [:]`
 * Fixed `glu-222 <https://github.com/pongasoft/glu/issues/222>`_: `Only Admin users can tail Commands output`

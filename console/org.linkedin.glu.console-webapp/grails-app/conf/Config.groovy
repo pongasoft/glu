@@ -168,7 +168,7 @@ console.dev.defaults =
       ],
 
     tail: [
-      size: '1k', // size to use when tailing a file by default (MemorySize)
+      size: '10k', // size to use when tailing a file by default (MemorySize)
       refreshRate: '5s' // how long between polls (Timespan)
     ],
 
