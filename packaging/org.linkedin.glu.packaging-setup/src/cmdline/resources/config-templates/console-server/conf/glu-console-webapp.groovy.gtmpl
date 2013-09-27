@@ -232,14 +232,17 @@ plans: [
   [planType: "transition", displayName: "Stop", state: "stopped"],
 ],
 */
+
+  tail: [
+    size: '1k', // size to use when tailing a file by default (MemorySize)
+    refreshRate: '5s' // how long between polls (Timespan)
+  ],
+
 // features that can be turned on and off
   features:
     [
       commands: true
     ],
-
-  // size to use when tailing a file by default (MemorySize ok)
-  defaultTailSize: '1k',
 ]
 """
 %>

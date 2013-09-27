@@ -167,12 +167,15 @@ console.dev.defaults =
           'glu-dev-2': ['drMode': 'secondary']
       ],
 
+    tail: [
+      size: '1k', // size to use when tailing a file by default (MemorySize)
+      refreshRate: '5s' // how long between polls (Timespan)
+    ],
+
     features:
     [
       commands: true
     ],
-
-    defaultTailSize: '5k',
   ]
 
 /**

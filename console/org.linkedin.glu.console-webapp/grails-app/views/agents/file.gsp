@@ -14,7 +14,7 @@
   - the License.
   --}%
 
-<%@ page import="org.linkedin.util.io.PathUtils; org.linkedin.glu.grails.utils.ConsoleConfig" contentType="text/html;charset=UTF-8" %>
+<%@ page import="org.linkedin.util.clock.Timespan; org.linkedin.util.io.PathUtils; org.linkedin.glu.grails.utils.ConsoleConfig" contentType="text/html;charset=UTF-8" %>
 <g:set var="file" value="${new File(params.file)}"/>
 <g:set var="directory" value="${file.parentFile}"/>
 <html>
@@ -150,7 +150,7 @@ function asyncFetchContent(offset)
     if($('#play-pause-icon').hasClass('icon-play'))
     {
       nextOffset = offset
-      nextTimer = setTimeout('fetchContent(' + offset  + ')', ${params.refreshRate ?: '5000'});
+      nextTimer = setTimeout('fetchContent(' + offset  + ')', ${Timespan.parse(ConsoleConfig.getInstance().defaults.tail?.refreshRate?.toString() ?: '5s').durationInMilliseconds});
     }
   }
 }
@@ -168,7 +168,7 @@ function changeFontSize(selector, increment) {
  }
   </g:javascript>
 </head>
-<body onload="fetchContent('-${ConsoleConfig.getInstance().defaults.defaultTailSize ?: '5k'}');">
+<body onload="fetchContent('-${ConsoleConfig.getInstance().defaults.tail?.size ?: '1k'}');">
 <ul class="nav nav-tabs">
   <li><cl:link controller="agents" action="list">List</cl:link></li>
   <cl:whenFeatureEnabled feature="commands"><li><cl:link controller="commands" action="list">All Commands</cl:link></li></cl:whenFeatureEnabled>
