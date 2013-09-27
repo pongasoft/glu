@@ -150,6 +150,7 @@ consoles << [
     tuning: '<tuning config>',
     commands: '<commands config>',
     misc: '<misc config>',
+    maxFormContentSize: '500k',
     sessionTimeoutInMinutes: 15
   ]
 ]
@@ -314,7 +315,8 @@ JVM_SIZE="-Xmx555m"
 """,
           "/${jettyDistribution}": DIRECTORY,
           "/${jettyDistribution}/contexts": DIRECTORY,
-          "/${jettyDistribution}/contexts/console-jetty-context.xml": TUTORIAL_CONSOLE_JETTY_CONTEXT.replace('/console', '/ic'),
+          "/${jettyDistribution}/contexts/console-jetty-context.xml":
+            TUTORIAL_CONSOLE_JETTY_CONTEXT.replace('/console', '/ic').replace('204800', '512000'),
           "/${jettyDistribution}/contexts/glu-jetty-context.xml": DEFAULT_GLU_JETTY_CONTEXT,
           "/${jettyDistribution}/lib": DIRECTORY,
           "/${jettyDistribution}/lib/acme.jar": 'this is the jar',
@@ -396,6 +398,7 @@ JVM_SIZE="-Xmx555m"
   <Set name="war"><SystemProperty name="org.linkedin.glu.console.root"/>/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-${GLU_VERSION}</Set>
   <Set name="tempDirectory"><SystemProperty name="org.linkedin.glu.console.root"/>/tmp</Set>
   <Set name="extraClasspath"><SystemProperty name="org.linkedin.glu.console.plugins.classpath"/></Set>
+  <Set name="maxFormContentSize">204800</Set>
 </Configure>
 
 """
@@ -631,6 +634,12 @@ plans: [
   [planType: "transition", displayName: "Stop", state: "stopped"],
 ],
 */
+
+  tail: [
+    size: '1k', // size to use when tailing a file by default (MemorySize)
+    refreshRate: '5s' // how long between polls (Timespan)
+  ],
+
 // features that can be turned on and off
   features:
     [
