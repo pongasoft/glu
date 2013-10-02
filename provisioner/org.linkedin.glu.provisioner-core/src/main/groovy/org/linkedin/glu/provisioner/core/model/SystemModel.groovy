@@ -452,7 +452,7 @@ class SystemModel implements MetadataProvider
       map.metadata = metadata
 
     if(includeEntries && _entries)
-      map.entries = findEntries().collect { it.toExternalRepresentation() }
+      map.entries = _entries.values().collect { it.toExternalRepresentation() }
 
     if(!_agentTags.isEmpty())
     {

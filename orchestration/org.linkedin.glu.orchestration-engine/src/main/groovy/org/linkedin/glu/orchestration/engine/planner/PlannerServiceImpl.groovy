@@ -330,7 +330,7 @@ class PlannerServiceImpl implements PlannerService
     SystemModel currentModel = agentsService.getCurrentSystemModel(params.fabric)
     def agents = (params.agents ?: []) as Set
     def filteredCurrentModel = currentModel.filterBy { SystemEntry entry ->
-      agents.contains(entry.agent)
+      entry != null && agents.contains(entry.agent)
     }
 
     // we keep only the agents that are part of the current model!
@@ -353,7 +353,7 @@ class PlannerServiceImpl implements PlannerService
     }
 
     expectedModel = expectedModel.filterBy { SystemEntry entry ->
-      entry.mountPoint == PlannerService.AGENT_SELF_UPGRADE_MOUNT_POINT
+      entry?.mountPoint == PlannerService.AGENT_SELF_UPGRADE_MOUNT_POINT
     }
 
     toSinglePlan(doComputeDeploymentPlans(params,
@@ -365,7 +365,7 @@ class PlannerServiceImpl implements PlannerService
   }
 
   private def agentsCleanupUpgradeExpectedModelFilter = { SystemEntry entry ->
-      entry.mountPoint == PlannerService.AGENT_SELF_UPGRADE_MOUNT_POINT
+      entry?.mountPoint == PlannerService.AGENT_SELF_UPGRADE_MOUNT_POINT
   }
 
   /**
