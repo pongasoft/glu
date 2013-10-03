@@ -7,6 +7,7 @@ Release Notes
 This release contains a minor bug fix. Only the console is affected, so no need to upgrade the agents.
 
 * Fixed `glu-242 <https://github.com/pongasoft/glu/issues/242>`_: `NPE when selecting "bounce" or "stop" plans with a tags filter`
+* Fixed `glu-246 <https://github.com/pongasoft/glu/issues/246>`_: `Name of a plan generated from agent view contains __role in it`
 
 5.3.0 (2013/09/27)
 ------------------
