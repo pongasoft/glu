@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+5.3.1 (2013/10/03)
+------------------
+
+This release contains a minor bug fix. Only the console is affected, so no need to upgrade the agents.
+
+* Fixed `glu-242 <https://github.com/pongasoft/glu/issues/242>`_: `NPE when selecting "bounce" or "stop" plans with a tags filter`
+
 5.3.0 (2013/09/27)
 ------------------
 

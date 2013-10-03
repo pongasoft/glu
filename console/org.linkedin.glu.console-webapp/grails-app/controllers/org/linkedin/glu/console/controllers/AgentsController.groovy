@@ -338,7 +338,7 @@ class AgentsController extends ControllerBase
       request.system = system
 
       def metadata = [*:params, agent: params.id, mountPoint: params.mountPoint]
-      ['controller', 'action', 'id', '__nvbe'].each { metadata.remove(it) }
+      ['controller', 'action', 'id', '__nvbe', '__role'].each { metadata.remove(it) }
 
       params.system = system
       params.stepType = params.stepType ?: IStep.Type.SEQUENTIAL

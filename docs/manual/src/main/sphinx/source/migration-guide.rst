@@ -15,6 +15,14 @@
 Migration Guide
 ===============
 
+.. _migration-guide-5.3.0-5.3.1:
+
+5.3.0 -> 5.3.1
+--------------
+
+No specific migration steps. Only the console is affected in this release, so no need to upgrade the agents.
+
+
 .. _migration-guide-5.2.0-5.3.0:
 
 5.2.0 -> 5.3.0
