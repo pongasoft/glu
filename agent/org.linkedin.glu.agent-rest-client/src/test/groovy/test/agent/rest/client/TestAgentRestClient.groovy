@@ -664,6 +664,27 @@ gc: 1000
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
+        agent.rootShell.withTempFile { Resource dir ->
+
+          // ${abc} url encoded is %24%7Babc%7D
+          Resource content = agent.rootShell.saveContent(dir.createRelative('%24%7Babc%7D'), "0123456789")
+
+          println content.toURI().rawPath;
+          println content.file.path
+
+          attributes =
+            Files.readAttributes(content.file.toPath(), BasicFileAttributes)
+          res = arc.getFileContent(location: content.toURI().rawPath, offset: 0)
+          assertEquals("0123456789", res.tailStream.text)
+          assertEquals(10, res.length)
+          assertEquals(10, res.tailStreamMaxLength)
+          assertEquals(attributes.creationTime().toMillis(), res.created)
+          assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
+          assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+          assertEquals(content.file.canonicalPath, res.canonicalPath)
+          assertFalse(res.isSymbolicLink)
+
+        }
       }
     }
   }

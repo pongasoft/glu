@@ -242,7 +242,8 @@ public interface Agent
    * <code>maxSize</code> and <code>offset</code> is essentially the fact that with
    * <code>offset</code> you get a map with additional information.
    *
-   * @params args.location which file to read the content
+   * @params args.location which file to read the content (note that this needs to be
+   *                       properly URI encoded)
    * @params args.maxLine the number of lines maximum to read
    * @params args.maxSize the maximum size to read (can be a <code>MemorySize</code>)
    * @params args.offset the offset in the file where to start (in bytes). If negative, then

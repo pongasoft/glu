@@ -15,11 +15,11 @@
   --}%
 
 <%@ page import="org.linkedin.util.clock.Timespan; org.linkedin.util.io.PathUtils; org.linkedin.glu.grails.utils.ConsoleConfig" contentType="text/html;charset=UTF-8" %>
-<g:set var="file" value="${new File(params.file)}"/>
+<g:set var="file" value="${new File(URI.create("file:${params.file}"))}"/>
 <g:set var="directory" value="${file.parentFile}"/>
 <html>
 <head>
-  <title>File ${params.file.encodeAsHTML()}</title>
+  <title>File ${file.path.encodeAsHTML()}</title>
   <meta name="layout" content="main"/>
   <link rel="stylesheet" href="${resource(dir:'css',file:'agents-list.css')}"/>
   <style type="text/css">
@@ -157,7 +157,7 @@ function asyncFetchContent(offset)
 function fetchContent(offset) {
     jQuery.ajax({
       type:'GET',
-      data:{'location': '${file.path}', 'offset': offset},
+      data:{'location': '${file.toURI().rawPath}', 'offset': offset},
       url: '${cl.createLink(controller: 'agents', action: 'fileContent', id: params.id)}',
       success: function(data, textStatus, jqXHR){renderContent(data, textStatus, jqXHR);}});
 }
@@ -176,7 +176,7 @@ function changeFontSize(selector, increment) {
   <li><cl:link action="plans" id="${params.id}">Plans</cl:link></li>
   <cl:whenFeatureEnabled feature="commands"><li><cl:link action="commands" id="${params.id}">Commands</cl:link></li></cl:whenFeatureEnabled>
   <li><cl:link action="ps" id="${params.id}">All Processes</cl:link></li>
-  <li><cl:link title="${directory.path.encodeAsHTML()}" action="fileContent" id="${params.id}" params="[location: directory.path]">Directory [${directory.name.encodeAsHTML()}]</cl:link></li>
+  <li><cl:link title="${directory.path.encodeAsHTML()}" action="fileContent" id="${params.id}" params="[location: directory.toURI().rawPath]">Directory [${directory.name.encodeAsHTML()}]</cl:link></li>
   <li class="active"><a href="#" title="${file.path.encodeAsHTML()}">File [${file.name.encodeAsHTML()}]</a></li>
 </ul>
 
@@ -192,7 +192,7 @@ function changeFontSize(selector, increment) {
   <tbody>
   <tr>
     <td>
-      <cl:link title="Go to directory [${directory.name}]" action="fileContent" id="${params.id}" params="[location: directory]"><i class="icon-arrow-up"> </i></cl:link>
+      <cl:link title="Go to directory [${directory.name}]" action="fileContent" id="${params.id}" params="[location: directory.toURI().rawPath]"><i class="icon-arrow-up"> </i></cl:link>
       |
       <a href="#" title="Auto Refresh" onclick="toggleRefresh();"><i class="icon-play" id="play-pause-icon"> </i><img id="spinner" src="${resource(dir:'images',file:'spinner.gif')}" alt="Auto Refresh"/><img id="spinner-not-spinning" class="hidden" src="${resource(dir:'images',file:'spinner_not_spinning.png')}" alt="Auto Refresh Paused"/></a>
       |
@@ -202,9 +202,9 @@ function changeFontSize(selector, increment) {
       |
       <a href="#" title="Decrease font size" onclick="changeFontSize('#file-content', -1);"><i class="icon-minus"> </i></a>
       |
-      <cl:link title="View Raw" action="fileContent" id="${params.id}" params="[location: file, maxSize: -1]"><i class="icon-eye-open"> </i></cl:link>
+      <cl:link title="View Raw" action="fileContent" id="${params.id}" params="[location: file.toURI().rawPath, maxSize: -1]"><i class="icon-eye-open"> </i></cl:link>
       |
-      <cl:link title="Download" action="fileContent" id="${params.id}" params="[location: file, maxSize: -1, binaryOutput: true]"><i class="icon-download-alt"> </i></cl:link>
+      <cl:link title="Download" action="fileContent" id="${params.id}" params="[location: file.toURI().rawPath, maxSize: -1, binaryOutput: true]"><i class="icon-download-alt"> </i></cl:link>
     </td>
     <td><span id="filename-only">${file.name.encodeAsHTML()}</span><span id="fullpath" class="hidden">${file.path.encodeAsHTML()}</span><div class="file-actions"><a href="#" id="toggle-fullpath-icon" title="Show/Hide full path" onclick="toggleFullPath();"><i class="icon-zoom-in"> </i></a></div></td>
     <td id="file-lastModified">-</td>

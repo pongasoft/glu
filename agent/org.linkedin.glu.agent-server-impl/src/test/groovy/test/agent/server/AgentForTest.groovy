@@ -310,7 +310,7 @@ glu.agent.truststorePassword=nacEn92x8-1
       curlCommand << "--output" << outResource.file.canonicalPath
       curlCommand << "--write-out" << "%{http_code}"
 
-      def httpStatus = new Status(rootShell.exec(command: curlCommand) as int)
+      def httpStatus = new Status(rootShell.exec(command: curlCommand, res: 'all').stdout as int)
 
       if(httpStatus.isError())
       {

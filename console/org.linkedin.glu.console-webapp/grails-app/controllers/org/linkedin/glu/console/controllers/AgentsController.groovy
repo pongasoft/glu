@@ -416,8 +416,9 @@ class AgentsController extends ControllerBase
             if(params.binaryOutput)
             {
               response.contentType = "application/octet-stream"
+              def filename = new File(URI.create("file:${params.location}")).name
               response.addHeader('Content-Disposition',
-                                 "attachment; filename=\"${new File(params.location).name.encodeAsURL()}\"")
+                                 "attachment; filename=\"${filename.encodeAsURL()}\"")
             }
             else
               response.contentType = "text/plain"

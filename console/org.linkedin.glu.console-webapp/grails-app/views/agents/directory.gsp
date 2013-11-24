@@ -16,7 +16,7 @@
   --}%
 
 <%@ page import="org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils; org.linkedin.util.lang.MemorySize" contentType="text/html;charset=UTF-8" %>
-<g:set var="directory" value="${new File(params.location)}"/>
+<g:set var="directory" value="${new File(URI.create("file:${params.location}"))}"/>
 <html>
 <head>
   <title>Directory listing ${params.location.encodeAsHTML()}</title>
@@ -67,7 +67,7 @@
       <td>
         <cl:link title="Go to parent directory [${directory.parentFile.name.encodeAsHTML()}]" action="fileContent" id="${params.id}" params="[location: directory.parent]"><i class="icon-arrow-up"> </i></cl:link>
         |
-        <cl:link title="Refresh" action="fileContent" id="${params.id}" params="[location: directory]"><i class="icon-refresh"> </i></cl:link>
+        <cl:link title="Refresh" action="fileContent" id="${params.id}" params="[location: directory.toURI().rawPath]"><i class="icon-refresh"> </i></cl:link>
       </td>
       <td><span id="filename-only">${directory.name.encodeAsHTML()}</span><span id="fullpath" class="hidden">${directory.path.encodeAsHTML()}</span><div class="file-actions"><a href="#" id="toggle-fullpath-icon" title="Show/Hide full path" onclick="toggleFullPath();"><i class="icon-zoom-in"> </i></a></div></td>
       <td><cl:formatDate time="${dir['.']?.lastModified}"/></td>
@@ -93,7 +93,7 @@
       <g:set var="entry" value="${dir[filename]}"/>
       <g:set var="file" value="${new File(directory, filename)}"/>
       <tr>
-        <td><cl:link title="${file.path.encodeAsHTML()}" action="fileContent" id="${params.id}" params="[(entry.isDirectory ? 'location' : 'file'): file.path]">${filename.encodeAsHTML()}<g:if test="${entry.isDirectory}">/</g:if><g:if test="${entry.containsKey('isSymbolicLink') ? entry.isSymbolicLink : (file.path != entry.canonicalPath)}">@ -&gt; ${entry.canonicalPath.encodeAsHTML()}</g:if></cl:link><div class="file-actions"><g:if test="${!entry.isDirectory}"><cl:link title="tail -f ${file.name.encodeAsHTML()}" action="fileContent" id="${params.id}" params="[file: file.path]"><i class="icon-repeat"> </i></cl:link> | <cl:link title="View Raw" action="fileContent" id="${params.id}" params="[location: file.path, maxSize: -1]"><i class="icon-eye-open"> </i></cl:link> | <cl:link title="Download" action="fileContent" id="${params.id}" params="[location: file, maxSize: -1, binaryOutput: true]"><i class="icon-download-alt"> </i></cl:link></g:if><g:else><cl:link title="Go to [${file.name.encodeAsHTML()}]" action="fileContent" id="${params.id}" params="[location: file.path]"><i class="icon-folder-open"> </i></cl:link></g:else></div></td>
+        <td><cl:link title="${file.path.encodeAsHTML()}" action="fileContent" id="${params.id}" params="[(entry.isDirectory ? 'location' : 'file'): file.toURI().rawPath]">${filename.encodeAsHTML()}<g:if test="${entry.isDirectory}">/</g:if><g:if test="${entry.containsKey('isSymbolicLink') ? entry.isSymbolicLink : (file.path != entry.canonicalPath)}">@ -&gt; ${entry.canonicalPath.encodeAsHTML()}</g:if></cl:link><div class="file-actions"><g:if test="${!entry.isDirectory}"><cl:link title="tail -f ${file.name.encodeAsHTML()}" action="fileContent" id="${params.id}" params="[file: file.toURI().rawPath]"><i class="icon-repeat"> </i></cl:link> | <cl:link title="View Raw" action="fileContent" id="${params.id}" params="[location: file.toURI().rawPath, maxSize: -1]"><i class="icon-eye-open"> </i></cl:link> | <cl:link title="Download" action="fileContent" id="${params.id}" params="[location: file.toURI().rawPath, maxSize: -1, binaryOutput: true]"><i class="icon-download-alt"> </i></cl:link></g:if><g:else><cl:link title="Go to [${file.name.encodeAsHTML()}]" action="fileContent" id="${params.id}" params="[location: file.toURI().rawPath]"><i class="icon-folder-open"> </i></cl:link></g:else></div></td>
         <td><cl:formatDate date="${new Date(entry.lastModified)}"/></td>
         <td><g:if test="${entry.isDirectory}">-</g:if><g:else>${entry.length} (${new MemorySize(entry.length as long).canonicalString})</g:else></td>
       </tr>
