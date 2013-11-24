@@ -33,7 +33,7 @@
 </head>
 <body>
 <h1>Agent Upgrade</h1>
-<g:form method="post" controller="agents" action="upgrade">
+<cl:form method="post" controller="agents" action="upgrade">
   <ul>
   <li>New Version: <g:textField name="version"/></li>
   <li>Coordinates: <g:textField name="coordinates" size="100"/></li>
@@ -58,11 +58,11 @@
     </g:each>
   </table>
 </g:each>
-</g:form>
+</cl:form>
 <h2 class="separator">Agent Cleanup Upgrade</h2>
-<g:form method="post" controller="agents" action="upgrade">
+<cl:form method="post" controller="agents" action="upgrade">
   <g:actionSubmit class="btn btn-primary" action="cleanup" value="Cleanup"/>
   <span class="help">Cleanup all previously leftover upgrade</span>
-</g:form>
+</cl:form>
 </body>
 </html>

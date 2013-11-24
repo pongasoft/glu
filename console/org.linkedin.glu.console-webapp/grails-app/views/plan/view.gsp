@@ -33,12 +33,12 @@
   </g:each>
   </p>
   <div id="plan_${plan.id}">
-  <g:form method="post" controller="plan" action="filter" id="${plan.id}">
+  <cl:form method="post" controller="plan" action="filter" id="${plan.id}">
     <g:hiddenField name="stepId" value="${plan.id}"/>
     <g:actionSubmit class="btn btn-primary" action="execute" value="Execute" onClick="return confirm('Are you sure you want to execute this plan ?');"/>
     <g:actionSubmit class="btn" action="filter" value="Filter"/>
     <g:render template="plan" model="[plan: plan]"/>
-  </g:form>
+  </cl:form>
   </div>
 </g:if>
 <g:else>

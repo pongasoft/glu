@@ -34,7 +34,7 @@
                 <g:renderErrors bean="${userInstance}" as="list" />
             </div>
             </g:hasErrors>
-            <g:form method="post" action="save">
+            <cl:form method="post" action="save">
               <div class="dialog">
                 <table class="table table-bordered table-condensed noFullWidth">
                   <tbody>
@@ -72,7 +72,7 @@
               <div class="buttons">
                 <span class="button"><g:actionSubmit class="btn btn-primary" value="Create" action="save"/></span>
               </div>
-            </g:form>
+            </cl:form>
         </div>
     </body>
 </html>

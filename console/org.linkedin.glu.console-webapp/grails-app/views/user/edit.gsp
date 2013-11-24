@@ -35,7 +35,7 @@
                 <g:renderErrors bean="${userInstance}" as="list" />
             </div>
             </g:hasErrors>
-            <g:form method="post" >
+            <cl:form method="post" >
                 <input type="hidden" name="id" value="${userInstance?.id}" />
                 <input type="hidden" name="version" value="${userInstance?.version}" />
                 <div class="dialog">
@@ -70,7 +70,7 @@
                     <span class="button"><g:actionSubmit class="btn btn-primary" value="Update" /></span>
                     <span class="button"><g:actionSubmit class="btn" onclick="return confirm('Are you sure?');" value="Delete" /></span>
                 </div>
-            </g:form>
+            </cl:form>
         </div>
     </body>
 </html>

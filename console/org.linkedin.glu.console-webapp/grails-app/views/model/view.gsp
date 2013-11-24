@@ -43,7 +43,7 @@
   </ul>
   <g:set var="editable" value="${!ConsoleConfig.getInstance().defaults.disableModelUpdate}"/>
   <g:render template="model" model="[systems: [systemDetails]]"/>
-  <g:form action="save" method="post">
+  <cl:form action="save" method="post">
     <g:if test="${editable}">
       <div class="actions">
         <input class="save btn btn-primary" type="submit" value="Save changes"/>
@@ -56,7 +56,7 @@
         <input class="save btn btn-primary" type="submit" value="Save changes"/>
       </div>
     </g:if>
-  </g:form>
+  </cl:form>
 </g:if>
 <g:else>
   <ul class="nav nav-tabs">

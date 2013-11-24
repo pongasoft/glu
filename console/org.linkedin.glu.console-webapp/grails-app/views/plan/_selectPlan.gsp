@@ -23,7 +23,7 @@
   </tr>
 </table>
 <div id="select-plan">
-  <g:form controller="plan" action="redirectView">
+  <cl:form controller="plan" action="redirectView">
     <table id="select-plan-radio" class="noFullWidth table table-bordered tight-table">
       <tr>
         <th colspan="6">${title?.encodeAsHTML()}</th>
@@ -34,7 +34,7 @@
             <td>${plan.displayName ?: plan.planType.capitalize()}</td>
             <g:each in="${['SEQUENTIAL', 'PARALLEL']}" var="stepType">
               <td>${stepType}</td>
-              <td><input type="radio" name="planDetails" value="${JsonUtils.compactPrint([*:plan, stepType: stepType, name: (plan.displayName ?: plan.planType.capitalize()) + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="${remoteFunction(controller: 'plan', action:'create', update:[success:'plan-preview'], params: "'json=' + this.value")}" /></td>
+              <td><input type="radio" name="planDetails" value="${JsonUtils.compactPrint([*:plan, stepType: stepType, name: (plan.displayName ?: plan.planType.capitalize()) + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="${remoteFunction(controller: 'plan', action:'create', update:[success:'plan-preview'], params: "'fabric=${request.fabric.name.encodeAsHTML()}&json=' + this.value")}" /></td>
             </g:each>
           </tr>
         </g:if>
@@ -65,5 +65,5 @@
       </tr>
     </table>
     <div id="plan-preview">Select a plan</div>
-  </g:form>
+  </cl:form>
 </div>

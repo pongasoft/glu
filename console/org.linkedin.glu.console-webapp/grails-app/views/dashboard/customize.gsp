@@ -26,7 +26,7 @@
   <li><cl:link controller="dashboard" action="plans">Plans</cl:link></li>
   <li class="active"><a href="#">Customize</a></li>
 </ul>
-<g:form method="post" controller="dashboard" action="customize">
+<cl:form method="post" controller="dashboard" action="customize">
   <fieldset>
     <legend>Name: ${ucdd.name.encodeAsHTML()} <span class="help-inline">(to edit this field, change it in the content)</span></legend>
     <div class="clearfix">
@@ -44,7 +44,7 @@
                     onclick="return confirm('Are you sure?');"/>
     <a href="#dashboardSources" role="button" class="btn" data-toggle="modal" data-backdrop="true" data-keyboard="true">View Possible Sources</a>
   </div>
-</g:form>
+</cl:form>
 <div id="dashboardSources" class="modal hide" role="dialog" aria-labelledby="possibleSources" aria-hidden="true">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>

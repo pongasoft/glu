@@ -38,7 +38,7 @@ ${syntaxError.excerpt}
   </g:if>
   <div class="row">
     <div class="span12">
-      <g:form action="upload" method="post" enctype="multipart/form-data">
+      <cl:form action="upload" method="post" enctype="multipart/form-data">
         <fieldset>
           <legend>From JSON (Upload)</legend>
           <div class="clearfix">
@@ -50,12 +50,12 @@ ${syntaxError.excerpt}
             <g:actionSubmit class="btn btn-primary" action="load" value="Upload"/>
           </div>
         </fieldset>
-      </g:form>
+      </cl:form>
     </div>
   </div>
   <div class="row">
     <div class="span12">
-      <g:form action="load">
+      <cl:form action="load">
         <fieldset>
           <legend>From JSON (URI)</legend>
           <div class="clearfix">
@@ -65,7 +65,7 @@ ${syntaxError.excerpt}
             <g:actionSubmit class="btn btn-primary" action="load" value="Load"/>
           </div>
         </fieldset>
-      </g:form>
+      </cl:form>
     </div>
   </div>
 </div>

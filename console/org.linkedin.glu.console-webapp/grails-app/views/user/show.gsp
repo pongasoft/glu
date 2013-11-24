@@ -66,11 +66,11 @@
                 </table>
             </div>
             <div class="buttons">
-                <g:form>
+                <cl:form>
                     <input type="hidden" name="id" value="${userInstance?.id}" />
                     <span class="button"><g:actionSubmit class="btn btn-primary" value="Edit" /></span>
                     <span class="button"><g:actionSubmit class="btn" onclick="return confirm('Are you sure?');" value="Delete" /></span>
-                </g:form>
+                </cl:form>
             </div>
         </div>
     </body>

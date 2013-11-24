@@ -36,7 +36,7 @@
     <h4 id="saveAsNewHeader">Save as new dashboard</h4>
   </div>
   <div class="modal-body">
-   <g:form controller="dashboard" action="saveAsNewCustomDashboard">
+   <cl:form controller="dashboard" action="saveAsNewCustomDashboard">
      <fieldset>
        <legend>New Name</legend>
        <div class="clearfix">
@@ -46,7 +46,7 @@
          <input type="submit" class="btn btn-primary" name="update" value="Save"/>
        </div>
      </fieldset>
-   </g:form>
+   </cl:form>
   </div>
 </div>
 <g:render template="delta"/>

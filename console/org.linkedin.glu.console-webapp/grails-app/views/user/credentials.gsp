@@ -41,7 +41,7 @@ You currently do not have a GLU specific password and your LDAP password credent
   You have setup a GLU specific password that you can change below.
 </g:else>
 </div>
-<g:form action="updatePassword" method="post">
+<cl:form action="updatePassword" method="post">
   <table class="noFullWidth">
     <tr>
       <th>Current Password:</th>
@@ -59,16 +59,16 @@ You currently do not have a GLU specific password and your LDAP password credent
   <div class="buttons">
     <span class="button"><input class="btn btn-primary" type="submit" value="Save password"/></span>
   </div>
-</g:form>
+</cl:form>
 
 <% /*
 <h2>Change your pem (X.509 Base64 encoded DER certificate)</h2>
-<g:form action="updatePem" method="post">
+<cl:form action="updatePem" method="post">
   <textarea rows="10" cols="100" id="pem" name="pem">${params.pem ?: credentials?.x509Pem}</textarea>
   <div class="buttons">
     <span class="button"><input class="updatePem" type="submit" value="Save PEM"/></span>
   </div>
-</g:form>
+</cl:form>
 */ %>
 
 </body>

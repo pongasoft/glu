@@ -30,7 +30,7 @@
 </ul>
 <div class="body">
   <h3>Encrypt Plain Text</h3>
-  <g:form name="encryptForm" action="ajaxEncrypt" method="post">
+  <cl:form name="encryptForm" action="ajaxEncrypt" method="post">
     <div class="dialog">
       <table class="table table-bordered table-condensed noFullWidth">
         <tbody>
@@ -50,10 +50,10 @@
       </table>
     </div>
     <g:submitToRemote class="btn btn-primary" action="ajaxEncrypt" update="status" value='Encrypt'/>
-  </g:form>
+  </cl:form>
 
   <h3>Decrypt Text</h3>
-  <g:form name="decryptForm" action="ajaxDecrypt" method="post">
+  <cl:form name="decryptForm" action="ajaxDecrypt" method="post">
     <div class="dialog">
       <table class="table table-bordered table-condensed noFullWidth">
         <tbody>
@@ -67,7 +67,7 @@
       </table>
     </div>
     <g:submitToRemote class="btn btn-primary" action="ajaxDecrypt" update="status" value='Decrypt'/>
-  </g:form>
+  </cl:form>
 
   <div id="status" class="info">Output Area</div>
 

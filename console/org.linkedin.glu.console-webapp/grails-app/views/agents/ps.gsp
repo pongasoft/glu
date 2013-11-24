@@ -38,9 +38,9 @@
     <li class="active"><a href="#">process[${params.pid}]</a></li>
   </ul>
   <g:if test="${ps[params.pid]}">
-    <g:form action="kill" id="${params.id}" params="[pid: params.pid]">
+    <cl:form action="kill" id="${params.id}" params="[pid: params.pid]">
       <g:textField name="signal" value="3"/> <g:submitButton class="btn btn-primary" name="kill" value="Send Signal"/>
-    </g:form>
+    </cl:form>
     <cl:mapToUL map="${ps[params.pid]}" specialKeys="${['args']}" var="specialEntry">
       <li>
         ${specialEntry.key}

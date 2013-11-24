@@ -85,7 +85,7 @@ function showHide()
 </ul>
 <div class="row">
   <div class="span20">
-    <g:form class="form-inline" id="${params.id}" action="executeCommand" method="post">
+    <cl:form class="form-inline" id="${params.id}" action="executeCommand" method="post">
       <fieldset>
         <div class="clearfix">
           <g:textField name="command" value="" class="input-xxlarge"/>
@@ -94,7 +94,7 @@ function showHide()
           <g:actionSubmit class="btn btn-primary" action="executeCommand" value="Execute"/>
         </div>
       </fieldset>
-    </g:form>
+    </cl:form>
   </div>
 </div>
 

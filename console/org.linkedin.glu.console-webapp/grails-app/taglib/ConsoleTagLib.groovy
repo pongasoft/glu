@@ -81,6 +81,18 @@ public class ConsoleTagLib
     out << g.createLink(doAdjustArgs(args))
   }
 
+  /**
+   * "Replaces" g.form to account for fabric and make urls copy/paste friendly
+   */
+  def form = { args, body ->
+    out << g.form(args) {
+      def fabricName = request.fabric?.name
+      if(fabricName)
+        out << "<input type=\"hidden\" name=\"fabric\" value=\"${fabricName.encodeAsHTML()}\">"
+      out << body()
+    }
+  }
+
   def remoteFunction = { args ->
     out << g.remoteFunction(doAdjustArgs(args))
   }
