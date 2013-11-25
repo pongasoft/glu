@@ -98,6 +98,35 @@ public class ConsoleTagLib
   }
 
   /**
+   * Split a path and link every elements in the path
+   */
+  def linkFilePath = { args ->
+    File file = args.file as File
+    File iFile = file?.parentFile
+
+    def res = []
+
+    while(iFile)
+    {
+      res << iFile
+      iFile = iFile.parentFile
+    }
+
+    res.reverse().each { File d ->
+      out << cl.link(title: "Go to directory [${d.name}]",
+                     controller: 'agents',
+                     id: args.agent,
+                     action: 'fileContent',
+                     params: [location: d.toURI().rawPath]) {
+        out << "${d.name}/".encodeAsHTML()
+      }
+    }
+
+    if(file?.parentFile)
+      out << file.name.encodeAsHTML()
+  }
+
+  /**
    * Add the fabric parameter if necessary
    */
   private def doAdjustArgs(args)

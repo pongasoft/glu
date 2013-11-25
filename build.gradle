@@ -19,7 +19,9 @@ buildscript {
   repositories {
     if(project.hasProperty('maven.buildscript.repository'))
     {
-      mavenRepo url: new File(project.properties["maven.buildscript.repository"]).toURI()
+      maven {
+        url new File(project.properties["maven.buildscript.repository"]).toURI()
+      }
     }
 
     if(project.hasProperty('ivy.buildscript.repository'))
@@ -33,7 +35,9 @@ buildscript {
    // if you want to disallow jcenter
    if(project.properties['no.jcenter'] != 'true')
    {
-     mavenRepo(url: 'http://jcenter.bintray.com')
+     maven {
+       url 'http://jcenter.bintray.com'
+     }
    }
 
    // if you want to disallow maven central
@@ -44,7 +48,7 @@ buildscript {
  }
 
   dependencies {
-    classpath 'org.pongasoft:org.linkedin.gradle-plugins:2.2.4'
+    classpath 'org.pongasoft:org.linkedin.gradle-plugins:2.2.5'
   }
 }
 
@@ -133,5 +137,5 @@ task clean(type: Delete) {
 }
 
 wrapper {
-  gradleVersion = '1.7'
+  gradleVersion = '1.9'
 }

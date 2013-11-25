@@ -23,7 +23,9 @@ def topPublishDir = new File(userConfig.top.publish.dir ?: "${topBuildDir}/publi
  */
 allRepositories.build = {
   // for libs included in this project
-  mavenRepo url: "file://${rootDir}/local-maven-repo"
+  maven {
+    url "file://${rootDir}/local-maven-repo"
+  }
 
   ivy {
     name = "build-release"
@@ -31,13 +33,22 @@ allRepositories.build = {
     layout 'maven'
   }
 
-  mavenRepo name: 'build-publish', url: topPublishDir.toURI()
+  maven {
+    name 'build-publish'
+    url topPublishDir.toURI()
+  }
 
-  mavenRepo name: 'grails-central', url: "http://repo.grails.org/grails/core"
+  maven {
+    name 'grails-central'
+    url "http://repo.grails.org/grails/core"
+  }
 
   mavenCentral()
 
-  mavenRepo name: 'restlet', url: "http://maven.restlet.org"
+  maven {
+    name 'restlet'
+    url "http://maven.restlet.org"
+  }
 
   jcenter()
 }

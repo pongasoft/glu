@@ -127,7 +127,7 @@ if(project.properties['no.symbolic.links'] != 'true')
 
       File topLibJar = new File(lib, jar.name)
 
-      def sha1 = org.gradle.util.hash.HashUtil.sha1(jar).asBigInteger().toString(16).padLeft(40, '0')
+      def sha1 = org.gradle.internal.hash.HashUtil.sha1(jar).asBigInteger().toString(16).padLeft(40, '0')
 
       def previousSha1 = jarFiles[jar.name]
       if(!previousSha1)

@@ -41,6 +41,7 @@ import org.linkedin.util.concurrent.ConcurrentUtils
 import org.linkedin.util.concurrent.ThreadControl
 import org.linkedin.util.io.ram.RAMDirectory
 import org.linkedin.util.io.resource.Resource
+import org.linkedin.util.io.resource.ResourceInfo
 import org.linkedin.util.io.resource.internal.RAMResourceProvider
 import org.restlet.routing.Router
 import org.restlet.Component
@@ -541,7 +542,7 @@ gc: 1000
         def details = file == directory ? ls['.'] : ls[file.name]
         assertEquals(file.canonicalPath, details.canonicalPath)
         assertEquals(file.length(), details.length)
-        assertEquals(file.lastModified(), details.lastModified)
+        checkTimeDifference(file.lastModified(), details.lastModified)
         assertEquals(file.isDirectory(), details.isDirectory)
       }
 
@@ -560,9 +561,9 @@ gc: 1000
         assertEquals("0123456789", res.tailStream.text)
         assertEquals(10, res.length)
         assertEquals(10, res.tailStreamMaxLength)
-        assertEquals(attributes.creationTime().toMillis(), res.created)
-        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
-        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -571,9 +572,9 @@ gc: 1000
         assertEquals("789", res.tailStream.text)
         assertEquals(10, res.length)
         assertEquals(3, res.tailStreamMaxLength)
-        assertEquals(attributes.creationTime().toMillis(), res.created)
-        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
-        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -582,9 +583,9 @@ gc: 1000
         assertEquals("", res.tailStream.text)
         assertEquals(10, res.length)
         assertEquals(0, res.tailStreamMaxLength)
-        assertEquals(attributes.creationTime().toMillis(), res.created)
-        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
-        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -595,9 +596,9 @@ gc: 1000
         assertEquals("01", res.tailStream.text)
         assertEquals(12, res.length)
         assertEquals(2, res.tailStreamMaxLength)
-        assertEquals(attributes.creationTime().toMillis(), res.created)
-        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
-        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -606,9 +607,9 @@ gc: 1000
         assertEquals("", res.tailStream.text)
         assertEquals(12, res.length)
         assertEquals(0, res.tailStreamMaxLength)
-        assertEquals(attributes.creationTime().toMillis(), res.created)
-        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
-        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -617,9 +618,9 @@ gc: 1000
         assertEquals("012345678901", res.tailStream.text)
         assertEquals(12, res.length)
         assertEquals(12, res.tailStreamMaxLength)
-        assertEquals(attributes.creationTime().toMillis(), res.created)
-        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
-        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -628,9 +629,9 @@ gc: 1000
         assertEquals("", res.tailStream.text)
         assertEquals(12, res.length)
         assertEquals(0, res.tailStreamMaxLength)
-        assertEquals(attributes.creationTime().toMillis(), res.created)
-        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
-        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -643,9 +644,9 @@ gc: 1000
           assertEquals("01", res.tailStream.text)
           assertEquals(12, res.length)
           assertEquals(2, res.tailStreamMaxLength)
-          assertEquals(attributes.creationTime().toMillis(), res.created)
-          assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
-          assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+          checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+          checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+          checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
           assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
           assertTrue(res.isSymbolicLink)
         }
@@ -658,9 +659,9 @@ gc: 1000
         assertEquals("", res.tailStream.text)
         assertEquals(0, res.length)
         assertEquals(0, res.tailStreamMaxLength)
-        assertEquals(attributes.creationTime().toMillis(), res.created)
-        assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
-        assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
         assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -669,8 +670,25 @@ gc: 1000
           // ${abc} url encoded is %24%7Babc%7D
           Resource content = agent.rootShell.saveContent(dir.createRelative('%24%7Babc%7D'), "0123456789")
 
-          println content.toURI().rawPath;
-          println content.file.path
+          attributes =
+            Files.readAttributes(content.file.toPath(), BasicFileAttributes)
+          res = arc.getFileContent(location: content.toURI().rawPath, offset: 0)
+          assertEquals("0123456789", res.tailStream.text)
+          assertEquals(10, res.length)
+          assertEquals(10, res.tailStreamMaxLength)
+          checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+          checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+          checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+          assertEquals(content.file.canonicalPath, res.canonicalPath)
+          assertFalse(res.isSymbolicLink)
+          assertTrue(res.canonicalPath.endsWith('/${abc}'))
+
+        }
+
+        agent.rootShell.withTempFile { Resource dir ->
+
+          // abc def
+          Resource content = agent.rootShell.saveContent(dir.createRelative('abc%20def'), "0123456789")
 
           attributes =
             Files.readAttributes(content.file.toPath(), BasicFileAttributes)
@@ -678,15 +696,23 @@ gc: 1000
           assertEquals("0123456789", res.tailStream.text)
           assertEquals(10, res.length)
           assertEquals(10, res.tailStreamMaxLength)
-          assertEquals(attributes.creationTime().toMillis(), res.created)
-          assertEquals(attributes.lastModifiedTime().toMillis(), res.lastModified)
-          assertEquals(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+          checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+          checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+          checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
           assertEquals(content.file.canonicalPath, res.canonicalPath)
           assertFalse(res.isSymbolicLink)
-
+          assertTrue(res.canonicalPath.endsWith('/abc def'))
         }
       }
     }
+  }
+
+  /**
+   * It seems that timing can vary by up to 1 second... due to os precision...
+   */
+  public void checkTimeDifference(long time1, long time2)
+  {
+    assertTrue(Math.abs(time1 - time2) <= 1000);
   }
 
   /**

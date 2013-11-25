@@ -206,7 +206,7 @@ function changeFontSize(selector, increment) {
       |
       <cl:link title="Download" action="fileContent" id="${params.id}" params="[location: file.toURI().rawPath, maxSize: -1, binaryOutput: true]"><i class="icon-download-alt"> </i></cl:link>
     </td>
-    <td><span id="filename-only">${file.name.encodeAsHTML()}</span><span id="fullpath" class="hidden">${file.path.encodeAsHTML()}</span><div class="file-actions"><a href="#" id="toggle-fullpath-icon" title="Show/Hide full path" onclick="toggleFullPath();"><i class="icon-zoom-in"> </i></a></div></td>
+    <td><span id="filename-only">${file.name.encodeAsHTML()}</span><span id="fullpath" class="hidden"><cl:linkFilePath file="${file}" agent="${params.id}"/></span><div class="file-actions"><a href="#" id="toggle-fullpath-icon" title="Show/Hide full path" onclick="toggleFullPath();"><i class="icon-zoom-in"> </i></a></div></td>
     <td id="file-lastModified">-</td>
     <td id="file-size">-</td>
   </tr>

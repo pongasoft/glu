@@ -65,11 +65,11 @@
     <tbody>
     <tr>
       <td>
-        <cl:link title="Go to parent directory [${directory.parentFile.name.encodeAsHTML()}]" action="fileContent" id="${params.id}" params="[location: directory.parent]"><i class="icon-arrow-up"> </i></cl:link>
-        |
+        <g:if test="${directory.parentFile}"><cl:link title="Go to parent directory [${directory.parentFile.name.encodeAsHTML()}]" action="fileContent" id="${params.id}" params="[location: directory.parentFile.toURI().rawPath]"><i class="icon-arrow-up"> </i></cl:link>
+        |</g:if>
         <cl:link title="Refresh" action="fileContent" id="${params.id}" params="[location: directory.toURI().rawPath]"><i class="icon-refresh"> </i></cl:link>
       </td>
-      <td><span id="filename-only">${directory.name.encodeAsHTML()}</span><span id="fullpath" class="hidden">${directory.path.encodeAsHTML()}</span><div class="file-actions"><a href="#" id="toggle-fullpath-icon" title="Show/Hide full path" onclick="toggleFullPath();"><i class="icon-zoom-in"> </i></a></div></td>
+      <td><span id="filename-only">${directory.name.encodeAsHTML()}</span><span id="fullpath" class="hidden"><cl:linkFilePath file="${directory}" agent="${params.id}"/></span><div class="file-actions"><a href="#" id="toggle-fullpath-icon" title="Show/Hide full path" onclick="toggleFullPath();"><i class="icon-zoom-in"> </i></a></div></td>
       <td><cl:formatDate time="${dir['.']?.lastModified}"/></td>
     </tr>
     </tbody>
@@ -82,9 +82,9 @@
       <th>Size</th>
     </tr>
     </thead>
-    <g:if test="${directory.parent}">
+    <g:if test="${directory.parentFile}">
       <tr>
-        <td><cl:link action="fileContent" id="${params.id}" params="[location: new File(params.location).parent]">../</cl:link><div class="file-actions"><cl:link title="Go to parent directory [${directory.parentFile.name.encodeAsHTML()}]" action="fileContent" id="${params.id}" params="[location: directory.parent]"><i class="icon-arrow-up"> </i></cl:link></div></td>
+        <td><cl:link action="fileContent" id="${params.id}" params="[location: new File(params.location).parentFile.toURI().rawPath]">../</cl:link><div class="file-actions"><cl:link title="Go to parent directory [${directory.parentFile.name.encodeAsHTML()}]" action="fileContent" id="${params.id}" params="[location: directory.parentFile.toURI().rawPath]"><i class="icon-arrow-up"> </i></cl:link></div></td>
         <td></td>
         <td>-</td>
       </tr>

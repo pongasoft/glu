@@ -448,7 +448,9 @@ class AgentsController extends ControllerBase
                 render ''
             }
             else
+            {
               render(view: 'directory', model: [dir: res])
+            }
           }
         }
       }
