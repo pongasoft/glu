@@ -36,4 +36,23 @@ class UserTests extends GrailsUnitTestCase
     assertTrue(RoleName.ADMIN.implies(RoleName.RELEASE))
     assertTrue(RoleName.ADMIN.implies(RoleName.ADMIN))
   }
+
+  public void testPassword()
+  {
+    def credentials = new DbUserCredentials(username: 'foo')
+
+    credentials.password = "abcd"
+
+    assertTrue(credentials.validatePassword("abcd"))
+  }
+
+  public void testPasswordBackwardCompatibility()
+  {
+    def credentials = new DbUserCredentials(username: 'foo')
+
+    credentials.salt = null
+    credentials.oneWayHashPassword = DbUserCredentials.computeOneWayHash("abcd")
+
+    assertTrue(credentials.validatePassword("abcd"))
+  }
 }

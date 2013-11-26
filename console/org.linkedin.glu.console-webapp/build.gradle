@@ -28,6 +28,7 @@ dependencies {
   compile spec.external.utilsMiscGroovy
   compile spec.external.utilsZookeeperImpl
   compile spec.external.shiro
+  compile spec.external.jbcrypt
 
   compile spec.external.groovy
 

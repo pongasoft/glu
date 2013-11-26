@@ -60,6 +60,7 @@ spec.external = [
   hsqldb: "hsqldb:hsqldb:1.8.0.10",
   httpClient: "org.apache.httpcomponents:httpclient:4.2.3",
   ivy: 'org.apache.ivy:ivy:2.2.0',
+  jbcrypt: 'org.mindrot:jbcrypt:0.3m',
   jettyPackage: [
     group: "org.eclipse.jetty",
     name: "jetty-distribution",
