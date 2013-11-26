@@ -456,11 +456,11 @@ environments {
     // log4j configuration
     log4j = {
 
-        appenders {
-            console name:'stdout', layout:pattern(conversionPattern: '%d{yyyy/MM/dd HH:mm:ss.SSS} %p [%c{1}] %m%n')
-        }
+      appenders {
+        console name:'stdout', layout:pattern(conversionPattern: '%d{yyyy/MM/dd HH:mm:ss.SSS} %p [%c{1}] %m%n')
+      }
 
-        error  'org.codehaus.groovy.grails.web.servlet',  //  controllers
+      error  'org.codehaus.groovy.grails.web.servlet',  //  controllers
              'org.codehaus.groovy.grails.web.pages', //  GSP
              'org.codehaus.groovy.grails.web.sitemesh', //  layouts
              'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
@@ -471,20 +471,22 @@ environments {
              'org.springframework',
              'org.hibernate'
 
-        info 'grails',
-             'org.linkedin'
+      info 'grails',
+           'org.linkedin',
+           'org.pongasoft'
 
-        //debug 'org.linkedin.zookeeper.tracker', 'org.linkedin.glu.agent.tracker'
-        //debug 'org.apache.http'
+      //debug 'org.linkedin.zookeeper.tracker', 'org.linkedin.glu.agent.tracker'
+      //debug 'org.apache.http'
 
-              debug 'org.linkedin.glu.console.domain'
+      //debug 'org.linkedin.glu.console.domain'
+      //debug 'org.linkedin.glu.spring.resources.GrailsPluginLoadOrderDebugger'
 
 //        trace 'org.hibernate.SQL', 'org.hibernate.type'
 //        trace 'org.codehaus.groovy.grails.orm'
 //        trace 'org.codehaus.groovy.grails.orm.hibernate'
 
 
-        warn   'org.mortbay.log'
+      warn   'org.mortbay.log'
     }
   }
   test {

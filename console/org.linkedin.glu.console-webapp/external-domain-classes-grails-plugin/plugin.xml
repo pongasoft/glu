@@ -1,0 +1,24 @@
+<plugin name='external-domain-classes' version='1.1.0' grailsVersion='2.0.3 &gt; *'>
+  <author>Yan Pujante</author>
+  <authorEmail>yan@pongasoft.com</authorEmail>
+  <title>Add external domain classes to the application</title>
+  <description>
+By default only classes under the grails-app/domain directory are included as domain classes.
+The purpose of this plugin is to add classes that are annotated with grails.persistence.Entity in the list
+of packages defined in the property: grails.external.domain.packages to be automatically treated
+as domain classes the same way they would if they were under grails-app/domain.
+</description>
+  <documentation>http://www.github.com/pongasoft/external-domain-classes-grails-plugin/README.md</documentation>
+  <type>ExternalDomainClassesGrailsPlugin</type>
+  <resources />
+  <repositories>
+    <repository name='grailsCentral' url='http://plugins.grails.org' />
+    <repository name='http://repo.grails.org/grails/plugins' url='http://repo.grails.org/grails/plugins/' />
+    <repository name='http://repo.grails.org/grails/core' url='http://repo.grails.org/grails/core/' />
+    <repository name='grailsCore' url='http://svn.codehaus.org/grails/trunk/grails-plugins' />
+  </repositories>
+  <dependencies />
+  <plugins />
+  <runtimePluginRequirements />
+  <behavior />
+</plugin>

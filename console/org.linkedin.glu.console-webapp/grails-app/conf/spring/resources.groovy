@@ -15,6 +15,10 @@
  * the License.
  */
 
+import org.codehaus.groovy.grails.plugins.GrailsPluginManager
+import org.codehaus.groovy.grails.plugins.PluginManagerAware
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.cache.ehcache.EhCacheFactoryBean
 import org.linkedin.util.clock.Timespan
 import java.util.concurrent.Executors
@@ -29,12 +33,26 @@ import org.linkedin.glu.orchestration.engine.commands.CommandExecutionStorageImp
 import org.linkedin.glu.commands.impl.FileSystemCommandExecutionIOStorage
 import org.linkedin.glu.commands.impl.MemoryCommandExecutionIOStorage
 
+class GrailsPluginLoadOrderDebugger implements PluginManagerAware
+{
+  public static final String MODULE = "org.linkedin.glu.spring.resources.GrailsPluginLoadOrderDebugger";
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
+
+  @Override
+  void setPluginManager(GrailsPluginManager pluginManager)
+  {
+    log.debug pluginManager.allPlugins.collect { "$it" }.join(',')
+  }
+}
+
 // Place your Spring DSL code here
 beans = {
   userSessionCache(EhCacheFactoryBean) {
     timeToIdle = Timespan.parse('30m').durationInSeconds
     timeToLive = 0 // use only the timeToIdle parameter...
   }
+
+  grailsPluginLoadOrderDebugger(GrailsPluginLoadOrderDebugger)
 
   def consoleConfig = new ConsoleConfig()
   consoleConfig.setGrailsApplication(grailsApplication)

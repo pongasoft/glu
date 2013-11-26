@@ -1,5 +1,3 @@
-import org.codehaus.groovy.grails.commons.ControllerArtefactHandler
-
 /*
  * Copyright (c) 2013 Yan Pujante
  *
@@ -15,9 +13,15 @@ import org.codehaus.groovy.grails.commons.ControllerArtefactHandler
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+import org.codehaus.groovy.grails.commons.ControllerArtefactHandler
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class DecorateGrailsMethodsPluginGrailsPlugin
 {
+  public static final String MODULE = "org.pongasoft.grailsPlugins.DecorateGrailsMethodsPluginGrailsPlugin"
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
+
   // the plugin version
   def version = "1.0.0"
   // the version or versions of Grails the plugin is designed for
@@ -42,6 +46,7 @@ The purpose of this plugin is to decorate various grails methods.
   def documentation = null
 
   def doWithDynamicMethods = { ctx ->
+    log.info("Decorating grails methods")
     application.controllerClasses.each() { controllerClass ->
       decorateRedirectMethod(controllerClass)
     }

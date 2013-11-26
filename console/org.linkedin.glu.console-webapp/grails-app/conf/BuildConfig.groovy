@@ -33,6 +33,7 @@ grails.project.source.level = 1.7
 
 // in place plugin
 grails.plugin.location.'decorate-grails-methods-plugin' = 'decorate-grails-methods-plugin'
+grails.plugin.location.'external-domain-classes-grails-plugin' = 'external-domain-classes-grails-plugin'
 
 grails.project.dependency.resolution = {
   // inherit Grails' default dependencies
@@ -54,8 +55,6 @@ grails.project.dependency.resolution = {
     mavenLocal()
     mavenCentral()
 
-    mavenRepo new File("../../local-maven-repo").canonicalFile.toURI().toString()
-
     // uncomment these (or add new ones) to enable remote dependency resolution from public Maven repositories
     //mavenRepo "http://snapshots.repository.codehaus.org"
     //mavenRepo "http://repository.codehaus.org"
@@ -74,8 +73,6 @@ grails.project.dependency.resolution = {
     runtime ":hibernate:$grailsVersion"
     runtime ":jquery:1.8.3"
     runtime ":resources:1.1.6"
-    runtime ":external-domain-classes:1.0.0"
-//    runtime ":decorate-grails-methods-plugin:1.0.0"
 
     // Uncomment these (or add new ones) to enable additional resources capabilities
     //runtime ":zipped-resources:1.0"
