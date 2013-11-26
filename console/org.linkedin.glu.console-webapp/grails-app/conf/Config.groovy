@@ -315,6 +315,7 @@ console.security.roles = [
   '/user/update/$id': 'ADMIN',
   '/user/create': 'ADMIN',
   '/user/save': 'ADMIN',
+  '/user/resetPassword': 'ADMIN',
 
   // audit log
   '/auditLog/list': 'ADMIN',

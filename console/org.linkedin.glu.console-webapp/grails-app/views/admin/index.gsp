@@ -36,7 +36,7 @@
 
 <h3>Users</h3>
 <ul>
-  <li><cl:link controller="user" action="list">Manager User Roles</cl:link></li>
+  <li><cl:link controller="user" action="list">Manage Users</cl:link></li>
 </ul>
 
 <h3>Audit Logs</h3>

@@ -178,6 +178,10 @@ class UrlMappings
       __nvbe = 'User'
       __role = UrlMappings.role('/user/updatePassword')
     }
+    "/user/resetPassword"(controller: 'user', action: 'resetPassword') {
+      __nvbe = 'User'
+      __role = UrlMappings.role('/user/resetPassword')
+    }
 
     // help
     "/help"(controller: 'help', action: "index") {

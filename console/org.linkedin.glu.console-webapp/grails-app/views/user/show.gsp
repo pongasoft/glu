@@ -1,4 +1,3 @@
-
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
   - Portions Copyright (c) 2011-2013 Yan Pujante
@@ -18,60 +17,63 @@
 
 <%@ page import="org.linkedin.glu.console.domain.User" %>
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-        <meta name="layout" content="main" />
-        <title>Show User</title>
-    </head>
-    <body>
-    <ul class="nav nav-tabs">
-      <li><cl:link action="list">User List</cl:link></li>
-      <li class="active"><a href="#">User [${userInstance.username}]</a></li>
-      <li><cl:link controller="user" action="edit" id="${userInstance.id}">Edit</cl:link></li>
-    </ul>
-        <div class="body">
-            <div class="dialog">
-              <table class="table table-bordered table-condensed noFullWidth">
-                    <tbody>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="layout" content="main"/>
+  <title>Show User</title>
+</head>
 
-                    
-                        <tr class="prop">
-                            <td valign="top" class="name">Id:</td>
-                            
-                            <td valign="top" class="value">${fieldValue(bean:userInstance, field:'id')}</td>
-                            
-                        </tr>
-                    
-                        <tr class="prop">
-                            <td valign="top" class="name">Username:</td>
-                            
-                            <td valign="top" class="value">${fieldValue(bean:userInstance, field:'username')}</td>
-                            
-                        </tr>
-                    
-                        <tr class="prop">
-                            <td valign="top" class="name">Roles:</td>
-                            
-                            <td  valign="top" style="text-align:left;" class="value">
-                                <ul>
-                                <g:each var="r" in="${userInstance.roles}">
-                                    <li>${r?.encodeAsHTML()}</li>
-                                </g:each>
-                                </ul>
-                            </td>
-                            
-                        </tr>
-                    
-                    </tbody>
-                </table>
-            </div>
-            <div class="buttons">
-                <cl:form>
-                    <input type="hidden" name="id" value="${userInstance?.id}" />
-                    <span class="button"><g:actionSubmit class="btn btn-primary" value="Edit" /></span>
-                    <span class="button"><g:actionSubmit class="btn" onclick="return confirm('Are you sure?');" value="Delete" /></span>
-                </cl:form>
-            </div>
-        </div>
-    </body>
+<body>
+<ul class="nav nav-tabs">
+  <li><cl:link action="list">User List</cl:link></li>
+  <li class="active"><a href="#">User [${userInstance.username}]</a></li>
+  <li><cl:link controller="user" action="edit" id="${userInstance.id}">Edit [${userInstance.username}]</cl:link></li>
+</ul>
+
+<div class="body">
+  <div class="dialog">
+    <table class="table table-bordered table-condensed noFullWidth">
+      <tbody>
+
+      <tr class="prop">
+        <td valign="top" class="name">Id:</td>
+
+        <td valign="top" class="value">${fieldValue(bean: userInstance, field: 'id')}</td>
+
+      </tr>
+
+      <tr class="prop">
+        <td valign="top" class="name">Username:</td>
+
+        <td valign="top" class="value">${fieldValue(bean: userInstance, field: 'username')}</td>
+
+      </tr>
+
+      <tr class="prop">
+        <td valign="top" class="name">Roles:</td>
+
+        <td valign="top" style="text-align:left;" class="value">
+          <ul>
+            <g:each var="r" in="${userInstance.roles}">
+              <li>${r?.encodeAsHTML()}</li>
+            </g:each>
+          </ul>
+        </td>
+
+      </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <div class="buttons">
+    <cl:form>
+      <input type="hidden" name="id" value="${userInstance?.id}"/>
+      <span class="button"><g:actionSubmit class="btn btn-primary" value="Edit"/></span>
+      <span class="button"><g:actionSubmit class="btn" onclick="return confirm('Are you sure?');"
+                                           value="Delete"/></span>
+    </cl:form>
+  </div>
+</div>
+</body>
 </html>
