@@ -1,6 +1,31 @@
 Release Notes
 =============
 
+.. _glu-5.4.0:
+
+5.4.0 (2013/11/27)
+------------------
+
+This release contains a few bug fixes and small features. Only the console is affected, so no need to upgrade the agents.
+
+New and noteworthy
+^^^^^^^^^^^^^^^^^^
+* an admin user can now reset passwords
+* passwords are now salted and using bcrypt for hashing which makes it way more secure (note that current passwords are *not* changed and you will need to change your password to have the new feature kick in).
+* system filters can now contain ``[x]`` in their syntax like ``initParameters.webapps[1].contextPath`` (check the :ref:`filtering section <goe-filter-syntax>`)
+
+Tickets
+^^^^^^^
+* Fixed `glu-247 <https://github.com/pongasoft/glu/issues/247>`_: `Glu applies variable expansion to local filenames`
+* Implemented `glu-248 <https://github.com/pongasoft/glu/issues/248>`_: `Add support for array items in filters`
+* Fixed `glu-249 <https://github.com/pongasoft/glu/issues/249>`_: `Wrong fabric selected when multiple windows are opened`
+* Implemented `glu-250 <https://github.com/pongasoft/glu/issues/250>`_: `Allow admin user to reset other users passwords`
+* Implemented `glu-251 <https://github.com/pongasoft/glu/issues/251>`_: `Seed the passwords with the user name`
+* Fixed (+ debug) `glu-252 <https://github.com/pongasoft/glu/issues/252>`_: `Problem starting Jetty`
+* Implemented `glu-253 <https://github.com/pongasoft/glu/issues/253>`_: `Add "Reconfigure" button to agent view`
+
+.. _glu-5.3.1:
+
 5.3.1 (2013/10/03)
 ------------------
 
@@ -8,6 +33,8 @@ This release contains a minor bug fix. Only the console is affected, so no need 
 
 * Fixed `glu-242 <https://github.com/pongasoft/glu/issues/242>`_: `NPE when selecting "bounce" or "stop" plans with a tags filter`
 * Fixed `glu-246 <https://github.com/pongasoft/glu/issues/246>`_: `Name of a plan generated from agent view contains __role in it`
+
+.. _glu-5.3.0:
 
 5.3.0 (2013/09/27)
 ------------------
@@ -42,6 +69,8 @@ Tickets
 * Implemented `glu-243 <https://github.com/pongasoft/glu/issues/243>`_: `Remove redundant/irrelevant data in package (all)`
 * Fixed `glu-245 <https://github.com/pongasoft/glu/issues/245>`_: `Exception: Form Too large`
 
+.. _glu-5.2.0:
+
 5.2.0 (2013/08/14)
 ------------------
 
@@ -71,6 +100,8 @@ Tickets
 * Fixed `glu-237 <https://github.com/pongasoft/glu/issues/237>`_: `Agent is "up" before being accessible via rest`
 * Implemented `glu-238 <https://github.com/pongasoft/glu/issues/238>`_: `Add json groovy dsl for static model`
 
+.. _glu-5.1.0:
+
 5.1.0 (2013/07/20)
 ------------------
 
@@ -85,6 +116,8 @@ This release contains a brand new way of configuring and installing glu which sh
 * Implemented `glu-58 <https://github.com/pongasoft/glu/issues/58>`_: `Easy production setup`
 * Fixed `glu-142 <https://github.com/pongasoft/glu/issues/142>`_: `Reliance on -z flag whilst using the tar command`
 * Fixed `glu-231 <https://github.com/pongasoft/glu/issues/231>`_: `Cannot start console in development mode (grailsw) with java 1.7 v 25`
+
+.. _glu-5.0.0:
 
 5.0.0 (2013/04/23)
 ------------------
@@ -104,6 +137,8 @@ There is no new features or bug fixes since `4.7.1`.
 
                mavenRepo url: 'http://jcenter.bintray.com'
 
+.. _glu-4.7.2:
+
 4.7.2 (2013/05/09)
 ------------------
 
@@ -111,6 +146,7 @@ This release is a bug fix release.
 
 * Fixed `glu-223 <https://github.com/pongasoft/glu/issues/223>`_: `jdk1.7 workaround does not "persist" in 4.7.1`
 
+.. _glu-4.7.1:
 
 4.7.1 (2013/04/16)
 ------------------
@@ -129,6 +165,8 @@ This release is a bug fix release.
 * Fixed `glu-214 <https://github.com/pongasoft/glu/issues/214>`_: `Upgrading from 4.6.2 to 4.7.0 breaks all user roles`
 
 .. note:: Due to the fact that `glu-210 <https://github.com/pongasoft/glu/issues/210>`_ is (most likely) a race condition, a monitor has been added to the agent in order to detect (and correct) the situation. This will hopefully provide more insight into the problem. In order to disable the monitor, set the property ``glu.agent.zkMonitor.enabled`` to ``false``.
+
+.. _glu-4.7.0:
 
 4.7.0 (2013/04/02)
 ------------------
@@ -167,6 +205,7 @@ The code in glu has not changed much in this release, but it contains a whole se
 
 Thanks to `JProfiler <http://www.ej-technologies.com/products/jprofiler/overview.html>`_ for providing a free license key in order to troubleshoot (and very quickly identify!) the memory leak in groovy.
 
+.. _glu-4.6.2:
 
 4.6.2 (2013/01/21)
 ------------------
@@ -177,6 +216,8 @@ This release is a bug fix release only.
 * Fixed `glu-196 <https://github.com/pongasoft/glu/issues/196>`_: `DisabledFeatureProxy should proceed hashCode and equals methods to avoid breaking Spring ApplicationContext`
 * Fixed `glu-197 <https://github.com/pongasoft/glu/issues/197>`_: `Once a fabric is deleted cannot create a new fabric with the same name`
 * Fixed `glu-198 <https://github.com/pongasoft/glu/issues/198>`_: `Child not able to generate Parent Plan`
+
+.. _glu-4.6.1:
 
 4.6.1 (2012/12/21)
 ------------------
@@ -195,6 +236,8 @@ This release is essentially a bug fix release with a couple of minor enhancement
 * Implemented `glu-194 <https://github.com/pongasoft/glu/issues/194>`_: `Find a new "Downloads" space`
 
 .. note:: Due to `github deprecating the Download/Upload feature <https://github.com/blog/1302-goodbye-uploads>`_, the binary release has been moved to a new `location <http://www.pongasoft.com/glu/downloads/>`_.
+
+.. _glu-4.6.0:
 
 4.6.0 (2012/11/18)
 ------------------
