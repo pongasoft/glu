@@ -422,7 +422,7 @@ public class ConsoleTagLib
                           params: [
                           'session.systemFilter': "-${filter.toDSL()}",
                           ]) {
-              '&times;'
+              '<i class="icon-remove"> </i></cl:link>'
             }
             out << ']'
           }

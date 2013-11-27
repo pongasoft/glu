@@ -1,4 +1,4 @@
-.. Copyright (c) 2011 Yan Pujante
+.. Copyright (c) 2011-2013 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -85,7 +85,18 @@ The filter syntax is a dsl and allows you to filter by any field of the entry us
       "agent": "ei2-app3-zone5.qa",
       "initParameters": {
         "skeleton": "ivy:/com.linkedin.network.container/container-jetty/0.0.007-RC1.1",
-        "wars": "ivy:/com.linkedin.jobs/jobs-war/0.0.504-RC3.2612|jobs"
+        "webapps": [
+          {
+            "war": "http://localhost:8080/glu/repository/wars/webapp1.war",
+            "contextPath": "/cp1",
+            "monitor": "/monitor"
+          },
+          {
+            "war": "http://localhost:8080/glu/repository/wars/webapp2.war",
+            "contextPath": "/cp2",
+            "monitor": "/monitor"
+          }
+          ]
       },
       "metadata": {
         "container": {
@@ -173,7 +184,21 @@ Examples:
           tags='frontend'
           tags='backend'
         }
-	
+
+7. All entries where there is at least one webapp with contextPath '/cp1'::
+
+        // "webapps" is a collection... which can be accessed using [] notation
+        // [0..-1] means "all items in the collection"
+        // so the filter means "any item where contextPath is '/cp1'"
+        initParameters.webapps[0..-1].contextPath = '/cp1'
+
+8. All entries where the 2nd webapp has a contextPath '/cp2'::
+
+        // "webapps" is a collection... which can be accessed using [] notation
+        // [1] means "item 2 in the collection" (0 is the first entry, so 1 is the second one)
+        // so the filter means "second item where contextPath is '/cp2'"
+        initParameters.webapps[1].contextPath = '/cp2'
+
 .. note:: The REST api is expecting the filter as a query parameter (``systemFilter``) and it needs to be properly url encoded.
    For example it should be:: 
 

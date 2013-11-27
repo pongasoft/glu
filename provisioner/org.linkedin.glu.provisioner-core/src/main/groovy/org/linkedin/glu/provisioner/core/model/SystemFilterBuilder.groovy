@@ -140,7 +140,8 @@ public class SystemFilterBuilder
     if(name == 'tags')
       return new TagsSystemFilterBuilder(systemFilterBuilder: this)
     else
-      return new PropertySystemFilterBuilder(systemFilterBuilder: this, propertyName: name)
+      return new PropertySystemFilterBuilder(systemFilterBuilder: this,
+                                             propertySystemFilter: new PropertySystemFilter(name: name))
   }
 
   void propertyMissing(String name, def value)
@@ -151,6 +152,12 @@ public class SystemFilterBuilder
     }
     else
       addNewFilter(new PropertySystemFilter(name: name, value: value))
+  }
+
+  void propertyMissing(PropertySystemFilter propertySystemFilter, def value)
+  {
+    propertySystemFilter.value = value
+    addNewFilter(propertySystemFilter)
   }
 
   SystemFilter addNewFilter(SystemFilter newFilter)
@@ -194,7 +201,7 @@ public class SystemFilterBuilder
 class PropertySystemFilterBuilder
 {
   SystemFilterBuilder systemFilterBuilder
-  String propertyName
+  PropertySystemFilter propertySystemFilter
 
   /**
    * Handles notation agent.initParameters
@@ -206,7 +213,7 @@ class PropertySystemFilterBuilder
   def propertyMissing(String name)
   {
     new PropertySystemFilterBuilder(systemFilterBuilder: systemFilterBuilder,
-                                    propertyName: "${propertyName}.${name}".toString())
+                                    propertySystemFilter: propertySystemFilter.appendToken(name))
   }
 
   /**
@@ -216,12 +223,19 @@ class PropertySystemFilterBuilder
    *             'agent.initParameters'
    * @param value in this example it would be 'foo'
    */
-  def propertyMissing(String name, def value)
+  void propertyMissing(String name, def value)
   {
+    propertySystemFilter = propertySystemFilter.appendToken(name)
     if(value instanceof PropertySystemFilterBuilder)
-      throw new IllegalArgumentException("missing quotes around ${value.propertyName} for ${propertyName}.${name}")
+      throw new IllegalArgumentException("missing quotes around ${value.propertyName} for ${propertySystemFilter.name}")
 
-    systemFilterBuilder.propertyMissing("${propertyName}.${name}".toString(), value)
+    systemFilterBuilder.propertyMissing(propertySystemFilter, value)
+  }
+
+  def getAt(Object index)
+  {
+    new PropertySystemFilterBuilder(systemFilterBuilder: systemFilterBuilder,
+                                    propertySystemFilter: propertySystemFilter.appendIndex(index))
   }
 
   /**
@@ -232,7 +246,7 @@ class PropertySystemFilterBuilder
    */
   def boolean equals(Object value)
   {
-    systemFilterBuilder.propertyMissing("${propertyName}".toString(), value)
+    systemFilterBuilder.propertyMissing(propertySystemFilter, value)
     return false;
   }
 }

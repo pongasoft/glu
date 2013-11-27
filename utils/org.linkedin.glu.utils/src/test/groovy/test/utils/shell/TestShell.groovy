@@ -22,6 +22,7 @@ import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellExec
 import org.linkedin.glu.groovy.utils.shell.ShellExecException
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
+import org.linkedin.glu.groovy.utils.test.GluGroovyTestUtils
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.ivy.IvyURLHandler
@@ -749,7 +750,7 @@ out << "done copy...\${token2}"
         assertEquals("0123456789", res.tailStream.text)
         assertEquals(10, res.length)
         assertEquals(10, res.tailStreamMaxLength)
-        assertEquals(tempFile.file.lastModified(), res.lastModified)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
         assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -757,7 +758,7 @@ out << "done copy...\${token2}"
         assertEquals("789", res.tailStream.text)
         assertEquals(10, res.length)
         assertEquals(3, res.tailStreamMaxLength)
-        assertEquals(tempFile.file.lastModified(), res.lastModified)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
         assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -765,7 +766,7 @@ out << "done copy...\${token2}"
         assertEquals("", res.tailStream.text)
         assertEquals(10, res.length)
         assertEquals(0, res.tailStreamMaxLength)
-        assertEquals(tempFile.file.lastModified(), res.lastModified)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
         assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -775,7 +776,7 @@ out << "done copy...\${token2}"
         assertEquals("01", res.tailStream.text)
         assertEquals(12, res.length)
         assertEquals(2, res.tailStreamMaxLength)
-        assertEquals(tempFile.file.lastModified(), res.lastModified)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
         assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -783,7 +784,7 @@ out << "done copy...\${token2}"
         assertEquals("", res.tailStream.text)
         assertEquals(12, res.length)
         assertEquals(0, res.tailStreamMaxLength)
-        assertEquals(tempFile.file.lastModified(), res.lastModified)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
         assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -791,7 +792,7 @@ out << "done copy...\${token2}"
         assertEquals("012345678901", res.tailStream.text)
         assertEquals(12, res.length)
         assertEquals(12, res.tailStreamMaxLength)
-        assertEquals(tempFile.file.lastModified(), res.lastModified)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
         assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -799,7 +800,7 @@ out << "done copy...\${token2}"
         assertEquals("", res.tailStream.text)
         assertEquals(12, res.length)
         assertEquals(0, res.tailStreamMaxLength)
-        assertEquals(tempFile.file.lastModified(), res.lastModified)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
         assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
         assertFalse(res.isSymbolicLink)
 
@@ -811,7 +812,7 @@ out << "done copy...\${token2}"
           assertEquals("01", res.tailStream.text)
           assertEquals(12, res.length)
           assertEquals(2, res.tailStreamMaxLength)
-          assertEquals(tempFile.file.lastModified(), res.lastModified)
+          checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
           assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
           assertTrue(res.isSymbolicLink)
         }
@@ -819,7 +820,15 @@ out << "done copy...\${token2}"
     }
   }
 
-  private def leavesPaths(Resource root)
+  /**
+   * It seems that timing can vary by up to 1 second... due to os precision...
+   */
+  public void checkTimeDifference(long time1, long time2)
+  {
+    GluGroovyTestUtils.checkTimeDifference(this, time1, time2)
+  }
+
+  private static def leavesPaths(Resource root)
   {
     new TreeSet(GroovyIOUtils.findAll(root) { !it.isDirectory() }.collect { it.path })
   }

@@ -1,4 +1,4 @@
-.. Copyright (c) 2011 Yan Pujante
+.. Copyright (c) 2011-2013 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -51,11 +51,14 @@ Glossary
       Map m = [ 
         p1: 'v1',
         p2: [ p3: 'v3'] // nested map!
+        c1: [ [p4: 'v4'], [p4: 'v5'] ] // a collection of maps
       ]
 
       // the dotted notation allows you to write
-      m.p1 // which would return 'v1'
-      m.p2.p3 // which would return 'v3'
+      m.p1 // which is 'v1'
+      m.p2.p3 // which is 'v3'
+      m.c1[0].p4 // which is 'v4'
+      m.c1[1].p4 // which is 'v5'
 
   Fabric
     A fabric defines a group of agents. When an agent starts it is assigned a fabric (a string). A fabric is then defined as the group of agents that were started with the same value for the fabric.

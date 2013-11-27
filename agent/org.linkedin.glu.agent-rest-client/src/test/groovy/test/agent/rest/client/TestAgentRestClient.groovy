@@ -712,7 +712,7 @@ gc: 1000
    */
   public void checkTimeDifference(long time1, long time2)
   {
-    assertTrue(Math.abs(time1 - time2) <= 1000);
+    GluGroovyTestUtils.checkTimeDifference(this, time1, time2)
   }
 
   /**

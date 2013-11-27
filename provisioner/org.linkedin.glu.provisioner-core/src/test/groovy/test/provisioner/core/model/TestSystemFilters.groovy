@@ -45,7 +45,7 @@ class TestSystemFilters extends GroovyTestCase
     entries << new SystemEntry(agent: 'h1',
                                mountPoint: "/m/1",
                                script: 's1',
-                               initParameters: [ip1: 'iv1', ip2: ['c1'], ip3: [m1: 'mv1']],
+                               initParameters: [ip1: 'iv1', ip2: ['c1'], ip3: [m1: 'mv1'], ip4: [[m2: 'mv2'], [m2: 'mv3'], [m3: 'mv4']]],
                                metadata: [em1: 'ev1'],
                                tags: ['e:tag1', 'e:tag2'])
 
@@ -66,11 +66,13 @@ class TestSystemFilters extends GroovyTestCase
     entries.each { model.addEntry(it) }
   }
 
-
   public void testSystemFilterBuilderParse()
   {
     assertEquals(null, SystemFilterBuilder.parse(null))
 
+    checkFiltering("initParameters.ip4[0..-1].m2='mv3'", "initParameters.ip4[[0, -1]].m2='mv3'", ["h1:/m/1"])
+    checkFiltering("initParameters.ip4[1].m2='mv3'", "initParameters.ip4[1].m2='mv3'", ["h1:/m/1"])
+    checkFiltering("initParameters.ip4[25].m2='mv3'", "initParameters.ip4[25].m2='mv3'", [])
     checkFiltering("metadata.em1='ev1'", "metadata.em1='ev1'", ["h1:/m/1"])
     checkFiltering("initParameters.ip1=='iv2'", "initParameters.ip1='iv2'", ["h1:/m/2"])
     checkFiltering("initParameters.ip1='iv2'", "initParameters.ip1='iv2'", ["h1:/m/2"])

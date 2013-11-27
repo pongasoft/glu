@@ -30,7 +30,8 @@ spec = [
     utilsZookeeper: '2.0.0',
     restlet: '2.1.2',
     sigar: '1.6.4',
-    slf4j: '1.6.2' // to be compatible with grails 2.2.1
+    slf4j: '1.6.2', // to be compatible with grails 2.2.1
+    sphinx: '1.2b3'
   ],
 
   // information about the build framework itself
