@@ -1,6 +1,18 @@
 Release Notes
 =============
 
+.. _glu-5.4.1:
+
+5.4.1 (2013/12/06)
+------------------
+
+This release is a small bug fix release.
+
+* Fixed `glu-254 <https://github.com/pongasoft/glu/issues/254>`_: `After stop, the start action is not displayed`
+* Fixed `glu-255 <https://github.com/pongasoft/glu/issues/255>`_: `Setup generates myid file in wrong location for ZooKeeper cluster`
+* Fixed `glu-256 <https://github.com/pongasoft/glu/issues/256>`_: `Wrong connection string when multiple ZooKeepers`
+
+
 .. _glu-5.4.0:
 
 5.4.0 (2013/11/27)
