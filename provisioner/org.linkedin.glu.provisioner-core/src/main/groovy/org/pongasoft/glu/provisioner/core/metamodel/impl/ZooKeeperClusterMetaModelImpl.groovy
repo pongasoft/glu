@@ -42,7 +42,7 @@ public class ZooKeeperClusterMetaModelImpl implements ZooKeeperClusterMetaModel
   @Override
   String getZooKeeperConnectionString()
   {
-    zooKeepers.collect { ZooKeeperMetaModel zk -> "${zk.host.resolveHostAddress()}:${zk.clientPort}" }.join(';')
+    zooKeepers.collect { ZooKeeperMetaModel zk -> "${zk.host.resolveHostAddress()}:${zk.clientPort}" }.join(',')
   }
 
   @Override

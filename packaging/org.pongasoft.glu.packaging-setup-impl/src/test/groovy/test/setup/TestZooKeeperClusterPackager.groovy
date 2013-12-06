@@ -222,6 +222,8 @@ server.2=h2:2888:3888
                    zk2.location)
       assertEquals('h2', zk2.host)
       assertEquals(2181, zk2.port)
+
+      assertEquals("h1:2181,h2:2181", packager.metaModel.zooKeeperConnectionString)
     }
   }
 
