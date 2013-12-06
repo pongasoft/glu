@@ -68,6 +68,7 @@ class AgentsController extends ControllerBase
         displayName: "Reconfigure",
         states: ["installed", "stopped"],
       ],
+      [planType: "transition", displayName: "Start", state: "running"],
     ],
 
     // all other states
