@@ -72,6 +72,8 @@ public class TestConsoleServerPackager extends BasePackagerTest
 #
 
 
+JETTY_PORT="8080"
+
 """,
           "/keys": DIRECTORY,
           "/keys/agent.truststore": toBinaryResource(keysRootResource.'agent.truststore'),
@@ -311,6 +313,8 @@ console.defaults = <console.defaults config>
 
 
 JVM_SIZE="-Xmx555m"
+
+JETTY_PORT="9090"
 
 """,
           "/${jettyDistribution}": DIRECTORY,

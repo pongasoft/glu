@@ -112,6 +112,10 @@ if [ -z "$JVM_APP_INFO" ]; then
   JVM_APP_INFO="-Dorg.linkedin.app.name=$APP_NAME -Dorg.linkedin.app.version=$APP_VERSION"
 fi
 
+if [ -z "$JETTY_PORT" ]; then
+  JETTY_PORT=8080
+fi
+
 if [ -z "$JETTY_CMD" ]; then
   JETTY_CMD=$JETTY_DISTRIBUTION/bin/jetty.sh
 fi

@@ -39,9 +39,12 @@ public class ConsoleServerPackager extends BasePackager
     "JVM_GC_LOG",
     "JVM_APP_INFO",
     "JETTY_CMD",
+    "JETTY_PORT"
   ]
 
   ConsoleMetaModel metaModel
+
+  private Map<String, Object> _tokens = null
 
   Map<String, Object> getConfigTokens()
   {
@@ -58,6 +61,8 @@ public class ConsoleServerPackager extends BasePackager
   {
     String packageName = ensureVersion(metaModel.version)
 
+    _tokens = [*:configTokens]
+
     def jettyDistribution =
       shell.ls(inputPackage).find { it.filename.startsWith('jetty-distribution-') }?.filename
 
@@ -71,8 +76,10 @@ public class ConsoleServerPackager extends BasePackager
       'jetty.distribution': jettyDistribution
     ]
 
+    _tokens.JETTY_PORT = metaModel.mainPort
+
     tokens[PACKAGER_CONTEXT_KEY] = packagerContext
-    tokens[CONFIG_TOKENS_KEY] = [*:configTokens]
+    tokens[CONFIG_TOKENS_KEY] = [*:_tokens]
 
     def parts = [packageName]
 
@@ -99,6 +106,7 @@ public class ConsoleServerPackager extends BasePackager
     return new PackagedArtifact(location: packagePath,
                                 host: metaModel.host.resolveHostAddress(),
                                 port: metaModel.mainPort,
+                                tokens: _tokens,
                                 metaModel: metaModel)
   }
 
