@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+.. _glu-5.4.2:
+
+5.4.2 (2014/01/17)
+------------------
+
+This release is a small bug fix release.
+
+* Fixed `glu-257 <https://github.com/pongasoft/glu/issues/257>`_: `Allow to change the console server port in the setup phase`
+
 .. _glu-5.4.1:
 
 5.4.1 (2013/12/06)

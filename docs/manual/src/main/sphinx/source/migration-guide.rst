@@ -1,4 +1,4 @@
-.. Copyright (c) 2013 Yan Pujante
+.. Copyright (c) 2013-2014 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -14,6 +14,13 @@
 
 Migration Guide
 ===============
+
+.. _migration-guide-5.4.1-5.4.2:
+
+5.4.1 -> 5.4.2
+--------------
+
+No specific migration steps. Only the setup process is fixed to take into account a different port for the console (so simply re-running the setup flow should fix the issue in the generated package).
 
 .. _migration-guide-5.4.0-5.4.1:
 
