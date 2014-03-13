@@ -18,14 +18,14 @@ as domain classes the same way they would if they were under grails-app/domain.
   <dependencies />
   <plugins>
     <compile>
-      <plugin group='org.grails.plugins' name='shiro' version='1.1.4' />
       <plugin group='org.grails.plugins' name='cache' version='1.0.1' />
+      <plugin group='org.grails.plugins' name='shiro' version='1.1.4' />
     </compile>
     <runtime>
+      <plugin group='org.grails.plugins' name='hibernate' version='2.2.1' />
+      <plugin group='org.grails.plugins' name='jquery' version='1.8.3' />
       <plugin group='org.grails.plugins' name='database-migration' version='1.3.2' />
       <plugin group='org.grails.plugins' name='resources' version='1.1.6' />
-      <plugin group='org.grails.plugins' name='jquery' version='1.8.3' />
-      <plugin group='org.grails.plugins' name='hibernate' version='2.2.1' />
     </runtime>
     <build>
       <plugin group='org.grails.plugins' name='tomcat' version='2.2.1' />
