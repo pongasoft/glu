@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -25,6 +25,7 @@ import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemModelDelta
 import org.linkedin.glu.orchestration.engine.planner.TransitionPlan;
 import org.linkedin.glu.orchestration.engine.planner.Planner;
 import org.linkedin.glu.provisioner.core.model.SystemModel;
+import org.linkedin.glu.provisioner.plan.api.IPlanBuilder;
 import org.linkedin.glu.provisioner.plan.api.IStep;
 import org.linkedin.glu.provisioner.plan.api.Plan;
 import org.linkedin.util.annotations.Initializer;
@@ -100,7 +101,7 @@ public class PlannerImpl implements Planner
     if(transitionPlan == null)
       return null;
 
-    return transitionPlan.buildPlan(type);
+    return transitionPlan.buildPlan(type, new IPlanBuilder.Config());
   }
 
   @Override

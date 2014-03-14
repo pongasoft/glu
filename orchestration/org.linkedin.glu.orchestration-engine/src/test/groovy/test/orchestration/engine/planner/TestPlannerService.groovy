@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -216,6 +216,74 @@ public class TestPlannerService extends GroovyTestCase
       <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptAction="install" toState="installed" />
     </sequential>
   </parallel>
+</plan>
+""", p.toXml())
+    assertEquals(21, p.leafStepsCount)
+  }
+
+  /**
+   * Test for redeploy plan
+   */
+  public void testMaxParallelStepsCount()
+  {
+    SystemModel expectedModel =
+      m(
+        [agent: 'a2', mountPoint: '/m1', script: 's1'],
+        [agent: 'a2', mountPoint: '/m2', script: 's1'],
+        [agent: 'a2', mountPoint: '/m3', script: 's1', entryState: 'installed']
+      )
+
+    SystemModel currentSystemModel =
+      m(
+        [agent: 'a2', mountPoint: '/m1', script: 's1'],
+        [agent: 'a2', mountPoint: '/m2', script: 's1', entryState: 'stopped'],
+        [agent: 'a2', mountPoint: '/m3', script: 's1'],
+        [agent: 'a2', mountPoint: '/m4', script: 's1'],
+      )
+
+    Plan<ActionDescriptor> p = computePlan(Type.PARALLEL,
+                                           expectedModel,
+                                           currentSystemModel,
+                                           [
+                                             name: 'redeploy',
+                                             maxParallelStepsCount: 2
+                                           ])
+
+    assertEquals("""<?xml version="1.0"?>
+<plan fabric="f1" name="redeploy - PARALLEL">
+  <sequential maxParallelStepsCount="2" parallelStepsCount="3">
+    <parallel sequentialIndex="0">
+      <sequential agent="a2" mountPoint="/m1">
+        <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="stop" toState="stopped" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="unconfigure" toState="installed" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="uninstall" toState="NONE" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptLifecycle="uninstallScript" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m1" script="s1" scriptLifecycle="installScript" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="install" toState="installed" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="configure" toState="stopped" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m1" scriptAction="start" toState="running" />
+      </sequential>
+      <sequential agent="a2" mountPoint="/m2">
+        <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="unconfigure" toState="installed" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="uninstall" toState="NONE" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptLifecycle="uninstallScript" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m2" script="s1" scriptLifecycle="installScript" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="install" toState="installed" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="configure" toState="stopped" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m2" scriptAction="start" toState="running" />
+      </sequential>
+    </parallel>
+    <parallel sequentialIndex="1">
+      <sequential agent="a2" mountPoint="/m3">
+        <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptAction="stop" toState="stopped" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptAction="unconfigure" toState="installed" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptAction="uninstall" toState="NONE" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptLifecycle="uninstallScript" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m3" script="s1" scriptLifecycle="installScript" />
+        <leaf agent="a2" fabric="f1" mountPoint="/m3" scriptAction="install" toState="installed" />
+      </sequential>
+    </parallel>
+  </sequential>
 </plan>
 """, p.toXml())
     assertEquals(21, p.leafStepsCount)

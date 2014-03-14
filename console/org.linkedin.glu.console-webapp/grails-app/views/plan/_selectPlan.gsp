@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2011-2013 Yan Pujante
+  - Copyright (c) 2011-2014 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -34,11 +34,16 @@
             <td>${plan.displayName ?: plan.planType.capitalize()}</td>
             <g:each in="${['SEQUENTIAL', 'PARALLEL']}" var="stepType">
               <td>${stepType}</td>
-              <td><input type="radio" name="planDetails" value="${JsonUtils.compactPrint([*:plan, stepType: stepType, name: (plan.displayName ?: plan.planType.capitalize()) + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="${remoteFunction(controller: 'plan', action:'create', update:[success:'plan-preview'], params: "'fabric=${request.fabric.name.encodeAsHTML()}&json=' + this.value")}" /></td>
+              <td><input type="radio" name="planDetails" value="${JsonUtils.compactPrint([*:plan, stepType: stepType, name: (plan.displayName ?: plan.planType.capitalize()) + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="createPlan('${request.fabric.name}', '${g.createLink(controller: "plan", action: "create")}');" /></td>
             </g:each>
           </tr>
         </g:if>
       </g:each>
+      <tr>
+        <td colspan="6" style="text-align: center;">
+          Max Parallel Steps Count = <g:textField class="input-small" name="maxParallelStepsCount" onchange="createPlan('${request.fabric.name}', '${g.createLink(controller: "plan", action: "create")}');"/>
+        </td>
+      </tr>
       <tr>
         <td colspan="6" style="text-align: center;">
           <input class="btn btn-primary" type="submit" name="view" value="Select this plan" onClick="document.getElementById('planIdSelector').value=document.getElementById('planId').value;return true;">

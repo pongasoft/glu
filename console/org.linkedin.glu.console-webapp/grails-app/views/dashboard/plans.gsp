@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2011-2013 Yan Pujante
+  - Copyright (c) 2011-2014 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -34,6 +34,7 @@
     display: none;
   }
   </style>
+  <script type="text/javascript" src="${resource(dir:'js',file:'plan.js')}"></script>
 </head>
 <body>
 <ul class="nav nav-tabs">

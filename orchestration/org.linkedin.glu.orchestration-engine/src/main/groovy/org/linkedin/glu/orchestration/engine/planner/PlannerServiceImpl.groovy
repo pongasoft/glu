@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 Yan Pujante
+ * Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -29,6 +29,7 @@ import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.core.model.SystemEntryStateSystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemModel
+import org.linkedin.glu.provisioner.plan.api.IPlanBuilder
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.util.annotations.Initializable
@@ -168,9 +169,13 @@ class PlannerServiceImpl implements PlannerService
     if(metadata == null)
       metadata = [:]
 
+    def config = new IPlanBuilder.Config()
+    if(params.maxParallelStepsCount)
+      config.maxParallelStepsCount = params.maxParallelStepsCount as Integer
+
     Collection<Plan<ActionDescriptor>> allPlans = types.collect { Type type ->
       // 3. compute the deployment plan the given type
-      Plan<ActionDescriptor> plan = transitionPlan.buildPlan(type)
+      Plan<ActionDescriptor> plan = transitionPlan.buildPlan(type, config)
 
       // 4. set name and metadata for the plan
       plan.setMetadata('fabric', expectedModel.fabric)

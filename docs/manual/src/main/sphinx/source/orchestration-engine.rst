@@ -1,4 +1,4 @@
-.. Copyright (c) 2011-2013 Yan Pujante
+.. Copyright (c) 2011-2014 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -1710,34 +1710,37 @@ The ``POST`` you issue must be of Content-Type ``application/x-www-form-urlencod
 
 The body then contains a query string with the following parameters:
 
-+--------------------+----------------------+--------------------+-----------------------------------------------------+
-|name                |value                 |required            |example                                              |
-+--------------------+----------------------+--------------------+-----------------------------------------------------+
-|``planAction``      |``start``, ``stop``,  |One of              |``planAction=start``                                 |
-|                    |``bounce``,           |``planAction`` or   |                                                     |
-|                    |``deploy``,           |``planType``        |                                                     |
-|                    |``undeploy``,         |                    |                                                     |
-|                    |``redeploy``          |                    |                                                     |
-+--------------------+----------------------+--------------------+-----------------------------------------------------+
-|``planType``        |``deploy``,           |One of              |``planType=transition&state=stopped``                |
-|                    |``undeploy``,         |``planAction`` or   |                                                     |
-|                    |``redeploy``,         |``planType``        |                                                     |
-|                    |``bounce``,           |                    |                                                     |
-|                    |``transition`` or     |                    |                                                     |
-|                    |anything custom       |                    |                                                     |
-|                    |                      |                    |                                                     |
-+--------------------+----------------------+--------------------+-----------------------------------------------------+
-|``systemFilter``    |a system filter as    |No. It simply means |``systemFilter=and%7bagent%3d'ei2-app3-zone5.qa'%7d``|
-|                    |described in the      |don't filter at all.|                                                     |
-|                    |previous section      |                    |                                                     |
-|                    |(remember that it     |                    |                                                     |
-|                    |**must** be properly  |                    |                                                     |
-|                    |url encoded.          |                    |                                                     |
-|                    |                      |                    |                                                     |
-+--------------------+----------------------+--------------------+-----------------------------------------------------+
-|``order``           |``parallel`` or       |No. Default to      |``order=parallel``                                   |
-|                    |``sequential``        |``sequential``      |                                                     |
-+--------------------+----------------------+--------------------+-----------------------------------------------------+
++--------------------------+----------------------+--------------------+-----------------------------------------------------+
+|name                      |value                 |required            |example                                              |
++--------------------------+----------------------+--------------------+-----------------------------------------------------+
+|``planAction``            |``start``, ``stop``,  |One of              |``planAction=start``                                 |
+|                          |``bounce``,           |``planAction`` or   |                                                     |
+|                          |``deploy``,           |``planType``        |                                                     |
+|                          |``undeploy``,         |                    |                                                     |
+|                          |``redeploy``          |                    |                                                     |
++--------------------------+----------------------+--------------------+-----------------------------------------------------+
+|``planType``              |``deploy``,           |One of              |``planType=transition&state=stopped``                |
+|                          |``undeploy``,         |``planAction`` or   |                                                     |
+|                          |``redeploy``,         |``planType``        |                                                     |
+|                          |``bounce``,           |                    |                                                     |
+|                          |``transition`` or     |                    |                                                     |
+|                          |anything custom       |                    |                                                     |
+|                          |                      |                    |                                                     |
++--------------------------+----------------------+--------------------+-----------------------------------------------------+
+|``systemFilter``          |a system filter as    |No. It simply means |``systemFilter=and%7bagent%3d'ei2-app3-zone5.qa'%7d``|
+|                          |described in the      |don't filter at all.|                                                     |
+|                          |previous section      |                    |                                                     |
+|                          |(remember that it     |                    |                                                     |
+|                          |**must** be properly  |                    |                                                     |
+|                          |url encoded.          |                    |                                                     |
+|                          |                      |                    |                                                     |
++--------------------------+----------------------+--------------------+-----------------------------------------------------+
+|``order``                 |``parallel`` or       |No. Default to      |``order=parallel``                                   |
+|                          |``sequential``        |``sequential``      |                                                     |
++--------------------------+----------------------+--------------------+-----------------------------------------------------+
+|``maxParallelStepsCount`` |a positive integer    |No.                 |``maxParallelStepsCount=2`` defines parallel plan    |
+|                          |                      |                    |with no more than 2 steps in parallel                |
++--------------------------+----------------------+--------------------+-----------------------------------------------------+
 
 .. note:: ``planAction=stop`` is equivalent to ``planType=transition&state=stopped``. The ``planType`` notation is more generic and should be used when using your own state machine or creating your own custom plan types (in which case you can also pass as many parameters as you want).
 

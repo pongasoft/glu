@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,6 +19,7 @@ package org.linkedin.glu.orchestration.engine.planner.impl;
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
 import org.linkedin.glu.orchestration.engine.planner.TransitionPlan;
 import org.linkedin.glu.provisioner.plan.api.ICompositeStepBuilder;
+import org.linkedin.glu.provisioner.plan.api.IPlanBuilder;
 import org.linkedin.glu.provisioner.plan.api.IStep;
 import org.linkedin.glu.provisioner.plan.api.Plan;
 import org.linkedin.glu.provisioner.plan.api.PlanBuilder;
@@ -37,7 +38,7 @@ import java.util.TreeSet;
 public class TransitionPlanImpl implements TransitionPlan<ActionDescriptor>
 {
   private final Collection<Transition> _transitions;
-  private final Map<String, MultiStepsSingleEntryTransition> _mulitStepsOnly;
+  private final Map<String, MultiStepsSingleEntryTransition> _multiStepsOnly;
 
   /**
    * Constructor
@@ -45,18 +46,18 @@ public class TransitionPlanImpl implements TransitionPlan<ActionDescriptor>
   public TransitionPlanImpl(Collection<Transition> transitions)
   {
     filterVirtual(transitions);
-    _mulitStepsOnly = optimizeMultiSteps(transitions);
+    _multiStepsOnly = optimizeMultiSteps(transitions);
     _transitions = transitions;
   }
 
-  public Plan<ActionDescriptor> buildPlan(IStep.Type type)
+  public Plan<ActionDescriptor> buildPlan(IStep.Type type, IPlanBuilder.Config config)
   {
-    PlanBuilder<ActionDescriptor> builder = new PlanBuilder<ActionDescriptor>();
+    PlanBuilder<ActionDescriptor> builder = new PlanBuilder<ActionDescriptor>(config);
 
-    if(_mulitStepsOnly != null)
+    if(_multiStepsOnly != null)
     {
       ICompositeStepBuilder<ActionDescriptor> stepBuilder = builder.addCompositeSteps(type);
-      for(MultiStepsSingleEntryTransition transition : _mulitStepsOnly.values())
+      for(MultiStepsSingleEntryTransition transition : _multiStepsOnly.values())
       {
         transition.addSteps(stepBuilder);
       }

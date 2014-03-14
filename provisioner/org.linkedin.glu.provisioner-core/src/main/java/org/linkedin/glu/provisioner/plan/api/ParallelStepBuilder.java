@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,16 +24,52 @@ import java.util.Collection;
  */
 public class ParallelStepBuilder<T> extends CompositeStepBuilder<T>
 {
-  /**
-   * Constructor
-   */
-  public ParallelStepBuilder()
+  public ParallelStepBuilder(IPlanBuilder.Config config)
   {
+    super(config);
   }
 
   @Override
   protected IStep<T> createStep(Collection<IStep<T>> steps)
   {
-    return new ParallelStep<T>(getId(), getMetadata(), steps);
+    Integer maxParallelStepsCount = getConfig().maxParallelStepsCount;
+
+    if(maxParallelStepsCount == null ||
+       maxParallelStepsCount < 1 ||
+       steps.size() <= maxParallelStepsCount)
+      return new ParallelStep<T>(getId(), getMetadata(), steps);
+    else
+    {
+      // split the parallel plan into N parallel plans containing no more
+      // than _maxParallelStepsCount each, executed sequentially
+      SequentialStepBuilder<T> sequentialBuilder = new SequentialStepBuilder<T>(getConfig());
+      sequentialBuilder.setId(getId());
+      sequentialBuilder.setMetadata(getMetadata());
+      sequentialBuilder.setMetadata("maxParallelStepsCount", maxParallelStepsCount);
+      sequentialBuilder.setMetadata("parallelStepsCount", steps.size());
+
+      int currentStepsCount = 0;
+      int currentIndex = 0;
+
+      ParallelStepBuilder<T> parallelBuilder = null;
+
+      for(IStep<T> step : steps)
+      {
+        if(currentStepsCount == 0 || currentStepsCount >= maxParallelStepsCount)
+        {
+          parallelBuilder = sequentialBuilder.addStep(new ParallelStepBuilder<T>(getConfig()));
+          parallelBuilder.setId(getId());
+          parallelBuilder.setMetadata(getMetadata());
+          parallelBuilder.setMetadata("sequentialIndex", currentIndex);
+          currentStepsCount = 0;
+          currentIndex++;
+        }
+
+        parallelBuilder.addStep(step);
+        currentStepsCount++;
+      }
+
+      return sequentialBuilder.toStep();
+    }
   }
 }

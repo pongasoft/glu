@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -26,12 +26,14 @@ public class PlanBuilder<T> extends AbstractStepBuilder<T> implements IPlanBuild
 {
   private ICompositeStepBuilder<T> _compositeSteps;
   private IStep<T> _singleStep;
+  private final Config _config;
 
   /**
    * Constructor
    */
-  public PlanBuilder()
+  public PlanBuilder(Config config)
   {
+    _config = config;
   }
 
   @Override
@@ -62,11 +64,11 @@ public class PlanBuilder<T> extends AbstractStepBuilder<T> implements IPlanBuild
     switch(type)
     {
       case PARALLEL:
-        _compositeSteps = new ParallelStepBuilder<T>();
+        _compositeSteps = new ParallelStepBuilder<T>(_config);
         break;
 
       case SEQUENTIAL:
-        _compositeSteps = new SequentialStepBuilder<T>();
+        _compositeSteps = new SequentialStepBuilder<T>(_config);
         break;
 
       default:

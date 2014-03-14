@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +16,7 @@
 
 package org.linkedin.glu.orchestration.engine.planner;
 
+import org.linkedin.glu.provisioner.plan.api.IPlanBuilder;
 import org.linkedin.glu.provisioner.plan.api.IStep;
 import org.linkedin.glu.provisioner.plan.api.Plan;
 
@@ -24,5 +25,5 @@ import org.linkedin.glu.provisioner.plan.api.Plan;
  */
 public interface TransitionPlan<T>
 {
-  public Plan<T> buildPlan(IStep.Type type);
+  public Plan<T> buildPlan(IStep.Type type, IPlanBuilder.Config config);
 }
