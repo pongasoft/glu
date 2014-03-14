@@ -1,6 +1,6 @@
 /*
 * Copyright (c) 2010-2010 LinkedIn, Inc
-* Portions Copyright (c) 2011-2013 Yan Pujante
+* Portions Copyright (c) 2011-2014 Yan Pujante
 *
 * Licensed under the Apache License, Version 2.0 (the "License"); you may not
 * use this file except in compliance with the License. You may obtain a copy of
@@ -644,6 +644,18 @@ class UrlMappings
         DELETE: 'rest_clear_agent_fabric'
       ]
       __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/agent/$id/fabric')
+    }
+
+
+    /**
+     * audit logs
+     */
+    "/rest/v1/-/audit/logs"(controller: 'auditLog') {
+      action = [
+        HEAD: 'rest_count_audit_logs',
+        GET: 'rest_list_audit_logs'
+      ]
+      __roles = UrlMappings.restRoles(action, '/rest/v1/-/audit/logs')
     }
 
     /**

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011-2013 Yan Pujante
+ * Portions Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -406,6 +406,12 @@ console.security.roles = [
 
   'PUT:/rest/v1/$fabric/agent/$id/fabric': 'ADMIN',
   'DELETE:/rest/v1/$fabric/agent/$id/fabric': 'ADMIN',
+
+  /**
+   * Audit Logs
+   */
+  'GET:/rest/v1/-/audit/logs': 'ADMIN',
+  'HEAD:/rest/v1/-/audit/logs': 'ADMIN',
 
   /**
    * DEPRECATED: kept for backward compatibility only

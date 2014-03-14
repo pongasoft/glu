@@ -541,6 +541,12 @@ Any fabric related URI: ``/console/rest/v1/-`` (all the URIs in the following ta
 |``GET``    |``/agents``                                |Returns the map of associations   |:ref:`view                                |
 |           |                                           |agent -> fabric                   |<goe-rest-api-get-agents-fabrics>`        |
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``HEAD``   |``/audit/logs``                            |Returns the count of audit logs   |:ref:`view                                |
+|           |                                           |                                  |<goe-rest-api-count-audit-logs>`          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/audit/logs``                            |Returns the list of audit logs    |:ref:`view                                |
+|           |                                           |(paginated!)                      |<goe-rest-api-list-audit-logs>`           |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
 
 .. _goe-rest-api-get-fabric:
 
@@ -1683,6 +1689,86 @@ Read/Wait for command result
       O=6
       abcdef
 
+.. _goe-rest-api-count-audit-logs:
+
+Audit Logs Count
+""""""""""""""""
+
+* Description: Returns the total count of audit logs
+
+* Request: ``HEAD /audit/logs``
+
+* Response:
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-totalCount`` which is the total number of audit log entries.
+
+* Example::
+
+    curl -u "glua:password" "http://localhost:8080/console/rest/v1/-/audit/logs" --head
+    HTTP/1.1 200 OK
+    X-glu-totalCount: 5
+    ...
+
+.. _goe-rest-api-list-audit-logs:
+
+List Audit Logs
+"""""""""""""""
+
+* Description: Returns the (paginated) list of audit logs
+
+* Request: ``GET /audit/logs``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+  * ``max=xxx`` how many entries to return max (default to 100)
+  * ``offset=xxx`` which entry to start (default is 0)
+
+    .. note:: ``offset`` represents the index in the list (not an  id!). To go from page to page, the offset simply increments by ``max``. Example with ``max=10``, ``offset=0`` will return page 1, ``offset=10`` will return page 2, etc...
+
+  * ``sort`` which `column` to sort on (default is ``id``)
+  * ``order`` which order to sort the list (default is ``desc``)
+
+* Response:
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-max``, ``X-glu-offset``, ``X-glu-sort``, ``X-glu-order``, which are the values provided/defaulted/adjusted from the request and ``X-glu-count`` which is the number of entries returned and ``X-glu-totalCount`` which is the total number of audit log entries.
+    * body: json list of audit log entries
+
+  * ``204`` (``NO CONTENT``) when there is no audit log entries (which should not happen).
+
+* Example::
+
+    curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/-/audit/logs?prettyPrint=true"
+    < HTTP/1.1 200 OK
+    < X-glu-count: 5
+    < X-glu-totalCount: 5
+    < X-glu-max: 100
+    < X-glu-offset: 0
+    < X-glu-sort: id
+    < X-glu-order: desc
+    < Content-Type: text/json;charset=ISO-8859-1
+    ...
+    [
+      {
+        "dateCreated": 1394839512550,
+        "id": 5,
+        "type": "login",
+        "username": "glua"
+      },
+      {
+        "dateCreated": 1394839368174,
+        "details": "fabric: glu-dev-2, systemId: 71236129b3a55f84ca8904914209f980627abf02",
+        "id": 4,
+        "type": "system.change",
+        "username": "<bootstrap>"
+      },
+    ...
+
+.. note:: This api (``/rest/v1/-/audit/logs``) does not reference a fabric because the audit log is not fabric dependent.
 
 
 API Examples
@@ -1743,6 +1829,8 @@ The body then contains a query string with the following parameters:
 +--------------------------+----------------------+--------------------+-----------------------------------------------------+
 
 .. note:: ``planAction=stop`` is equivalent to ``planType=transition&state=stopped``. The ``planType`` notation is more generic and should be used when using your own state machine or creating your own custom plan types (in which case you can also pass as many parameters as you want).
+
+.. note:: ``maxParallelStepsCount`` only makes sense when ``order`` is set to ``parallel``. Setting this value to ``1`` is equivalent to defining ``order=sequential``.
 
 Json/DSL Based
 --------------
