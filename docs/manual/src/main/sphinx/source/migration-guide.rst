@@ -15,6 +15,14 @@
 Migration Guide
 ===============
 
+.. _migration-guide-5.4.2-5.5.0:
+
+5.4.2 -> 5.5.0
+--------------
+No specific migration steps. Only the console is affected in this release, so no need to upgrade the agents.
+
+.. note:: If you depend on glu at the binary/source code level, note that a few internal APIs have changed (ex: ``TransitionPlan``). See `commit <https://github.com/pongasoft/glu/commit/9d9759ac5672bad2db5ed716eb065250ee181f9a>`_.
+
 .. _migration-guide-5.4.1-5.4.2:
 
 5.4.1 -> 5.4.2

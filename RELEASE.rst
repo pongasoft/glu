@@ -1,6 +1,34 @@
 Release Notes
 =============
 
+.. _glu-5.5.0:
+
+5.5.0 (2014/03/14)
+------------------
+
+New and noteworthy
+^^^^^^^^^^^^^^^^^^
+* Added ability to retrieve the audit log via a :ref:`REST api <goe-rest-api-list-audit-logs>`
+* Added a concept of `max parallel steps count` in order to limit the parallelism of a given
+  deployment on a per deployment basis.
+
+  * A new text field (in order to input this value) has been added in the UI
+
+     .. image:: /images/release/v5.5.0/maxParallelStepsCount.png
+        :width: 600
+        :align: center
+        :alt: Max Parallel Steps Count
+
+  * a new parameter has been added to the :ref:`REST api <goe-rest-api-representing-a-plan>`.
+
+  .. note:: The ``...leafExecutorService.fixedThreadPoolSize`` :ref:`console property configuration <console-configuration-limiting-parallel-steps>` allows you to limit the parallelism globally at the thread level (as soon as one step completes, another one will start). The new concept allows you to limit the parallelism for a given deployment by `transforming` a fully parallel plan into a sequential plan containing groups of parallel plans: only when the entire group is completed will the next one start.
+
+Tickets
+^^^^^^^
+* Implemented `glu-159 <https://github.com/pongasoft/glu/issues/159>`_: `Add audit log access to the REST api`
+* Fixed `glu-258 <https://github.com/pongasoft/glu/issues/258>`_: `wait for state does not wake up on forceChangeState`
+* Implemented `glu-260 <https://github.com/pongasoft/glu/issues/260>`_: `Implement "hybrid" plan`
+
 .. _glu-5.4.2:
 
 5.4.2 (2014/01/17)

@@ -356,6 +356,7 @@ The plans page displays the list of deployments that have happened recently. Sin
       ]
    ],
 
+.. _console-configuration-limiting-parallel-steps:
 
 Limiting the number of parallel steps
 """""""""""""""""""""""""""""""""""""
