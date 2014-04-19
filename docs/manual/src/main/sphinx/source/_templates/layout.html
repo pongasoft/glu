@@ -41,6 +41,12 @@
   {%- endblock %}
 </div>
 <div class="sidebar">
+    <div class="admonition warning">
+    <p class="first admonition-title">Warning</p>
+        <p>
+            2014/04/19: A <a href="https://github.com/pongasoft/glu/issues/262">critical bug</a> while upgrading has been found. It is strongly advised not to upgrade at this time.
+        </p>
+    </div>
   {%- block sidebartoc %}
   <div class="sidebar-entry">
     <h3>{{ _('Table Of Contents') }}</h3>
@@ -70,36 +76,10 @@
 </div>
   <div class="sidebar-entry">
     <h3>{{ _('Twitter') }}</h3>
-    <script type="text/javascript">
-      new TWTR.Widget({
-                        version: 2,
-                        type: 'profile',
-                        rpp: 4,
-                        interval: 6000,
-                        width: 'auto',
-                        height: 300,
-                        theme: {
-                          shell: {
-                            background: '#dddddd',
-                            color: '#000000'
-                          },
-                          tweets: {
-                            background: '#ffffff',
-                            color: '#000000',
-                            links: '#ce5c00'
-                          }
-                        },
-                        features: {
-                          scrollbar: false,
-                          loop: false,
-                          live: false,
-                          hashtags: true,
-                          timestamp: true,
-                          avatars: true,
-                          behavior: 'all'
-                        }
-                      }).render().setUser('glutweets').start();
-    </script>
+      <a class="twitter-timeline" href="https://twitter.com/glutweets" data-widget-id="457620062292041728">Tweets by @glutweets</a>
+      <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+
   </div>
 </div>
 <div style="display:none">
