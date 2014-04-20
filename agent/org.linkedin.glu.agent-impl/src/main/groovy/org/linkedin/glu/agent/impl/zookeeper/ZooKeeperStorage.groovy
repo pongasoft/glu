@@ -141,6 +141,13 @@ class ZooKeeperStorage implements WriteOnlyStorage
     }
   }
 
+  @Override
+  def invalidateState(MountPoint mountPoint)
+  {
+    clearState(mountPoint)
+    return null
+  }
+
   public void storeState(MountPoint mountPoint, state)
   {
     zkSafe(_zkState) {  IZKClient zk ->

@@ -140,7 +140,7 @@ public class MountPoint implements Serializable
   String toPathWithNoSlash()
   {
     // YP Note: _ => %5F is to fix glu-151
-    def path = pathElements.collect { URLEncoder.encode(it).replace('_', '%5F') }.join("_") ?: '_'
+    def path = pathElements.collect { URLEncoder.encode(it, "UTF-8").replace('_', '%5F') }.join("_") ?: '_'
 
     return path
   }
@@ -153,8 +153,12 @@ public class MountPoint implements Serializable
     if(path == null)
       return null
 
+    if(!path.startsWith('_'))
+      throw new IllegalArgumentException("not a valid path ${path}")
+
     path = path.replace('_', '/')
     path = URLDecoder.decode(path, "UTF-8")
+
     return create(path)
   }
 

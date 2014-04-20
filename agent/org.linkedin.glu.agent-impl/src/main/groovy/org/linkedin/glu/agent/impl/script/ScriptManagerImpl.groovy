@@ -151,7 +151,7 @@ def class ScriptManagerImpl implements ScriptManager
     }
     catch(Exception e)
     {
-      log.warn("Error while instantiating script: ${mountPoint}: ${e.message} [${args}]")
+      log.warn("Error while instantiating script: mp=${mountPoint}; ex=${e.getClass().name}: \"${e.message}\"; args=${args}")
       if(log.isDebugEnabled())
         log.debug("Error while instantiating script: ${mountPoint}", e)
       throw new ScriptException(mountPoint.path, e)

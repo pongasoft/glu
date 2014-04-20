@@ -19,6 +19,7 @@
 package org.linkedin.glu.agent.impl.storage
 
 import org.linkedin.glu.agent.api.MountPoint
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.groovy.util.lang.GroovyLangUtils
 
 /**
@@ -44,36 +45,62 @@ class DualWriteStorage extends FilteredStorage
 
   synchronized void clearState(MountPoint mountPoint)
   {
-    super.clearState(mountPoint);
-    writeOnlyStorage.clearState(mountPoint)
+    GluGroovyLangUtils.onlyOneException(
+      { super.clearState(mountPoint) },
+      { writeOnlyStorage.clearState(mountPoint) }
+    )
   }
 
   synchronized void storeState(MountPoint mountPoint, state)
   {
-    super.storeState(mountPoint, state);
-    writeOnlyStorage.storeState(mountPoint, state)
+    GluGroovyLangUtils.onlyOneException(
+      { super.storeState(mountPoint, state) },
+      { writeOnlyStorage.storeState(mountPoint, state) }
+    )
   }
 
   synchronized public void clearAllStates()
   {
-    super.clearAllStates();
-    writeOnlyStorage.clearAllStates()
+    GluGroovyLangUtils.onlyOneException(
+      { super.clearAllStates() },
+      { writeOnlyStorage.clearAllStates() }
+    )
   }
 
   @Override
   synchronized AgentProperties saveAgentProperties(AgentProperties agentProperties)
   {
-    agentProperties = super.saveAgentProperties(agentProperties)
-    writeOnlyStorage.saveAgentProperties(agentProperties)
+    GluGroovyLangUtils.onlyOneException(
+      { agentProperties = super.saveAgentProperties(agentProperties) },
+      { writeOnlyStorage.saveAgentProperties(agentProperties) }
+    )
     return agentProperties
   }
 
   @Override
   AgentProperties updateAgentProperty(String name, String value)
   {
-    AgentProperties agentProperties = super.updateAgentProperty(name, value)
-    writeOnlyStorage.saveAgentProperties(agentProperties)
+    AgentProperties agentProperties
+
+    GluGroovyLangUtils.onlyOneException(
+      { agentProperties = super.updateAgentProperty(name, value) },
+      { writeOnlyStorage.saveAgentProperties(agentProperties) }
+    )
+
     return agentProperties
+  }
+
+  @Override
+  synchronized def invalidateState(MountPoint mountPoint)
+  {
+    def invalidStateNewLocation = null
+
+    GluGroovyLangUtils.onlyOneException(
+      { invalidStateNewLocation = super.invalidateState(mountPoint) },
+      { writeOnlyStorage.invalidateState(mountPoint) }
+    )
+
+    return invalidStateNewLocation
   }
 
   /**

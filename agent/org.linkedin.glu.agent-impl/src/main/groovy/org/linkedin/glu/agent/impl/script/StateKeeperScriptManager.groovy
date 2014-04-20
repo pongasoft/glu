@@ -21,6 +21,7 @@ package org.linkedin.glu.agent.impl.script
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.impl.storage.Storage
 import org.linkedin.groovy.util.lang.GroovyLangUtils
+import org.linkedin.groovy.util.state.StateMachine
 
 /**
  * The purpose of this class is to keep track and record the state of the script manager
@@ -92,23 +93,88 @@ def class StateKeeperScriptManager implements ScriptManager
     log.info "Restoring state: ${state}"
     GroovyLangUtils.noExceptionWithMessage("Invalid state detected: ${state}") {
       ScriptNode node
-      if(state.scriptDefinition.mountPoint == MountPoint.ROOT)
+
+      def mountPoint = state.scriptDefinition.mountPoint
+
+      if(mountPoint == MountPoint.ROOT)
       {
         node = _scriptManager.installRootScript([:])
+        node.scriptState.restore(state)
       }
       else
       {
-        node = _scriptManager.installScript(state.scriptDefinition)
+        boolean validScript = true
+
+        try
+        {
+          node = _scriptManager.installScript(state.scriptDefinition)
+        }
+        catch(Throwable error)
+        {
+          // try to invalidate the state properly
+          node = invalidateScript(mountPoint,  error)
+          validScript = false
+        }
+
+        if(validScript)
+        {
+          try
+          {
+            node.scriptState.restore(state)
+          }
+          catch(Throwable error)
+          {
+            _scriptManager.uninstallScript(mountPoint, true)
+
+            // try to invalidate the state properly
+            node = invalidateScript(mountPoint, error)
+            validScript = false
+          }
+        }
+
+        if(validScript)
+        {
+          // restarting timers if there was any
+          state.scriptState.timers?.each {
+            node.scheduleTimer(it)
+          }
+        }
       }
 
-      node.scriptState.restore(state)
 
-      // restarting timers if there was any
-      state.scriptState.timers?.each {
-        node.scheduleTimer(it)
-      }
       addListener(node)
     }
+  }
+
+  /**
+   * Replaces the invalid state on the file system by a new one so that it makes it to the
+   * console
+   */
+  private ScriptNode invalidateScript(MountPoint mp, Throwable error)
+  {
+    def invalidState = _storage.invalidateState(mp)
+
+    def scriptDefinition = [
+      mountPoint: mp,
+      scriptClassName: InvalidStateScript.class.name
+    ]
+
+    def node = _scriptManager.installScript(scriptDefinition)
+
+    def scriptState = [
+      stateMachine: [
+        currentState: StateMachine.NONE,
+        error: error
+      ],
+      script: [
+        invalidState: invalidState,
+        errorMessage: "Invalid state detected... check the state machine error for more details"
+      ]
+    ]
+
+    node.scriptState.restore(scriptState: scriptState)
+
+    return node
   }
 
   public ScriptNode installRootScript(actionArgs)

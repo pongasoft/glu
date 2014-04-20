@@ -23,6 +23,12 @@ import org.linkedin.glu.utils.exceptions.MultipleExceptions
  * @author yan@pongasoft.com */
 public class GluGroovyLangUtils extends GroovyLangUtils
 {
+  /**
+   * Generic comparator closure which invokes one of the compare methods (dynamic groovy
+   * dispatching)
+   */
+  static final Closure COMPARATOR_CLOSURE = { v1, v2 -> compare(v1, v2) }
+
   static boolean getOptionalBoolean(def value, boolean defaultValue)
   {
     if(value == null || value instanceof ConfigObject)
@@ -66,6 +72,14 @@ public class GluGroovyLangUtils extends GroovyLangUtils
       }
       return res
     }
+  }
+
+  /**
+   * Throw only 1 exception (at most) even if there are multiple.
+   */
+  static def onlyOneException(Closure... closures)
+  {
+    onlyOneException(closures as Collection<Closure>)
   }
 
   /**
