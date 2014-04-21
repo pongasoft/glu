@@ -15,10 +15,6 @@
 A taste of glu (tutorial)
 =========================
 
-.. sidebar:: July 2011 video
-
-             This tutorial is featured live in the video/presentation about glu that was given early July 2011 at the devops meetup in Chicago (`video <http://devops.com/2011/07/09/glu-deployment-automation-video/>`_ or `slides only (pdf) <http://pongasoft.github.io/glu/slides/glu-tech-talk-201107.pdf>`_). The live demo starts around 27:00.
-
 The purpose of this tutorial is to give you a taste of glu: the idea is to be up and running as quickly as possible and try it for yourself so that you get a feel of what glu can do.
 
 .. note::

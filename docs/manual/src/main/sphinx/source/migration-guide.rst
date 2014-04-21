@@ -15,6 +15,52 @@
 Migration Guide
 ===============
 
+.. _migration-guide-overall:
+
+General tips and guidelines
+---------------------------
+
+* In order to upgrade glu, you should determine which version you can upgrade to. The following table shows the requirements in terms of java vm for glu
+
+  +----------------+-----------------------------------+
+  |glu version     |java version(s)                    |
+  +================+===================================+
+  | 5.0.0+         |java 1.7                           |
+  +----------------+-----------------------------------+
+  | 4.7.x          |java 1.6 (any VM) or java 1.7      |
+  +----------------+-----------------------------------+
+  | 4.6.x and below|java 1.6 (with Sun/Oracle VM only!)|
+  +----------------+-----------------------------------+
+
+  As a result, here are the recommended migration paths:
+
+  +----------------------+---------------------------------------+
+  |You are running glu...| You should...                         |
+  +======================+=======================================+
+  | 5.0.0+               |upgrade to 5.3.1                       |
+  +----------------------+---------------------------------------+
+  | 4.7.x                |switch to java 1.7 and upgrade to 5.3.1|
+  +----------------------+---------------------------------------+
+  | 4.6.x and below      |upgrade to 4.7.3 (java 1.6),           |
+  |                      |switch to java 1.7 and upgrade to 5.3.1|
+  +----------------------+---------------------------------------+
+
+  .. tip:: If you are upgrading from a version prior to 5.1.0 to a more recent version of glu, you can follow the :ref:`quick and easy steps <migration-guide-5.0.0-5.1.0-quick-and-easy>` to generate the distributions as it was before the change in setup.
+
+* In general (unless noted otherwise), you should upgrade the console first, then the agents.
+
+* It is highly recommended to use the console ``Upgrade Agents`` functionality to upgrade the agents (under the ``Admin`` tab).
+
+* It is highly recommended to upgrade just a few agents first, make sure the upgrade process is working properly and then upgrade the rest of them in batches: if something goes wrong, it is much easier to address the issue on a smaller set of nodes.
+
+* During the agent upgrade process, the agent is stopped and restarted. During the restart phase, the agent recreates the state as it was prior to being shutdown. In order to do this, some older versions of glu (prior to 4.6.2) may need to fetch the glu scripts they were running from their original location, so you need to make sure that this location is accessible.
+
+.. _migration-guide-5.5.0-5.5.1:
+
+5.5.0 -> 5.5.1
+--------------
+This upgrade requires both the console and the agents to be upgraded.
+
 .. _migration-guide-5.4.2-5.5.0:
 
 5.4.2 -> 5.5.0
