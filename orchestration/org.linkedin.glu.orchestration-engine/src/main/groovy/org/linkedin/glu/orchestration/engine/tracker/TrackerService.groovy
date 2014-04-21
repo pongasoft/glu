@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -34,7 +34,7 @@ interface TrackerService
 
   /**
    * @return a map [accuracy: _accuracyLevel_,
-   *                allInfos: [_agentName_: [agent: _agentInfo_, mountPoints: _mountPointInfos_]]
+   *                allInfos: [_agentName_: [info: _agentInfo_, mountPoints: _mountPointInfos_]]
    */
   def getAllInfosWithAccuracy(Fabric fabric)
 

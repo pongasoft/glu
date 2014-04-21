@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011-2013 Yan Pujante
+ * Portions Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,7 +23,8 @@ import org.linkedin.glu.agent.api.DuplicateMountPointException
 import org.linkedin.glu.agent.api.NoSuchMountPointException
 import org.linkedin.glu.agent.api.ScriptException
 import org.linkedin.glu.agent.api.Agent
-
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
+import org.linkedin.groovy.util.lang.GroovyLangUtils
 import org.slf4j.Logger
 
 import org.linkedin.glu.agent.api.ScriptIllegalStateException
@@ -151,7 +152,7 @@ def class ScriptManagerImpl implements ScriptManager
     }
     catch(Exception e)
     {
-      log.warn("Error while instantiating script: mp=${mountPoint}; ex=${e.getClass().name}: \"${e.message}\"; args=${args}")
+      log.warn("Error while instantiating script: mp=${mountPoint}; ex=${GluGroovyLangUtils.toString(e)}; args=${args}")
       if(log.isDebugEnabled())
         log.debug("Error while instantiating script: ${mountPoint}", e)
       throw new ScriptException(mountPoint.path, e)

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,6 +17,8 @@
 
 package org.linkedin.glu.console.controllers
 
+import org.linkedin.glu.agent.api.MountPoint
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.agent.tracker.MountPointInfo
@@ -699,55 +701,28 @@ class AgentsController extends ControllerBase
       state = entry.mountPoints.values().find { it.error } ? 'ERROR' : state
 
       def actions = [:]
-      entry.mountPoints.values().each { MountPointInfo mp ->
-        def mpActions = [:]
-        def link
-
-        def pid = mp.data?.scriptState?.script?.pid
-
-        if(pid)
-        {
-          link = g.createLink(controller: 'agents',
-                                  action: 'ps',
-                                  id: agent.agentName,
-                                  params: [pid: mp.data?.scriptState?.script?.pid])
-          mpActions[link] = "ps"
-        }
-
-        if(mp.transitionState)
-        {
-          link = g.createLink(controller: 'agents',
-                              action: 'interruptAction',
-                              id: agent.agentName,
-                              params: [mountPoint: mp.mountPoint,
-                                       transitionAction: mp.transitionAction,
-                                       state: mp.currentState,
-                                           timeout: '10s'])
-          mpActions[link] = "interrupt ${mp.transitionAction}"
-        }
-        else
-        {
-          if(!mp.isCommand())
+      entry.mountPoints = entry.mountPoints.collectEntries() { MountPoint mp, MountPointInfo mpi ->
+        def newMpi = GluGroovyLangUtils.noExceptionWithValueOnException(null) {
+          try
           {
-            def stateActions = mountPointActions[mp.currentState] ?: (mountPointActions["-"] ?: [])
-
-            stateActions = [*stateActions, *(mountPointActions["*"] ?: [])]
-
-            stateActions?.each { stateAction ->
-              link = g.createLink(controller: 'agents',
-                                  action: 'create_plan',
-                                  id: agent.agentName,
-                                  params: [
-                                   mountPoint: mp.mountPoint,
-                                   *:stateAction,
-                                  ])
-              mpActions[link] = stateAction.displayName ?: stateAction.planType.capitalize()
-            }
+            actions[mp] = computeMountPointActions(mountPointActions, agent, mpi)
           }
+          catch(Throwable error)
+          {
+            mpi = mpi.invalidate(error)
+            actions[mp] = computeMountPointActions(mountPointActions,
+                                                   agent,
+                                                   mpi)
+          }
+          return mpi
         }
 
-        actions[mp.mountPoint] = mpActions
+        [(mp): newMpi]
       }
+
+      // eliminate null entries
+      entry.mountPoints = entry.mountPoints.findAll { k,v -> v }
+
       entry.actions = actions
     }
     else
@@ -755,11 +730,60 @@ class AgentsController extends ControllerBase
       state = 'NOT_RUNNING'
     }
 
-
-
     entry.state = state
     entry.hasDelta = hasDelta
 
     return entry
+  }
+
+  protected def computeMountPointActions(def mountPointActions, agent, MountPointInfo mp)
+  {
+    def mpActions = [:]
+    def link
+
+    def pid = mp.data?.scriptState?.script?.pid
+
+    if(pid)
+    {
+      link = cl.createLink(controller: 'agents',
+                           action: 'ps',
+                           id: agent.agentName,
+                           params: [pid: mp.data?.scriptState?.script?.pid])
+      mpActions[link] = "ps"
+    }
+
+    if(mp.transitionState)
+    {
+      link = cl.createLink(controller: 'agents',
+                           action: 'interruptAction',
+                           id: agent.agentName,
+                           params: [mountPoint: mp.mountPoint,
+                             transitionAction: mp.transitionAction,
+                             state: mp.currentState,
+                             timeout: '10s'])
+      mpActions[link] = "interrupt ${mp.transitionAction}"
+    }
+    else
+    {
+      if(!mp.isCommand())
+      {
+        def stateActions = mountPointActions[mp.currentState] ?: (mountPointActions["-"] ?: [])
+
+        stateActions = [*stateActions, *(mountPointActions["*"] ?: [])]
+
+        stateActions?.each { stateAction ->
+          link = cl.createLink(controller: 'agents',
+                               action: 'create_plan',
+                               id: agent.agentName,
+                               params: [
+                                 mountPoint: mp.mountPoint,
+                                 *:stateAction,
+                               ])
+          mpActions[link] = stateAction.displayName ?: stateAction.planType.capitalize()
+        }
+      }
+    }
+
+    return mpActions
   }
 }
