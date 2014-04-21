@@ -20,6 +20,15 @@ Release Notes (Latest)
 5.5.1 & 4.7.3 (2014/04/21)
 --------------------------
 
+.. sidebar:: Download
+
+  .. image:: https://api.bintray.com/packages/pongasoft/binaries/glu/images/download.png?version=5.5.1
+     :alt: Download the latest version of glu
+     :class: sidebar-logo
+     :target: https://bintray.com/pongasoft/glu/releases/5.5.1
+
+  Download glu latest release from Bintray.
+
 This release is a bug fix release. Due to the nature of the bug, both the main branch as well as the 4.7.x branch (for java 1.6) have been updated.
 
 The bug is rare but can happen while upgrading glu: it manifests itself by bad data being written to ZooKeeper (only when the agent cannot instantiate a previously deployed glu script) and the console does not handle it properly. The fix is 2 fold:
