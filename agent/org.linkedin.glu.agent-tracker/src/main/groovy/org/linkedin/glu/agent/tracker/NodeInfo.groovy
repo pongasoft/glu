@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -30,7 +31,7 @@ class NodeInfo
 {
   TrackedNode trackedNode
 
-  private volatile Map _data = null
+  protected volatile Map _data = null
 
   Stat getStat()
   {
@@ -61,9 +62,34 @@ class NodeInfo
   {
     if(_data == null)
     {
-      _data = JsonUtils.fromJSON(trackedNode.data)
+      try
+      {
+        _data = validateAndAdjust(JsonUtils.fromJSON(trackedNode.data))
+      }
+      catch(Throwable error)
+      {
+        _data = handleInvalidData(error)
+      }
     }
 
     return _data
+  }
+
+  /**
+   * Called to handle the data when it is invalid
+   * @return by default return an empty map
+   */
+  protected Map handleInvalidData(Throwable error)
+  {
+    [:]
+  }
+
+  /**
+   * Called to validate the data map and adjust accordingly
+   * @return by default simply returns the data
+   */
+  protected Map validateAndAdjust(Map data)
+  {
+    return data
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 Yan Pujante
+ * Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,6 +15,7 @@
  */
 
 package org.linkedin.glu.groovy.utils
+
 
 import org.linkedin.groovy.util.lang.GroovyLangUtils
 import org.linkedin.glu.utils.exceptions.MultipleExceptions
@@ -162,4 +163,50 @@ public class GluGroovyLangUtils extends GroovyLangUtils
 
   }
 
+  /**
+   * Extracts the exception stack trace and all causes. Each element in the returned collection
+   * is a map with <code>name</code>, <code>message</code>.
+   *
+   * @return <code>out</code>
+   */
+  public static <T> T extractExceptionDetailsWithCause(exception, T out = [])
+  {
+    if(exception)
+    {
+      out << extractExceptionDetails(exception)
+      extractExceptionDetailsWithCause(exception.cause, out)
+    }
+
+    return out
+  }
+
+  /**
+   * Extracts the exception stack trace and all causes. Each element in the returned collection
+   * is a map with <code>name</code>, <code>message</code>.
+   *
+   * @return <code>out</code>
+   */
+  public static Map extractExceptionDetails(exception)
+  {
+    if(exception)
+    {
+      [
+        name: exception.getClass().name,
+        message: exception.message
+      ]
+    }
+    else
+      return null
+  }
+
+  /**
+   * @return a simple string representation of the throwable (just the name and message)
+   */
+  public static String toString(Throwable throwable)
+  {
+    if(throwable)
+      "${throwable.getClass().name}: \"${throwable.message}\"".toString()
+    else
+      null
+  }
 }
