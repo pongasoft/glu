@@ -18,7 +18,7 @@
 spec = [
   name: 'glu',
   group: 'org.linkedin',
-  version: '4.7.2',
+  version: '4.7.3',
 
   versions: [
     jdk: '1.6',

@@ -1,5 +1,12 @@
 Latest changes
 ==============
+4.7.3 (2014/04/20)
+------------------
+This release is a bug fix release.
+
+.. warning:: this version should be used instead of 4.7.0, 4.7.1 or 4.7.2 due to the `critical bug <https://github.com/linkedin/glu/issues/262>`_
+
+* Fixed `glu-262 <https://github.com/pongasoft/glu/issues/262>`_: `A bad agent should not bring the console down`
 
 4.7.2 (2013/05/09)
 ------------------

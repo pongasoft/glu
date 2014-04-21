@@ -20,7 +20,6 @@ import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.impl.capabilities.MOPImpl
 import org.linkedin.glu.agent.impl.capabilities.ShellImpl
 import org.linkedin.glu.agent.impl.script.AgentContext
-import org.linkedin.glu.agent.impl.script.NoSharedClassLoaderScriptLoader
 import org.linkedin.glu.agent.impl.script.ScriptManagerImpl
 import org.linkedin.glu.agent.impl.script.StateKeeperScriptManager
 import org.linkedin.glu.agent.impl.storage.RAMStorage
@@ -79,14 +78,11 @@ public class TestStateKeeperScriptManager extends GroovyTestCase
 
     def rootShell = new ShellImpl(fileSystem: new FileSystemImpl(new File("/")))
 
-    def scriptLoader = new NoSharedClassLoaderScriptLoader()
-
     def agentContext = [
       getShellForScripts: {shell},
       getRootShell: { rootShell },
       getMop: {new MOPImpl()},
       getClock: { SystemClock.instance() },
-      getScriptLoader: { scriptLoader }
     ] as AgentContext
 
     sm = new ScriptManagerImpl(agentContext: agentContext)
