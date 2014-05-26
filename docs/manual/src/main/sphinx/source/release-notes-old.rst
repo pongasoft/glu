@@ -621,8 +621,8 @@ This version is highly recommended for glu-27 specifically which may prevent the
 
 1.3.2 (2010/12/07)
 ------------------
-* use of `linkedin-utils 1.2.1 <https://github.com/pongasoft/linkedin-utils/tree/REL_1.2.1>`_ which fixes the issue of password not being masked properly
-* use of `linkedin-zookeeper 1.2.1 <https://github.com/pongasoft/linkedin-zookeeper/tree/REL_1.2.1>`_
+* use of `linkedin-utils 1.2.1 <https://github.com/pongasoft/utils-misc/tree/REL_1.2.1>`_ which fixes the issue of password not being masked properly
+* use of `linkedin-zookeeper 1.2.1 <https://github.com/pongasoft/utils-zookeeper/tree/REL_1.2.1>`_
 
 1.3.1 (2010/12/02)
 ------------------

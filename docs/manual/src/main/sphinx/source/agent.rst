@@ -269,7 +269,7 @@ Shortcut to ``stateManager.state``::
 """""""""
 An instance of ``org.linkedin.glu.agent.api.Shell`` (`Shell api <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-api/src/main/groovy/org/linkedin/glu/agent/api/Shell.groovy>`_) which gives access to a lot of shell like capabilities
 
-* file system (see ``org.linkedin.groovy.util.io.fs.FileSystem`` (`FileSystem api <https://github.com/pongasoft/linkedin-utils/blob/master/org.linkedin.util-groovy/src/main/groovy/org/linkedin/groovy/util/io/fs/FileSystem.groovy>`_) like ``ls``, ``cp``, ``mv``, ``rm``, ``tail``...
+* file system (see ``org.linkedin.groovy.util.io.fs.FileSystem`` (`FileSystem api <https://github.com/pongasoft/utils-misc/blob/master/org.linkedin.util-groovy/src/main/groovy/org/linkedin/groovy/util/io/fs/FileSystem.groovy>`_) like ``ls``, ``cp``, ``mv``, ``rm``, ``tail``...
 * process (``fork``, ``exec``...)
 * ``fetch/untar`` to download and untar/unzip binaries (based on any URI)::
 
@@ -330,7 +330,7 @@ An instance of ``org.linkedin.glu.agent.api.Timers`` (`Timers api <https://githu
     }
 
 .. tip:: 
-   The frequency for a timer is of type ``org.linkedin.util.clock.Timespan`` (`Timespan api <https://github.com/pongasoft/linkedin-utils/blob/master/org.linkedin.util-core/src/main/java/org/linkedin/util/clock/Timespan.java>`_) and is expressed as a string::
+   The frequency for a timer is of type ``org.linkedin.util.clock.Timespan`` (`Timespan api <https://github.com/pongasoft/utils-misc/blob/master/org.linkedin.util-core/src/main/java/org/linkedin/util/clock/Timespan.java>`_) and is expressed as a string::
 
           15s // 15 seconds
           1m10s // 1 minute 10 seconds

@@ -35,7 +35,7 @@ A glu script is a groovy class which contains a set of closures where the name o
 
 State machine
 -------------
-Each glu script is backed by a state machine which is an instance of ``org.linkedin.groovy.util.state.StateMachine`` (`StateMachine api <https://github.com/pongasoft/linkedin-utils/blob/master/org.linkedin.util-groovy/src/main/groovy/org/linkedin/groovy/util/state/StateMachine.groovy>`_). The default state machine is the following:
+Each glu script is backed by a state machine which is an instance of ``org.linkedin.groovy.util.state.StateMachine`` (`StateMachine api <https://github.com/pongasoft/utils-misc/blob/master/org.linkedin.util-groovy/src/main/groovy/org/linkedin/groovy/util/state/StateMachine.groovy>`_). The default state machine is the following:
 
 .. image:: /images/state_machine_diagram.png
    :align: center
