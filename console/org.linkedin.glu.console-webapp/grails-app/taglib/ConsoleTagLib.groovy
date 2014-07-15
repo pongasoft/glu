@@ -1222,7 +1222,7 @@ public class ConsoleTagLib
             cl.link(controller: 'agents',
                     action: 'fileContent',
                     id: agent,
-                    params: [(logFile == logsDir ? 'location': 'file'): logFile.path]) {
+                    params: [(logFile.isDirectory() ? 'location': 'file'): logFile.path]) {
               out << logType
             }
           }
