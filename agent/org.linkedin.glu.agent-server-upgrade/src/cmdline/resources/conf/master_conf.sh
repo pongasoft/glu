@@ -25,7 +25,7 @@ if [ -z "$JAVA_CMD" ]; then
   fi
 fi
 
-JAVA_VER=$("$JAVA_CMD" -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
+JAVA_VER=$("$JAVA_CMD" -version 2>&1 | grep 'java version' | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
 if [ "$JAVA_VER" -lt 17 ]; then
 	echo "### ERROR START ###########"
 	echo "### Java @ $JAVA_CMD too old (required java 1.7)"
@@ -38,10 +38,10 @@ if [ -z "$JAVA_CMD_TYPE" ]; then
   FULLVERSION=$( $JAVA_CMD -fullversion 2>&1 )
   if [ -z "$(echo $FULLVERSION | grep IBM)" ]; then
     JAVA_CMD_TYPE=oracle
-  else    
+  else
     JAVA_CMD_TYPE=ibm
   fi
-fi 
+fi
 
 if [ -z "$GLU_CONFIG_PREFIX" ]; then
   GLU_CONFIG_PREFIX="glu"
@@ -157,7 +157,7 @@ if [ -z "$JVM_GC_LOG" ]; then
     'oracle' ) JVM_GC_LOG="-XX:+PrintGCDateStamps -Xloggc:$GC_LOG"
     	       ;;
   esac
-  
+
 fi
 
 # Log4J configuration
