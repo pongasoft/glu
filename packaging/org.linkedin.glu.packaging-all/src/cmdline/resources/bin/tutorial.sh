@@ -57,7 +57,7 @@ init()
   GLU_TUTORIAL_CONSOLE_LINK=$GLU_TUTORIAL_DIR/console-server
   GLU_TUTORIAL_CONSOLE_CLI_LINK=$GLU_TUTORIAL_DIR/console-cli
   GLU_TUTORIAL_ZOOKEEPER_LINK=$GLU_TUTORIAL_DIR/zookeeper-server
-  
+
 }
 
 usage()
@@ -174,7 +174,7 @@ if [ -z "$JAVA_CMD" ]; then
   fi
 fi
 
-JAVA_VER=$("$JAVA_CMD" -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
+JAVA_VER=$("$JAVA_CMD" -version 2>&1 | grep 'java version' | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
 if [ "$JAVA_VER" -lt 17 ]; then
 	echo "### ERROR START ###########"
 	echo "### Java @ $JAVA_CMD too old (required java 1.7)"

@@ -135,7 +135,7 @@ if [ -z "$JAVA_CMD" ]; then
   fi
 fi
 
-JAVA_VER=$("$JAVA_CMD" -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
+JAVA_VER=$("$JAVA_CMD" -version 2>&1 | grep 'java version' | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
 if [ "$JAVA_VER" -lt 17 ]; then
 	echo "### ERROR START ###########"
 	echo "### Java @ $JAVA_CMD too old (required java 1.7)"
