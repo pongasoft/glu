@@ -33,7 +33,9 @@ import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.glu.agent.api.AgentException
 import org.linkedin.glu.agent.api.ScriptExecutionCauseException
 import org.linkedin.groovy.util.io.fs.SerializableFileResource
+import org.linkedin.util.io.resource.FileResource
 import org.linkedin.util.io.resource.Resource
+import org.linkedin.util.io.resource.internal.FileResourceProvider
 import org.linkedin.util.url.URLBuilder
 
 /**
@@ -375,8 +377,8 @@ class MyScript
 
     // note that although this path may not exist, it does not matter as it is only used
     // to create a Resource which may or may not actually exist!
-    def fs_4_5_2 =
-      new FileSystemImpl(new File("/export/content/glu/org.linkedin.glu.packaging-all-4.5.2/agent-server/data/tmp/sample/i001"))
+    def fs_4_5_2 = new FileResourceProvider(new File("/export/content/glu/org.linkedin.glu.packaging-all-4.5.2/agent-server/data/tmp/sample/i001"));
+    def localScriptFile_4_5_2 = fs_4_5_2.createResource("__tmp618015841Dir/JettyGluScript.groovy");
 
     def expected_4_5_2 =
       [
@@ -386,7 +388,7 @@ class MyScript
           [
             class: "org.linkedin.glu.agent.impl.script.FromLocationScriptFactory",
             location: "http://localhost:8080/glu/repository/scripts/org.linkedin.glu.script-jetty-4.5.2/JettyGluScript.groovy",
-            localScriptFile: fs_4_5_2.toResource('/__tmp618015841Dir/JettyGluScript.groovy')
+            localScriptFile: SerializableFileResource.toFR(localScriptFile_4_5_2)
           ],
         initParameters:
           [
