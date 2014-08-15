@@ -36,6 +36,6 @@ Quick Links
 3. [Tutorial (latest)](http://pongasoft.github.io/glu/docs/latest/html/tutorial.html)
 4. [Source code](http://www.github.com/pongasoft/glu)
 5. [Forum / Questions / Help](http://glu.977617.n3.nabble.com/)
-6. [Video (July 2011)](http://devops.com/2011/07/09/glu-deployment-automation-video/)
+6. [Video (July 2011)](http://vimeo.com/27761776)
 7. [Issues / Tasks](https://github.com/pongasoft/glu/issues)
 8. [Latest Changes](http://pongasoft.github.io/glu/docs/latest/html/RELEASE.html)
