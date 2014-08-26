@@ -503,7 +503,8 @@ class UrlMappings
     name restExecution: "/rest/v1/$fabric/plan/$planId/execution/$id"(controller: 'plan') {
       action = [
         GET: 'rest_view_execution',
-        HEAD: 'rest_execution_status'
+        HEAD: 'rest_execution_status',
+        DELETE: 'rest_abort_execution'
       ]
       __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/plan/$planId/execution/$id')
     }

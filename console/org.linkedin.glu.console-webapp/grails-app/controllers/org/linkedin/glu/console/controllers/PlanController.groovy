@@ -543,8 +543,6 @@ public class PlanController extends ControllerBase
 
     if(deployment && deployment.planExecution.plan.id == params.planId)
     {
-      def completionStatus
-
       def completion = deployment.progressTracker.completionPercentage
       if(deployment.planExecution.isCompleted())
       {
@@ -572,6 +570,32 @@ public class PlanController extends ControllerBase
     {
       response.setContentType('text/xml')
       render deployment.planExecution.toXml()
+    }
+    else
+    {
+      response.sendError HttpServletResponse.SC_NOT_FOUND
+    }
+  }
+
+  /**
+   * Aborts the execution
+   */
+  def rest_abort_execution = {
+    def deployment = deploymentService.getDeployment(params.id)
+
+    if(deployment && deployment.planExecution.plan.id == params.planId)
+    {
+      if(deployment.planExecution.isCompleted())
+      {
+        response.setStatus(HttpServletResponse.SC_NO_CONTENT)
+        render ''
+      }
+      else
+      {
+        deployment.planExecution.cancel(true)
+        response.setStatus(HttpServletResponse.SC_OK)
+        render ''
+      }
     }
     else
     {
