@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2013 Yan Pujante
+ * Portions Copyright (c) 2013-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -43,6 +43,7 @@ class ShiroLdapRealm
 
   PluginService pluginService
   def grailsApplication
+  String initialContextFactoryClass = "com.sun.jndi.ldap.LdapCtxFactory"
 
   def authenticate(authToken)
   {
@@ -59,12 +60,12 @@ class ShiroLdapRealm
 
       username = authToken.username
       log.debug "Attempting to authenticate ${username} in LDAP realm..."
-      def password = new String(authToken.password)
+      def password = new String(authToken.password?.toString() ?: '')
 
       // Get LDAP config for application. Use defaults when no config
       // is provided.
       def appConfig = grailsApplication.config
-      def ldapUrls = appConfig.ldap.server.url ?: ["ldap://localhost:389/"]
+      def ldapUrls = appConfig.ldap.server.url ?: []
       def searchBase = appConfig.ldap.search.base ?: ""
       def searchUser = appConfig.ldap.search.user ?: ""
       def searchPass = appConfig.ldap.search.pass ?: ""
@@ -101,9 +102,25 @@ class ShiroLdapRealm
         return username
       }
 
+      // no ldap defined => only credentials matters
+      if(!ldapUrls)
+      {
+        // already tested before (and failed)
+        if(credentials)
+        {
+          AuditLog.audit(username: username, type: 'login.failed', details: 'invalid password')
+          throw new IncorrectCredentialsException("Invalid password for user '${username}'")
+        }
+        else
+        {
+          AuditLog.audit(username: username, type: 'login.failed', details: 'no account')
+          throw new UnknownAccountException("No account found for user [${username}]")
+        }
+      }
+
       // Accept strings and GStrings for convenience, but convert to
       // a list.
-      if(ldapUrls && !(ldapUrls instanceof Collection))
+      if(!(ldapUrls instanceof Collection))
       {
         ldapUrls = [ldapUrls]
       }
@@ -111,7 +128,7 @@ class ShiroLdapRealm
       // Set up the configuration for the LDAP search we are about
       // to do.
       def env = new Hashtable()
-      env[Context.INITIAL_CONTEXT_FACTORY] = "com.sun.jndi.ldap.LdapCtxFactory"
+      env[Context.INITIAL_CONTEXT_FACTORY] = initialContextFactoryClass
       if(searchUser)
       {
         // Non-anonymous access for the search.

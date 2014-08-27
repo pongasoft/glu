@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Yan Pujante
+ * Copyright (c) 2013-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,9 +15,11 @@
  */
 
 grails.servlet.version = "2.5" // Change depending on target container compliance (2.5 or 3.0)
-grails.project.class.dir = "target/classes"
-grails.project.test.class.dir = "target/test-classes"
-grails.project.test.reports.dir = "target/test-reports"
+if(System.properties['grails.project.work.dir'])
+{
+  grails.project.work.dir = System.properties['grails.project.work.dir']
+  grails.project.test.reports.dir = "${grails.project.work.dir}/test-reports"
+}
 grails.project.target.level = 1.7
 grails.project.source.level = 1.7
 //grails.project.war.file = "target/${appName}-${appVersion}.war"
