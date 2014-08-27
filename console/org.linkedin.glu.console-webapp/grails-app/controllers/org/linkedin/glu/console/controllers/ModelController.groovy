@@ -17,21 +17,19 @@
 
 package org.linkedin.glu.console.controllers
 
+import com.fasterxml.jackson.core.JsonParseException
+import org.linkedin.glu.console.domain.DbSystemModel
+import org.linkedin.glu.console.provisioner.services.storage.SystemStorageException
+import org.linkedin.glu.grails.utils.ConsoleConfig
+import org.linkedin.glu.grails.utils.ConsoleHelper
+import org.linkedin.glu.orchestration.engine.agents.AgentsService
+import org.linkedin.glu.orchestration.engine.system.SystemService
+import org.linkedin.glu.provisioner.core.model.SystemModel
+import org.linkedin.glu.provisioner.core.model.SystemModelRenderer
 import org.linkedin.glu.provisioner.core.model.builder.ModelBuilderParseException
 import org.linkedin.groovy.util.net.GroovyNetUtils
 
 import javax.servlet.http.HttpServletResponse
-
-import org.linkedin.glu.grails.utils.ConsoleConfig
-
-import org.linkedin.glu.orchestration.engine.system.SystemService
-import org.linkedin.glu.console.provisioner.services.storage.SystemStorageException
-import org.linkedin.glu.grails.utils.ConsoleHelper
-import org.linkedin.glu.provisioner.core.model.SystemModel
-import org.linkedin.glu.orchestration.engine.agents.AgentsService
-import org.linkedin.glu.console.domain.DbSystemModel
-import com.fasterxml.jackson.core.JsonParseException
-import org.linkedin.glu.provisioner.core.model.SystemModelRenderer
 
 /**
  * @author: ypujante@linkedin.com
@@ -205,9 +203,39 @@ public class ModelController extends ControllerBase
     }
   }
 
+  /**
+   * POST on /model/static with id
+   */
+  def rest_set_as_current = {
+    try
+    {
+      boolean res = systemService.setAsCurrentSystem(request.fabric.name, params.id)
+      if(res)
+        response.setStatus(HttpServletResponse.SC_OK)
+      else
+        response.setStatus(HttpServletResponse.SC_NO_CONTENT)
+      render ''
+    }
+    catch(IllegalArgumentException e)
+    {
+      response.setStatus HttpServletResponse.SC_NOT_FOUND
+      render ''
+    }
+  }
+
+  /**
+   * POST on /model/static
+   */
   def rest_upload_model = {
     try
     {
+      // handle set as current
+      if(params.id)
+      {
+        rest_set_as_current()
+        return
+      }
+
       def source
       def filename
 
@@ -269,10 +297,86 @@ public class ModelController extends ControllerBase
   }
 
   /**
-   * Handle GET /model/static
+   * Handle HEAD /models/static
+   */
+  def rest_count_static_models = {
+    response.addHeader("X-glu-current", request.system.id)
+    response.addHeader("X-glu-totalCount",
+                       systemService.getSystemsCount(request.fabric.name).toString())
+    response.setStatus(HttpServletResponse.SC_OK)
+    render ''
+  }
+
+  static def MODEL_SORT_MAPPING = [
+    id         : 'systemId',
+    fabric     : 'fabric',
+    name       : 'name',
+    size       : 'size',
+    timeCreated: 'id',
+    viewURL    : 'systemId'
+  ]
+
+  /**
+   * Handle GET /models/static
+   */
+  def rest_list_static_models = {
+
+    if(!params.sort || !MODEL_SORT_MAPPING.containsKey(params.sort))
+      params.sort = 'timeCreated'
+
+    def requestedSort = params.sort
+
+    params.sort = MODEL_SORT_MAPPING[params.sort] ?: 'id'
+
+    def map = systemService.findSystems(request.fabric.name, false, params)
+
+    params.sort = requestedSort
+
+    def res = []
+
+    map.systems.each { def model ->
+      res << [
+        id: model.systemId,
+        timeCreated: model.dateCreated.time,
+        fabric: model.fabric,
+        size: model.size,
+        name: model.name,
+        viewURL: g.createLink(absolute: true,
+                              mapping: 'restStaticModel',
+                              id: model.systemId,
+                              params: [fabric: request.fabric.name]).toString()
+      ]
+    }
+
+    response.addHeader("X-glu-current", request.system.id)
+    response.addHeader("X-glu-count", map.systems.size().toString())
+    response.addHeader("X-glu-totalCount", map.count.toString())
+    ['max', 'offset', 'sort', 'order'].each { k ->
+      response.addHeader("X-glu-${k}", params[k].toString())
+    }
+
+    response.setContentType('text/json')
+    render prettyPrintJsonWhenRequested(res)
+  }
+
+  /**
+   * Handle GET /model/static/$id?
    */
   def rest_get_static_model = {
-    renderModelWithETag(request.system)
+    def system = request.system
+
+    if(params.id)
+    {
+      system = systemService.findDetailsBySystemId(params.id)?.systemModel
+    }
+
+    if(!system)
+    {
+      response.setStatus(HttpServletResponse.SC_NOT_FOUND)
+      render ''
+    }
+    else
+      renderModelWithETag(system)
   }
 
   /**

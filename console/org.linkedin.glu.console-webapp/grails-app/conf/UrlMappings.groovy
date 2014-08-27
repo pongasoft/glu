@@ -548,11 +548,12 @@ class UrlMappings
     /***
      * model
      */
-    name restStaticModel: "/rest/v1/$fabric/model/static"(controller: 'model') {
+    name restStaticModel: "/rest/v1/$fabric/model/static/$id?"(controller: 'model') {
       action = [
         POST: 'rest_upload_model',
         GET: 'rest_get_static_model'
       ]
+      // mismatch for role name because $id? was added afterwards
       __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/model/static')
     }
     name restLiveModel: "/rest/v1/$fabric/model/live"(controller: 'model') {
@@ -560,6 +561,13 @@ class UrlMappings
         GET: 'rest_get_live_model'
       ]
       __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/model/live')
+    }
+    "/rest/v1/$fabric/models/static"(controller: 'model') {
+      action = [
+        HEAD: 'rest_count_static_models',
+        GET: 'rest_list_static_models'
+      ]
+      __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/models/static')
     }
 
     /***

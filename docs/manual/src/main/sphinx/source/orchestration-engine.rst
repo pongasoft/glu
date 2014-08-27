@@ -506,10 +506,25 @@ Main URI: ``/console/rest/v1/<fabric>`` (all the URIs in the following table sta
 |           |                                           |deployment                        |<goe-rest-api-get-deployment-archived>`   |
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
 |``POST``   |``/model/static``                          |Loads the (desired) model in the  |:ref:`view                                |
-|           |                                           |console                           |<goe-rest-api-post-model-static>`         |
+|           |                                           |console / Set as current          |<goe-rest-api-post-model-static>`         |
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
 |``GET``    |``/model/static``                          |Retrieves the current loaded model|:ref:`view                                |
 |           |                                           |(aka 'desired' state)             |<goe-rest-api-get-model-static>`          |
+|           |                                           |                                  |                                          |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/model/static/<modelId>``                |Retrieves the  model given its id |:ref:`view                                |
+|           |                                           |                                  |<goe-rest-api-get-model-static>`          |
+|           |                                           |                                  |                                          |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``HEAD``   |``/models/static``                         |Return the total count of static  |:ref:`view                                |
+|           |                                           |models                            |<goe-rest-api-head-models-static>`        |
+|           |                                           |                                  |                                          |
+|           |                                           |                                  |                                          |
++-----------+-------------------------------------------+----------------------------------+------------------------------------------+
+|``GET``    |``/models/static``                         |Retrieve a (paginated) list of    |:ref:`view                                |
+|           |                                           |previously loaded static models   |<goe-rest-api-get-models-static>`         |
 |           |                                           |                                  |                                          |
 |           |                                           |                                  |                                          |
 +-----------+-------------------------------------------+----------------------------------+------------------------------------------+
@@ -1406,20 +1421,22 @@ View archived deployment (info)
 
 .. _goe-rest-api-post-model-static:
 
-Load static model
-"""""""""""""""""
+Load static model / Set as current
+""""""""""""""""""""""""""""""""""
 
-* Description: Load the (desired) model in the console.
+* Description: Load the (desired) model in the console or set a previously loaded one as current
 
 * Request: ``POST /model/static``
 
-  Body can be of 2 types depending on the ``Content-Type`` header:
+  Body can be of 3 types depending on the ``Content-Type`` header:
 
-  1. ``application/x-www-form-urlencoded`` then body should contain ``modelUrl=xxx`` with the url pointing to the model (the console will 'download' it)
-  2. ``text/json`` or ``text/json+groovy`` then body should be the model itself (`example <https://gist.github.com/755981>`_)
+  1. ``application/x-www-form-urlencoded`` with body containing ``modelUrl=xxx`` where the url is pointing to the model (the console will 'download' it)
+  2. ``application/x-www-form-urlencoded`` with body containing ``id=xxx`` where id is the model id to set as current
+  3. ``text/json`` or ``text/json+groovy`` then body should be the model itself (`example <https://gist.github.com/755981>`_)
 
 * Response:
 
+  * ``200`` (``OK``) when model is successfully set as current
   * ``201`` (``CREATED``) when loaded successfully
   * ``204`` (``NO_CONTENT``) if model was loaded successfully and is equal to the previous one
   * ``400`` (``BAD_REQUEST``) if the model is not valid (should be a properly json formatted document)
@@ -1437,7 +1454,16 @@ Load static model
     < ...
     id=facc4ef65539a5c558436f034b5e63e5ba1fd0ef
 
-    # 2. using input stream
+    # 2. using id (set as current)
+    curl -v -u "glua:password" --data "id=34879db4fbe0afed9755e70bb2a392a3a93938fd" http://localhost:8080/console/rest/v1/glu-dev-1/model/static
+    > POST /console/rest/v1/glu-dev-1/model/static HTTP/1.1
+    > Content-Type: application/x-www-form-urlencoded
+    > ...
+    >
+    < HTTP/1.1 200 OK
+    < ...
+
+    # 3. using input stream
     curl -v -u "glua:password" -H "Content-Type: text/json" --data-binary @/Users/ypujante/github/org.pongasoft/glu/console/org.linkedin.glu.console-server/src/cmdline/resources/glu/repository/systems/hello-world-system.json http://localhost:8080/console/rest/v1/glu-dev-1/model/static
     > POST /console/rest/v1/glu-dev-1/model/static HTTP/1.1
     > Content-Type: text/json
@@ -1452,11 +1478,11 @@ Load static model
 View static model
 """""""""""""""""
 
-* Description: Retrieve the current loaded model (aka *expected* state).
+* Description: Retrieve the current loaded model (aka *expected* state) if no id specified, otherwise the specified model.
 
   .. note:: this is what you loaded using ``POST /model/static``
 
-* Request: ``GET /model/static``
+* Request: ``GET /model/static`` for the current loaded model or  ``GET /model/static/<id>`` for a specific model
 
   optional request parameters:
 
@@ -1466,6 +1492,90 @@ View static model
 * Response:  
 
   * ``200`` (``OK``) with a json representation of the model
+  * ``404`` (``NOT_FOUND``) if the id does not match a previously loaded model
+
+.. _goe-rest-api-head-models-static:
+
+Static models count
+"""""""""""""""""""
+
+* Description: Return the total count of static models.
+
+
+* Request: ``HEAD /models/static``
+
+* Response:
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-totalCount`` and ``X-glu-current`` which contains the id of the currently selected model
+
+* Example::
+
+     curl --head -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/models/static"
+     < HTTP/1.1 200 OK
+     < X-glu-current: 34879db4fbe0afed9755e70bb2a392a3a93638fd
+     < X-glu-totalCount: 5
+
+.. _goe-rest-api-get-models-static:
+
+List static models
+""""""""""""""""""
+
+* Description: Retrieve a (paginated) list of previously loaded static models
+
+* Request: ``GET /models/static``
+
+  optional request parameters:
+
+  * ``prettyPrint=true`` for human readable output
+  * ``max=xxx`` how many entries to return max (max cannot exceed a limit which defaults to 10 which is also the value used if not provided)
+  * ``offset=xxx`` which entry to start (default is 0)
+
+    .. note:: ``offset`` represents the index in the list (not a model id!). To go from page to page, the offset simply increments by ``max``. Example with ``max=10``, ``offset=0`` will return page 1, ``offset=10`` will return page 2, etc...
+
+  * ``sort`` which `column` to sort on (default is ``timeCreated``)
+  * ``order`` which order to sort the list (default is ``desc``)
+
+* Response:
+
+  * ``200`` (``OK``) with:
+
+    * headers: ``X-glu-max``, ``X-glu-offset``, ``X-glu-sort``, ``X-glu-order``, which are the values provided/defaulted/adjusted from the request and ``X-glu-count`` which is the number of entries returned and ``X-glu-totalCount`` which is the total number of models. ``X-glu-current`` contains the id of the currently selected model (which may not be on the page returned).
+    * body: json array of maps with some details about each model (equivalent to what you see on the `Model/List` tab in the console)
+
+* Example::
+
+      curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/models/static?prettyPrint=true&max=2"
+      < HTTP/1.1 200 OK
+      < X-glu-current: 34879db4fbe0afed9755e70bb2a392a3a93638fd
+      < X-glu-count: 2
+      < X-glu-totalCount: 5
+      < X-glu-max: 2
+      < X-glu-offset: 0
+      < X-glu-sort: timeCreated
+      < X-glu-order: desc
+      < Content-Type: text/json;charset=ISO-8859-1
+      < Content-Length: 582
+      <
+      [
+        {
+          "fabric": "glu-dev-1",
+          "id": "c036278ff0a47f5bbe9a695809af1515855a686a",
+          "name": "Empty System Model 5",
+          "size": 113,
+          "timeCreated": 1409167185742,
+          "viewURL": "http://192.168.0.117:8080/console/rest/v1/glu-dev-1/model/static/c036278ff0a47f5bbe9a695809af1515855a686a"
+        },
+        {
+          "fabric": "glu-dev-1",
+          "id": "21aee08eee129f99d88e9e617ecb01415f67a74c",
+          "name": "Empty System Model 4",
+          "size": 113,
+          "timeCreated": 1409167182596,
+          "viewURL": "http://192.168.0.117:8080/console/rest/v1/glu-dev-1/model/static/21aee08eee129f99d88e9e617ecb01415f67a74c"
+        }
+      ]
 
 .. _goe-rest-api-get-model-live:
 
