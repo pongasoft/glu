@@ -142,6 +142,7 @@ public class GluPackager
           if(!dryMode)
           {
             log.info "Skipped agent package ${agent.location} => ${agent.host}:${agent.port}"
+            packagedArtifacts = packagedArtifacts.addArtifact(agent)
           }
         }
       }
