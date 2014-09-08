@@ -55,6 +55,14 @@ General tips and guidelines
 
 * During the agent upgrade process, the agent is stopped and restarted. During the restart phase, the agent recreates the state as it was prior to being shutdown. In order to do this, some older versions of glu (prior to 4.6.2) may need to fetch the glu scripts they were running from their original location, so you need to make sure that this location is accessible.
 
+.. _migration-guide-5.5.1-5.5.2:
+
+5.5.1 -> 5.5.2
+--------------
+This upgrade requires only the console to be upgraded.
+
+.. note:: This release actually behaves like the documentation is describing: if you do not specify an LDAP section in the console configuration file, then LDAP will be skipped. Prior behavior was attempting to connect to ``localhost:389`` (which was a bug). If this is what you want, then simply change the configuration file as described :ref:`here <console-user-management>`.
+
 .. _migration-guide-5.5.0-5.5.1:
 
 5.5.0 -> 5.5.1

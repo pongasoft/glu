@@ -14,20 +14,35 @@ Release Notes (Latest)
 
      * Make sure to check the :doc:`Migration Guide <migration-guide>` for tips on how to upgrade glu.
 
-.. _glu-5.5.1:
+.. _glu-5.5.2:
 
-
-5.5.1 & 4.7.3 (2014/04/21)
---------------------------
+5.5.2 (2014/09/08)
+------------------
 
 .. sidebar:: Download
 
-  .. image:: https://api.bintray.com/packages/pongasoft/binaries/glu/images/download.png?version=5.5.1
+  .. image:: https://api.bintray.com/packages/pongasoft/binaries/glu/images/download.png?version=5.5.2
      :alt: Download the latest version of glu
      :class: sidebar-logo
-     :target: https://bintray.com/pongasoft/glu/releases/5.5.1
+     :target: https://bintray.com/pongasoft/glu/releases/5.5.2
 
   Download glu latest release from Bintray.
+
+This release is a minor release which includes some improvements to the REST api (abort a plan, list and set static model) as well as a couple of bug fixes.
+
+.. note:: if you are using LDAP, make sure to check the :ref:`migration steps <migration-guide-5.5.1-5.5.2>` for details.
+
+* Fixed `glu-261 <https://github.com/pongasoft/glu/issues/261>`_: `Should be able to disable ldap in console`
+* Fixed `glu-264 <https://github.com/pongasoft/glu/issues/264>`_: `wrong install file generated during setup when multiple agents`
+* Merged `glu-267 <https://github.com/pongasoft/glu/issues/267>`_: `added more information about failed jobs in deployment logs` (Thanks Subhan)
+* Merged `glu-268 <https://github.com/pongasoft/glu/issues/268>`_: `handle unexpected output while setting JAVA_TOOL_OPTIONS enviroment variable` (Thanks Ady)
+* Implemented `glu-269 <https://github.com/pongasoft/glu/issues/269>`_: `Add DELETE for /rest/v1/$fabric/plan/$planId/execution/$id`
+* Implemented `glu-271 <https://github.com/pongasoft/glu/issues/271>`_: `Add REST api to list and set (static) model`
+
+.. _glu-5.5.1:
+
+5.5.1 & 4.7.3 (2014/04/21)
+--------------------------
 
 This release is a bug fix release. Due to the nature of the bug, both the main branch as well as the 4.7.x branch (for java 1.6) have been updated.
 
