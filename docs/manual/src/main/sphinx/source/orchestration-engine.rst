@@ -1112,7 +1112,9 @@ Abort execution plan
 
 * Response:
 
-  * TBD
+  * ``200`` (``OK``) if the execution was aborted
+  * ``204`` (``NO_CONTENT``) if the execution was already completed
+  * ``404`` (``NOT_FOUND``) if no such execution
 
 .. _goe-rest-api-get-deployments-current:
 
