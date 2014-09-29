@@ -178,6 +178,10 @@ Logs
 ^^^^
 In order to be able to see (in the console) log files produced by an application deployed by the glu script, you can follow the convention described in the ":ref:`console-script-log-files`" section.
 
+Processes
+^^^^^^^^^
+In order to be able to see (in the console) processes managed by the glu script, you can follow the convention described in the ":ref:`console-script-pids`" section.
+
 Fields
 ^^^^^^
 All fields in a glu script are stored (locally on the agent) and exported (remotely to ZooKeeper). Check the ":ref:`agent-integration-zookeeper`" section.

@@ -869,6 +869,71 @@ Example of glu script::
       }
     }
 
+.. _console-script-pids:
+
+Processes Display
+-----------------
+
+When looking at an agent (agents view page), for each entry, there may be a ``Processes`` section determined by the fields declared in the script:
+
+.. image:: /images/console-script-log-files.png
+   :align: center
+   :alt: Script log files
+
+or in the ``All Processes`` tab, the ``org.linkedin.app.name`` column can provide details about the process:
+
+.. image:: /images/console-script-processes.png
+   :align: center
+   :alt: Script log files
+
+In order to see entries like this you can do the following in your script:
+
+* declare a field called ``pids`` which should be a map where the key is the pid (process id) and the value is another map with the following keys:
+
+  * ``command``: the name of the command/process (ex: ``java``) (optional)
+  * ``org.linkedin.app.name``: the name to be displayed (optional)
+  * ``cpu``: the percentage of cpu used by the process (optional). This value is usually unnecessary to be provided since glu will compute it appropriately.
+
+* declare a field called ``pid`` which is just one process id and will reference the "main" process started by the glu script (and will be rendered as a ``ps`` shortcut).
+
+Example of glu script::
+
+    class GluScriptWithPids
+    {
+      def port
+      def pid
+      def pids = [:]
+
+      // ...
+
+      def start = {
+        shell.exec("${serverCmd} start > /dev/null 2>&1 &")
+
+        // we wait for the process to be started (should be quick)
+        shell.waitFor(timeout: '5s', heartbeat: '250') {
+          pid = isProcessUp()
+          pids[pid] = [
+            'org.linkedin.app.name': "Jetty container [${port}]"
+          ]
+        }
+      }
+
+      // ...
+
+      private Integer isProcessUp()
+      {
+        // determine if the process is up or not and return the pid
+        // ...
+        return processId
+      }
+
+    }
+
+
+.. note:: In order to fill the ``org.linkedin.app.name`` column, you can also simply start the process with a command line argument like this: ``-Dorg.linkedin.app.name=xxx`` and ``xxx`` will be displayed (note that the ``pids`` map in the glu script will override this value if both are provided).
+
+.. tip:: For a full example, check the ``JettyGluScript`` that comes bundled with glu.
+
 First bootstrap
 ---------------
 The very first time the console is started, it will create an admin user. Log in as this user::

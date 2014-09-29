@@ -102,6 +102,7 @@ class JettyGluScript
   def serverLog
   def gcLog
   def pid
+  def pids = [:]
   def port
   def webapps
 
@@ -178,7 +179,7 @@ class JettyGluScript
 
     // we wait for the process to be started (should be quick)
     shell.waitFor(timeout: '5s', heartbeat: '250') {
-      pid = isProcessUp()
+      doSetPid(isProcessUp())
     }
 
     // now that the process should be up, we wait for the server to be up
@@ -261,7 +262,7 @@ class JettyGluScript
       }
     }
 
-    pid = null
+    doSetPid(null)
   }
 
   // a method called by the rest of the code but not by the agent directly
@@ -289,9 +290,9 @@ class JettyGluScript
 
   private Integer isServerUp()
   {
-    Integer pid = isProcessUp()
-    if(pid && shell.listening('localhost', port))
-      return pid
+    Integer newPid = isProcessUp()
+    if(newPid && shell.listening('localhost', port))
+      return newPid
     else
       return null
   }
@@ -458,7 +459,7 @@ class JettyGluScript
   private def checkServerAndWebapps = {
     def up = [server: false, webapps: 'unknown']
 
-    pid = isServerUp()
+    doSetPid(isServerUp())
     up.server = pid != null
     if(up.server)
       up.webapps = checkWebapps()
@@ -487,7 +488,7 @@ class JettyGluScript
         if(!up.server || up.webapps == 'dead')
         {
           newState = 'stopped'
-          pid = null
+          doSetPid(null)
           newError = 'Server down detected. Check the log file for errors.'
           log.warn "${newError} => forcing new state ${newState}"
         }
@@ -531,6 +532,23 @@ class JettyGluScript
       log.warn "Exception while running serverMonitor: ${th.message}"
       log.debug("Exception while running serverMonitor (ignored)", th)
     }
+  }
+
+  private Closure<Integer> doSetPid = { Integer newPid ->
+    if(newPid)
+    {
+      pid = newPid
+      pids[pid] = [
+        'org.linkedin.app.name': "Jetty container [${port}]"
+      ]
+    }
+    else
+    {
+      pid = null
+      pids.clear()
+    }
+
+    return newPid
   }
 
   static String DEFAULT_JETTY_CTL = """#!/bin/bash
