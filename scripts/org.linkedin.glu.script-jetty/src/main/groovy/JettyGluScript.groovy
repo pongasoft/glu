@@ -102,7 +102,7 @@ class JettyGluScript
   def serverLog
   def gcLog
   def pid
-  def pids = [:]
+  def pids
   def port
   def webapps
 
@@ -538,14 +538,18 @@ class JettyGluScript
     if(newPid)
     {
       pid = newPid
-      pids[pid] = [
-        'org.linkedin.app.name': "Jetty container [${port}]"
+      // in order for groovy/glu to detect the changes inside the map, the entire map should be
+      // recreated every time (simply treat it as an immutable map...)
+      pids = [
+        (newPid): [
+          'org.linkedin.app.name': "Jetty container [${port}]"
+        ]
       ]
     }
     else
     {
       pid = null
-      pids.clear()
+      pids = null
     }
 
     return newPid
