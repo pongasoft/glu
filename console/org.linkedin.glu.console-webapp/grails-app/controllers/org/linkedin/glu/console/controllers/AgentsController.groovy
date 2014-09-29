@@ -20,6 +20,7 @@ package org.linkedin.glu.console.controllers
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
+import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
@@ -268,7 +269,64 @@ class AgentsController extends ControllerBase
    */
   def ps = {
     handleNoAgent {
-      return [ps: agentsService.ps(fabric: request.fabric, id: params.id)]
+      def agentProcesses = agentsService.ps(fabric: request.fabric, id: params.id)
+
+      def filter = "agent='${params.id}'".toString()
+      SystemModel model = agentsService.getCurrentSystemModel(request.fabric)
+      model = model.filterBy(filter)
+      def scriptProcesses = [:]
+      model.each { SystemEntry entry ->
+        def pidMap = entry.metadata?.scriptState?.script?.pids
+        if(pidMap instanceof Map)
+        {
+          GluGroovyCollectionUtils.collectKey(pidMap, scriptProcesses) { pid, values ->
+            values = [*:values]
+            values.mountPoint = entry.mountPoint
+            values
+          }
+        }
+
+        def mainProcess = entry.metadata?.scriptState?.script?.pid?.toString()
+        if(mainProcess && !scriptProcesses.containsKey(mainProcess))
+        {
+          scriptProcesses[mainProcess] = [
+            mountPoint: entry.mountPoint
+          ]
+        }
+      }
+
+      def processes = GluGroovyCollectionUtils.collectKey(agentProcesses, [:]) { pid, process ->
+        def scriptProcess = scriptProcesses[pid]
+        if(process.exe?.Name)
+        {
+          def res = [*:process]
+
+          res.command = scriptProcess?.command ?: process.exe.Name.split('/')[-1]
+          res.cpu = process.cpu?.Percent ?: scriptProcess?.cpu
+          res.mountPoint = scriptProcess?.mountPoint
+
+          res."org.linkedin.app.name" = scriptProcess?."org.linkedin.app.name"
+          if(!res."org.linkedin.app.name")
+          {
+            def applicationArgs = process.args?.find { it.startsWith('-Dorg.linkedin.app.name=') }
+            if(applicationArgs)
+              res."org.linkedin.app.name" = applicationArgs - "-Dorg.linkedin.app.name="
+          }
+
+          return res
+        }
+      }
+
+      processes = processes.findAll {k, v -> v}
+
+      scriptProcesses.each { pid, process ->
+        if(!processes[pid])
+        {
+          processes[pid] = process
+        }
+      }
+
+      return [ps: processes]
     }
   }
 

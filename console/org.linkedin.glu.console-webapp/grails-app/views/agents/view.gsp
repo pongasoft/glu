@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011-2013 Yan Pujante
+  - Portions Copyright (c) 2011-2014 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -59,6 +59,7 @@
     </h3>
     <ul class="summary">
       <cl:mountPointLogs agent="${model.agent.agentName}" mountPoint="${mountPoint}"/>
+      <cl:mountPointProcesses agent="${model.agent.agentName}" mountPoint="${mountPoint}"/>
       <li><a href="#" class="btn" onclick="toggleShowHide('#mountPoint-details-${idx}');return false;">View Details</a>
       <g:set var="actions" value="${model.actions[key]}"/>
 

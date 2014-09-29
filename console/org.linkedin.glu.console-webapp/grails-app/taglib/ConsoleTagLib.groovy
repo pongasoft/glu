@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011-2013 Yan Pujante
+ * Portions Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,6 +14,9 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
+
+
+import org.linkedin.glu.groovy.utils.collections.GluGroovyCollectionUtils
 
 import java.text.SimpleDateFormat
 import org.linkedin.glu.provisioner.plan.api.IStep
@@ -1230,6 +1233,40 @@ public class ConsoleTagLib
            return null
         }.findAll { it }.join(' | ')
 
+        out << "</li>"
+      }
+    }
+  }
+
+  /**
+   * Render the processes section for a given mountpoint
+   */
+  def mountPointProcesses = { args ->
+    def pidMap = args.mountPoint.data?.scriptState?.script?.pids
+    def agent = args.agent
+    if(pidMap instanceof Map)
+    {
+      pidMap = GluGroovyCollectionUtils.collectKey(pidMap, [:]) { pid, process ->
+        process."org.linkedin.app.name" ?: process.command ?: String.valueOf(pid)
+      }
+
+      def mainProcess = args.mountPoint.data?.scriptState?.script?.pid?.toString()
+      if(mainProcess && !pidMap.containsKey(mainProcess))
+      {
+        pidMap[mainProcess] = "main"
+      }
+
+      if(pidMap)
+      {
+        out << "<li>Processes: "
+        out << pidMap.keySet().collect { it.toInteger() }.sort().collect { pid ->
+          cl.link(controller: 'agents',
+                  action: 'ps',
+                  id: agent,
+                  params: [pid: pid]) {
+            out << pidMap[pid.toString()].encodeAsHTML()
+          }
+        }.join (' | ')
         out << "</li>"
       }
     }

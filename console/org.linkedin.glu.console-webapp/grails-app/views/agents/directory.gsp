@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011-2013 Yan Pujante
+  - Portions Copyright (c) 2011-2014 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -69,7 +69,7 @@
         |</g:if>
         <cl:link title="Refresh" action="fileContent" id="${params.id}" params="[location: directory.toURI().rawPath]"><i class="icon-refresh"> </i></cl:link>
       </td>
-      <td><span id="filename-only">${directory.name.encodeAsHTML()}</span><span id="fullpath" class="hidden"><cl:linkFilePath file="${directory}" agent="${params.id}"/></span><div class="file-actions"><a href="#" id="toggle-fullpath-icon" title="Show/Hide full path" onclick="toggleFullPath();"><i class="icon-zoom-in"> </i></a></div></td>
+      <td><span id="filename-only">${directory.name.encodeAsHTML()}</span><span id="fullpath" class="hidden"><cl:linkFilePath file="${directory}" agent="${params.id}"/></span><div class="file-actions"><a href="#" title="Show/Hide full path" onclick="toggleFullPath();"><i id="toggle-fullpath-icon" class="icon-zoom-in"> </i></a></div></td>
       <td><cl:formatDate time="${dir['.']?.lastModified}"/></td>
     </tr>
     </tbody>
