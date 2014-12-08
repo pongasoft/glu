@@ -16,17 +16,25 @@ Release Notes (Latest)
 
 .. _glu-5.5.2:
 
-5.5.2 (2014/09/08)
+5.5.3 (2014/12/08)
 ------------------
 
 .. sidebar:: Download
 
-  .. image:: https://api.bintray.com/packages/pongasoft/binaries/glu/images/download.png?version=5.5.2
+  .. image:: https://api.bintray.com/packages/pongasoft/binaries/glu/images/download.png?version=5.5.3
      :alt: Download the latest version of glu
      :class: sidebar-logo
-     :target: https://bintray.com/pongasoft/glu/releases/5.5.2
+     :target: https://bintray.com/pongasoft/glu/releases/5.5.3
 
   Download glu latest release from Bintray.
+
+This release is a minor release which includes a couple of bug fixes. The console has been enhanced to handle pids from glu scripts: :ref:`check the section <console-script-pids>` for details.
+
+* Fixed `glu-274 <https://github.com/pongasoft/glu/issues/274>`_: `Support pid/ps for long clis`
+* Fixed `glu-276 <https://github.com/pongasoft/glu/issues/276>`_: `Exception in the console after renaming a fabric`
+
+5.5.2 (2014/09/08)
+------------------
 
 This release is a minor release which includes some improvements to the REST api (abort a plan, list and set static model) as well as a couple of bug fixes.
 
