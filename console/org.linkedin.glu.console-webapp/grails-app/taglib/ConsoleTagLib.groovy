@@ -235,7 +235,7 @@ public class ConsoleTagLib
 
   /**
    * Format an computeDelta value
-   * @param args.colunm a {@link CustomDeltaColumnDefinition} column definition
+   * @param args.column a {@link CustomDeltaColumnDefinition} column definition
    * @param args.values all the values for the row (a map)
    */
   def formatDeltaValue = { args ->
