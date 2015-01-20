@@ -85,7 +85,7 @@ Capabilities
 As described in the section :ref:`agent-capabitites`, a glu script can use all the capabilities provided by the agent.
 
 .. tip:: 
-   Implicitely (at runtime), all glu scripts implement the `GluScript <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-impl/src/main/groovy/org/linkedin/glu/agent/impl/GluScript.groovy>`_ interface.
+   Implicitely (at runtime), all glu scripts implement the `GluScript <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-api/src/main/groovy/org/linkedin/glu/agent/api/GluScript.groovy>`_ interface.
 
 Table of all the properties usable from a ``GluScript``:
 
