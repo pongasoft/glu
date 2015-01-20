@@ -616,6 +616,8 @@ class AgentMain implements LifecycleListener, Configurable
 
       params.add('defaultThreads',
                  Config.getOptionalString(_config, "${prefix}.agent.rest.server.defaultThreads", '3'))
+
+      params.add('disabledProtocols', 'SSLv2Hello SSLv3')
       
       def server = restServerFactory.createRestServer(true, address, port)
       server.setContext(serverContext)
