@@ -133,6 +133,7 @@ stop()
   if [ $(pid_status) -ne 0 ]
   then
     status
+    rm -f $PID_FILE
     exit 0
   fi
 
@@ -140,6 +141,7 @@ stop()
   kill $OPT_FORCEKILL `cat $PID_FILE`
 
   echo "Stopping $APP_NAME - PID [`cat $PID_FILE`]"
+  rm -f $PID_FILE
 }
 
 ###############################################################################
@@ -202,14 +204,19 @@ get_pid()
     PID=`cat $PID_FILE`
     PS_STAT=`ps -p $PID -o'user,pid=' | tail -1 | awk '{print $2}'`
 
-    case "$PS_STAT" in
-      $PID  ) echo $PID
-              ;;
-      *     ) echo 0
-              ;;
-    esac
+    if [[ "$PS_STAT" -eq "$PID" ]]; then
+      CMD=$(ps -p $PID -o 'comm=')
+      if [[ "$CMD" == "$(basename "$JAVA_CMD")" ]]; then
+        echo $PID
+      else
+        echo 0
+      fi
+    else
+      echo 0
+    fi
+
   fi
-  
+
   return 0
 }
 
