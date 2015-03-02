@@ -23,7 +23,14 @@ class Invocation<T> extends FutureExecutionImpl<T>
 {
   def source
   String action
-  def actionArgs
+  Object[] actionArgs
+
+  void setActionArgs(args)
+  {
+    if(args != null && !(args instanceof Object[]))
+      args = [args] as Object[]
+    actionArgs = args
+  }
 
   protected T execute() throws Exception
   {
@@ -37,7 +44,7 @@ class Invocation<T> extends FutureExecutionImpl<T>
     else
     {
       def closure = invocable."${action}"
-      closure(actionArgs)
+      closure(*actionArgs)
     }
   }
 

@@ -502,7 +502,7 @@ def class ScriptNode implements Shutdownable, Startable, GluScript
     if(_scriptState.stateMachine.availableActions.contains(name))
       executeAction(action: name, actionArgs: args).get()
     else
-      _scriptExecution.executeCall(name, *args, null).get()
+      _scriptExecution.executeCall(name, args, null).get()
   }
 
   public String toString()

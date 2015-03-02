@@ -19,30 +19,25 @@
 
 package test.agent.impl
 
-import org.linkedin.glu.agent.impl.capabilities.ShellImpl
-import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.api.DuplicateMountPointException
+import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.api.NoSuchMountPointException
+import org.linkedin.glu.agent.api.ScriptException
+import org.linkedin.glu.agent.api.ScriptIllegalStateException
 import org.linkedin.glu.agent.impl.capabilities.MOPImpl
+import org.linkedin.glu.agent.impl.capabilities.ShellImpl
 import org.linkedin.glu.agent.impl.script.AgentContext
-import org.linkedin.glu.agent.impl.script.AgentContextImpl
+import org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory
 import org.linkedin.glu.agent.impl.script.NoSharedClassLoaderScriptLoader
 import org.linkedin.glu.agent.impl.script.ScriptManagerImpl
-import org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory
 import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
 import org.linkedin.groovy.util.io.fs.FileSystem
-import org.linkedin.glu.agent.api.ScriptIllegalStateException
-import org.linkedin.util.io.ram.RAMDirectory
-import org.linkedin.util.io.resource.internal.RAMResourceProvider
+import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.util.clock.SystemClock
-import org.linkedin.groovy.util.io.fs.FileSystemImpl
-import org.codehaus.groovy.control.CompilerConfiguration
-import org.codehaus.groovy.control.CompilationUnit
-import org.linkedin.groovy.util.ant.AntUtils
+import org.linkedin.util.io.ram.RAMDirectory
 import org.linkedin.util.io.resource.Resource
-import org.linkedin.groovy.util.io.GroovyIOUtils
-import org.linkedin.glu.agent.api.ScriptException
+import org.linkedin.util.io.resource.internal.RAMResourceProvider
 
 /**
  * Test for ScriptManager
@@ -289,6 +284,15 @@ def class TestScriptManager extends GroovyTestCase
     assertEquals("closure:/a/b/c: v1/v2", node.closure(p1: 'v1', p2: 'v2'))
 
     assertEquals("closure:/parent: v1/v2", node.configure(p1: 'v1', p2: 'v2'))
+
+    // we make sure that calls properly make it from child to parent
+    assertEquals("from noParam with /parent", parentNode.noParam())
+    assertEquals("from oneParam with 3 and /parent", parentNode.oneParam(3))
+    assertEquals("from twoParam with 3 and 4 and /parent", parentNode.twoParam(3, 4))
+
+    assertEquals("from noParam with /parent => from noParam with /a/b/c", node.noParam())
+    assertEquals("from oneParam with 3 and /parent => from oneParam with 3 and /a/b/c", node.oneParam(3))
+    assertEquals("from twoParam with 3 and 4 and /parent => from twoParam with 3 and 4 and /a/b/c", node.twoParam(3, 4))
 
     node.unconfigure()
 
@@ -634,6 +638,30 @@ class SubScript extends BaseScript
 
     def closure = { args ->
       return "closure:${mountPoint}: ${args.p1}/${args.p2}".toString()
+    }
+
+    def noParam()
+    {
+      if(parent.mountPoint != MountPoint.ROOT)
+        parent.noParam() + " => from noParam with ${rootPath}"
+      else
+        "from noParam with ${rootPath}"
+    }
+
+    def oneParam(int p1)
+    {
+      if(parent.mountPoint != MountPoint.ROOT)
+        parent.oneParam(p1) + " => from oneParam with ${p1} and ${rootPath}"
+      else
+        return "from oneParam with ${p1} and ${rootPath}"
+    }
+
+    def twoParam(int p1, int p2)
+    {
+      if(parent.mountPoint != MountPoint.ROOT)
+        parent.twoParam(p1, p2) + " => from twoParam with ${p1} and ${p2} and ${rootPath}"
+      else
+        return "from twoParam with ${p1} and ${p2} and ${rootPath}"
     }
   }
 
