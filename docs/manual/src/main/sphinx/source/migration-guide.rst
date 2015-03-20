@@ -55,6 +55,13 @@ General tips and guidelines
 
 * During the agent upgrade process, the agent is stopped and restarted. During the restart phase, the agent recreates the state as it was prior to being shutdown. In order to do this, some older versions of glu (prior to 4.6.2) may need to fetch the glu scripts they were running from their original location, so you need to make sure that this location is accessible.
 
+.. _migration-guide-5.5.4-5.5.5:
+
+5.5.4 -> 5.5.5
+--------------
+
+No specific migration steps: the agent needs to be upgraded following the usual agent upgrade path and the console needs to be upgraded as well.
+
 .. _migration-guide-5.5.3-5.5.4:
 
 5.5.3 -> 5.5.4

@@ -14,19 +14,34 @@ Release Notes (Latest)
 
      * Make sure to check the :doc:`Migration Guide <migration-guide>` for tips on how to upgrade glu.
 
-.. _glu-5.5.4:
+.. _glu-5.5.5:
 
-5.5.4 (2015/01/20)
+5.5.5 (2015/03/20)
 ------------------
 
 .. sidebar:: Download
 
-  .. image:: https://api.bintray.com/packages/pongasoft/binaries/glu/images/download.png?version=5.5.4
+  .. image:: https://api.bintray.com/packages/pongasoft/binaries/glu/images/download.png?version=5.5.5
      :alt: Download the latest version of glu
      :class: sidebar-logo
-     :target: https://bintray.com/pongasoft/glu/releases/5.5.4
+     :target: https://bintray.com/pongasoft/glu/releases/5.5.5
 
   Download glu latest release from Bintray.
+
+This release includes a couple of bug fixes.
+
+* Issue ``glu-279`` relates to the agent and is required only if you use parent/child relationships in your script (and you have been experiencing this issue).
+* Issue ``glu-280`` relates to the console and is only required if you use the console in HTTPS mode behind a proxy (and have been experiencing this issue).
+
+List of tickets:
+
+* Fixed `glu-279 <https://github.com/pongasoft/glu/issues/279>`_: `call delegation not working in glu script`
+* Fixed `glu-280 <https://github.com/pongasoft/glu/issues/280>`_: `/console/js/bootstrap.min.js redirects bypasses serverURL`
+
+.. _glu-5.5.4:
+
+5.5.4 (2015/01/20)
+------------------
 
 This release disables the sslv3 protocol entirely in the agent to fix the issue related to `POODLE <http://en.wikipedia.org/wiki/POODLE>`_. Note that there is no other change in this release, so if you do not worry about the POODLE issue because for example your agents are not accessible outside your own network, or you are not even running the agents in secure mode (http vs https), then you can skip this release.
 
