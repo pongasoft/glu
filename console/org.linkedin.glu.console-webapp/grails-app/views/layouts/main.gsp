@@ -57,7 +57,7 @@
   <g:layoutHead/>
   <cl:renderCustomCss/>
   <r:layoutResources/>
-  <g:javascript src="bootstrap.min.js" />
+  <script type="text/javascript" src="${resource(dir:'js',file:'bootstrap.min.js')}"></script>
   <script type="text/javascript" src="${resource(dir:'js',file:'console_jquery.js')}"></script>
 </head>
 <body onload="${pageProperty(name:'body.onload')}">
