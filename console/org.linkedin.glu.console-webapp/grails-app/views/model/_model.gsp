@@ -18,7 +18,7 @@
 <%@ page import="org.linkedin.util.lang.MemorySize; org.linkedin.glu.grails.utils.ConsoleConfig" %>
 <g:set var="columns" value="${columns == null ? ConsoleConfig.getInstance().defaults.model : columns}"/>
 <cl:form action="setAsCurrent" method="post">
-<table class="table table-bordered table-condensed">
+<table class="table table-bordered noFullWidth">
   <thead>
   <tr>
     <th>Id</th>

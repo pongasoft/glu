@@ -59,6 +59,7 @@ function showErrorsOnly()
 {
   var show = document.getElementById('showErrorsOnly').checked;
   toggleClass('#deployment-details .COMPLETED', show, 'hidden');
+  toggleClass('#filter-showErrorsOnly', show, 'badge-success');
 }
 function autoRefresh()
 {
@@ -66,10 +67,12 @@ function autoRefresh()
   {
     setTimeout('refresh()', 1000);
     show('#autoRefreshSpinner');
+    toggleClass('#filter-autoRefresh', true, 'badge-success');
   }
   else
   {
     hide('#autoRefreshSpinner');
+    toggleClass('#filter-autoRefresh', false, 'badge-success');
   }
 }
 function onRefreshComplete()
@@ -101,11 +104,11 @@ function refresh()
   <li><cl:link action="archived">Archived</cl:link></li>
 </ul>
 
-<h4>
-  Show Errors Only: <cl:checkBoxInitFromParams name="showErrorsOnly" id="showErrorsOnly" onclick="showErrorsOnly();"/> |
-  Auto Refresh: <cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
-  <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/>
-</h4>
+<ul class="column-filters">
+  <li><label class="badge" id="filter-showErrorsOnly"><cl:checkBoxInitFromParams name="showErrorsOnly" id="showErrorsOnly" onclick="showErrorsOnly();"/> Show Errors Only</label></li>
+  <li><label class="badge" id="filter-autoRefresh"><cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/> Auto Refresh
+  <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/></label></li>
+</ul>
 
 <div id="asyncDetails">
   <g:render template="deploymentDetails" model="[deployment: deployment]"/>

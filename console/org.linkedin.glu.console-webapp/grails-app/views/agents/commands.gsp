@@ -44,11 +44,13 @@ function autoRefresh()
   {
     setTimeout('refreshHistory()', ${params.refreshRate ?: '2000'});
     show('#autoRefreshSpinner');
+    toggleClass('#filter-autoRefresh', true, 'badge-success');
     showHide();
   }
   else
   {
     hide('#autoRefreshSpinner');
+    toggleClass('#filter-autoRefresh', false, 'badge-success');
   }
 }
 function refreshHistory()
@@ -70,6 +72,7 @@ function showHide()
 {
   <g:each in="${filters.keySet()}" var="filter">
     toggleClass('#history .${filter}', !document.getElementById('${filter}').checked, 'hidden');
+    toggleClass('#filter-${filter}', document.getElementById('${filter}').checked, 'badge-success');
   </g:each>
 }
 </g:javascript>
@@ -105,12 +108,13 @@ function showHide()
   </div>
 </g:if>
 
-<h4>Auto Refresh: <g:if test="${isFirstPage}"><cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
-    <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/></g:if><g:else><g:checkBox name="autoRefresh" id="autoRefresh" disabled="true" checked="false"/></g:else>
-<g:each in="${filters}" var="filter">
-  |  ${filter.value}: <cl:checkBoxInitFromParams name="${filter.key}" id="${filter.key}" onclick="showHide();"/>
-</g:each>
-</h4>
+<ul class="column-filters">
+  <li><label class="badge" id="filter-autoRefresh"><g:if test="${isFirstPage}"><cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/> Auto Refresh
+      <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/></g:if><g:else><g:checkBox name="autoRefresh" id="autoRefresh" disabled="true" checked="false"/> Auto Refresh</g:else></label></li>
+  <g:each in="${filters}" var="filter">
+    <li><label id="filter-${filter.key}" class="badge"><cl:checkBoxInitFromParams name="${filter.key}" id="${filter.key}" onclick="showHide();"/> ${filter.value}</label></li>
+  </g:each>
+</ul>
 
 <div id="asyncDetailsHistory"></div>
 <div id="asyncErrorHistory"></div>

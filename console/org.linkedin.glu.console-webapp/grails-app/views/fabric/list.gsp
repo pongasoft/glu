@@ -29,7 +29,7 @@
 </ul>
 <div class="body">
   <div class="list">
-    <table class="table table-bordered table-condensed">
+    <table class="table table-bordered noFullWidth">
       <thead>
       <tr>
 

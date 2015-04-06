@@ -20,10 +20,8 @@
     <tr>
       <th>Model</th>
       <td><cl:renderSystemId system="${request.system}"/></td>
-      <th>Summary</th>
-      <td class="summary-checkbox"><g:checkBox name="session.summary" onclick="parent.location='${cl.createLink(controller: 'dashboard', action: 'redelta', params: ['session.summary': !request.userSession.customDeltaDefinition.summary])}'" value="${request.userSession.customDeltaDefinition.summary}"/></td>
-      <th>Errors Only</th>
-      <td class="errorsOnly-checkbox"><g:checkBox name="session.errorsOnly" onclick="parent.location='${cl.createLink(controller: 'dashboard', action: 'redelta', params: ['session.errorsOnly': !request.userSession.customDeltaDefinition.errorsOnly])}'" value="${request.userSession.customDeltaDefinition.errorsOnly}"/></td>
+      <th class="summary-checkbox"><label><g:checkBox name="session.summary" onclick="parent.location='${cl.createLink(controller: 'dashboard', action: 'redelta', params: ['session.summary': !request.userSession.customDeltaDefinition.summary])}'" value="${request.userSession.customDeltaDefinition.summary}"/> Summary</label></th>
+      <th class="errorsOnly-checkbox"><label><g:checkBox name="session.errorsOnly" onclick="parent.location='${cl.createLink(controller: 'dashboard', action: 'redelta', params: ['session.errorsOnly': !request.userSession.customDeltaDefinition.errorsOnly])}'" value="${request.userSession.customDeltaDefinition.errorsOnly}"/> Errors Only</label></th>
       <th>Filter <g:if test="${request.system.filters}">[<cl:link controller="dashboard" action="redelta" params="['session.systemFilter': '-']"><i class="icon-remove"> </i></cl:link>]</g:if></th>
       <td class="systemFilter"><div class="systemFilter"><cl:renderSystemFilter filter="${request.system.filters}"/></div></td>
     </tr>

@@ -277,8 +277,8 @@ li.filter-LogicSystemFilterChain {
   font-weight: bold;
 }
 
-.summary-checkbox, .errorsOnly-checkbox {
-  text-align: center;
+input[type="checkbox"] {
+  margin: 0;
 }
 
 .shell {
@@ -328,4 +328,22 @@ li.filter-LogicSystemFilterChain {
 
 .file-actions {
   float: right;
+}
+
+ul.column-filters {
+  list-style: none;
+  margin: 0;
+}
+
+ul.column-filters li {
+  display: inline;
+}
+
+ul.column-filters label.badge {
+  font-size: 120%;
+  line-height: inherit;
+}
+
+ul.column-filters label input[type="checkbox"] {
+  display: none;
 }

@@ -25,7 +25,7 @@
   <li class="active"><a href="#">List</a></li>
   <cl:whenFeatureEnabled feature="commands"><li><cl:link controller="commands" action="list">All Commands</cl:link></li></cl:whenFeatureEnabled>
 </ul>
-<table class="table table-bordered xtight-table">
+<table class="table table-bordered noFullWidth">
   <thead>
   <tr>
     <th>Agent</th>

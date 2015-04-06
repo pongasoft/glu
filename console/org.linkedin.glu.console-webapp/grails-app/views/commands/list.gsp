@@ -18,7 +18,7 @@
 
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html>
-<g:set var="filters" value="[agentFilter: 'Agent', streamsFilter: 'Streams', exitValueFilter: 'Exit', usernameFilter: 'Username', startTimeFilter: 'Start Time', endTimeFilter: 'End Time', durationFilter: 'Duration', actionsFilter: 'Actions']"></g:set>
+<g:set var="filters" value="[agentFilter: 'Agent', streamsFilter: 'Streams', exitValueFilter: 'Exit', usernameFilter: 'Username', startTimeFilter: 'Start Time', completionTimeFilter: 'End Time', durationFilter: 'Duration', actionsFilter: 'Actions']"></g:set>
 <head>
   <title>Commands - Agent [${params.id}]</title>
   <meta name="layout" content="main"/>
@@ -49,11 +49,13 @@ function autoRefresh()
   {
     setTimeout('refreshHistory()', ${params.refreshRate ?: '2000'});
     show('#autoRefreshSpinner');
+    toggleClass('#filter-autoRefresh', true, 'badge-success');
     showHide();
   }
   else
   {
     hide('#autoRefreshSpinner');
+    toggleClass('#filter-autoRefresh', false, 'badge-success');
   }
 }
 function refreshHistory()
@@ -68,6 +70,7 @@ function showHide()
 {
   <g:each in="${filters.keySet()}" var="filter">
     toggleClass('#history .${filter}', !document.getElementById('${filter}').checked, 'hidden');
+    toggleClass('#filter-${filter}', document.getElementById('${filter}').checked, 'badge-success');
   </g:each>
 }
 </g:javascript>
@@ -82,12 +85,14 @@ function showHide()
   <div><g:include controller="commands" action="renderCommand" id="${params.commandId}"/></div>
 </g:if>
 
-<h4>Auto Refresh: <g:if test="${isFirstPage}"><cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
-    <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/></g:if><g:else><g:checkBox name="autoRefresh" id="autoRefresh" disabled="true" checked="false"/></g:else>
-<g:each in="${filters}" var="filter">
-  |  ${filter.value}: <cl:checkBoxInitFromParams name="${filter.key}" id="${filter.key}" onclick="showHide();"/>
-</g:each>
-</h4>
+<ul class="column-filters">
+  <li><label class="badge" id="filter-autoRefresh"><g:if test="${isFirstPage}"><cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/> Auto Refresh
+      <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/></g:if><g:else><g:checkBox name="autoRefresh" id="autoRefresh" disabled="true" checked="false"/> Auto Refresh</g:else></label></li>
+  <g:each in="${filters}" var="filter">
+    <li><label id="filter-${filter.key}" class="badge"><cl:checkBoxInitFromParams name="${filter.key}" id="${filter.key}" onclick="showHide();"/> ${filter.value}</label></li>
+  </g:each>
+</ul>
+
 <div id="asyncDetailsHistory"></div>
 <div id="asyncErrorHistory"></div>
 
