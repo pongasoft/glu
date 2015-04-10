@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,6 +23,7 @@ import org.linkedin.glu.orchestration.engine.delta.SystemEntryDelta;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemEntryDelta;
 import org.linkedin.glu.orchestration.engine.delta.impl.InternalSystemModelDelta;
 import org.linkedin.glu.orchestration.engine.planner.TransitionPlan;
+import org.linkedin.glu.provisioner.plan.api.IPlanBuilder;
 import org.linkedin.glu.provisioner.plan.api.IStep;
 import org.linkedin.glu.provisioner.plan.api.Plan;
 import org.linkedin.groovy.util.state.StateMachine;
@@ -160,9 +161,9 @@ public class SingleDeltaTransitionPlan implements TransitionPlan<ActionDescripto
     return firstTransitions;
   }
 
-  public Plan<ActionDescriptor> buildPlan(IStep.Type type)
+  public Plan<ActionDescriptor> buildPlan(IStep.Type type, IPlanBuilder.Config config)
   {
-    return getTransitionPlan().buildPlan(type);
+    return getTransitionPlan().buildPlan(type, config);
   }
 
   /**

@@ -24,13 +24,21 @@
 <body>
 <div class="body">
   <ul class="nav nav-tabs">
-    <li><g:link action="list">List</g:link></li>
+    <li><cl:link action="list">List</cl:link></li>
     <li class="active"><a href="#">Load</a></li>
   </ul>
 
+  <g:if test="${syntaxError}">
+    <div id="syntaxError" class="syntax-error alert alert-error fade in" >
+      <h4>${syntaxError.message}</h4>
+<pre>
+${syntaxError.excerpt}
+</pre>
+    </div>
+  </g:if>
   <div class="row">
     <div class="span12">
-      <g:form action="upload" method="post" enctype="multipart/form-data">
+      <cl:form action="upload" method="post" enctype="multipart/form-data">
         <fieldset>
           <legend>From JSON (Upload)</legend>
           <div class="clearfix">
@@ -42,12 +50,12 @@
             <g:actionSubmit class="btn btn-primary" action="load" value="Upload"/>
           </div>
         </fieldset>
-      </g:form>
+      </cl:form>
     </div>
   </div>
   <div class="row">
     <div class="span12">
-      <g:form action="load">
+      <cl:form action="load">
         <fieldset>
           <legend>From JSON (URI)</legend>
           <div class="clearfix">
@@ -57,7 +65,7 @@
             <g:actionSubmit class="btn btn-primary" action="load" value="Load"/>
           </div>
         </fieldset>
-      </g:form>
+      </cl:form>
     </div>
   </div>
 </div>

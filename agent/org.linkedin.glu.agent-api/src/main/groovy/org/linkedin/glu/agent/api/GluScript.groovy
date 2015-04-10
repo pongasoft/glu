@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +16,7 @@
 
 package org.linkedin.glu.agent.api
 
+import org.linkedin.zookeeper.client.IZKClient
 import org.slf4j.Logger
 
 /**
@@ -88,4 +89,14 @@ public interface GluScript
    * @return the children of this glu script
    */
   Collection<GluScript> getChildren()
+
+  /**
+   * Note that if the agent is configured to not use ZooKeeper, then this call will return
+   * <code>null</code>. Note that you should make sure to not interfere with the area
+   * reserved to the agent (which is by default /org/glu but can be changed
+   * (see <code>GluMetaModel</code>)).
+   *
+   * @return the ZooKeeper client the agent (in which this glu script is running) is using.
+   */
+  IZKClient getAgentZooKeeper()
 }

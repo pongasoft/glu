@@ -21,6 +21,6 @@
 </head>
 <body>
 <h1>Help</h1>
-<h2><g:link action="forum">Forum</g:link></h2>
+<h2><cl:link action="forum">Forum</cl:link></h2>
 </body>
 </html>

@@ -85,7 +85,7 @@ function refresh()
 {
   if(shouldRefresh())
   {
-    ${g.remoteFunction(controller: 'plan', action: 'renderDeploymentDetails', id: deployment.id, update:[success: 'asyncDetails'], onComplete: 'onRefreshComplete();')}
+    ${cl.remoteFunction(controller: 'plan', action: 'renderDeploymentDetails', id: deployment.id, update:[success: 'asyncDetails'], onComplete: 'onRefreshComplete();')}
   }
   else
   {
@@ -96,9 +96,9 @@ function refresh()
 </head>
 <body onload="showErrorsOnly();autoRefresh();">
 <ul class="nav nav-tabs">
-  <li><g:link action="deployments">Recent</g:link></li>
+  <li><cl:link action="deployments">Recent</cl:link></li>
   <li class="active"><a href="#">Recent [${deployment.description.encodeAsHTML()}]</a></li>
-  <li><g:link action="archived">Archived</g:link></li>
+  <li><cl:link action="archived">Archived</cl:link></li>
 </ul>
 
 <h4>

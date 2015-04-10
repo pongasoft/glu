@@ -57,9 +57,6 @@ class BootStrap {
 
     def config = grailsApplication.config
 
-    if(!consoleConfig.defaults)
-      throw new IllegalStateException("could not find console config defaults. Did you properly set console.defaults property ?")
-
     servletContext.consoleConfig = consoleConfig
 
     // setup ivy url handler

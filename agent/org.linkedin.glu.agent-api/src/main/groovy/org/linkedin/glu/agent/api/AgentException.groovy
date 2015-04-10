@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -30,7 +31,7 @@ public class AgentException extends Exception
 
   public AgentException(String s)
   {
-    super(s);
+    super((String) s);
   }
 
   public AgentException(String s, Throwable throwable)
@@ -40,6 +41,6 @@ public class AgentException extends Exception
 
   public AgentException(Throwable throwable)
   {
-    super(throwable);
+    super((Throwable) throwable);
   }
 }

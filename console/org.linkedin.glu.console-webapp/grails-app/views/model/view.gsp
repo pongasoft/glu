@@ -37,13 +37,13 @@
 <body>
 <g:if test="${systemDetails != null}">
   <ul class="nav nav-tabs">
-    <li><g:link action="list">List</g:link></li>
-    <li><g:link action="choose">Load</g:link></li>
+    <li><cl:link action="list">List</cl:link></li>
+    <li><cl:link action="choose">Load</cl:link></li>
     <li class="active"><a href="#">View [<cl:renderSystemId id="${systemDetails.systemId}" name="${systemDetails.name}" renderLinkToSystem="${false}"/>]</a></li>
   </ul>
   <g:set var="editable" value="${!ConsoleConfig.getInstance().defaults.disableModelUpdate}"/>
   <g:render template="model" model="[systems: [systemDetails]]"/>
-  <g:form action="save" method="post">
+  <cl:form action="save" method="post">
     <g:if test="${editable}">
       <div class="actions">
         <input class="save btn btn-primary" type="submit" value="Save changes"/>
@@ -56,12 +56,12 @@
         <input class="save btn btn-primary" type="submit" value="Save changes"/>
       </div>
     </g:if>
-  </g:form>
+  </cl:form>
 </g:if>
 <g:else>
   <ul class="nav nav-tabs">
-    <li><g:link action="list">List</g:link></li>
-    <g:if test="${isReleaseUser}"><li><g:link action="choose">Load</g:link></li></g:if>
+    <li><cl:link action="list">List</cl:link></li>
+    <g:if test="${isReleaseUser}"><li><cl:link action="choose">Load</cl:link></li></g:if>
     <li class="active"><a href="#">View [${params.id}]</a></li>
   </ul>
   No Such System ${params.id}

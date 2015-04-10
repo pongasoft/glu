@@ -25,7 +25,7 @@
 <body>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#">Fabric List</a></li>
-  <li><g:link action="create">New</g:link></li>
+  <li><cl:link action="create">New</cl:link></li>
 </ul>
 <div class="body">
   <div class="list">
@@ -49,7 +49,7 @@
       <g:each in="${fabricInstanceList}" status="i" var="fabricInstance">
         <tr class="${(i % 2) == 0 ? 'odd' : 'even'}">
 
-          <td><g:link action="show" id="${fabricInstance.id}">${fieldValue(bean: fabricInstance, field: 'id')}</g:link></td>
+          <td><cl:link action="show" id="${fabricInstance.id}">${fieldValue(bean: fabricInstance, field: 'id')}</cl:link></td>
 
           <td>${fieldValue(bean: fabricInstance, field: 'name')}</td>
 

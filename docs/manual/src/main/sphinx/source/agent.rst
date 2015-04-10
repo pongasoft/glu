@@ -269,7 +269,7 @@ Shortcut to ``stateManager.state``::
 """""""""
 An instance of ``org.linkedin.glu.agent.api.Shell`` (`Shell api <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-api/src/main/groovy/org/linkedin/glu/agent/api/Shell.groovy>`_) which gives access to a lot of shell like capabilities
 
-* file system (see ``org.linkedin.groovy.util.io.fs.FileSystem`` (`FileSystem api <https://github.com/pongasoft/linkedin-utils/blob/master/org.linkedin.util-groovy/src/main/groovy/org/linkedin/groovy/util/io/fs/FileSystem.groovy>`_) like ``ls``, ``cp``, ``mv``, ``rm``, ``tail``...
+* file system (see ``org.linkedin.groovy.util.io.fs.FileSystem`` (`FileSystem api <https://github.com/pongasoft/utils-misc/blob/master/org.linkedin.util-groovy/src/main/groovy/org/linkedin/groovy/util/io/fs/FileSystem.groovy>`_) like ``ls``, ``cp``, ``mv``, ``rm``, ``tail``...
 * process (``fork``, ``exec``...)
 * ``fetch/untar`` to download and untar/unzip binaries (based on any URI)::
 
@@ -330,7 +330,7 @@ An instance of ``org.linkedin.glu.agent.api.Timers`` (`Timers api <https://githu
     }
 
 .. tip:: 
-   The frequency for a timer is of type ``org.linkedin.util.clock.Timespan`` (`Timespan api <https://github.com/pongasoft/linkedin-utils/blob/master/org.linkedin.util-core/src/main/java/org/linkedin/util/clock/Timespan.java>`_) and is expressed as a string::
+   The frequency for a timer is of type ``org.linkedin.util.clock.Timespan`` (`Timespan api <https://github.com/pongasoft/utils-misc/blob/master/org.linkedin.util-core/src/main/java/org/linkedin/util/clock/Timespan.java>`_) and is expressed as a string::
 
           15s // 15 seconds
           1m10s // 1 minute 10 seconds
@@ -383,6 +383,11 @@ In order for a field to be declared *exportable* it must follow the following ru
 
 .. note::
    If you shutdown and restart the agent, the fields in your script will be restored to their last known value before shutdown if and only if the field was exportable, or in other words, if you declare your field ``transient`` its value won't be preserved accross restart!
+
+In addition, the ZooKeeper connection used by the agent is exported via the ``agentZooKeeper`` glu script property. This property is of type ``org.linkedin.zookeeper.client.IZKClient`` and lets you read and write whatever data you want in ZooKeeper.
+
+.. warning::
+   The agent will **not** cleanup any data stored using ``agentZooKeeper`` when the script is uninstalled! Make sure you do your own cleanup (usually in the ``uninstall`` phase).
 
 OS level functionalities
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -481,12 +486,22 @@ The agent uses the configuration mechanisms offered by the :ref:`meta model <met
 Configuration properties
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The following properties can be set in the meta model this way::
+The properties defined with an environment variable can be set in the meta model this way::
 
    agents << [
       ...,
       configTokens: [
-        JVM_SIZE: '-Xmx128m',
+        'JVM_SIZE': '-Xmx128m',
+        ... etc ...
+      ]
+   ],
+
+The properties defined with a java property (only) variable can be set in the meta model this way (simply remove ``glu.agent`` from the name of the property) (check the `template <https://github.com/pongasoft/glu/blob/master/packaging/org.linkedin.glu.packaging-setup/src/cmdline/resources/config-templates/agent-server/@agentMetaModel.version@/conf/agentConfig.properties.gtmpl>`_)::
+
+   agents << [
+      ...,
+      configTokens: [
+        'scripts.sharedClassLoader': true,
         ... etc ...
       ]
    ],
@@ -690,6 +705,9 @@ The following properties can be set in the meta model this way::
 |NA                  |NA                            |``glu.agent.commands.storageType``     |``filesystem`` (only supported value right now)                                            |type of storage for commands    |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 |NA                  |NA                            |``glu.agent.commands.filesystem.dir``  |``${glu.agent.dataDir}/commands``                                                          |root dir for commands storage   |
++--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
+|NA                  |NA                            |``glu.agent.scripts.sharedClassLoader``|``false``                                                                                  |use shared class loader for     |
+|                    |                              |                                       |                                                                                           |scripts                         |
 +--------------------+------------------------------+---------------------------------------+-------------------------------------------------------------------------------------------+--------------------------------+
 
 .. tip:: 

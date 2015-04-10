@@ -30,6 +30,15 @@ interface WriteOnlyStorage
   void storeState(MountPoint mountPoint, state)
   void clearState(MountPoint mountPoint)
   void clearAllStates()
+
+  /**
+   * Invalidates the state of the given mountPoint (as it has been detected to be "bad")
+   *
+   * @return the location of where the invalidated state has been moved to (or <code>null</code> if
+   *         it has been deleted from the storage entirely)
+   */
+  def invalidateState(MountPoint mountPoint)
+
   AgentProperties saveAgentProperties(AgentProperties agentProperties)
   AgentProperties updateAgentProperty(String name, String value)
 }

@@ -155,8 +155,9 @@ zooKeeperClusters << [
         "/${zk1PackageName}/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
         "/${zk1PackageName}/lib": DIRECTORY,
         "/${zk1PackageName}/lib/acme.jar": 'this is the jar',
+        "/${zk1PackageName}/data": DIRECTORY,
+        "/${zk1PackageName}/data/myid": '1',
         "/${zk1PackageName}/conf": DIRECTORY,
-        "/${zk1PackageName}/conf/myid": '1',
         "/${zk1PackageName}/conf/zoo.cfg": """# The number of milliseconds of each tick
 tickTime=2000
 # The number of ticks that the initial
@@ -182,8 +183,9 @@ server.2=h2:2888:3888
         "/${zk2PackageName}/bin/zookeeperctl.sh": ZOOKEEPERCTL_SH,
         "/${zk2PackageName}/lib": DIRECTORY,
         "/${zk2PackageName}/lib/acme.jar": 'this is the jar',
+        "/${zk2PackageName}/data": DIRECTORY,
+        "/${zk2PackageName}/data/myid": '2',
         "/${zk2PackageName}/conf": DIRECTORY,
-        "/${zk2PackageName}/conf/myid": '2',
         "/${zk2PackageName}/conf/zoo.cfg": """# The number of milliseconds of each tick
 tickTime=2000
 # The number of ticks that the initial
@@ -220,6 +222,8 @@ server.2=h2:2888:3888
                    zk2.location)
       assertEquals('h2', zk2.host)
       assertEquals(2181, zk2.port)
+
+      assertEquals("h1:2181,h2:2181", packager.metaModel.zooKeeperConnectionString)
     }
   }
 

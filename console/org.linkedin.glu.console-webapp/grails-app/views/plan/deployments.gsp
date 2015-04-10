@@ -61,7 +61,7 @@ function refresh()
 {
   if(shouldRefresh())
   {
-    ${g.remoteFunction(controller: 'plan', action: 'renderDeployments', update:[success: 'asyncDetails', failure: 'asyncError'], onComplete: 'autoRefresh();')}
+    ${cl.remoteFunction(controller: 'plan', action: 'renderDeployments', update:[success: 'asyncDetails', failure: 'asyncError'], onComplete: 'autoRefresh();')}
   }
   else
   {
@@ -79,7 +79,7 @@ function showHide()
 <body onload="autoRefresh();">
 <ul class="nav nav-tabs">
   <li class="active"><a href="#">Recent</a></li>
-  <li><g:link action="archived">Archived</g:link></li>
+  <li><cl:link action="archived">Archived</cl:link></li>
 </ul>
 <g:if test="${groupBy != null}">
   <h4>

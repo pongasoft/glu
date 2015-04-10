@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +16,10 @@
 
 package test.orchestration.engine.agents
 
+import org.apache.zookeeper.data.Stat
+import org.linkedin.glu.agent.api.MountPoint
+import org.linkedin.glu.agent.tracker.AgentsTracker
+import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.groovy.utils.plugins.PluginServiceImpl
 import org.linkedin.glu.orchestration.engine.agents.AgentsServiceImpl
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
@@ -23,6 +27,8 @@ import org.linkedin.glu.agent.tracker.AgentInfo
 import org.linkedin.glu.agent.api.Agent
 import org.linkedin.glu.orchestration.engine.tracker.TrackerService
 import org.linkedin.glu.agent.rest.client.AgentFactory
+import org.linkedin.util.clock.Clock
+import org.linkedin.util.clock.SettableClock
 import org.linkedin.zookeeper.tracker.TrackedNode
 import java.security.AccessControlException
 
@@ -32,6 +38,8 @@ public class TestAgentsService extends GroovyTestCase
 {
   PluginServiceImpl pluginService = new PluginServiceImpl()
   AgentsServiceImpl agentsService = new AgentsServiceImpl(pluginService: pluginService)
+
+  Clock clock = new SettableClock()
 
   /**
    * Test for plugin on streamFileContent
@@ -110,5 +118,71 @@ public class TestAgentsService extends GroovyTestCase
                                     newFileContent: newFileContent]) { fc ->
       assertEquals(newFileContent, fc)
     }
+  }
+
+  /**
+   * Make sure that if some invalid data makes it into ZooKeeper, it still behaves properly
+   */
+  public void testInvalidData()
+  {
+
+    def allInfos = [:]
+
+    def trackerService = [
+      getAllInfosWithAccuracy: { Fabric f -> allInfos[f] }
+    ] as TrackerService
+
+    agentsService.trackerService = trackerService
+
+    def fabric = new Fabric(name: 'f1')
+    def mp1 = MountPoint.create('/m1')
+    def mp2 = MountPoint.create('/m2')
+    def agentName = 'agent-1'
+    allInfos[fabric] = [
+      accuracy: AgentsTracker.AccuracyLevel.ACCURATE,
+      allInfos: [
+        (agentName): [
+          info: new AgentInfo(agentName: agentName,
+                              trackedNode: new TrackedNode("/agent", "{}", createStat(), 0)),
+          mountPoints: [(mp1):
+                          new MountPointInfo(agentName: agentName,
+                                             mountPoint: mp1,
+                                             trackedNode: new TrackedNode("/m1", "{}", createStat(), 0)),
+                        (mp2):
+                          new MountPointInfo(agentName: agentName,
+                                             mountPoint: mp2,
+                                             trackedNode: new TrackedNode("/m2", "garbage", createStat(), 0))
+          ]
+        ]
+      ]
+    ]
+
+    def model = agentsService.getCurrentSystemModel(fabric)
+
+
+    def entry = model.findEntry(agentName, mp2.path)
+    assertEquals("agent-1", entry.agent)
+    assertEquals("/m2", entry.mountPoint)
+    assertEquals("NONE", entry.entryState)
+    assertEquals("NONE", entry.metadata.currentState)
+    assertEquals("com.fasterxml.jackson.core.JsonParseException", entry.metadata.error[0].name)
+    assertEquals(clock.currentTimeMillis(), entry.metadata.modifiedTime)
+    assertEquals("NONE", entry.metadata.scriptState.stateMachine.currentState)
+    assertEquals("com.fasterxml.jackson.core.JsonParseException", entry.metadata.scriptState.stateMachine.error[0].name)
+  }
+
+  protected Stat createStat()
+  {
+    new Stat(0,
+             0,
+             clock.currentTimeMillis(),
+             clock.currentTimeMillis(),
+             0,
+             0,
+             0,
+             0,
+             0,
+             0,
+             0)
   }
 }

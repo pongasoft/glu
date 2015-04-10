@@ -21,14 +21,14 @@
   </g:if>
   <g:else>
     <h4>
-      <g:link action="deployments" id="${deployment.id}">Refresh</g:link>
+      <cl:link action="deployments" id="${deployment.id}">Refresh</cl:link>
     <g:if test="${deployment.planExecution.paused}">
-      | <g:link action="resumeDeployment" id="${deployment.id}">Resume</g:link>
+      | <cl:link action="resumeDeployment" id="${deployment.id}">Resume</cl:link>
     </g:if>
     <g:else>
-      | <g:link action="pauseDeployment" id="${deployment.id}">Pause</g:link>
+      | <cl:link action="pauseDeployment" id="${deployment.id}">Pause</cl:link>
     </g:else>
-    | <g:link action="abortDeployment" id="${deployment.id}">Abort</g:link>
+    | <cl:link action="abortDeployment" id="${deployment.id}">Abort</cl:link>
     </h4>
   </g:else>
 </g:if>

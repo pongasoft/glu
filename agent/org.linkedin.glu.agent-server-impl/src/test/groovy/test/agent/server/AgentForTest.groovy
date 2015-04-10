@@ -16,14 +16,20 @@
 
 package test.agent.server
 
+import org.linkedin.glu.agent.api.NoSuchMountPointException
+import org.linkedin.glu.agent.rest.common.AgentRestUtils
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.glu.agent.server.AgentMain
+import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.groovy.util.rest.RestException
+import org.linkedin.util.io.resource.Resource
 import org.linkedin.util.lifecycle.Destroyable
 import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
+import org.linkedin.util.url.URLBuilder
 import org.linkedin.zookeeper.server.StandaloneZooKeeperServer
-import org.linkedin.glu.agent.impl.capabilities.ShellImpl
 import org.linkedin.glu.agent.api.Shell
 import org.linkedin.util.io.PathUtils
+import org.restlet.data.Status
 
 /**
  * @author yan@pongasoft.com */
@@ -184,12 +190,135 @@ glu.agent.truststorePassword=nacEn92x8-1
     agentMain._agent._rootShell
   }
 
+  public void installScript(args)
+  {
+    execRestPutCall(toMountPointPath(args), toArgs(args))
+  }
+
+  public String executeAction(args)
+  {
+    execRestPostCall(toMountPointPath(args), toArgs([executeAction: args]))
+  }
+
+  public boolean waitForState(args)
+  {
+    def queryParameters = [state: args.state]
+
+    if(args.timeout)
+      queryParameters.timeout = args.timeout.toString()
+
+    JsonUtils.fromJSON(execRestGetCall(toMountPointPath(args), queryParameters)).res
+  }
+
+
+  private String toMountPointPath(args)
+  {
+    String mountPoint = args.mountPoint?.toString()
+    if(!mountPoint)
+      throw new NoSuchMountPointException('null mount point')
+
+    // need to properly escape all weird characters
+    def parts = mountPoint.split('/').collect { URLEncoder.encode(it, "UTF-8") }
+
+    return doAddPaths("/mountPoint", parts)
+  }
+
+  private String doAddPaths(String basePath, Collection<String> paths)
+  {
+    String path = basePath
+
+    paths?.each { path = PathUtils.addPaths(path, it) }
+
+    return path
+  }
+
+  private String toArgs(args)
+  {
+    return JsonUtils.toJSON([args: JsonUtils.toJSON(args)])
+  }
+
   /**
-   * Executes a rest call on the agent
+   * Executes a rest (GET) call on the agent
    */
   def execRestCall(String path)
   {
+    execRestGetCall(path, [:])
+  }
+
+  /**
+   * Executes a rest (GET) call on the agent
+   */
+  def execRestGetCall(String path, Map queryParameters = [:])
+  {
     path = PathUtils.addLeadingSlash(path)
-    rootShell.exec("curl -k https://localhost:${agentPort}${path} -E ${devKeysDir.canonicalPath}/console.pem")
+    URLBuilder urlBuilder = URLBuilder.createFromURL("https://localhost:${agentPort}${path}")
+    queryParameters?.each {k, v -> urlBuilder.addQueryParameter(k, v) }
+
+    def command =
+      ["curl", "-k",
+        urlBuilder.toString(),
+        "-E", "${devKeysDir.canonicalPath}/console.pem"]
+
+    handleCurlCall(command)
+  }
+
+  /**
+   * Executes a rest (PUT) call on the agent
+   */
+  def execRestPutCall(String path, String jsonBody)
+  {
+    path = PathUtils.addLeadingSlash(path)
+    rootShell.withTempFile { Resource r ->
+      rootShell.saveContent(r, jsonBody)
+      def command =
+        ["curl", "-k",
+          "https://localhost:${agentPort}${path}",
+          "-E", "${devKeysDir.canonicalPath}/console.pem",
+          "-X", "PUT",
+          "-H", "Content-Type: text/json",
+          "--data-binary", "@${r.file.canonicalPath}"]
+
+      handleCurlCall(command)
+    }
+  }
+
+  /**
+   * Executes a rest (POST) call on the agent
+   */
+  def execRestPostCall(String path, String jsonBody)
+  {
+    path = PathUtils.addLeadingSlash(path)
+    rootShell.withTempFile { Resource r ->
+
+      rootShell.saveContent(r, jsonBody)
+
+      def command =
+        ["curl", "-k",
+          "https://localhost:${agentPort}${path}",
+          "-E", "${devKeysDir.canonicalPath}/console.pem",
+          "-H", "Content-Type: text/json",
+          "--data-binary", "@${r.file.canonicalPath}"]
+
+      handleCurlCall(command)
+    }
+  }
+
+  private String handleCurlCall(Collection curlCommand)
+  {
+    rootShell.withTempFile { Resource outResource ->
+
+      curlCommand << "--output" << outResource.file.canonicalPath
+      curlCommand << "--write-out" << "%{http_code}"
+
+      def httpStatus = new Status(rootShell.exec(command: curlCommand, res: 'all').stdout as int)
+
+      if(httpStatus.isError())
+      {
+        AgentRestUtils.throwAgentException(httpStatus,
+                                           RestException.fromJSON(JsonUtils.fromJSON(rootShell.cat(outResource))))
+      }
+
+      return rootShell.cat(outResource)
+    }
   }
 }

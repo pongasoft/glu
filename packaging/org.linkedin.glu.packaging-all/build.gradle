@@ -29,17 +29,27 @@ dependencies {
   zookeeperPackages spec.external.utilsZookeeperCliPackage
 }
 
+ext {
+  noZooKeeper = getNegativeOptionalBooleanProperty("no.zooKeeper")
+  noConsoleServer = getNegativeOptionalBooleanProperty("no.console-server")
+  noAgentServer = getNegativeOptionalBooleanProperty("no.agent-server")
+}
+
 def dependentClis = [
-  ':agent:org.linkedin.glu.agent-server': 'agent-server',
-  ':agent:org.linkedin.glu.agent-cli': 'agent-cli',
-  ':console:org.linkedin.glu.console-server': 'console-server',
-  ':console:org.linkedin.glu.console-cli': 'console-cli',
-  ':packaging:org.linkedin.glu.packaging-setup': 'setup'
+  'agent-server': ':agent:org.linkedin.glu.agent-server',
+  'agent-cli': ':agent:org.linkedin.glu.agent-cli',
+  'console-server': ':console:org.linkedin.glu.console-server',
+  'console-cli': ':console:org.linkedin.glu.console-cli',
+  'packaging-setup': ':packaging:org.linkedin.glu.packaging-setup'
 ]
+
+dependentClis = dependentClis.findAll { p, dep ->
+  !getNegativeOptionalBooleanProperty("no.${p}")
+}
 
 cmdline {
   folders = []
-  dependsOn = dependentClis.keySet().collect { "${it}:package-assemble" }
+  dependsOn = dependentClis.values().collect { "${it}:package-assemble" }
   resources << packageIncludes
 
   replacementTokens = [
@@ -65,7 +75,7 @@ release  {
   publish = allRepositories.distributions
 }
 
-def dependentProjects = dependentClis.keySet().collect { evaluationDependsOn(it) }
+def dependentProjects = dependentClis.values().collect { evaluationDependsOn(it) }
 
 // customizing package-assemble task to add agent cli, agent server and war
 project.'package-assemble'.doFirst {
@@ -85,10 +95,13 @@ project.'package-assemble'.doFirst {
     }
   }
 
-  configurations.zookeeperPackages.resolve().each { zkp ->
-    copy {
-      from tarTree(zkp)
-      into packages
+  if(!project.noZooKeeper)
+  {
+    configurations.zookeeperPackages.resolve().each { zkp ->
+      copy {
+        from tarTree(zkp)
+        into packages
+      }
     }
   }
 }
@@ -112,9 +125,11 @@ if(project.properties['no.symbolic.links'] != 'true')
 
     allJars.each { File jar ->
 
-      File topLibJar = new File(lib, jar.name)
+      jar = jar.canonicalFile
 
-      def sha1 = org.gradle.util.hash.HashUtil.sha1(jar).asBigInteger().toString(16).padLeft(40, '0')
+      File topLibJar = new File(lib, jar.name).canonicalFile
+
+      def sha1 = org.gradle.internal.hash.HashUtil.sha1(jar).asBigInteger().toString(16).padLeft(40, '0')
 
       def previousSha1 = jarFiles[jar.name]
       if(!previousSha1)
@@ -139,5 +154,400 @@ if(project.properties['no.symbolic.links'] != 'true')
       new File(jar.parentFile, "${jar.name}.lnk").text = "${relativeLink}\n${sha1}"
     }
   }
+}
+
+/**
+ * @return setup directory (configurable via glu.packaging.devsetup.dir property)
+ */
+File getDevSetupDir()
+{
+  if(userConfig.glu.packaging.'dev-setup'.dir)
+    return new File(userConfig.glu.packaging.'dev-setup'.dir)
+
+  if(project.properties['glu.packaging.dev-setup.dir'])
+    return new File(project.properties['glu.packaging.dev-setup.dir'])
+
+  new File(project.convention.plugins.cmdline.installDir, "dev-setup")
+}
+
+/**
+ * The base port for the agent
+ */
+int getDevSetupAgentBasePort()
+{
+  if(userConfig.glu.packaging.'dev-setup'.agent.base.port)
+    return userConfig.glu.packaging.'dev-setup'.agent.base.port as int
+
+  if(project.properties['glu.packaging.dev-setup.agent.base.port'])
+    return project.properties['glu.packaging.dev-setup.agent.base.port'] as int
+
+  return 13906
+}
+
+/**************************************************************
+ * task: dev-setup
+ * This is used for dev only to quickly set up the environment.
+ * Create one agent in one fabric
+ ***************************************************************/
+task([dependsOn: 'package-assemble'], "dev-setup") << {
+  createDevSetup(1, 1)
+}
+
+/**************************************************************
+* task: dev-setup-<a>-<f>
+ * This is used for dev only to quickly set up the environment
+ * Creates <f> fabrics with <a> agents
+ ***************************************************************/
+def setupTaskPattern = ~/dev-setup-([0-9]+)-([0-9]+)/
+
+tasks.addRule("Pattern: dev-setup-<agentCount>-<fabricCount>") { String taskName ->
+  def matcher = setupTaskPattern.matcher(taskName)
+  if(matcher.matches())
+  {
+    def agentCount = matcher[0][1] as int
+    def fabricCount = matcher[0][2] as int
+    task([dependsOn: 'package-assemble', description: "Setup ${agentCount} agent(s) in ${fabricCount} fabric(s)"], "dev-setup-${agentCount}-${fabricCount}") << {
+      createDevSetup(agentCount, fabricCount)
+    }
+  }
+}
+
+/**************************************************************
+ * Cleans what was setup
+ ***************************************************************/
+task 'clean-dev-setup' << {
+  def devSetupCtlFile = new File(devSetupDir, "bin/devsetupctl.sh")
+  def distFolder = new File(devSetupDir, "dists")
+
+  if(devSetupCtlFile.exists() && distFolder.exists())
+  {
+    logger.lifecycle("Stopping previous setup")
+    exec {
+      commandLine devSetupCtlFile.canonicalPath, "stop"
+      ignoreExitValue true
+    }
+  }
+
+  delete devSetupDir
+  logger.lifecycle("Deleted ${devSetupDir}")
+}
+
+
+/**
+ * Create the dev setup with <code>agentCount</code> agents using <code>fabricCount</code> fabrics */
+private void createDevSetup(int agentCount, int fabricCount)
+{
+  File gluHome = project.convention.plugins.cmdline.assemblePackageFile
+  def setupExe = new File(gluHome, "bin/setup.sh")
+  def metaModelFile = generateDevSetupMetaModel(agentCount, fabricCount)
+
+  def devSetupCtl = """#!/bin/bash
+SOURCE="\${BASH_SOURCE[0]}"
+while [ -h "\$SOURCE" ]; do
+  DIR="\$( cd -P "\$( dirname "\$SOURCE" )" && pwd )"
+  SOURCE="\$(readlink "\$SOURCE")"
+  [[ \$SOURCE != /* ]] && SOURCE="\$DIR/\$SOURCE"
+done
+BASEDIR="\$( cd -P "\$( dirname "\$SOURCE" )/.." && pwd )"
+cd \$BASEDIR
+
+GLU_VERSION=${project.version}
+GLU_HOME=${gluHome.canonicalPath}
+GLU_SETUP_HOME_DIR=${devSetupDir.canonicalPath}
+GLU_SETUP_DIST_DIR=\$GLU_SETUP_HOME_DIR/dists
+
+shopt -s nullglob
+
+setup()
+{
+  if [ ! -d \$GLU_SETUP_DIST_DIR ]; then
+    echo "### Setting up..."
+    \$GLU_HOME/bin/setup.sh -D --keys-root \$GLU_HOME/models/tutorial/keys -o \$GLU_SETUP_DIST_DIR ${metaModelFile.canonicalPath}
+    echo "### Initializing console..."
+    for file in \$GLU_SETUP_DIST_DIR/consoles/*/jetty-*/logs
+    do
+      touch \$file/console.log
+    done
+    echo "### Initializing agents..."
+    rm -rf `find \$GLU_SETUP_DIST_DIR/agents -type d -name "*-upgrade-\$GLU_VERSION"`
+    for file in \$GLU_SETUP_DIST_DIR/agents/*/data/logs
+    do
+      touch \$file/org.linkedin.glu.agent-server.out
+    done
+    echo "### Configuring ZooKeepers..."
+    startZooKeepers
+    ${!project.noZooKeeper ? '$GLU_HOME/bin/setup.sh -Z -o $GLU_SETUP_DIST_DIR ' + metaModelFile.canonicalPath: ''}
+    stopZooKeepers
+    ${!project.noZooKeeper ? 'sleep 2': ''}
+    echo "### Setup complete."
+  else
+    echo "### \$GLU_SETUP_DIST_DIR already exists... skipping"
+  fi
+}
+
+startZooKeepers()
+{
+  for file in \$GLU_SETUP_DIST_DIR/zookeeper-clusters/*/*/bin/zookeeperctl.sh
+  do
+    \$file start
+  done
+}
+
+stopZooKeepers()
+{
+  for file in \$GLU_SETUP_DIST_DIR/zookeeper-clusters/*/*/bin/zookeeperctl.sh
+  do
+    \$file stop
+  done
+}
+
+startConsoles()
+{
+  for file in \$GLU_SETUP_DIST_DIR/consoles/*/bin/consolectl.sh
+  do
+    \$file start
+  done
+}
+
+stopConsoles()
+{
+  for file in \$GLU_SETUP_DIST_DIR/consoles/*/bin/consolectl.sh
+  do
+    \$file stop
+  done
+}
+
+startAgents()
+{
+  for file in \$GLU_SETUP_DIST_DIR/agents/*/bin/agentctl.sh
+  do
+    \$file start
+  done
+}
+
+stopAgents()
+{
+  for file in \$GLU_SETUP_DIST_DIR/agents/*/bin/agentctl.sh
+  do
+    \$file stop
+  done
+}
+
+start()
+{
+  ${!project.noZooKeeper ? 'startZooKeepers': ''}
+  ${!project.noAgentServer ? 'startAgents': ''}
+  ${!project.noConsoleServer ? 'startConsoles': ''}
+}
+
+stop()
+{
+  ${!project.noConsoleServer ? 'stopConsoles': ''}
+  ${!project.noAgentServer ? 'stopAgents': ''}
+  ${!project.noZooKeeper ? 'stopZooKeepers': ''}
+}
+
+tailAll()
+{
+  exec tail -f \$GLU_SETUP_DIST_DIR/zookeeper-clusters/*/*/logs/*.log \$GLU_SETUP_DIST_DIR/consoles/*/jetty-*/logs/*.log \$GLU_SETUP_DIST_DIR/agents/*/data/logs/*.log \$GLU_SETUP_DIST_DIR/agents/*/data/logs/*.out
+}
+
+tail()
+{
+  exec tail -f \$GLU_SETUP_DIST_DIR/zookeeper-clusters/*/*/logs/zookeeper.log \$GLU_SETUP_DIST_DIR/consoles/*/jetty-*/logs/console.log \$GLU_SETUP_DIST_DIR/agents/*/data/logs/org.linkedin.glu.agent-server.out
+}
+
+usage()
+{
+  echo ""
+  echo "   Usage:  devsetupctl.sh start|stop|tail|tail-all|start-agents|stop-agents|start-zookeepers|stop-zookeepers|start-consoles|stop-consoles"
+  echo ""
+  exit 0
+}
+
+setup
+
+# correct the index so the command argument is always \$1
+shift \$((\$OPTIND - 1))
+
+case \$1 in
+  'start' ) start
+            ;;
+  'stop'  ) stop
+            ;;
+  'tail') tail
+            ;;
+  'tail-all') tailAll
+            ;;
+  'start-agents' ) startAgents
+            ;;
+  'stop-agents' ) stopAgents
+            ;;
+  'start-zookeepers' ) startZooKeepers
+            ;;
+  'stop-zookeepers' ) stopZooKeepers
+            ;;
+  'start-consoles' ) startConsoles
+            ;;
+  'stop-consoles' ) stopConsoles
+            ;;
+  *) usage
+            exit 1
+            ;;
+esac
+"""
+
+  def devSetupCtlFile = new File(devSetupDir, "bin/devsetupctl.sh")
+  devSetupCtlFile.parentFile.mkdirs()
+  devSetupCtlFile.text = devSetupCtl
+  ant.chmod(file: devSetupCtlFile, perm: 'ugo+rx')
+
+  logger.lifecycle("Created dev setup: ${devSetupCtlFile}")
+}
+
+private File generateDevSetupMetaModel(int agentCount, int fabricCount)
+{
+  def setupFabrics = (1..fabricCount).collect { "glu-dev-${it}"}
+
+  def setupAgents = [:]
+  (0..<agentCount).each { i ->
+    setupAgents["agent-${i+1}"] = setupFabrics[i % fabricCount]
+  }
+
+  def metaModel = new StringBuilder("""
+def keys = [
+  agentKeyStore: [
+    uri: 'agent.keystore',
+    checksum: 'JSHZAn5IQfBVp1sy0PgA36fT_fD',
+    storePassword: 'nacEn92x8-1',
+    keyPassword: 'nWVxpMg6Tkv'
+  ],
+
+  agentTrustStore: [
+    uri: 'agent.truststore',
+    checksum: 'CvFUauURMt-gxbOkkInZ4CIV50y',
+    storePassword: 'nacEn92x8-1',
+    keyPassword: 'nWVxpMg6Tkv'
+  ],
+
+  consoleKeyStore: [
+    uri: 'console.keystore',
+    checksum: 'wxiKSyNAHN2sOatUG2qqIpuVYxb',
+    storePassword: 'nacEn92x8-1',
+    keyPassword: 'nWVxpMg6Tkv'
+  ],
+
+  consoleTrustStore: [
+    uri: 'console.truststore',
+    checksum: 'qUFMIePiJhz8i7Ow9lZmN5pyZjl',
+    storePassword: 'nacEn92x8-1',
+  ],
+]
+""")
+
+  if(!project.noConsoleServer)
+  {
+    metaModel << """
+consoles << [
+  name: 'devSetupConsole',
+  host: 'localhost',
+  plugins: [
+    [
+      fqcn: 'org.linkedin.glu.orchestration.engine.plugins.builtin.StreamFileContentPlugin'
+    ]
+  ],
+]
+"""
+  }
+
+  if(!project.noZooKeeper)
+  {
+    metaModel << """
+zooKeeperClusters << [
+  name: 'devSetupZooKeeperCluster',
+  zooKeepers: [
+    [
+      version: '${spec.versions.utilsZookeeper}',
+      host: '127.0.0.1'
+    ]
+  ],
+]
+"""
+  }
+
+  setupFabrics.each { fabric ->
+    metaModel << """
+fabrics['${fabric}'] = [
+  keys: keys,
+${project.noConsoleServer ? '//' : ''}  console: 'devSetupConsole',
+${project.noZooKeeper ? '//' : ''}  zooKeeperCluster: 'devSetupZooKeeperCluster',
+]
+"""
+  }
+
+  if(!project.noAgentServer)
+  {
+    def basePort = devSetupAgentBasePort
+
+    setupAgents.each { name, fabric ->
+      metaModel << """
+agents << [
+  name: '${name}',
+  host: 'localhost',
+  port: ${basePort},
+${project.noZooKeeper ? '//' : ''}  fabric: '${fabric}',
+  configTokens: [
+    GLU_AGENT_APPS: '\$GLU_AGENT_HOME/apps'
+  ]
+]
+"""
+      basePort += 2 // skipping config port (which is port + 1)
+    }
+  }
+
+  File modelFile =
+    new File(devSetupDir, "models/dev-setup-${agentCount}-${fabricCount}-glu-meta-model.json.groovy")
+
+  modelFile.parentFile.mkdirs()
+  modelFile.text = metaModel
+
+  return modelFile
+}
+
+private boolean getNegativeOptionalBooleanProperty(String propertyName)
+{
+  getOptionalBooleanProperty(propertyName, false)
+}
+
+private boolean getOptionalBooleanProperty(String propertyName,
+                                           boolean defaultValue)
+{
+  def value = project.properties[propertyName.toString()]
+
+  if(value == null || value instanceof ConfigObject)
+    return defaultValue
+
+  if(value instanceof Boolean)
+    return value.booleanValue()
+
+  value = value.toString().toLowerCase()
+
+  switch(value)
+  {
+    case 'true':
+    case 'yes':
+    case 'on':
+    case '':
+      return true
+
+    case 'false':
+    case 'no':
+    case 'off':
+      return false
+  }
+
+  logger.warn("[${value}] is not a boolean value for [${propertyName}]. Ignoring and using [${defaultValue}]")
+
+  return defaultValue
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -29,6 +29,7 @@ import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.core.model.SystemEntryStateSystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemModel
+import org.linkedin.glu.provisioner.plan.api.IPlanBuilder
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.provisioner.plan.api.Plan
 import org.linkedin.util.annotations.Initializable
@@ -168,9 +169,13 @@ class PlannerServiceImpl implements PlannerService
     if(metadata == null)
       metadata = [:]
 
+    def config = new IPlanBuilder.Config()
+    if(params.maxParallelStepsCount)
+      config.maxParallelStepsCount = params.maxParallelStepsCount as Integer
+
     Collection<Plan<ActionDescriptor>> allPlans = types.collect { Type type ->
       // 3. compute the deployment plan the given type
-      Plan<ActionDescriptor> plan = transitionPlan.buildPlan(type)
+      Plan<ActionDescriptor> plan = transitionPlan.buildPlan(type, config)
 
       // 4. set name and metadata for the plan
       plan.setMetadata('fabric', expectedModel.fabric)
@@ -226,7 +231,7 @@ class PlannerServiceImpl implements PlannerService
                                                        currentEntrySystemFilter)
     }
 
-    doComputeDeploymentPlans(params, metadata, [params.state], filter)
+    doComputeDeploymentPlans(params, metadata, params.states ?: [params.state], filter)
   }
 
   /**
@@ -330,7 +335,7 @@ class PlannerServiceImpl implements PlannerService
     SystemModel currentModel = agentsService.getCurrentSystemModel(params.fabric)
     def agents = (params.agents ?: []) as Set
     def filteredCurrentModel = currentModel.filterBy { SystemEntry entry ->
-      agents.contains(entry.agent)
+      entry != null && agents.contains(entry.agent)
     }
 
     // we keep only the agents that are part of the current model!
@@ -353,7 +358,7 @@ class PlannerServiceImpl implements PlannerService
     }
 
     expectedModel = expectedModel.filterBy { SystemEntry entry ->
-      entry.mountPoint == PlannerService.AGENT_SELF_UPGRADE_MOUNT_POINT
+      entry?.mountPoint == PlannerService.AGENT_SELF_UPGRADE_MOUNT_POINT
     }
 
     toSinglePlan(doComputeDeploymentPlans(params,
@@ -365,7 +370,7 @@ class PlannerServiceImpl implements PlannerService
   }
 
   private def agentsCleanupUpgradeExpectedModelFilter = { SystemEntry entry ->
-      entry.mountPoint == PlannerService.AGENT_SELF_UPGRADE_MOUNT_POINT
+      entry?.mountPoint == PlannerService.AGENT_SELF_UPGRADE_MOUNT_POINT
   }
 
   /**

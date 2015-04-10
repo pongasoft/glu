@@ -28,9 +28,14 @@ class ScriptException extends AgentException
   {
   }
 
-  ScriptException(s)
+  ScriptException(String s)
   {
-    super(s);
+    super((String) s);
+  }
+
+  ScriptException(Throwable throwable)
+  {
+    super((Throwable) throwable);
   }
 
   ScriptException(s, throwable)

@@ -32,6 +32,7 @@ All content
    production-setup
    dev-setup
    RELEASE
+   release-notes-old
    migration-guide
 
    glossary

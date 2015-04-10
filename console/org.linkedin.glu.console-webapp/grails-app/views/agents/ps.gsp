@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011-2013 Yan Pujante
+  - Portions Copyright (c) 2011-2014 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -24,23 +24,46 @@
     table td {
       padding: 0.2em;
     }
+
+    .filter {
+      float: right;
+    }
   </style>
+<g:javascript>
+  function toggleMountPointFilter() {
+     var toggleMountPointIcon = $('#toggle-mountpoint-icon');
+     var isNotFiltered = toggleMountPointIcon.hasClass('icon-zoom-out');
+     if(isNotFiltered)
+     {
+       toggleMountPointIcon.removeClass('icon-zoom-out');
+       toggleMountPointIcon.addClass('icon-zoom-in');
+       hide('.process');
+       show('.process-mountPoint');
+     }
+     else
+     {
+       toggleMountPointIcon.removeClass('icon-zoom-in');
+       toggleMountPointIcon.addClass('icon-zoom-out');
+       show('.process');
+     }
+  }
+</g:javascript>
 </head>
 <body>
 <g:if test="${params.pid}">
   <ul class="nav nav-tabs">
-    <li><g:link controller="agents" action="list">List</g:link></li>
-    <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
-    <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
-    <li><g:link action="plans" id="${params.id}">Plans</g:link></li>
-    <cl:whenFeatureEnabled feature="commands"><li><g:link action="commands" id="${params.id}">Commands</g:link></li></cl:whenFeatureEnabled>
-    <li><g:link action="ps" id="${params.id}">All Processes</g:link></li>
+    <li><cl:link controller="agents" action="list">List</cl:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><cl:link controller="commands" action="list">All Commands</cl:link></li></cl:whenFeatureEnabled>
+    <li><cl:link action="view" id="${params.id}">agent [${params.id}]</cl:link></li>
+    <li><cl:link action="plans" id="${params.id}">Plans</cl:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><cl:link action="commands" id="${params.id}">Commands</cl:link></li></cl:whenFeatureEnabled>
+    <li><cl:link action="ps" id="${params.id}">All Processes</cl:link></li>
     <li class="active"><a href="#">process[${params.pid}]</a></li>
   </ul>
   <g:if test="${ps[params.pid]}">
-    <g:form action="kill" id="${params.id}" params="[pid: params.pid]">
+    <cl:form action="kill" id="${params.id}" params="[pid: params.pid]">
       <g:textField name="signal" value="3"/> <g:submitButton class="btn btn-primary" name="kill" value="Send Signal"/>
-    </g:form>
+    </cl:form>
     <cl:mapToUL map="${ps[params.pid]}" specialKeys="${['args']}" var="specialEntry">
       <li>
         ${specialEntry.key}
@@ -58,35 +81,30 @@
 </g:if>
 <g:else>
   <ul class="nav nav-tabs">
-    <li><g:link controller="agents" action="list">List</g:link></li>
-    <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
-    <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
-    <li><g:link action="plans" id="${params.id}">Plans</g:link></li>
-    <cl:whenFeatureEnabled feature="commands"><li><g:link action="commands" id="${params.id}">Commands</g:link></li></cl:whenFeatureEnabled>
+    <li><cl:link controller="agents" action="list">List</cl:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><cl:link controller="commands" action="list">All Commands</cl:link></li></cl:whenFeatureEnabled>
+    <li><cl:link action="view" id="${params.id}">agent [${params.id}]</cl:link></li>
+    <li><cl:link action="plans" id="${params.id}">Plans</cl:link></li>
+    <cl:whenFeatureEnabled feature="commands"><li><cl:link action="commands" id="${params.id}">Commands</cl:link></li></cl:whenFeatureEnabled>
     <li class="active"><a href="#">All Processes</a></li>
   </ul>
   <table class="table table-bordered tight-table zebra-striped">
     <tr>
       <th>PID</th>
       <th>COMMAND</th>
+      <th>MOUNT POINT<span class="filter"><a href="#" title="Filter by MOUNT POINT" onclick="toggleMountPointFilter();"><i id="toggle-mountpoint-icon" class="icon-zoom-out"> </i></a></span></th>
       <th>%CPU</th>
       <th>org.linkedin.app.name</th>
     </tr>
   <g:each in="${ps.keySet().collect { it.toInteger() }.sort()}" var="pid">
     <g:set var="process" value="${ps[pid.toString()]}"/>
-    <g:if test="${process.exe?.Name}">
-      <tr>
-        <td><g:link action="ps" id="${params.id}" params="[pid: pid]">${pid}</g:link></td>
-        <td>${process.exe.Name.split('/')[-1]}</td>
-        <td>${process.cpu?.Percent}</td>
-        <td>
-          <g:set var="applicationArg" value="${process.args?.find { it.startsWith('-Dorg.linkedin.app.name=') } }"/>
-          <g:if test="${applicationArg}">
-            ${applicationArg - '-Dorg.linkedin.app.name='}
-          </g:if>
-        </td>
-      </tr>
-    </g:if>
+    <tr class="process ${process.mountPoint ? 'process-mountPoint' : ''}">
+      <td><cl:link action="ps" id="${params.id}" params="[pid: pid]">${pid}</cl:link></td>
+      <td>${process.command?.encodeAsHTML()}</td>
+      <td><g:if test="${process.mountPoint}"><cl:link action="view" id="${params.id}" fragment="${process.mountPoint}">${process.mountPoint}</cl:link></g:if></td>
+      <td>${process.cpu?.encodeAsHTML()}</td>
+      <td>${process."org.linkedin.app.name"?.encodeAsHTML()}</td>
+    </tr>
   </g:each>
   </table>
 </g:else>

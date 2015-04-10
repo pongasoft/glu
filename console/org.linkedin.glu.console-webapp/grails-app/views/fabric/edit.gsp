@@ -24,8 +24,8 @@
 </head>
 <body>
 <ul class="nav nav-tabs">
-  <li><g:link action="list">Fabric List</g:link></li>
-  <li><g:link action="show" id="${fabricInstance.id}">Fabric [${fabricInstance.name}]</g:link></li>
+  <li><cl:link action="list">Fabric List</cl:link></li>
+  <li><cl:link action="show" id="${fabricInstance.id}">Fabric [${fabricInstance.name}]</cl:link></li>
   <li class="active"><a href="#">Edit</a></li>
 </ul>
 <div class="body">

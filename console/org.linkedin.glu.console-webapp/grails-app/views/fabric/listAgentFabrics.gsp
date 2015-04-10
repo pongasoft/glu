@@ -69,7 +69,7 @@
       <a href="#" onclick="$('#unassignedAgents').find('select').val('-Choose-'); return false;">[None]</a>
     </p>
     <g:set var="status" value="['missing-old': 'Agent is most likely down', 'missing-new': 'Agent is most likely new', 'unknown': 'Unknown to this fabric']"/>
-    <g:form name="unassignedAgents" action="setAgentsFabrics">
+    <cl:form name="unassignedAgents" action="setAgentsFabrics">
       <table class="table table-bordered table-condensed">
         <tr>
           <th>Agent</th>
@@ -88,7 +88,7 @@
         </g:each>
       </table>
       <g:submitButton class="btn btn-primary" name="Assign Fabric"/>
-    </g:form>
+    </cl:form>
   </g:if>
   <g:else>
     There are currently no unassigned agents.
@@ -106,8 +106,8 @@
       <tr>
         <td>${entry.key.encodeAsHTML()}</td>
         <td>${entry.value.encodeAsHTML()}</td>
-        <td><g:link controller="fabric" action="clearAgentFabric" id="${entry.key.encodeAsHTML()}" onClick="return confirm('Are you sure you want to clear the agent-fabric link?');">Fabric</g:link></td>
-        <td><g:link controller="agents" action="clear" id="${entry.key.encodeAsHTML()}" onClick="return confirm('Are you sure you want to clear ALL knowledge of the agent?');">All</g:link></td>
+        <td><cl:link controller="fabric" action="clearAgentFabric" id="${entry.key.encodeAsHTML()}" onClick="return confirm('Are you sure you want to clear the agent-fabric link?');">Fabric</cl:link></td>
+        <td><cl:link controller="agents" action="clear" id="${entry.key.encodeAsHTML()}" onClick="return confirm('Are you sure you want to clear ALL knowledge of the agent?');">All</cl:link></td>
       </tr>
     </g:each>
   </table>

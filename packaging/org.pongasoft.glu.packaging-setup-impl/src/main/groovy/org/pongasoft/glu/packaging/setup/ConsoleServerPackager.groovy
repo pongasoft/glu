@@ -16,6 +16,7 @@
 
 package org.pongasoft.glu.packaging.setup
 
+import org.linkedin.groovy.util.config.Config
 import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.ConsoleMetaModel
 
@@ -38,9 +39,12 @@ public class ConsoleServerPackager extends BasePackager
     "JVM_GC_LOG",
     "JVM_APP_INFO",
     "JETTY_CMD",
+    "JETTY_PORT"
   ]
 
   ConsoleMetaModel metaModel
+
+  private Map<String, Object> _tokens = null
 
   Map<String, Object> getConfigTokens()
   {
@@ -57,6 +61,8 @@ public class ConsoleServerPackager extends BasePackager
   {
     String packageName = ensureVersion(metaModel.version)
 
+    _tokens = [*:configTokens]
+
     def jettyDistribution =
       shell.ls(inputPackage).find { it.filename.startsWith('jetty-distribution-') }?.filename
 
@@ -70,8 +76,10 @@ public class ConsoleServerPackager extends BasePackager
       'jetty.distribution': jettyDistribution
     ]
 
+    _tokens.JETTY_PORT = metaModel.mainPort
+
     tokens[PACKAGER_CONTEXT_KEY] = packagerContext
-    tokens[CONFIG_TOKENS_KEY] = [*:configTokens]
+    tokens[CONFIG_TOKENS_KEY] = [*:_tokens]
 
     def parts = [packageName]
 
@@ -88,10 +96,17 @@ public class ConsoleServerPackager extends BasePackager
       if(metaModel.gluMetaModel.stateMachine)
         generateStateMachineJarFile(metaModel.gluMetaModel.stateMachine,
                                     packagePath.createRelative('glu/repository/plugins'))
+      if(Config.getOptionalBoolean(configTokens, 'includeJettyDistribution', true))
+      {
+        shell.tar(dir: packagePath.createRelative(jettyDistribution),
+                  tarFile: packagePath.createRelative("glu/repository/tgzs/${jettyDistribution}.tar.gz"),
+                  compression: 'gzip')
+      }
     }
     return new PackagedArtifact(location: packagePath,
                                 host: metaModel.host.resolveHostAddress(),
                                 port: metaModel.mainPort,
+                                tokens: _tokens,
                                 metaModel: metaModel)
   }
 

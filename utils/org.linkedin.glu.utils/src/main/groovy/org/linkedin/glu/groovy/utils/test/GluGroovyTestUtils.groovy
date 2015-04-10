@@ -30,7 +30,7 @@ public class GluGroovyTestUtils
    */
   static void assertEqualsIgnoreType(def testCase, String message = null, Map map1, Map map2)
   {
-    checkAndFail(testCase, message, map1, map2) {
+    checkAndFail(testCase, message, {
       testCase.assertEquals(JsonUtils.prettyPrint(map1), JsonUtils.prettyPrint(map2))
       if(map1 == null)
         testCase.assertNull("map1 is null, map2 is not", map2)
@@ -41,7 +41,7 @@ public class GluGroovyTestUtils
         testCase.assertTrue("map2 does not contain key ${k}", map2.containsKey(k))
         assertEqualsIgnoreType(testCase, "map value for key ${k} mismatch", v, map2[k])
       }
-    }
+    })
   }
 
   /**
@@ -51,7 +51,7 @@ public class GluGroovyTestUtils
    */
   static void assertEqualsIgnoreType(def testCase, String message = null, List list1, List list2)
   {
-    checkAndFail(testCase, message, list1, list2) {
+    checkAndFail(testCase, message, {
       testCase.assertEquals(JsonUtils.prettyPrint(list1), JsonUtils.prettyPrint(list2))
       if(list1 == null)
         testCase.assertNull("list1 is null, list2 is not", list2)
@@ -63,7 +63,7 @@ public class GluGroovyTestUtils
       list1.eachWithIndex { e, idx ->
         assertEqualsIgnoreType(testCase, "list index ${idx} mismatch", e, iterator.next())
       }
-    }
+    })
   }
 
   /**
@@ -73,7 +73,7 @@ public class GluGroovyTestUtils
    */
   static void assertEqualsIgnoreType(def testCase, String message = null, Set set1, Set set2)
   {
-    checkAndFail(testCase, message, set1, set2) {
+    checkAndFail(testCase, message, {
       testCase.assertEquals(JsonUtils.prettyPrint(set1), JsonUtils.prettyPrint(set2))
       if(set1 == null)
         testCase.assertNull("set1 is null, set2 is not", set2)
@@ -84,7 +84,7 @@ public class GluGroovyTestUtils
                              message,
                              set1.sort(IgnoreTypeComparator.INSTANCE),
                              set2.sort(IgnoreTypeComparator.INSTANCE))
-    }
+    })
   }
 
   /**
@@ -105,7 +105,7 @@ public class GluGroovyTestUtils
     testCase.assertEquals(message, o1, o2)
   }
 
-  static void checkAndFail(def testCase, String message, Object o1, Object o2, Closure closure)
+  static void checkAndFail(def testCase, String message, Closure closure)
   {
     try
     {
@@ -128,4 +128,13 @@ public class GluGroovyTestUtils
       throw th
     }
   }
+
+  /**
+   * It seems that timing can vary by up to 1 second... due to os precision...
+   */
+  public static void checkTimeDifference(def testCase, long time1, long time2)
+  {
+    testCase.assertTrue(Math.abs(time1 - time2) <= 1000);
+  }
+
 }

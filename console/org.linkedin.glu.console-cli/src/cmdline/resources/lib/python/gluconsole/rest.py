@@ -28,6 +28,7 @@ import sys
 import time
 import urllib
 import urlparse
+from xml.dom.minidom import parseString
 
 
 try:
@@ -222,7 +223,24 @@ class Client:
             time.sleep(2)
 
         self._action_successful = complete_status.startswith('100:COMPLETED')
+        if complete_status.endswith('FAILED'):
+            self.print_failed_jobs(status_url)
         return complete_status
+
+    def print_failed_jobs(self, status_url):
+        """
+        Prints failed jobs in current deployment, If exists.
+        :param status_url: current deployment job status url
+        """
+        status = self._do_request(status_url, 'GET')
+        soup = parseString(status.body)
+        errors = soup.getElementsByTagName('exception')
+        message_re = re.compile(r'\[(.*)\].*action=(.*)')
+        for err in errors:
+            msg = err.attributes.get('message')
+            result = message_re.findall(msg.value)
+            if result:
+                logger.info('Failed "%s" app to %s' % result[0])
 
     def executePlan(self, action, systemFilter, # pylint: disable=C0103
             parallel=False, dryrun=False):  # pylint: disable=C0103

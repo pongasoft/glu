@@ -24,9 +24,9 @@
 </head>
 <body>
 <ul class="nav nav-tabs">
-  <li><g:link action="list">Fabric List</g:link></li>
+  <li><cl:link action="list">Fabric List</cl:link></li>
   <li class="active"><a href="#">Fabric [${fabricInstance.name}]</a></li>
-  <li><g:link controller="fabric" action="edit" id="${fabricInstance.id}">Edit</g:link></li>
+  <li><cl:link controller="fabric" action="edit" id="${fabricInstance.id}">Edit</cl:link></li>
 </ul>
 <div class="body">
   <div class="dialog">
@@ -71,7 +71,7 @@
       </tbody>
     </table>
   </div>
-  <g:link controller="fabric" class="btn btn-primary" action="edit" id="${fabricInstance.id}">Edit</g:link>
+  <cl:link controller="fabric" class="btn btn-primary" action="edit" id="${fabricInstance.id}">Edit</cl:link>
 </div>
 </body>
 </html>

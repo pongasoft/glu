@@ -106,52 +106,52 @@ img.header-logo {
   float: left;
 }
 
-div.document div.note {
+div.note {
   background-color: #eeeeff;
   border-top: solid 1px #ccccdd;
   border-right: solid 1px #ccccdd;
   border-bottom: solid 1px #ccccdd;
 }
 
-div.document div.tip {
+div.tip {
   background-color: #eeffee;
   border-top: solid 1px #ccddcc;
   border-right: solid 1px #ccddcc;
   border-bottom: solid 1px #ccddcc;
 }
 
-div.document div.warning {
+div.warning {
     background-color: #ffeeee;
     border-top: solid 1px #ddcccc;
     border-right: solid 1px #ddcccc;
     border-bottom: solid 1px #ddcccc;
 }
 
-div.document div.note tt span.pre {
+div.note tt span.pre {
     background: #ccccdd;
 }
 
-div.document div.tip tt span.pre {
+div.tip tt span.pre {
     background: #ccddcc;
 }
 
-div.document div.warning tt span.pre {
+div.warning tt span.pre {
     background: #ddcccc;
 }
 
-div.document div.note > .admonition-title {
+div.note > .admonition-title {
   color: #000099;
   display: inline-block;
   border-bottom: solid 1px #000099;
 }
 
-div.document div.tip > .admonition-title {
+div.tip > .admonition-title {
   color: #009900;
   display: inline-block;
   border-bottom: solid 1px #009900;
 }
 
-div.document div.warning  > .admonition-title {
+div.warning  > .admonition-title {
   color: #990000;
   display: inline-block;
   border-bottom: solid 1px #990000;

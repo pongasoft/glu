@@ -21,6 +21,8 @@ import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
+import org.linkedin.glu.provisioner.core.model.builder.SystemModelBuilder
+import org.linkedin.groovy.util.net.GroovyNetUtils
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.groovy.utils.plugins.PluginService
 import org.linkedin.groovy.util.io.GroovyIOUtils
@@ -74,36 +76,48 @@ public class SystemServiceImpl implements SystemService
   }
 
   @Override
-  SystemModel parseSystemModel(def source)
+  SystemModel parseSystemModel(source)
+  {
+    parseSystemModel(source, null)
+  }
+
+  @Override
+  SystemModel parseSystemModel(source, String filename)
   {
     if(!source)
       return null
 
     pluginService.executePrePostMethods(SystemService,
                                         "parseSystemModel",
-                                        [source: source]) { args ->
+                                        [source: source, filename: filename]) { args ->
       SystemModel model = args.pluginResult
 
       if(model == null)
       {
-        String sourceString
+        def builder = new SystemModelBuilder()
 
         switch(args.source)
         {
           case String:
-            sourceString = args.source
+            builder.deserializeFromJsonString(args.source, args.filename)
             break
 
           case InputStream:
-            sourceString = args.source.text
+            builder.deserializeFromJsonInputStream(args.source, args.filename)
+            break
+
+          case URI:
+            builder.deserializeFromJsonString(GroovyIOUtils.cat(args.source),
+                                              args.filename ?: GroovyNetUtils.guessFilename(args.source))
             break
 
           default:
-            sourceString = GroovyIOUtils.cat(args.source)
+            builder.deserializeFromJsonString(GroovyIOUtils.cat(args.source),
+                                              args.filename)
             break
         }
 
-        model = JSONSystemModelSerializer.INSTANCE.deserialize(sourceString)
+        model = builder.toModel()
       }
 
       return model

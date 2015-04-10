@@ -244,4 +244,67 @@ class UserController extends ControllerBase
       }
     }
   }
+
+  /**
+   * Reset is called by an admin to change a user password
+   */
+  def resetPassword = {
+    User.withTransaction {
+      def username = request.user?.username
+
+      def authToken = new UsernamePasswordToken(username, params.currentPassword)
+
+      try
+      {
+        // Perform the actual login. An AuthenticationException
+        // will be thrown if the username is unrecognised or the
+        // password is incorrect.
+        SecurityUtils.subject.login(authToken)
+      }
+      catch (AuthenticationException ex)
+      {
+        flash.error = "Please enter YOUR [${username}] password and make sure it is correct."
+        redirect(action: 'edit', id: params.id)
+        return
+      }
+
+      if(!params.newPassword)
+      {
+        flash.error = "Please input the new password"
+        redirect(action: 'edit', id: params.id)
+        return
+      }
+
+      if(params.newPassword != params.newPasswordAgain)
+      {
+        flash.error = "New password is different from New password again"
+        redirect(action: 'edit', id: params.id)
+        return
+      }
+
+      def userInstance = User.get(params.id)
+      def ucr = DbUserCredentials.get(params.id)
+
+      if(!userInstance || !ucr)
+      {
+        flash.error = "No such user [${params.id}]"
+        redirect(action: 'list')
+        return
+      }
+
+      ucr.password = params.newPassword
+      if(!ucr.hasErrors() && ucr.save())
+      {
+        flash.success = "[${userInstance.username}] password has been resetted."
+        redirect(action: 'edit', id: params.id)
+        return
+      }
+      else
+      {
+        flash.error = "Error while resetting new password: ${credentials.errors}"
+        redirect(action: 'edit', id: params.id)
+        return
+      }
+    }
+  }
 }

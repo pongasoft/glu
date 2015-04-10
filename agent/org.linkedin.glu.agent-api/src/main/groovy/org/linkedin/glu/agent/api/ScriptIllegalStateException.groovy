@@ -28,9 +28,14 @@ class ScriptIllegalStateException extends ScriptException
   {
   }
 
-  ScriptIllegalStateException(s)
+  ScriptIllegalStateException(String s)
   {
-    super(s);
+    super((String) s);
+  }
+
+  ScriptIllegalStateException(Throwable throwable)
+  {
+    super((Throwable) throwable);
   }
 
   ScriptIllegalStateException(s, throwable)

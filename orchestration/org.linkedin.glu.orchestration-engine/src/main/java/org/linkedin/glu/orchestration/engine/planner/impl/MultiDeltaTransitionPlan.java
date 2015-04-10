@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,6 +18,7 @@ package org.linkedin.glu.orchestration.engine.planner.impl;
 
 import org.linkedin.glu.orchestration.engine.action.descriptor.ActionDescriptor;
 import org.linkedin.glu.orchestration.engine.planner.TransitionPlan;
+import org.linkedin.glu.provisioner.plan.api.IPlanBuilder;
 import org.linkedin.glu.provisioner.plan.api.IStep;
 import org.linkedin.glu.provisioner.plan.api.Plan;
 
@@ -58,13 +59,13 @@ public class MultiDeltaTransitionPlan implements TransitionPlan<ActionDescriptor
 
 
   @Override
-  public Plan<ActionDescriptor> buildPlan(IStep.Type type)
+  public Plan<ActionDescriptor> buildPlan(IStep.Type type, IPlanBuilder.Config config)
   {
     TransitionPlan<ActionDescriptor> transitionPlan = getTransitionPlan();
     if(transitionPlan == null)
       return null;
     else
-      return transitionPlan.buildPlan(type);
+      return transitionPlan.buildPlan(type, config);
   }
 
   protected TransitionPlan<ActionDescriptor> buildTransitionPlan()

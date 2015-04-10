@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,6 +22,7 @@ import org.linkedin.glu.agent.impl.script.AgentContext
 import org.linkedin.glu.agent.api.Shell
 
 import org.linkedin.glu.agent.api.MountPoint
+import org.linkedin.glu.agent.impl.script.NoSharedClassLoaderScriptLoader
 import org.linkedin.glu.agent.impl.script.ScriptManagerImpl
 import org.linkedin.glu.agent.impl.script.ScriptManager
 import org.linkedin.glu.agent.impl.script.StateKeeperScriptManager
@@ -29,6 +30,8 @@ import org.linkedin.glu.agent.impl.script.StateKeeperScriptManager
 import org.hyperic.sigar.Sigar
 import org.hyperic.sigar.SigarException
 import org.linkedin.glu.agent.api.AgentException
+
+import java.nio.file.Files
 import java.util.concurrent.TimeoutException
 import org.linkedin.util.lifecycle.Shutdownable
 
@@ -87,7 +90,9 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
                            shellForScripts: args.shellForScripts,
                            shellForCommands: args.shellForCommands ?: _rootShell,
                            rootShell: _rootShell,
-                           mop: new MOPImpl())
+                           scriptLoader: args.scriptLoader ?: new NoSharedClassLoaderScriptLoader(),
+                           mop: new MOPImpl(),
+                           zooKeeper: args.zooKeeper)
     _agentLogDir = args.agentLogDir
     _sigar = args.sigar
 
@@ -476,21 +481,31 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
       if(location.isDirectory())
       {
         def resources = _rootShell.ls(location)
+        resources << location
         def res = [:]
         resources.each {
           def file = it.file
           def details = [:]
-          res[file.name] = details
+          if(it != location)
+            res[file.name] = details
+          else
+            res['.'] = details
           details.canonicalPath = file.canonicalPath
           details.length = file.length()
           details.lastModified = file.lastModified()
           details.isDirectory = file.isDirectory()
+          details.isSymbolicLink = Files.isSymbolicLink(file.toPath())
         }
         return res
       }
       else
       {
-        return _rootShell.tail(args)
+        if(args.containsKey('offset'))
+        {
+          return _rootShell.tailFromOffset(args)
+        }
+        else
+          return _rootShell.tail(args)
       }
     }
   }
@@ -659,7 +674,7 @@ def class AgentImpl implements Agent, AgentContext, Shutdownable
     catch(TimeoutException e)
     {
       // adapting timeout exception...
-      def toex = new TimeOutException(e.message)
+      def toex = new TimeOutException((String) e.message)
       toex.initCause(e)
       throw toex
     }

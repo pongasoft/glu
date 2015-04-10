@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,9 +17,14 @@
 
 package test.provisioner.core.model
 
+import org.linkedin.glu.provisioner.core.model.FlattenSystemFilter
+import org.linkedin.glu.provisioner.core.model.PropertySystemFilter
+import org.linkedin.glu.provisioner.core.model.SystemEntryKeyModelFilter
+import org.linkedin.glu.provisioner.core.model.SystemEntryStateSystemFilter
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.core.model.SystemFilterBuilder
+import org.linkedin.glu.provisioner.core.model.TagsSystemFilter
 
 /**
  * @author ypujante@linkedin.com */
@@ -40,7 +45,7 @@ class TestSystemFilters extends GroovyTestCase
     entries << new SystemEntry(agent: 'h1',
                                mountPoint: "/m/1",
                                script: 's1',
-                               initParameters: [ip1: 'iv1', ip2: ['c1'], ip3: [m1: 'mv1']],
+                               initParameters: [ip1: 'iv1', ip2: ['c1'], ip3: [m1: 'mv1'], ip4: [[m2: 'mv2'], [m2: 'mv3'], [m3: 'mv4']]],
                                metadata: [em1: 'ev1'],
                                tags: ['e:tag1', 'e:tag2'])
 
@@ -61,11 +66,13 @@ class TestSystemFilters extends GroovyTestCase
     entries.each { model.addEntry(it) }
   }
 
-
   public void testSystemFilterBuilderParse()
   {
     assertEquals(null, SystemFilterBuilder.parse(null))
 
+    checkFiltering("initParameters.ip4[0..-1].m2='mv3'", "initParameters.ip4[[0, -1]].m2='mv3'", ["h1:/m/1"])
+    checkFiltering("initParameters.ip4[1].m2='mv3'", "initParameters.ip4[1].m2='mv3'", ["h1:/m/1"])
+    checkFiltering("initParameters.ip4[25].m2='mv3'", "initParameters.ip4[25].m2='mv3'", [])
     checkFiltering("metadata.em1='ev1'", "metadata.em1='ev1'", ["h1:/m/1"])
     checkFiltering("initParameters.ip1=='iv2'", "initParameters.ip1='iv2'", ["h1:/m/2"])
     checkFiltering("initParameters.ip1='iv2'", "initParameters.ip1='iv2'", ["h1:/m/2"])
@@ -140,6 +147,16 @@ class TestSystemFilters extends GroovyTestCase
 
     checkFiltering("tags.hasAny('e:tag3;a:tag1')", "tags.hasAny('a:tag1;e:tag3')", ["h1:/m/1", "h1:/m/2", "h2:/m/1"])
     checkFiltering("tags.hasAny(['e:tag3', 'a:tag1'])", "tags.hasAny('a:tag1;e:tag3')", ["h1:/m/1", "h1:/m/2", "h2:/m/1"])
+  }
+
+  public void testNullSystemEntry()
+  {
+    assertFalse(new PropertySystemFilter(name: 'metadata.foo', value: 'abc').filter(null))
+    assertFalse(new FlattenSystemFilter(name: 'metadata.foo', value: 'abc').filter(null))
+    assertFalse(new SystemEntryKeyModelFilter(keys: ['/a']).filter(null))
+    assertFalse(new SystemEntryStateSystemFilter(states: ['running']).filter(null))
+    assertFalse(new TagsSystemFilter(['osx'], true).filter(null))
+    assertFalse(new TagsSystemFilter(['osx'], false).filter(null))
   }
 
   private checkFiltering(String filterString, String expectedToString, expectedEntries)

@@ -1,6 +1,6 @@
 /*
 * Copyright (c) 2010-2010 LinkedIn, Inc
-* Portions Copyright (c) 2011-2013 Yan Pujante
+* Portions Copyright (c) 2011-2014 Yan Pujante
 *
 * Licensed under the Apache License, Version 2.0 (the "License"); you may not
 * use this file except in compliance with the License. You may obtain a copy of
@@ -25,7 +25,7 @@ class UrlMappings
   public static final String MODULE = "org.linkedin.glu.console.conf.UrlMappings"
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
-  private static def role = { path ->
+  private static Closure<RoleName> role = { path ->
     def userRole = ConsoleConfig.getInstance().console.security.roles."${path}"
     if(!userRole)
     {
@@ -177,6 +177,10 @@ class UrlMappings
     "/user/updatePassword"(controller: 'user', action: 'updatePassword') {
       __nvbe = 'User'
       __role = UrlMappings.role('/user/updatePassword')
+    }
+    "/user/resetPassword"(controller: 'user', action: 'resetPassword') {
+      __nvbe = 'User'
+      __role = UrlMappings.role('/user/resetPassword')
     }
 
     // help
@@ -499,7 +503,8 @@ class UrlMappings
     name restExecution: "/rest/v1/$fabric/plan/$planId/execution/$id"(controller: 'plan') {
       action = [
         GET: 'rest_view_execution',
-        HEAD: 'rest_execution_status'
+        HEAD: 'rest_execution_status',
+        DELETE: 'rest_abort_execution'
       ]
       __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/plan/$planId/execution/$id')
     }
@@ -543,11 +548,12 @@ class UrlMappings
     /***
      * model
      */
-    name restStaticModel: "/rest/v1/$fabric/model/static"(controller: 'model') {
+    name restStaticModel: "/rest/v1/$fabric/model/static/$id?"(controller: 'model') {
       action = [
         POST: 'rest_upload_model',
         GET: 'rest_get_static_model'
       ]
+      // mismatch for role name because $id? was added afterwards
       __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/model/static')
     }
     name restLiveModel: "/rest/v1/$fabric/model/live"(controller: 'model') {
@@ -555,6 +561,13 @@ class UrlMappings
         GET: 'rest_get_live_model'
       ]
       __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/model/live')
+    }
+    "/rest/v1/$fabric/models/static"(controller: 'model') {
+      action = [
+        HEAD: 'rest_count_static_models',
+        GET: 'rest_list_static_models'
+      ]
+      __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/models/static')
     }
 
     /***
@@ -640,6 +653,18 @@ class UrlMappings
         DELETE: 'rest_clear_agent_fabric'
       ]
       __roles = UrlMappings.restRoles(action, '/rest/v1/$fabric/agent/$id/fabric')
+    }
+
+
+    /**
+     * audit logs
+     */
+    "/rest/v1/-/audit/logs"(controller: 'auditLog') {
+      action = [
+        HEAD: 'rest_count_audit_logs',
+        GET: 'rest_list_audit_logs'
+      ]
+      __roles = UrlMappings.restRoles(action, '/rest/v1/-/audit/logs')
     }
 
     /**

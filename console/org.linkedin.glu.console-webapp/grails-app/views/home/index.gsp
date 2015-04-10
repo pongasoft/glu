@@ -29,13 +29,13 @@
     </g:each>
   </ul>
 
-<h2><g:link controller="user" action="credentials">Manage your credentials</g:link></h2>
+<h2><cl:link controller="user" action="credentials">Manage your credentials</cl:link></h2>
 <g:if test="${request.fabric}">
   Your current fabric is '<span id="body-fabric">${request.fabric.name.encodeAsHTML()}</span>'.
 </g:if>
 <g:else>
-  You currently have not selected a fabric. <g:link controller="fabric" action="select">Select a fabric</g:link>
+  You currently have not selected a fabric. <cl:link controller="fabric" action="select">Select a fabric</cl:link>
 </g:else>
-<h2><g:link controller="auth" action="signOut">Sign Out</g:link></h2>
+<h2><cl:link controller="auth" action="signOut">Sign Out</cl:link></h2>
 </body>
 </html>

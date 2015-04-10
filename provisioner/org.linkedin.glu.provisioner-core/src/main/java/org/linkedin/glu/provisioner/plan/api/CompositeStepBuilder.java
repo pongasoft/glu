@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -26,12 +26,33 @@ import java.util.ArrayList;
 public abstract class CompositeStepBuilder<T> extends AbstractStepBuilder<T> implements ICompositeStepBuilder<T>
 {
   private final Collection<Object> _steps = new ArrayList<Object>();
+  private final IPlanBuilder.Config _config;
 
   /**
    * Constructor
    */
-  public CompositeStepBuilder()
+  public CompositeStepBuilder(IPlanBuilder.Config config)
   {
+    _config = config;
+  }
+
+  public IPlanBuilder.Config getConfig()
+  {
+    return _config;
+  }
+
+  public <U extends IStepBuilder<T>> U addStep(U step)
+  {
+    if(step != null)
+      _steps.add(step);
+    return step;
+  }
+
+  public <U extends IStep<T>> U addStep(U step)
+  {
+    if(step != null)
+      _steps.add(step);
+    return step;
   }
 
   @Override
@@ -50,17 +71,13 @@ public abstract class CompositeStepBuilder<T> extends AbstractStepBuilder<T> imp
   @Override
   public ICompositeStepBuilder<T> addSequentialSteps()
   {
-    SequentialStepBuilder<T> stepBuilder = new SequentialStepBuilder<T>();
-    _steps.add(stepBuilder);
-    return stepBuilder;
+    return addStep(new SequentialStepBuilder<T>(getConfig()));
   }
 
   @Override
   public ICompositeStepBuilder<T> addParallelSteps()
   {
-    ParallelStepBuilder<T> stepBuilder = new ParallelStepBuilder<T>();
-    _steps.add(stepBuilder);
-    return stepBuilder;
+    return addStep(new ParallelStepBuilder<T>(getConfig()));
   }
 
   @Override

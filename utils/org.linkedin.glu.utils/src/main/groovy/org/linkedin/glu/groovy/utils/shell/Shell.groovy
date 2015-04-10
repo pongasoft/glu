@@ -452,6 +452,29 @@ def interface Shell extends FileSystem
   InputStream tail(args)
 
   /**
+   * Tail the location from the offset to the end of the file. This api lets you implement
+   * something similar to <code>tail -f</code>. Note that it is the responsibility of the caller
+   * to properly close the stream returned!
+   *
+   * @params args.location the location of the file to tail
+   * @params args.offset the offset in the file where to start (in bytes). If negative, then
+   *                     count backward from the end of the file (optional, default to <code>0</code>)
+   * @return <code>null</code> if the location does not exist or a map with
+   *         * <code>tailStream</code>, the stream to read from (<code>InputStream</code>)
+   *         * <code>tailStreamMaxLength</code> how many bytes maximum <code>tailStream</code> contains
+   *           (note that <code>tailStream</code> may contain less, but will never contain more!)
+   *         * <code>length</code> the total size of the file
+   *         * <code>created</code> when the file was created
+   *         * <code>lastModified</code> when the file was modified last
+   *         * <code>lastAccessed</code> when the file was accessed last
+   *           (note that since this call accesses the file, it returns the time it was last
+   *           accessed prior to accessing it!)
+   *         * <code>canonicalPath</code> the file canonical path
+   *         * <code>isSymbolicLink</code> <code>boolean</code> for symbolic link yes/no
+   */
+  def tailFromOffset(def args)
+
+  /**
    * @return <code>true</code> if there is a socket open on the server/port combination
    */
   boolean listening(server, port)

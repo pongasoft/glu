@@ -18,9 +18,12 @@
 
 package test.agent.impl
 
+import org.linkedin.glu.agent.impl.capabilities.ShellImpl
+import org.linkedin.glu.agent.impl.script.ScriptDefinition
 import org.linkedin.glu.agent.impl.storage.FileSystemStorage
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.api.NoSuchMountPointException
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.glu.agent.impl.storage.AgentProperties
@@ -183,5 +186,63 @@ class TestFileSystemStorage extends GroovyTestCase
 
     // we read it back
     assertEquals([p1: 'v1', scriptDefinition: [mountPoint: mp]], storage.loadState(mp))
+  }
+
+  /**
+   * Some "files" may be invalid in which case it should ignore them
+   */
+  public void testInvalidEntries()
+  {
+    MountPoint mp = MountPoint.create('/a/b/c')
+    storage.storeState(mp, [p1: 'v1', scriptDefinition: [mountPoint: mp]])
+    assertEquals(['/a/b/c'], storage.mountPoints.path)
+
+    // mountPoint mismatch
+    stateFileSystem.cp("_a_b_c", '_q')
+    assertEquals(['/a/b/c'], storage.mountPoints.path)
+
+    // add one /a
+    storage.storeState(MountPoint.create('/a'), [p1: 'v1',
+                                                 scriptDefinition: [mountPoint: MountPoint.create('/a')]])
+    assertEquals(['/a', '/a/b/c'], storage.mountPoints.path.sort(GluGroovyLangUtils.COMPARATOR_CLOSURE))
+
+    // bad name (need to start with _)
+    stateFileSystem.cp("_a", "a")
+    assertEquals(['/a', '/a/b/c'], storage.mountPoints.path.sort(GluGroovyLangUtils.COMPARATOR_CLOSURE))
+  }
+
+  /**
+   * delete invalid states should properly delete invalid states as well as "upgrade" the format
+   * of old serialized entries
+   */
+  public void testDeleteInvalidStates()
+  {
+    MountPoint mp = MountPoint.create('/a/b/c')
+    storage.storeState(mp, [p1: 'v1', scriptDefinition: [mountPoint: mp]])
+
+    // mountPoint mismatch
+    stateFileSystem.cp("_a_b_c", '_q')
+
+    // should start with a
+    stateFileSystem.cp("_a_b_c", 'a_b_c')
+
+    // pre 4.7.1 format (should be converted...)
+    def shell = new ShellImpl(fileSystem: stateFileSystem)
+    shell.fetch("./src/test/resources/_sample_i001.glu4.6.2.ser",
+                "_sample_i001")
+    def state = storage.loadState(MountPoint.create('/sample/i001'))
+    assertTrue(state.scriptDefinition instanceof ScriptDefinition)
+
+    // non deserializable
+    stateFileSystem.saveContent('_foo1', "oasasoasdokdasok")
+
+    // now we call the method and make sure it does the right thing
+    storage.deleteInvalidStates()
+
+    assertEquals(['_a_b_c', '_sample_i001'],
+                 stateFileSystem.ls().collect { it.file.name }.sort(GluGroovyLangUtils.COMPARATOR_CLOSURE))
+
+    state = storage.loadState(MountPoint.create('/sample/i001'))
+    assertTrue(state.scriptDefinition instanceof Map)
   }
 }

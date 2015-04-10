@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Yan Pujante
+ * Copyright (c) 2013-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -15,9 +15,11 @@
  */
 
 grails.servlet.version = "2.5" // Change depending on target container compliance (2.5 or 3.0)
-grails.project.class.dir = "target/classes"
-grails.project.test.class.dir = "target/test-classes"
-grails.project.test.reports.dir = "target/test-reports"
+if(System.properties['grails.project.work.dir'])
+{
+  grails.project.work.dir = System.properties['grails.project.work.dir']
+  grails.project.test.reports.dir = "${grails.project.work.dir}/test-reports"
+}
 grails.project.target.level = 1.7
 grails.project.source.level = 1.7
 //grails.project.war.file = "target/${appName}-${appVersion}.war"
@@ -30,6 +32,10 @@ grails.project.source.level = 1.7
 //def externalDomainClassesInPlacePluginPath = new File("../external-domain-classes")
 //grails.plugin.location.'external-domain-classes' =
 //  externalDomainClassesInPlacePluginPath.canonicalPath
+
+// in place plugin
+grails.plugin.location.'decorate-grails-methods-plugin' = 'decorate-grails-methods-plugin'
+grails.plugin.location.'external-domain-classes-grails-plugin' = 'external-domain-classes-grails-plugin'
 
 grails.project.dependency.resolution = {
   // inherit Grails' default dependencies
@@ -51,8 +57,6 @@ grails.project.dependency.resolution = {
     mavenLocal()
     mavenCentral()
 
-    mavenRepo new File("../../local-maven-repo").canonicalFile.toURI().toString()
-
     // uncomment these (or add new ones) to enable remote dependency resolution from public Maven repositories
     //mavenRepo "http://snapshots.repository.codehaus.org"
     //mavenRepo "http://repository.codehaus.org"
@@ -71,7 +75,6 @@ grails.project.dependency.resolution = {
     runtime ":hibernate:$grailsVersion"
     runtime ":jquery:1.8.3"
     runtime ":resources:1.1.6"
-    runtime ":external-domain-classes:1.0.0"
 
     // Uncomment these (or add new ones) to enable additional resources capabilities
     //runtime ":zipped-resources:1.0"

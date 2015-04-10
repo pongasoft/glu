@@ -20,6 +20,8 @@ package org.linkedin.glu.agent.impl.storage
 
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.api.NoSuchMountPointException
+import org.linkedin.glu.agent.impl.script.ScriptDefinition
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.groovy.util.io.fs.FileSystem
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -62,14 +64,22 @@ class FileSystemStorage implements Storage
     }
   }
 
+  @Override
+  def invalidateState(MountPoint mountPoint)
+  {
+    _fileSystem.mv(mountPoint.toPathWithNoSlash(), _fileSystem.createTempDir()).toURI()
+  }
+
   public synchronized getMountPoints()
   {
     def potentialMountPoints = _fileSystem.ls().collect { resource ->
-      MountPoint.fromPathWithNoSlash(resource.filename)
+      GluGroovyLangUtils.noExceptionWithValueOnException(null) {
+        MountPoint.fromPathWithNoSlash(resource.filename)
+      }
     }
 
     potentialMountPoints.findAll { MountPoint mp ->
-      GroovyLangUtils.noException(mp, null) { loadState(mp) }
+      mp && GroovyLangUtils.noException(mp, null) { loadState(mp) }
     }
   }
 
@@ -85,15 +95,26 @@ class FileSystemStorage implements Storage
         if(state == null)
         {
           Resource moved = _fileSystem.mv(resource, _fileSystem.createTempDir())
-          log.warn("Detected invalid state... moved to ${moved}")
+          log.warn("Detected invalid state... moved to [${moved}]")
           return true
         }
 
         if(state.scriptDefinition?.mountPoint?.path?.startsWith("/_/command/"))
         {
           _fileSystem.rm(resource)
-          log.warn("Detected stale command state... deleted ${resource}")
+          log.warn("Detected stale command state... deleted [${resource}]")
           return true
+        }
+        else
+        {
+          // Prior to 4.7.1, the state was serializing a ScriptDefinition object. Post 4.7.1, it is
+          // a json String so we need to adjust in case of upgrade from 4.7.1- to 4.7.1+
+          if(state.scriptDefinition instanceof ScriptDefinition)
+          {
+            state.scriptDefinition = state.scriptDefinition.toExternalRepresentation()
+            log.warn("Detected old state file format... fixing [${resource}] ")
+            _fileSystem.serializeToFile(resource, state)
+          }
         }
 
         return false

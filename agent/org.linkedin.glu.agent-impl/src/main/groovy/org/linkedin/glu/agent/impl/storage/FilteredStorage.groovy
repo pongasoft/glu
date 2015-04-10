@@ -66,6 +66,12 @@ class FilteredStorage implements Storage
   }
 
   @Override
+  def invalidateState(MountPoint mountPoint)
+  {
+    storage.invalidateState(mountPoint)
+  }
+
+  @Override
   AgentProperties loadAgentProperties()
   {
     storage.loadAgentProperties()

@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2013 Yan Pujante
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package test.utils.shell
 
 import com.sun.net.httpserver.Headers
@@ -7,6 +22,7 @@ import org.linkedin.glu.groovy.utils.shell.Shell
 import org.linkedin.glu.groovy.utils.shell.ShellExec
 import org.linkedin.glu.groovy.utils.shell.ShellExecException
 import org.linkedin.glu.groovy.utils.shell.ShellImpl
+import org.linkedin.glu.groovy.utils.test.GluGroovyTestUtils
 import org.linkedin.groovy.util.collections.GroovyCollectionsUtils
 import org.linkedin.groovy.util.io.GroovyIOUtils
 import org.linkedin.groovy.util.ivy.IvyURLHandler
@@ -720,7 +736,99 @@ out << "done copy...\${token2}"
     }
   }
 
-  private def leavesPaths(Resource root)
+  /**
+   * Test the tail from offset capability
+   */
+  public void testTailFromOffset()
+  {
+    ShellImpl.createTempShell { Shell shell ->
+
+      shell.withTempFile { Resource tempFile ->
+        shell.saveContent(tempFile, "0123456789")
+
+        def res = shell.tailFromOffset(location: tempFile)
+        assertEquals("0123456789", res.tailStream.text)
+        assertEquals(10, res.length)
+        assertEquals(10, res.tailStreamMaxLength)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
+        assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        res = shell.tailFromOffset(location: tempFile, offset: -3)
+        assertEquals("789", res.tailStream.text)
+        assertEquals(10, res.length)
+        assertEquals(3, res.tailStreamMaxLength)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
+        assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        res = shell.tailFromOffset(location: tempFile, offset: 10)
+        assertEquals("", res.tailStream.text)
+        assertEquals(10, res.length)
+        assertEquals(0, res.tailStreamMaxLength)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
+        assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        shell.saveContent(tempFile, "012345678901")
+
+        res = shell.tailFromOffset(location: tempFile, offset: 10)
+        assertEquals("01", res.tailStream.text)
+        assertEquals(12, res.length)
+        assertEquals(2, res.tailStreamMaxLength)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
+        assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        res = shell.tailFromOffset(location: tempFile, offset: 12)
+        assertEquals("", res.tailStream.text)
+        assertEquals(12, res.length)
+        assertEquals(0, res.tailStreamMaxLength)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
+        assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        res = shell.tailFromOffset(location: tempFile, offset: -25)
+        assertEquals("012345678901", res.tailStream.text)
+        assertEquals(12, res.length)
+        assertEquals(12, res.tailStreamMaxLength)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
+        assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        res = shell.tailFromOffset(location: tempFile, offset: 34)
+        assertEquals("", res.tailStream.text)
+        assertEquals(12, res.length)
+        assertEquals(0, res.tailStreamMaxLength)
+        checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
+        assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        shell.withTempFile { Resource t2 ->
+          Files.createSymbolicLink(t2.file.toPath(), tempFile.file.toPath())
+
+          res = shell.tailFromOffset(location: t2, offset: 10)
+
+          assertEquals("01", res.tailStream.text)
+          assertEquals(12, res.length)
+          assertEquals(2, res.tailStreamMaxLength)
+          checkTimeDifference(tempFile.file.lastModified(), res.lastModified)
+          assertEquals(tempFile.file.canonicalPath, res.canonicalPath)
+          assertTrue(res.isSymbolicLink)
+        }
+      }
+    }
+  }
+
+  /**
+   * It seems that timing can vary by up to 1 second... due to os precision...
+   */
+  public void checkTimeDifference(long time1, long time2)
+  {
+    GluGroovyTestUtils.checkTimeDifference(this, time1, time2)
+  }
+
+  private static def leavesPaths(Resource root)
   {
     new TreeSet(GroovyIOUtils.findAll(root) { !it.isDirectory() }.collect { it.path })
   }

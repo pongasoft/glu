@@ -73,6 +73,13 @@ class RAMStorage implements Storage
   }
 
   @Override
+  def invalidateState(MountPoint mountPoint)
+  {
+    clearState(mountPoint)
+    return null
+  }
+
+  @Override
   AgentProperties loadAgentProperties()
   {
     return _agentProperties

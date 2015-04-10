@@ -30,12 +30,12 @@ public class NoSuchMountPointException extends AgentException
 
   public NoSuchMountPointException(MountPoint mountPoint)
   {
-    this(mountPoint.toString())
+    this((String) mountPoint?.toString())
   }
 
   public NoSuchMountPointException(String s)
   {
-    super(s);
+    super((String) s);
   }
 
   public NoSuchMountPointException(String s, Throwable throwable)
@@ -45,6 +45,6 @@ public class NoSuchMountPointException extends AgentException
 
   public NoSuchMountPointException(Throwable throwable)
   {
-    super(throwable);
+    super((Throwable) throwable);
   }
 }

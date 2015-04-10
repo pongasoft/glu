@@ -19,30 +19,42 @@ package org.linkedin.glu.console.domain
 import org.linkedin.util.codec.Base64Codec
 import org.linkedin.util.codec.CodecUtils
 import org.linkedin.util.codec.OneWayMessageDigestCodec
+import org.mindrot.jbcrypt.BCrypt
+
+import java.security.SecureRandom
 
 class DbUserCredentials
 {
+  public static final SecureRandom SECURE_RANDOM = new SecureRandom()
+  public static final int NB_ROUNDS = 12
+
   static OneWayMessageDigestCodec PASSWORD_CODEC =
     OneWayMessageDigestCodec.createSHA1Instance('glu', new Base64Codec())
 
   String username
   String oneWayHashPassword // password processed with one way hash
   String x509Pem // Base64 encoded DER certificate
+  String salt // a salt for the one way hash function
 
   boolean validatePassword(String password)
   {
     if(!password)
       return false
 
-    computeOneWayHash(password) == oneWayHashPassword
+    if(salt)
+      BCrypt.checkpw(salt + password, oneWayHashPassword)
+    else
+      // for backward compatibility with non seeded passwords
+      computeOneWayHash(password) == oneWayHashPassword
   }
 
   void setPassword(String password)
   {
-    oneWayHashPassword = computeOneWayHash(password)
+    salt = BCrypt.gensalt(NB_ROUNDS, SECURE_RANDOM)
+    oneWayHashPassword = BCrypt.hashpw(salt + password, BCrypt.gensalt(NB_ROUNDS, SECURE_RANDOM))
   }
   
-  private String computeOneWayHash(String password)
+  public static String computeOneWayHash(String password)
   {
     CodecUtils.encodeString(PASSWORD_CODEC, password)
   }
@@ -51,8 +63,9 @@ class DbUserCredentials
     username(nullable: false, blank: false, unique: true)
     oneWayHashPassword(nullable: true, blank: false)
     x509Pem(nullable: true, blank: false)
+    salt(nullable: true, blank: false)
   }
 
-  static transients = ['password', 'PASSWORD_CODEC']
+  static transients = ['password', 'PASSWORD_CODEC', 'SECURE_RANDOM']
 
 }

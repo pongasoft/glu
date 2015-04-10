@@ -32,7 +32,7 @@ class ScriptFailedException extends ScriptException
 
   ScriptFailedException(String message)
   {
-    super(message)
+    super((String) message)
   }
 
   ScriptFailedException(String message, Throwable th)

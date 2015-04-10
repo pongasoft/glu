@@ -30,14 +30,19 @@ public class ShellExecException extends Exception
   {
   }
 
-  ShellExecException(s)
+  ShellExecException(String s)
   {
-    super(s)
+    super((String) s)
   }
 
-  ShellExecException(s, throwable)
+  ShellExecException(String s, Throwable throwable)
   {
     super(s, throwable)
+  }
+
+  ShellExecException(Throwable throwable)
+  {
+    super((Throwable) throwable)
   }
 
   String getStringOutput()

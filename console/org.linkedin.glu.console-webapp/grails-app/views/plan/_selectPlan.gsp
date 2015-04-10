@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2011-2013 Yan Pujante
+  - Copyright (c) 2011-2014 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -23,7 +23,7 @@
   </tr>
 </table>
 <div id="select-plan">
-  <g:form controller="plan" action="redirectView">
+  <cl:form controller="plan" action="redirectView">
     <table id="select-plan-radio" class="noFullWidth table table-bordered tight-table">
       <tr>
         <th colspan="6">${title?.encodeAsHTML()}</th>
@@ -34,11 +34,16 @@
             <td>${plan.displayName ?: plan.planType.capitalize()}</td>
             <g:each in="${['SEQUENTIAL', 'PARALLEL']}" var="stepType">
               <td>${stepType}</td>
-              <td><input type="radio" name="planDetails" value="${JsonUtils.compactPrint([*:plan, stepType: stepType, name: (plan.displayName ?: plan.planType.capitalize()) + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="${remoteFunction(controller: 'plan', action:'create', update:[success:'plan-preview'], params: "'json=' + this.value")}" /></td>
+              <td><input type="radio" name="planDetails" value="${JsonUtils.compactPrint([*:plan, stepType: stepType, name: (plan.displayName ?: plan.planType.capitalize()) + ' - ' + title, systemFilter: filter]).encodeAsHTML()}" onclick="createPlan('${request.fabric.name}', '${g.createLink(controller: "plan", action: "create")}');" /></td>
             </g:each>
           </tr>
         </g:if>
       </g:each>
+      <tr>
+        <td colspan="6" style="text-align: center;">
+          Max Parallel Steps Count = <g:textField class="input-small" name="maxParallelStepsCount" onchange="createPlan('${request.fabric.name}', '${g.createLink(controller: "plan", action: "create")}');"/>
+        </td>
+      </tr>
       <tr>
         <td colspan="6" style="text-align: center;">
           <input class="btn btn-primary" type="submit" name="view" value="Select this plan" onClick="document.getElementById('planIdSelector').value=document.getElementById('planId').value;return true;">
@@ -47,7 +52,7 @@
             <div id="missingAgents" class="modal hide" role="dialog" aria-labelledby="possibleSources" aria-hidden="true">
               <div class="modal-header">
                   <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-              <h4>Missing agents [<g:link controller="fabric" action="listAgentFabrics">Fix it</g:link>]</h4>
+              <h4>Missing agents [<cl:link controller="fabric" action="listAgentFabrics">Fix it</cl:link>]</h4>
               <div class="modal-body">
                 <ul>
                   <g:each in="${missingAgents}" var="agentName">
@@ -65,5 +70,5 @@
       </tr>
     </table>
     <div id="plan-preview">Select a plan</div>
-  </g:form>
+  </cl:form>
 </div>

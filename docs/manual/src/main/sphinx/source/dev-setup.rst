@@ -52,10 +52,7 @@ Directory structure
   REST client (which talks to the resources) (used in both agent-cli and console-webapp)
 
 * ``agent/org.linkedin.glu.agent-cli``:
-  The command line which can talk to the agent directly::
-
-        ../../gradlew package // to create the package
-        ../../gradlew package-install // to install locally (for dev)
+  The command line which can talk to the agent directly.
 
 * ``agent/org.linkedin.glu.agent-cli-impl``:
   Contains the implementation of the agent cli
@@ -67,22 +64,10 @@ Directory structure
   Contains the implementation of the agent server cli.
 
 * ``agent/org.linkedin.glu.agent-server-upgrade``:
-  Create the upgrade package (to be used when uprading an already installed agent)::
-
-        ../../gradlew package // create the upgrade package
+  Create the upgrade package (to be used when uprading an already installed agent).
 
 * ``agent/org.linkedin.glu.agent-server``:
-  The actual server::
-
-        ../../gradlew package // create the package
-
-        ../../gradlew package-install // to install locally (for dev)
-        ../../gradlew setup // setup dev fabric and keys in zookeeper (used in conjunction with gradle install)
-
-        ../../gradlew setup-x-y // setup x agents in y fabrics: automatically setup zookeeper with the right set of
-                                // data and create x agents package with a wrapper shell script to start them all
-
-        ../../gradlew clean-setup // to delete the setup
+  The actual server.
 
 * ``console/org.linkedin.glu.console-webapp``:
   The console webapp (grails application)::
@@ -92,16 +77,10 @@ Directory structure
                               // libraries in lib to boot the app
 
 * ``console/org.linkedin.glu.console-cli``:
-  The cli for the console (written in python) to use the REST api of the console::
-
-        ../../gradlew package // create the package
-        ../../gradlew package-install // to install locally (for dev)
+  The cli for the console (written in python) to use the REST api of the console.
 
 * ``console/org.linkedin.glu.console-server``:
-  The ``console/org.linkedin.glu.console-webapp`` project generates the war (or is used in dev through grails). This project creates a ready to run console embedding jetty::
-
-        ../../gradlew package // create the package
-        ../../gradlew package-install // to install locally (for dev)
+  The ``console/org.linkedin.glu.console-webapp`` project generates the war (or is used in dev through grails). This project creates a ready to run console embedding jetty.
 
 * ``docs/manual``:
   The manual/documentation. To build simply issue::
@@ -121,6 +100,13 @@ Directory structure
 
         ../../gradlew package // create the package
         ../../gradlew package-install // to install locally (for dev)
+
+        ../../gradlew dev-setup     // generate a distribution with 1 agent in 1 fabric
+                                    // shell script (devsetupctl.sh) allows to start/stop
+        ../../gradlew dev-setup-x-y // generate a distribution with x agents in y fabrics
+                                    // shell script (devsetupctl.sh) allows to start/stop
+
+        ../../gradlew clean-dev-setup // to delete the setup
 
 * ``packaging/org.linkedin.glu.packaging-setup``:
   Creates a package with convenient shell scripts to setup the keys and agent in ZooKeeper::
@@ -145,62 +131,46 @@ Example::
 
 Quick Setup Guide
 -----------------
-This is a quick setup guide that shows you how to bring all the stack up (step 3 and 4 are optional and are just meant to verify that the agents are up and familiarizes you with the tools).
+This is a quick setup guide that shows you how to bring all the stack up (step 2 and 3 are optional and are just meant to verify that the agents are up and help you get familiar with the tools).
 
-1. Install ZooKeeper
-^^^^^^^^^^^^^^^^^^^^
-First you need ZooKeeper installed. If you do not have a ZooKeeper running on your box then you can either:
-
-* download it and install it from `the main website <http://hadoop.apache.org/zookeeper/>`_
-* download and install the server and cli from the sibling project on github called `linkedin-zookeeper <https://github.com/pongasoft/linkedin-zookeeper/downloads>`_ (if you want to build it yourself, follow the `instructions <https://github.com/pongasoft/linkedin-zookeeper/blob/master/README.md>`_)
-
-In any case, make sure that ZooKeeper is up and running. If you installed the cli simply run::
-
-    <path_to_cli>/bin/zk.sh ls /
-
-which will display::
-
-    zookeeper
-
-2. Bring the glu agent(s) up
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1. Bring the (dev) stack up
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Issue::
 
-    cd agent/org.linkedin.glu.agent-server
+    cd packaging/org.linkedin.glu.packaging-all
 
-    ../../gradlew setup-2-2
+    ../../gradlew dev-setup-2-2
 
-This will automatically create a setup by loading all the necessary information in ZooKeeper and creating a startup script: it creates 2 fabrics and 2 agents.
+This will automatically create a full stack setup (ZooKeeper, console and 2 agents in 2 fabrics).
 
-Go back to checkout root::
+Go back to checkout root then issue::
 
     cd ../..
 
-Go to the dist devsetup folder::
+Go to the dist ``dev-setup`` folder::
 
-    cd out/build/agent/org.linkedin.glu.agent-server/install/devsetup
+    cd out/build/packaging/org.linkedin.glu.packaging-all/install/dev-setup
 
-and start the 2 agents::
+.. tip::
+   The build output shows you were the folder is located::
 
-    ./agentdevctl.sh start
+     Created dev setup: /Users/ypujante/github/org.pongasoft/glu/out/build/packaging/org.linkedin.glu.packaging-all/install/dev-setup/bin/devsetupctl.sh
+
+and start the stack::
+
+    ./bin/devsetupctl.sh start
 
 You can now issue::
 
-    ./agentdevctl.sh tail
+    ./bin/devsetupctl.sh tail
 
-which will automatically tail the log files of both agents
+which will automatically tail the log files of all components of the stack.
 
-3. Try the agent cli (optional)
+2. Try the agent cli (optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Go to checkout root (you may want to do this in a different window as the tail command is blocking)::
+You can try the ``agent-cli`` and make sure that you can communicate with the agents::
 
-    cd agent/org.linkedin.glu.agent-cli
-
-    ../../gradlew package-install
-
-Go to the installation folder (the previous command will tell you where) and issue::
-
-    ./bin/agent-cli.sh -s https://localhost:13906
+    ./dists/agent-cli/org.linkedin.glu.agent-cli-<version>/bin/agent-cli.sh -s https://localhost:13906
     
 which returns (list all mountpoints on agent-1)::
 
@@ -208,7 +178,7 @@ which returns (list all mountpoints on agent-1)::
 
 then::
 
-    ./bin/agent-cli.sh -s https://localhost:13907
+    ./dists/agent-cli/org.linkedin.glu.agent-cli-<version>/bin/agent-cli.sh -s https://localhost:13908
 
 which returns (list all mountpoints on agent-2)::
 
@@ -216,88 +186,89 @@ which returns (list all mountpoints on agent-2)::
 
 then::
 
-    ./bin/agent-cli.sh -s https://localhost:13906 -m /
+    ./dists/agent-cli/org.linkedin.glu.agent-cli-<version>/bin/agent-cli.sh -s https://localhost:13906 -m /
 
 which returns (details about the mountPoint '/' on agent-1)::
 
     [scriptDefinition:[initParameters:[:], mountPoint:/, scriptFactory:[class:org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory, className:org.linkedin.glu.agent.impl.script.RootScript]], scriptState:[stateMachine:[currentState:installed], script:[rootPath:/]]]
 
-Note that when issuing this command you should see an entry in the log file of the agent (if you continued the tail started in step 2).
+Note that when issuing this command you should see an entry in the log file of the agent (if you continued the tail started in step 1).
 
-4. Try the REST api directly (optional)
+.. warning::
+   You need to replace ``<version>`` by the appropriate version of the build!
+
+3. Try the REST api directly (optional)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Go to checkout root
+Issue the command which is doing a ``GET /mountPoint/`` on agent-2 using the right keys::
 
-and issue the command which is doing a ``GET /agent`` on agent-2 using the right keys::
+    curl -k https://localhost:13906/mountPoint/ -E dev-keys/console.pem
 
-    curl -k https://localhost:13907/agent -E agent/org.linkedin.glu.agent-server/src/zk-config/keys/console.dev.pem
+    {"fullState":{"scriptDefinition":{"initParameters":{},"mountPoint":"/","scriptFactory": {"class":"org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory","className": "org.linkedin.glu.agent.impl.script.RootScript"}},"scriptState":{"stateMachine":{"currentState":"installed"},"script":{"rootPath":"/"}}}}
 
-    {"fullState":{"scriptDefinition":{"initParameters":{},"mountPoint":"/","scriptFactory":    {"class":"org.linkedin.glu.agent.impl.script.FromClassNameScriptFactory","className":    "org.linkedin.glu.agent.impl.script.RootScript"}},"scriptState":{"stateMachine":{"currentState":"installed"},"script":{"rootPath":"/"}}}}
+.. note::
+   What you get back is a json string!
 
-The passphrase you are prompted for is: ``password``
+4. Stopping the stack
+^^^^^^^^^^^^^^^^^^^^^
+In order to stop the stack, simply issue::
 
-Note how what you get back is a json string
+  ./bin/devsetupctl.sh stop
 
-5. Start the console
-^^^^^^^^^^^^^^^^^^^^
-Go to checkout root::
+5. Generating a new stack
+^^^^^^^^^^^^^^^^^^^^^^^^^
+In order to generate a new stack, it is important to clean the previous one, which can be done by simply doing::
+
+   ../../gradlew clean-dev-setup dev-setup-2-2
+
+.. tip::
+   If there is already a stack up and running, this command will stop it first.
+
+6. Working on the console
+^^^^^^^^^^^^^^^^^^^^^^^^^
+Step 1 generates a full stack, which means at this stage, you have ZooKeeper, the agent(s) and the console up and running. If you want to work on the console, you should generate a partial stack by following these steps instead.
+
+Go to checkout root then issue::
+
+    cd packaging/org.linkedin.glu.packaging-all
+
+    ../../gradlew -Pno.console-server clean-dev-setup dev-setup-2-2
+
+This will generate a stack with only ZooKeeper and the agent(s) but not the console. You start the stack the same way described in Step 1. Then in order to start the console, you do the following:
+
+Go to checkout root then issue::
 
     cd console/org.linkedin.glu.console-webapp
 
     ../../gradlew -i run-app
 
-Note that in order to work you must have grails installed. The -i option is a bit verbose but if you don't gradle is very silent and you don't see the output coming from grails::
+The ``-i`` option is a bit verbose but if you don't gradle is very silent and you don't see the output coming from grails::
+
     [ant:exec] Server running. Browse to http://localhost:8080/console
 
 Note that if you prefer you can run::
 
     ../../gradlew lib
-    grails run-app
+    ./grailsw run-app
 
-This way you run grails command directly. gradle lib is used to populate the lib folder with the
+This way you run grails command directly. ``gradle lib`` is used to populate the ``lib`` folder with the
 right set of dependencies and bootstrap information for the app.
 
 At this stage you are all setup!!!!
 
 Check the section :doc:`tutorial` for a quick walkthrough the console.
 
-6. Setup configuration
+7. Setup configuration
 ^^^^^^^^^^^^^^^^^^^^^^
 The same way you can configure the build, you can also configure the setup by editing the file::
 
     ~/.userConfig.properties
 
-    # control the agent setup when running gradle setup from org.linkedin.glu.agent-server
-    glu.agent.devsetup.fabric=...
-    glu.agent.devsetup.name=...
+    glu.packaging.dev-setup.agent.base.port=13906
+    glu.packaging.dev-setup.dir=... <---- this is most likely the one you will modify to install somewhere else
 
-    # control the agent setup when running gradle setup-x-y from org.linkedin.glu.agent-server
-    glu.agent.devsetup.basePort=13906
-    glu.agent.devsetup.zkRoot=/org/glu
-    glu.agent.devsetup.dir=... <---- this is most likely the one you will modify to install somewhere else
-    glu.agent.setup.zkConfigDir=...
-
-Check the file `build.gradle <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-server/build.gradle>`_ in ``org.linkedin.glu.agent-server`` for details on how those properties
-are used.
-
-7. Different setups
+8. Different setups
 ^^^^^^^^^^^^^^^^^^^
-The command ``../../gradlew setup-2-2`` has several flavors using gradle task rules. It allows to configure and setup your development environment with multiple agents on multiple fabrics quickly and effortlessly: the first number is the number of agents, the second one is the number of fabrics.
+The command ``../../gradlew dev-setup-2-2`` has several flavors using gradle task rules. It allows to configure and setup your development environment with multiple agents on multiple fabrics quickly and effortlessly: the first number is the number of agents, the second one is the number of fabrics.
 
-8. Cleaning up
-^^^^^^^^^^^^^^
-In order to clean up you can do the following:
-
-Stop all the agents that were started in Step 2. by issuing::
-
-    ./agentdevctl.sh stop
-
-(you may need to ``CTRL-C`` the tail command if it is still running)
-
-Under ``agent/org.linkedin.glu.agent-server`` you can use::
-
-    ../../gradlew clean-setup
-
-which cleans up all the data in ZooKeeper and deletes the devsetup folder created in step 2.
-
-You can then shutdown ZooKeeper 
+.. tip::
+   ``dev-setup`` is a shortcut for ``dev-setup-1-1``

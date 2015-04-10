@@ -27,8 +27,8 @@
   <li class="active dropdown">
     <cl:renderDashboardSelectDropdown/>
   </li>
-  <li><g:link controller="dashboard" action="plans">Plans</g:link></li>
-  <li><g:link controller="dashboard" action="customize">Customize</g:link></li>
+  <li><cl:link controller="dashboard" action="plans">Plans</cl:link></li>
+  <li><cl:link controller="dashboard" action="customize">Customize</cl:link></li>
 </ul>
 <div id="saveAsNew" class="modal hide" role="dialog" aria-labelledby="saveAsNewHeader" aria-hidden="true">
   <div class="modal-header">
@@ -36,7 +36,7 @@
     <h4 id="saveAsNewHeader">Save as new dashboard</h4>
   </div>
   <div class="modal-body">
-   <g:form controller="dashboard" action="saveAsNewCustomDashboard">
+   <cl:form controller="dashboard" action="saveAsNewCustomDashboard">
      <fieldset>
        <legend>New Name</legend>
        <div class="clearfix">
@@ -46,7 +46,7 @@
          <input type="submit" class="btn btn-primary" name="update" value="Save"/>
        </div>
      </fieldset>
-   </g:form>
+   </cl:form>
   </div>
 </div>
 <g:render template="delta"/>

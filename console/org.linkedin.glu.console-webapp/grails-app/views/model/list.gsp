@@ -29,7 +29,7 @@
 <body>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#">List</a></li>
-  <li><g:link action="choose">Load</g:link></li>
+  <li><cl:link action="choose">Load</cl:link></li>
 </ul>
 <div class="paginateButtons">
   <g:paginate total="${total}"/>

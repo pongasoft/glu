@@ -20,7 +20,6 @@
  */
 
 metaModelVersion = '1.0.0'
-gluVersion = '@glu.version@'
 
 def fabric = 'glu-dev-1'
 

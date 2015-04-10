@@ -16,14 +16,21 @@
 # the License.
 #
 
-# set JAVA_HOME (JDK6) & JAVA_CMD
-if [ -z "$JAVA_HOME" ]; then
-  echo "Please set JAVA_HOME manually."
-  exit 1
+if [ -z "$JAVA_CMD" ]; then
+  if [ -f $JAVA_HOME/bin/java ]; then
+    JAVA_CMD=$JAVA_HOME/bin/java
+  else
+    JAVA_CMD=java
+  fi
 fi
 
-if [ -z "$JAVA_CMD" ]; then
-  JAVA_CMD=$JAVA_HOME/bin/java
+JAVA_VER=$("$JAVA_CMD" -version 2>&1 | grep 'java version' | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
+if [ "$JAVA_VER" -lt 17 ]; then
+	echo "### ERROR START ###########"
+	echo "### Java @ $JAVA_CMD too old (required java 1.7)"
+	$JAVA_CMD -version
+	echo "### ERROR END   ###########"
+  exit 1;
 fi
 
 if [ -z "$JAVA_CMD_TYPE" ]; then
@@ -103,6 +110,10 @@ fi
 # Application Info - name, version, instance, etc.
 if [ -z "$JVM_APP_INFO" ]; then
   JVM_APP_INFO="-Dorg.linkedin.app.name=$APP_NAME -Dorg.linkedin.app.version=$APP_VERSION"
+fi
+
+if [ -z "$JETTY_PORT" ]; then
+  JETTY_PORT=8080
 fi
 
 if [ -z "$JETTY_CMD" ]; then

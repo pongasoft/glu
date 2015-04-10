@@ -48,7 +48,7 @@ def class ScriptExecutionException extends ScriptException
 
   ScriptExecutionException(String message)
   {
-    super(message)
+    super((String) message)
   }
 
   boolean equals(o)

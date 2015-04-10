@@ -24,20 +24,22 @@ import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
  * @author yan@pongasoft.com  */
 public class JsonMetaModelSerializerImpl
 {
+  String gluVersion
+
   GluMetaModel deserialize(Collection<Resource> resources)
   {
-    def builder = new GluMetaModelBuilder()
+    def builder = new GluMetaModelBuilder(gluVersion: gluVersion)
     resources.each { builder.deserializeFromJsonResource(it)}
-    builder.toGluMetaModel()
+    builder.toModel()
   }
 
   GluMetaModel deserialize(Map<String, Resource> resources)
   {
-    def builder = new GluMetaModelBuilder()
+    def builder = new GluMetaModelBuilder(gluVersion: gluVersion)
     resources.each { fabricName, resource ->
       builder.deserializeFromJsonResource(resource)
     }
-    builder.toGluMetaModel()
+    builder.toModel()
   }
 
   String serialize(GluMetaModel gluMetaModel, boolean prettyPrint = false)

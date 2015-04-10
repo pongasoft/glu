@@ -1,0 +1,36 @@
+<plugin name='external-domain-classes' version='1.1.0' grailsVersion='2.2.1 &gt; *'>
+  <author>Yan Pujante</author>
+  <authorEmail>yan@pongasoft.com</authorEmail>
+  <title>Add external domain classes to the application</title>
+  <description>
+By default only classes under the grails-app/domain directory are included as domain classes.
+The purpose of this plugin is to add classes that are annotated with grails.persistence.Entity in the list
+of packages defined in the property: grails.external.domain.packages to be automatically treated
+as domain classes the same way they would if they were under grails-app/domain.
+</description>
+  <documentation>http://www.github.com/pongasoft/external-domain-classes-grails-plugin/README.md</documentation>
+  <type>ExternalDomainClassesGrailsPlugin</type>
+  <resources />
+  <repositories>
+    <repository name='grailsCentral' url='http://grails.org/plugins' />
+    <repository name='mavenCentral' url='http://repo1.maven.org/maven2/' />
+  </repositories>
+  <dependencies />
+  <plugins>
+    <compile>
+      <plugin group='org.grails.plugins' name='cache' version='1.0.1' />
+      <plugin group='org.grails.plugins' name='shiro' version='1.1.4' />
+    </compile>
+    <runtime>
+      <plugin group='org.grails.plugins' name='hibernate' version='2.2.1' />
+      <plugin group='org.grails.plugins' name='jquery' version='1.8.3' />
+      <plugin group='org.grails.plugins' name='database-migration' version='1.3.2' />
+      <plugin group='org.grails.plugins' name='resources' version='1.1.6' />
+    </runtime>
+    <build>
+      <plugin group='org.grails.plugins' name='tomcat' version='2.2.1' />
+    </build>
+  </plugins>
+  <runtimePluginRequirements />
+  <behavior />
+</plugin>

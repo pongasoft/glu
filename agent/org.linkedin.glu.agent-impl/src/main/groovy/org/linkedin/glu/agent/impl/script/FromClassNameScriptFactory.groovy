@@ -32,8 +32,7 @@ def class FromClassNameScriptFactory implements ScriptFactory, Serializable
   private final String _className
   private final def _classPath
   private def _jarFiles
-  private transient def _script
-  private transient ClassLoader _classLoader
+  private transient LoadedScript _loadedScript
 
   FromClassNameScriptFactory(String className)
   {
@@ -60,7 +59,7 @@ def class FromClassNameScriptFactory implements ScriptFactory, Serializable
 
   public createScript(ScriptConfig scriptConfig)
   {
-    if(!_script)
+    if(!_loadedScript)
     {
       if(!_jarFiles?.collect { it.exists() }?.inject(true) { res, i -> res && i })
       {
@@ -68,23 +67,20 @@ def class FromClassNameScriptFactory implements ScriptFactory, Serializable
         _jarFiles = _classPath?.collect { scriptConfig.shell.fetch(it) }
       }
 
-      _classLoader = this.getClass().getClassLoader()
-
-      if(_jarFiles)
-        _classLoader = new URLClassLoader(_jarFiles.collect { it.toURI().toURL() } as URL[],
-                                          _classLoader)
-
-      _script = ReflectUtils.forName(_className, _classLoader).newInstance()
+      _loadedScript = scriptConfig.scriptLoader.loadScript(_className,
+                                                           _jarFiles?.collect { it.file } )
     }
 
-    return _script
+    return _loadedScript.script
   }
 
   @Override
   void destroyScript(ScriptConfig scriptConfig)
   {
+    scriptConfig.scriptLoader.unloadScript(_loadedScript)
+
     _jarFiles?.each { scriptConfig.shell.rm(it) }
-    _classLoader = null
+    _loadedScript = null
   }
 
   String toString()

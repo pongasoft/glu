@@ -16,7 +16,7 @@
   --}%
 
 <%@ page import="org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus" %>
-<h3>Completed deployments [${deployments?.size()}] [<g:link action="archiveAllDeployments" controller="plan" onClick="return confirm('Are you sure you want to archive all deployments ?');">Archive All</g:link>]</h3>
+<h3>Completed deployments [${deployments?.size()}] [<cl:link action="archiveAllDeployments" controller="plan" onClick="return confirm('Are you sure you want to archive all deployments ?');">Archive All</cl:link>]</h3>
 <g:if test="${deployments}">
   <table class="table table-bordered table-condensed" id="completedDeployments">
     <tr>
@@ -31,7 +31,7 @@
     <g:each in="${deployments}" var="deployment">
       <g:set var="planExecution" value="${deployment.planExecution}"/>
       <tr class="${planExecution.completionStatus.status}">
-        <td class="descriptionFilter"><g:link action="deployments" id="${deployment.id}" params="[showErrorsOnly: planExecution.completionStatus.status != IStepCompletionStatus.Status.COMPLETED]">${deployment.description}</g:link></td>
+        <td class="descriptionFilter"><cl:link action="deployments" id="${deployment.id}" params="[showErrorsOnly: planExecution.completionStatus.status != IStepCompletionStatus.Status.COMPLETED]">${deployment.description}</cl:link></td>
         <td class="usernameFilter">${deployment.username}</td>
         <td class="startTimeFilter"><cl:formatDate date="${new Date(planExecution.completionStatus.startTime)}"/></td>
         <td class="endTimeFilter">
@@ -44,7 +44,7 @@
           ${planExecution.completionStatus.status}
         </td>
         <td class="actionsFilter">
-          <g:link action="archiveDeployment" id="${deployment.id}">Archive</g:link>
+          <cl:link action="archiveDeployment" id="${deployment.id}">Archive</cl:link>
         </td>
       </tr>
     </g:each>

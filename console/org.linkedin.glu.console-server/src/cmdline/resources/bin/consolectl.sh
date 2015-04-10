@@ -69,4 +69,4 @@ JVM_TUNING_OPTIONS="$JVM_SIZE $JVM_SIZE_NEW $JVM_SIZE_PERM $JVM_GC_TYPE $JVM_GC_
 
 JAVA_OPTIONS="$JAVA_OPTIONS $JVM_TUNING_OPTIONS $JVM_APP_INFO -Dorg.linkedin.glu.console.config.location=$BASEDIR/conf/glu-console-webapp.groovy -Dorg.linkedin.glu.console.keys.dir=$BASEDIR/keys -Dorg.linkedin.glu.console.plugins.classpath=$PLUGINS_CLASSPATH -Dorg.linkedin.glu.console.root=$BASEDIR"
 
-JAVA="$JAVA_CMD" JAVA_OPTIONS="$JAVA_OPTIONS" $JETTY_CMD "$@"
+JAVA="$JAVA_CMD" JAVA_OPTIONS="$JAVA_OPTIONS" JETTY_PORT="$JETTY_PORT" $JETTY_CMD "$@"

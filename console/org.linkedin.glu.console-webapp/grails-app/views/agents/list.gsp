@@ -23,7 +23,7 @@
 <body>
 <ul class="nav nav-tabs">
   <li class="active"><a href="#">List</a></li>
-  <cl:whenFeatureEnabled feature="commands"><li><g:link controller="commands" action="list">All Commands</g:link></li></cl:whenFeatureEnabled>
+  <cl:whenFeatureEnabled feature="commands"><li><cl:link controller="commands" action="list">All Commands</cl:link></li></cl:whenFeatureEnabled>
 </ul>
 <table class="table table-bordered xtight-table">
   <thead>
@@ -36,7 +36,7 @@
   <tbody>
   <g:each in="${agents}" var="entry">
     <tr>
-      <td><g:link controller="agents" action="view" id="${entry.key}">${entry.key.encodeAsHTML()}</g:link></td>
+      <td><cl:link controller="agents" action="view" id="${entry.key}">${entry.key.encodeAsHTML()}</cl:link></td>
       <td>${entry.value?.version?.encodeAsHTML() ?: '--'}</td>
       <td>${entry.value?.hostname?.encodeAsHTML() ?: '--'}</td>
     </tr>

@@ -30,7 +30,6 @@ import java.util.concurrent.RunnableFuture
 import org.linkedin.glu.utils.concurrent.Submitter
 import org.linkedin.glu.utils.concurrent.OneThreadPerTaskSubmitter
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
-import org.linkedin.util.lang.LangUtils
 
 /**
  * @author yan@pongasoft.com */

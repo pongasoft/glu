@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011-2013 Yan Pujante
+ * Portions Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -167,6 +167,11 @@ console.dev.defaults =
           'glu-dev-2': ['drMode': 'secondary']
       ],
 
+    tail: [
+      size: '10k', // size to use when tailing a file by default (MemorySize)
+      refreshRate: '5s' // how long between polls (Timespan)
+    ],
+
     features:
     [
       commands: true
@@ -310,6 +315,7 @@ console.security.roles = [
   '/user/update/$id': 'ADMIN',
   '/user/create': 'ADMIN',
   '/user/save': 'ADMIN',
+  '/user/resetPassword': 'ADMIN',
 
   // audit log
   '/auditLog/list': 'ADMIN',
@@ -339,6 +345,7 @@ console.security.roles = [
 
   'GET:/rest/v1/$fabric/plan/$planId/execution/$id': 'USER',
   'HEAD:/rest/v1/$fabric/plan/$planId/execution/$id': 'USER',
+  'DELETE:/rest/v1/$fabric/plan/$planId/execution/$id': 'ADMIN',
 
   /***
    * deployments
@@ -361,6 +368,8 @@ console.security.roles = [
    */
   'POST:/rest/v1/$fabric/model/static': 'ADMIN',
   'GET:/rest/v1/$fabric/model/static': 'USER',
+  'HEAD:/rest/v1/$fabric/models/static': 'USER',
+  'GET:/rest/v1/$fabric/models/static': 'USER',
 
   'GET:/rest/v1/$fabric/model/live': 'USER',
 
@@ -400,6 +409,12 @@ console.security.roles = [
 
   'PUT:/rest/v1/$fabric/agent/$id/fabric': 'ADMIN',
   'DELETE:/rest/v1/$fabric/agent/$id/fabric': 'ADMIN',
+
+  /**
+   * Audit Logs
+   */
+  'GET:/rest/v1/-/audit/logs': 'ADMIN',
+  'HEAD:/rest/v1/-/audit/logs': 'ADMIN',
 
   /**
    * DEPRECATED: kept for backward compatibility only
@@ -451,11 +466,11 @@ environments {
     // log4j configuration
     log4j = {
 
-        appenders {
-            console name:'stdout', layout:pattern(conversionPattern: '%d{yyyy/MM/dd HH:mm:ss.SSS} %p [%c{1}] %m%n')
-        }
+      appenders {
+        console name:'stdout', layout:pattern(conversionPattern: '%d{yyyy/MM/dd HH:mm:ss.SSS} %p [%c{1}] %m%n')
+      }
 
-        error  'org.codehaus.groovy.grails.web.servlet',  //  controllers
+      error  'org.codehaus.groovy.grails.web.servlet',  //  controllers
              'org.codehaus.groovy.grails.web.pages', //  GSP
              'org.codehaus.groovy.grails.web.sitemesh', //  layouts
              'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
@@ -466,19 +481,22 @@ environments {
              'org.springframework',
              'org.hibernate'
 
-        info 'grails',
-             'org.linkedin'
+      info 'grails',
+           'org.linkedin',
+           'org.pongasoft'
 
-        //debug 'org.linkedin.zookeeper.tracker', 'org.linkedin.glu.agent.tracker'
+      //debug 'org.linkedin.zookeeper.tracker', 'org.linkedin.glu.agent.tracker'
+      //debug 'org.apache.http'
 
-              debug 'org.linkedin.glu.console.domain'
+      //debug 'org.linkedin.glu.console.domain'
+      //debug 'org.linkedin.glu.spring.resources.GrailsPluginLoadOrderDebugger'
 
 //        trace 'org.hibernate.SQL', 'org.hibernate.type'
 //        trace 'org.codehaus.groovy.grails.orm'
 //        trace 'org.codehaus.groovy.grails.orm.hibernate'
 
 
-        warn   'org.mortbay.log'
+      warn   'org.mortbay.log'
     }
   }
   test {

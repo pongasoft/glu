@@ -39,6 +39,11 @@ body {
   text-shadow: none;
 }
 
+.navbar-fixed-top .dropdown-menu {
+  max-height: 20em;
+  overflow-y: auto;
+}
+
 .container {
   width: 99%;
 }
@@ -313,4 +318,14 @@ li.filter-LogicSystemFilterChain {
 .shell .close {
   opacity: 0.8;
   color: #ffff00;
+}
+
+.syntax-error pre {
+  font-size: 80%;
+  max-height: 50em;
+  overflow-y: auto;
+}
+
+.file-actions {
+  float: right;
 }

@@ -253,6 +253,9 @@ glu.agent.rest.nonSecure.port=12907
 # this file will store the properties used so that they become 'default' values for the next run
 glu.agent.persistent.properties=\${glu.agent.dataDir}/config/agent.properties
 
+# whether to use a shared class loader (less memory but potential conflict) or not
+glu.agent.scripts.sharedClassLoader=false
+
 ################################
 # Commands configuration
 

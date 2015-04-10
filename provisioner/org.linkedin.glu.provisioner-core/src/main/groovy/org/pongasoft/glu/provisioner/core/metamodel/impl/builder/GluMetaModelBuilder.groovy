@@ -16,13 +16,9 @@
 
 package org.pongasoft.glu.provisioner.core.metamodel.impl.builder
 
-import com.fasterxml.jackson.core.JsonParseException
-import org.codehaus.groovy.control.CompilationFailedException
-import org.linkedin.groovy.util.io.GroovyIOUtils
-import org.linkedin.groovy.util.json.JsonUtils
+import org.linkedin.glu.provisioner.core.model.builder.ModelBuilder
 import org.linkedin.groovy.util.state.StateMachineImpl
 import org.linkedin.util.clock.Timespan
-import org.linkedin.util.io.resource.Resource
 import org.pongasoft.glu.provisioner.core.metamodel.GluMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.KeysMetaModel
 import org.pongasoft.glu.provisioner.core.metamodel.impl.AgentCliMetaModelImpl
@@ -47,10 +43,12 @@ import org.slf4j.LoggerFactory
 
 /**
  * @author yan@pongasoft.com  */
-public class GluMetaModelBuilder
+public class GluMetaModelBuilder extends ModelBuilder<GluMetaModel>
 {
   public static final String MODULE = GluMetaModelBuilder.class.getName();
   public static final Logger log = LoggerFactory.getLogger(MODULE);
+
+  String gluVersion
 
   GluMetaModelImpl gluMetaModel = new GluMetaModelImpl()
   Map<String, FabricMetaModelImpl> fabrics = [:]
@@ -58,84 +56,23 @@ public class GluMetaModelBuilder
   Map<String, ConsoleMetaModelImpl> consoles = [:]
   Map<String, ZooKeeperClusterMetaModelImpl> zooKeeperClusters = [:]
 
-  void deserializeFromJsonResource(Resource resource)
+  @Override
+  Map doParseJsonGroovy(String jsonModel)
   {
-    if(resource != null)
-    {
-      def jsonModel = GroovyIOUtils.cat(resource)
-      if(resource.filename?.endsWith('.json.groovy'))
-        deserializeFromJsonGroovyDsl(jsonModel)
-      else
-        deserializeFromJsonString(jsonModel)
-    }
+    GluMetaModelJsonGroovyDsl.parseJsonGroovy(jsonModel)
   }
 
-  void deserializeFromJsonString(String jsonModel)
-  {
-    Map jsonMapModel
-
-    try
-    {
-      jsonMapModel = (Map) JsonUtils.fromJSON(jsonModel?.trim())
-    }
-    catch(JsonParseException jpe)
-    {
-      def lines = []
-      int i = 1
-      jsonModel.eachLine { line ->
-        lines << "[${i++}] ${line}"
-      }
-
-      int errorLine = jpe.location.lineNr - 1 // 1 based
-
-      def minLine = Math.max(0, errorLine - 5)
-      def maxLine = Math.min(lines.size() - 1, errorLine + 5)
-
-      log.error """Problem with json model: ${jpe.message}
-${'/' * 20}
-${lines[minLine..maxLine].join('\n')}
-${'/' * 20}"""
-
-      throw jpe
-    }
-
-    deserializeFromJsonMap(jsonMapModel)
-  }
-
-  void deserializeFromJsonGroovyDsl(String jsonModel)
-  {
-    Map jsonMapModel
-    try
-    {
-      jsonMapModel = GluMetaModelJsonGroovyDsl.parseJsonGroovy(jsonModel)
-    }
-    catch(CompilationFailedException cfe)
-    {
-      def lines = []
-      int i = 1
-      jsonModel.eachLine { line ->
-        lines << "[${i++}] ${line}"
-      }
-
-      log.error """Problem with json model: ${cfe.message}
-${'/' * 20}
-${lines.join('\n')}
-${'/' * 20}"""
-
-      throw cfe
-    }
-
-    deserializeFromJsonMap(jsonMapModel)
-  }
-
-  void deserializeFromJsonMap(Map jsonModel)
+  GluMetaModelBuilder deserializeFromJsonMap(Map jsonModel)
   {
     // sanity check... leave it open for future versions
     def metaModelVersion = jsonModel.metaModelVersion ?: GluMetaModelImpl.META_MODEL_VERSION
     if(metaModelVersion != GluMetaModelImpl.META_MODEL_VERSION)
       throw new IllegalArgumentException("unsupported meta model version ${metaModelVersion}")
 
-    gluMetaModel.gluVersion = jsonModel.gluVersion
+    if(jsonModel.gluVersion)
+      gluMetaModel.gluVersion = jsonModel.gluVersion
+    else
+      gluMetaModel.gluVersion = gluVersion ?: System.getProperty('glu.version')
 
     // agents
     jsonModel.agents?.each { deserializeAgent(it) }
@@ -161,6 +98,8 @@ ${'/' * 20}"""
 
     // fabrics
     jsonModel.fabrics?.each { name, fabricModel -> deserializeFabric(name, fabricModel)}
+
+    return this
   }
 
   StateMachineMetaModelImpl deserializeStateMachine(Map stateMachineModel)
@@ -419,7 +358,7 @@ ${'/' * 20}"""
                               keyPassword: keyStoreModel.keyPassword)
   }
 
-  GluMetaModel toGluMetaModel()
+  GluMetaModel toModel()
   {
     def newFabrics = fabrics.collectEntries { name, fabric ->
       fabric.agents = Collections.unmodifiableMap(fabric.agents)

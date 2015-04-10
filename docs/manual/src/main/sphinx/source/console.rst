@@ -356,6 +356,7 @@ The plans page displays the list of deployments that have happened recently. Sin
       ]
    ],
 
+.. _console-configuration-limiting-parallel-steps:
 
 Limiting the number of parallel steps
 """""""""""""""""""""""""""""""""""""
@@ -371,6 +372,21 @@ When running deployments in parallel, there is, by default, no limitation on how
    // By default (undefined), it is unlimited
    console.deploymentService.deployer.planExecutor.leafExecutorService.fixedThreadPoolSize = 500
         """
+      ]
+   ],
+
+.. _console-configuration-session-timeout:
+
+Session timeout
+"""""""""""""""
+
+You can change the session timeout by defining the following property (and as the name of the property implies, you need to provide the value in minutes)::
+
+   consoles << [
+      name: 'myConsole',
+      ...,
+      configTokens: [
+        sessionTimeoutInMinutes: 60 // 1 hour
       ]
    ],
 
@@ -404,7 +420,7 @@ The UI is configured in the ``console.defaults`` section of the configuration fi
     ... configuration goes here ...
   ]
 
-You can either provide your entire ``console.defaults`` section::
+In order to use your own values, you can either provide (in the meta model) your entire ``console.defaults`` section::
 
    consoles << [
       name: 'myConsole',
@@ -658,6 +674,19 @@ The *standard* plan types are: ``deploy``, ``redeploy``, ``undeploy``, ``bounce`
 
 .. tip:: By using the :ref:`plugin hook <goe-plugins>` ``PlannerService_pre_computePlans`` you can add your own plan types!
 
+.. _console-configuration-tail:
+
+Tail
+""""
+
+This section defines the default size and refresh rate (how long between polls) for the tail feature::
+
+    tail: [
+      size: '10k', // size to use when tailing a file by default (MemorySize)
+      refreshRate: '5s' // how long between polls (Timespan)
+    ],
+
+
 .. _console-dashboard:
 
 Features
@@ -797,7 +826,7 @@ The console is distributed as an exploded war file. As a result it is possible t
 
 * 2. This gives you access to the root of the webapp with 3 essential folders: ``css``, ``images`` and ``js``. Simply put your :ref:`templates <glu-config-templates>` in the proper subfolder.
 
-* 3. Run the setup tool with the ``--config-templates`` option.
+* 3. Run the setup tool with the ``--config-templates-root`` option.
 
 For example, if you wanted to change the glu logo with your own logo::
 
@@ -806,7 +835,7 @@ For example, if you wanted to change the glu logo with your own logo::
   # copy your logo with the proper name
   cp <my logo>.png /tmp/myFolder/config-templates/console-server/glu/repository/exploded-wars/org.linkedin.glu.console-webapp-@consoleMetaModel.version@/images/glu_480_white.png
   # run the setup tool
-  $GLU_HOME/bin/setup.sh -D -o xxxx --config-templates "<default>" --config-templates /tmp/myFolder/config-templates my-model.json.groovy
+  $GLU_HOME/bin/setup.sh -D -o xxxx --config-templates-root "<default>" --config-templates-root /tmp/myFolder/config-templates my-model.json.groovy
 
 .. _console-script-log-files:
 
@@ -839,6 +868,74 @@ Example of glu script::
         logs.gc = logsDir."gc.log" // using logs map
       }
     }
+
+.. _console-script-pids:
+
+Processes Display
+-----------------
+
+When looking at an agent (agents view page), for each entry, there may be a ``Processes`` section determined by the fields declared in the script:
+
+.. image:: /images/console-script-log-files.png
+   :align: center
+   :alt: Script log files
+
+or in the ``All Processes`` tab, the ``org.linkedin.app.name`` column can provide details about the process:
+
+.. image:: /images/console-script-processes.png
+   :align: center
+   :alt: Script log files
+
+In order to see entries like this you can do the following in your script:
+
+* declare a field called ``pids`` which should be a map where the key is the pid (process id) and the value is another map with the following keys:
+
+  * ``command``: the name of the command/process (ex: ``java``) (optional)
+  * ``org.linkedin.app.name``: the name to be displayed (optional)
+  * ``cpu``: the percentage of cpu used by the process (optional). This value is usually unnecessary to be provided since glu will compute it appropriately.
+
+* declare a field called ``pid`` which is just one process id and will reference the "main" process started by the glu script (and will be rendered as a ``ps`` shortcut).
+
+Example of glu script::
+
+    class GluScriptWithPids
+    {
+      def port
+      def pid
+      def pids
+
+      // ...
+
+      def start = {
+        shell.exec("${serverCmd} start > /dev/null 2>&1 &")
+
+        // we wait for the process to be started (should be quick)
+        shell.waitFor(timeout: '5s', heartbeat: '250') {
+          pid = isProcessUp()
+          // in order for groovy/glu to detect the changes inside the map, the entire map should be
+          // recreated every time (simply treat it as an immutable map...)
+          pids =
+            [
+              (pid): [ 'org.linkedin.app.name': "Jetty container [${port}]" ]
+            ]
+        }
+      }
+
+      // ...
+
+      private Integer isProcessUp()
+      {
+        // determine if the process is up or not and return the pid
+        // ...
+        return processId
+      }
+
+    }
+
+
+.. note:: In order to fill the ``org.linkedin.app.name`` column, you can also simply start the process with a command line argument like this: ``-Dorg.linkedin.app.name=xxx`` and ``xxx`` will be displayed (note that the ``pids`` map in the glu script will override this value if both are provided).
+
+.. tip:: For a full example, check the ``JettyGluScript`` that comes bundled with glu.
 
 First bootstrap
 ---------------

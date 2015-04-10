@@ -398,7 +398,7 @@ setup.sh -Z <meta-model>+ // configure ZooKeeper clusters (step 3)
       builder.deserializeFromJsonResource(createResource(metaModel))
     }
 
-    builder.toGluMetaModel()
+    builder.toModel()
   }
 
   protected GluPackager buildPackager(boolean dryMode)

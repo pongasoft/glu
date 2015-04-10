@@ -295,10 +295,21 @@ if [ -z "$GLU_USER_CONFIG_DIR" ]; then
   GLU_USER_CONFIG_DIR=$CONF_DIR
 fi
 
+# hook for custom configuration (outside agent upgrade)
+if [ -z "$GLU_PERMANENT_CONFIG_DIR" ]; then
+  GLU_PERMANENT_CONFIG_DIR=$GLU_AGENT_HOME/conf
+fi
+
 # Load Configuration Files - $GLU_USER_CONFIG_DIR/pre_master_conf.sh first (if exists)
 if [ -f $GLU_USER_CONFIG_DIR/pre_master_conf.sh ]; then
   echo "Loading config [$GLU_USER_CONFIG_DIR/pre_master_conf.sh]..."
   source $GLU_USER_CONFIG_DIR/pre_master_conf.sh
+fi
+
+# Load Configuration Files - $GLU_PERMANENT_CONFIG_DIR/pre_master_conf.sh first (if exists)
+if [ -f $GLU_PERMANENT_CONFIG_DIR/pre_master_conf.sh ]; then
+  echo "Loading config [$GLU_PERMANENT_CONFIG_DIR/pre_master_conf.sh]..."
+  source $GLU_PERMANENT_CONFIG_DIR/pre_master_conf.sh
 fi
 
 # Load Configuration Files - master_conf.sh (comes bundled)
@@ -311,6 +322,12 @@ fi
 if [ -f $GLU_USER_CONFIG_DIR/post_master_conf.sh ]; then
   echo "Loading config [$GLU_USER_CONFIG_DIR/post_master_conf.sh]..."
   source $GLU_USER_CONFIG_DIR/post_master_conf.sh
+fi
+
+# Load Configuration Files - $GLU_PERMANENT_CONFIG_DIR/post_master_conf.sh last (if exists)
+if [ -f $GLU_PERMANENT_CONFIG_DIR/post_master_conf.sh ]; then
+  echo "Loading config [$GLU_PERMANENT_CONFIG_DIR/post_master_conf.sh]..."
+  source $GLU_PERMANENT_CONFIG_DIR/post_master_conf.sh
 fi
 
 PID_FILE=$LOG_DIR/$APP_NAME.pid

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,10 +17,15 @@
 
 package org.linkedin.glu.console.controllers
 
+import org.linkedin.glu.agent.api.MountPoint
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
+import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.plan.api.IStep
 import org.linkedin.glu.agent.tracker.MountPointInfo
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
+import org.linkedin.util.lang.MemorySize
+
 import java.security.AccessControlException
 import org.linkedin.glu.orchestration.engine.agents.NoSuchAgentException
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
@@ -51,6 +56,22 @@ class AgentsController extends ControllerBase
     running: [
       [planType: "transition", displayName: "Stop", state: "stopped"],
       [planType: "bounce", displayName: "Bounce"],
+      [
+        planAction: "reconfigure",
+        planType: "transition",
+        displayName: "Reconfigure",
+        states: ["installed", "running"],
+      ],
+    ],
+
+    stopped: [
+      [
+        planAction: "reconfigure",
+        planType: "transition",
+        displayName: "Reconfigure",
+        states: ["installed", "stopped"],
+      ],
+      [planType: "transition", displayName: "Start", state: "running"],
     ],
 
     // all other states
@@ -248,7 +269,64 @@ class AgentsController extends ControllerBase
    */
   def ps = {
     handleNoAgent {
-      return [ps: agentsService.ps(fabric: request.fabric, id: params.id)]
+      def agentProcesses = agentsService.ps(fabric: request.fabric, id: params.id)
+
+      def filter = "agent='${params.id}'".toString()
+      SystemModel model = agentsService.getCurrentSystemModel(request.fabric)
+      model = model.filterBy(filter)
+      def scriptProcesses = [:]
+      model.each { SystemEntry entry ->
+        def pidMap = entry.metadata?.scriptState?.script?.pids
+        if(pidMap instanceof Map)
+        {
+          GluGroovyCollectionUtils.collectKey(pidMap, scriptProcesses) { pid, values ->
+            values = [*:values]
+            values.mountPoint = entry.mountPoint
+            values
+          }
+        }
+
+        def mainProcess = entry.metadata?.scriptState?.script?.pid?.toString()
+        if(mainProcess && !scriptProcesses.containsKey(mainProcess))
+        {
+          scriptProcesses[mainProcess] = [
+            mountPoint: entry.mountPoint
+          ]
+        }
+      }
+
+      def processes = GluGroovyCollectionUtils.collectKey(agentProcesses, [:]) { pid, process ->
+        def scriptProcess = scriptProcesses[pid]
+        if(process.exe?.Name)
+        {
+          def res = [*:process]
+
+          res.command = scriptProcess?.command ?: process.exe.Name.split('/')[-1]
+          res.cpu = process.cpu?.Percent ?: scriptProcess?.cpu
+          res.mountPoint = scriptProcess?.mountPoint
+
+          res."org.linkedin.app.name" = scriptProcess?."org.linkedin.app.name"
+          if(!res."org.linkedin.app.name")
+          {
+            def applicationArgs = process.args?.find { it.startsWith('-Dorg.linkedin.app.name=') }
+            if(applicationArgs)
+              res."org.linkedin.app.name" = applicationArgs - "-Dorg.linkedin.app.name="
+          }
+
+          return res
+        }
+      }
+
+      processes = processes.findAll {k, v -> v}
+
+      scriptProcesses.each { pid, process ->
+        if(!processes[pid])
+        {
+          processes[pid] = process
+        }
+      }
+
+      return [ps: processes]
     }
   }
 
@@ -277,7 +355,7 @@ class AgentsController extends ControllerBase
    */
   def clearError = {
     handleNoAgent {
-      agentsService.clearError(fabric: request.fabric, *:params)
+      agentsService.clearError(*:params, fabric: request.fabric)
       redirect(action: 'view', id: params.id)
     }
   }
@@ -287,7 +365,7 @@ class AgentsController extends ControllerBase
    */
   def uninstallScript = {
     handleNoAgent {
-      agentsService.uninstallScript(fabric: request.fabric, *:params)
+      agentsService.uninstallScript(*:params, fabric: request.fabric)
       redirect(action: 'view', id: params.id)
     }
   }
@@ -297,7 +375,7 @@ class AgentsController extends ControllerBase
    */
   def forceUninstallScript = {
     handleNoAgent {
-      agentsService.forceUninstallScript(fabric: request.fabric, *:params)
+      agentsService.forceUninstallScript(*:params, fabric: request.fabric)
       redirect(action: 'view', id: params.id)
     }
   }
@@ -308,7 +386,7 @@ class AgentsController extends ControllerBase
   def fullStackTrace = {
     try
     {
-      def state = agentsService.getFullState(fabric: request.fabric, *:params)
+      def state = agentsService.getFullState(*:params, fabric: request.fabric)
       if(state?.scriptState?.stateMachine?.error)
       {
         render(template: 'fullStackTrace', model: [exception: state.scriptState.stateMachine.error])
@@ -330,19 +408,25 @@ class AgentsController extends ControllerBase
     try
     {
       def system = request.system
-      system = system.unfilter().filterBy {
-        it.agent == params.id && it.mountPoint == params.mountPoint
+      system = system.unfilter().filterBy { entry ->
+        entry != null && entry.agent == params.id && entry.mountPoint == params.mountPoint
       }
       request.system = system
 
-      def metadata = [agent: params.id, mountPoint: params.mountPoint, *:params]
-      ['controller', 'action', 'id', '__nvbe'].each { metadata.remove(it) }
+      def args = GluGroovyCollectionUtils.xorMap(params,
+                                                 ['controller', 'action', 'id', '__nvbe', '__role'])
 
-      params.system = system
-      params.stepType = params.stepType ?: IStep.Type.SEQUENTIAL
-      params.name = params.planName ?: "${params.displayName ?: params.planType.capitalize()} ${params.id}:${params.mountPoint}".toString()
+      // turn it into a collection (rather than an array)
+      if(args.states)
+        args.states = args.states.collect { it }
 
-      def plans = plannerService.computePlans(params, metadata)
+      def metadata = [*:args, agent: params.id, mountPoint: params.mountPoint]
+
+      args.system = system
+      args.stepType = params.stepType ?: IStep.Type.SEQUENTIAL
+      args.name = params.planName ?: "${params.displayName ?: params.planType.capitalize()} ${params.id}:${params.mountPoint}".toString()
+
+      def plans = plannerService.computePlans(args, metadata)
       if(plans)
       {
         session.plan = plans
@@ -350,14 +434,14 @@ class AgentsController extends ControllerBase
       }
       else
       {
-        flash.error = "No plan to execute ${params.planAction}"
-        redirect(controller: 'agents', action: 'view', id: params.id)
+        flash.error = "No plan to execute ${args.planAction}"
+        redirect(controller: 'agents', action: 'view', id: args.id)
       }
     }
     catch (Exception e)
     {
-      flashException("Error while moving to state ${params}", e)
-      redirect(action: 'view', id: params.id)
+      flashException("Error while moving to state ${args}", e)
+      redirect(action: 'view', id: args.id)
     }
   }
 
@@ -368,7 +452,7 @@ class AgentsController extends ControllerBase
     params.action = params.transitionAction
     try
     {
-      agentsService.interruptAction(fabric: request.fabric, *:params)
+      agentsService.interruptAction(*:params, fabric: request.fabric)
     }
     catch (Exception e)
     {
@@ -383,7 +467,7 @@ class AgentsController extends ControllerBase
    */
   def tailLog = {
     handleNoAgent {
-      agentsService.tailLog(fabric: request.fabric, *:params) {
+      agentsService.tailLog(*:params, fabric: request.fabric) {
         response.contentType = "text/plain"
         response.outputStream << it
       }
@@ -394,25 +478,76 @@ class AgentsController extends ControllerBase
    * getFileContent
    */
   def fileContent = {
+    if(params.file)
+    {
+      render(view: 'file', model: [location: params.file])
+      return
+    }
+
     handleNoAgent {
       try
       {
-        agentsService.streamFileContent(fabric: request.fabric, *:params) { res ->
+        // this is for backward compatibility with previous agents which don't know the offset
+        // parameter
+        if(params.offset)
+          params.maxLine = 500
+
+        agentsService.streamFileContent(*:params, fabric: request.fabric) { res ->
           if(res instanceof InputStream)
           {
-            response.contentType = "text/plain"
+            if(params.binaryOutput)
+            {
+              response.contentType = "application/octet-stream"
+              def filename = new File(URI.create("file:${params.location}")).name
+              response.addHeader('Content-Disposition',
+                                 "attachment; filename=\"${filename.encodeAsURL()}\"")
+            }
+            else
+              response.contentType = "text/plain"
+
             response.outputStream << res
           }
           else
           {
-            render(view: 'directory', model: [dir: res])
+            if(params.offset)
+            {
+              if(res?.tailStream)
+              {
+                GluGroovyCollectionUtils.xorMap(res, ['tailStream']).each { k, v ->
+                  response.addHeader("X-glu-${k}", v.toString())
+                }
+                if(res.length > 0)
+                  response.addHeader("X-glu-length-as-MemorySize",
+                                     MemorySize.parse(res.length.toString()).canonicalString)
+                if(res.lastModified)
+                  response.addHeader('X-glu-lastModified-as-String',
+                                     cl.formatDate(time: res.lastModified).toString())
+
+                  response.contentType = "text/plain"
+                  response.outputStream << res.tailStream
+              }
+              else
+                render ''
+            }
+            else
+            {
+              render(view: 'directory', model: [dir: res])
+            }
           }
         }
       }
-      catch (AccessControlException e)
+      catch (AccessControlException ignored)
       {
-        flash.error = "Not authorized to view ${params.location}"
-        redirect(action: 'view', id: params.id)
+        if(params.offset)
+        {
+          response.addHeader("X-glu-unauthorized", params.location)
+          render ''
+        }
+        else
+        {
+          flash.error = "Not authorized to view ${params.location}"
+          redirect(action: 'view', id: params.id)
+        }
         return
       }
     }
@@ -674,6 +809,11 @@ class AgentsController extends ControllerBase
     }
   }
 
+  def rest_agent_get_file_content = {
+    println params
+    render ''
+  }
+
   private computeAgentModel(Fabric fabric, agent, mountPoints, hasDelta)
   {
     def entry = [:]
@@ -699,55 +839,28 @@ class AgentsController extends ControllerBase
       state = entry.mountPoints.values().find { it.error } ? 'ERROR' : state
 
       def actions = [:]
-      entry.mountPoints.values().each { MountPointInfo mp ->
-        def mpActions = [:]
-        def link
-
-        def pid = mp.data?.scriptState?.script?.pid
-
-        if(pid)
-        {
-          link = g.createLink(controller: 'agents',
-                                  action: 'ps',
-                                  id: agent.agentName,
-                                  params: [pid: mp.data?.scriptState?.script?.pid])
-          mpActions[link] = "ps"
-        }
-
-        if(mp.transitionState)
-        {
-          link = g.createLink(controller: 'agents',
-                              action: 'interruptAction',
-                              id: agent.agentName,
-                              params: [mountPoint: mp.mountPoint,
-                                       transitionAction: mp.transitionAction,
-                                       state: mp.currentState,
-                                           timeout: '10s'])
-          mpActions[link] = "interrupt ${mp.transitionAction}"
-        }
-        else
-        {
-          if(!mp.isCommand())
+      entry.mountPoints = entry.mountPoints.collectEntries() { MountPoint mp, MountPointInfo mpi ->
+        def newMpi = GluGroovyLangUtils.noExceptionWithValueOnException(null) {
+          try
           {
-            def stateActions = mountPointActions[mp.currentState] ?: (mountPointActions["-"] ?: [])
-
-            stateActions = [*stateActions, *(mountPointActions["*"] ?: [])]
-
-            stateActions?.each { stateAction ->
-              link = g.createLink(controller: 'agents',
-                                  action: 'create_plan',
-                                  id: agent.agentName,
-                                  params: [
-                                   mountPoint: mp.mountPoint,
-                                   *:stateAction,
-                                  ])
-              mpActions[link] = stateAction.displayName ?: stateAction.planType.capitalize()
-            }
+            actions[mp] = computeMountPointActions(mountPointActions, agent, mpi)
           }
+          catch(Throwable error)
+          {
+            mpi = mpi.invalidate(error)
+            actions[mp] = computeMountPointActions(mountPointActions,
+                                                   agent,
+                                                   mpi)
+          }
+          return mpi
         }
 
-        actions[mp.mountPoint] = mpActions
+        [(mp): newMpi]
       }
+
+      // eliminate null entries
+      entry.mountPoints = entry.mountPoints.findAll { k,v -> v }
+
       entry.actions = actions
     }
     else
@@ -755,11 +868,60 @@ class AgentsController extends ControllerBase
       state = 'NOT_RUNNING'
     }
 
-
-
     entry.state = state
     entry.hasDelta = hasDelta
 
     return entry
+  }
+
+  protected def computeMountPointActions(def mountPointActions, agent, MountPointInfo mp)
+  {
+    def mpActions = [:]
+    def link
+
+    def pid = mp.data?.scriptState?.script?.pid
+
+    if(pid)
+    {
+      link = cl.createLink(controller: 'agents',
+                           action: 'ps',
+                           id: agent.agentName,
+                           params: [pid: mp.data?.scriptState?.script?.pid])
+      mpActions[link] = "ps"
+    }
+
+    if(mp.transitionState)
+    {
+      link = cl.createLink(controller: 'agents',
+                           action: 'interruptAction',
+                           id: agent.agentName,
+                           params: [mountPoint: mp.mountPoint,
+                             transitionAction: mp.transitionAction,
+                             state: mp.currentState,
+                             timeout: '10s'])
+      mpActions[link] = "interrupt ${mp.transitionAction}"
+    }
+    else
+    {
+      if(!mp.isCommand())
+      {
+        def stateActions = mountPointActions[mp.currentState] ?: (mountPointActions["-"] ?: [])
+
+        stateActions = [*stateActions, *(mountPointActions["*"] ?: [])]
+
+        stateActions?.each { stateAction ->
+          link = cl.createLink(controller: 'agents',
+                               action: 'create_plan',
+                               id: agent.agentName,
+                               params: [
+                                 mountPoint: mp.mountPoint,
+                                 *:stateAction,
+                               ])
+          mpActions[link] = stateAction.displayName ?: stateAction.planType.capitalize()
+        }
+      }
+    }
+
+    return mpActions
   }
 }

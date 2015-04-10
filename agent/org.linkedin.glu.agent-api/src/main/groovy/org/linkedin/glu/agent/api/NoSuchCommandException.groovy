@@ -30,7 +30,7 @@ public class NoSuchCommandException extends AgentException
 
   public NoSuchCommandException(String s)
   {
-    super(s);
+    super((String) s);
   }
 
   public NoSuchCommandException(String s, Throwable throwable)
@@ -40,6 +40,6 @@ public class NoSuchCommandException extends AgentException
 
   public NoSuchCommandException(Throwable throwable)
   {
-    super(throwable);
+    super((Throwable) throwable);
   }
 }

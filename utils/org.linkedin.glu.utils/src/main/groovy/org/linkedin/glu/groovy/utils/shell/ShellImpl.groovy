@@ -29,6 +29,8 @@ import org.linkedin.glu.groovy.utils.io.GluGroovyIOUtils
 import org.linkedin.glu.utils.concurrent.OneThreadPerTaskSubmitter
 import org.linkedin.glu.utils.concurrent.Submitter
 import org.linkedin.glu.utils.core.Externable
+import org.linkedin.glu.utils.io.EmptyInputStream
+import org.linkedin.glu.utils.io.LimitedInputStream
 import org.linkedin.groovy.util.ant.AntUtils
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
 import org.linkedin.groovy.util.config.Config
@@ -50,7 +52,10 @@ import javax.management.ObjectName
 import javax.management.remote.JMXConnectorFactory
 import javax.management.remote.JMXServiceURL
 import java.nio.file.Files
+import java.nio.file.LinkOption
+import java.nio.file.NoSuchFileException
 import java.nio.file.NotDirectoryException
+import java.nio.file.attribute.BasicFileAttributes
 import java.security.MessageDigest
 import java.util.concurrent.TimeoutException
 import java.util.regex.Pattern
@@ -903,6 +908,86 @@ def class ShellImpl implements Shell
         commandLine << '-c' << MemorySize.parse(args.maxSize.toString()).sizeInBytes
       commandLine << file.canonicalPath
       return forkAndExec(commandLine)
+    }
+    else
+      return null
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  def tailFromOffset(def args)
+  {
+    File file = toResource(args.location)?.file
+
+    if(file)
+    {
+      InputStream tailStream
+
+      try
+      {
+        BasicFileAttributes attributes = Files.readAttributes(file.toPath(),
+                                                              BasicFileAttributes,
+                                                              LinkOption.NOFOLLOW_LINKS)
+
+        // we don't care about the size of the symbolic link!
+        long length = attributes.isSymbolicLink() ? file.size() : attributes.size()
+        long offset =
+          GluGroovyLangUtils.computeOffsetFromMemorySize(Config.getOptionalString(args, "offset", "-"))
+
+        if(offset < 0)
+          offset = length + offset
+
+        long bytesToRead = length
+
+        if(offset > 0)
+          bytesToRead -= Math.min(length, offset)
+
+        if(bytesToRead == 0)
+        {
+          // nothing to read
+          tailStream = EmptyInputStream.INSTANCE
+        }
+        else
+        {
+          tailStream = new FileInputStream(file)
+
+          if(offset > 0)
+            tailStream.skip(offset)
+
+          // if the file grows beyond length before the stream is completely read
+          // we do not want to read the "extra" data
+          tailStream = new LimitedInputStream(new BufferedInputStream(tailStream), bytesToRead)
+        }
+
+        return [
+          tailStream: tailStream,
+          tailStreamMaxLength: bytesToRead,
+          length: length,
+          created: attributes.creationTime().toMillis(),
+          lastModified: attributes.lastModifiedTime().toMillis(),
+          lastAccessed: attributes.lastAccessTime().toMillis(),
+          canonicalPath: file.canonicalPath,
+          isSymbolicLink: attributes.isSymbolicLink()
+        ]
+      }
+      catch(FileNotFoundException ignored)
+      {
+        // rare case when the file gets deleted between file.exists() and new FileInputStream(file)!
+        GluGroovyLangUtils.noException { tailStream?.close() }
+        return null
+      }
+      catch(NoSuchFileException ignored)
+      {
+        // rare case when the file gets deleted between file.exists() and new FileInputStream(file)!
+        GluGroovyLangUtils.noException { tailStream?.close() }
+        return null
+      }
+      catch(Throwable th)
+      {
+        GluGroovyLangUtils.noException { tailStream?.close() }
+        throw th
+      }
     }
     else
       return null

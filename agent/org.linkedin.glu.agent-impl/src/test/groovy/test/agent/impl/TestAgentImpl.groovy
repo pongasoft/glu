@@ -37,6 +37,8 @@ import org.linkedin.groovy.util.io.fs.FileSystemImpl
 import org.linkedin.groovy.util.io.fs.FileSystem
 import org.linkedin.groovy.util.state.StateMachine
 import org.linkedin.groovy.util.concurrent.GroovyConcurrentUtils
+import org.linkedin.zookeeper.client.IZKClient
+
 import java.util.concurrent.TimeoutException
 import org.linkedin.glu.agent.impl.storage.AgentProperties
 import org.linkedin.glu.agent.impl.storage.TagsStorage
@@ -104,13 +106,19 @@ def class TestAgentImpl extends GroovyTestCase
 
     agent = new AgentImpl()
     Storage storage = createStorage()
+
+    IZKClient zooKeeper = [
+      getConnectString: { "<zkConnectString>"}
+    ] as IZKClient
+
     agent.boot(clock: clock,
                shellForScripts: shell,
                rootShell: new ShellImpl(fileSystem: logFileSystem,
                                         agentProperties: agentProperties),
                agentLogDir: logFileSystem.root,
                taggeable: new TagsStorage(storage, APTN),
-               storage: storage)
+               storage: storage,
+               zooKeeper: zooKeeper)
   }
 
   protected void tearDown()
@@ -1057,6 +1065,7 @@ gc: 1000
     def install = { args ->
       GroovyTestCase.assertEquals(args.expectedMountPoint, mountPoint)
       GroovyTestCase.assertEquals(args.expectedParentRootPath, parent.rootPath)
+      GroovyTestCase.assertEquals("<zkConnectString>", agentZooKeeper.connectString)
       shell.mkdirs(mountPoint)
       args.res.install = "${args.value}/${params.p1}".toString()
     }

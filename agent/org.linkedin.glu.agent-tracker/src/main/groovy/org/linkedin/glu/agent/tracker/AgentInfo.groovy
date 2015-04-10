@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -20,6 +20,8 @@ package org.linkedin.glu.agent.tracker
 
 import org.linkedin.util.url.URLBuilder
 import org.linkedin.glu.utils.tags.TagsSerializer
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Represent an individual agent
@@ -28,6 +30,9 @@ import org.linkedin.glu.utils.tags.TagsSerializer
  */
 class AgentInfo extends NodeInfo
 {
+  public static final String MODULE = AgentInfo.class.getName();
+  public static final Logger log = LoggerFactory.getLogger(MODULE);
+
   public static final TagsSerializer TAGS_SERIALIZER = TagsSerializer.INSTANCE
 
   AgentInfoPropertyAccessor agentInfoPropertyAccessor = PrefixAgentInfoPropertyAccessor.DEFAULT
@@ -80,5 +85,15 @@ class AgentInfo extends NodeInfo
   public String toString()
   {
     return "AgentInfo: ${[agentName: agentName, agentProperties: data]}".toString()
+  }
+
+  @Override
+  protected Map handleInvalidData(Throwable error)
+  {
+    log.warn("Invalid state detected: agent=${agentName}; ex=${error.getClass().name}: \"${error.message}\"")
+    if(log.isDebugEnabled())
+      log.debug("Invalid state detected: agent=${agentName}", error)
+
+    return [:]
   }
 }

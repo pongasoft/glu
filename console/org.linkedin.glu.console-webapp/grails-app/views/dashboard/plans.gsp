@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2011-2013 Yan Pujante
+  - Copyright (c) 2011-2014 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -34,12 +34,13 @@
     display: none;
   }
   </style>
+  <script type="text/javascript" src="${resource(dir:'js',file:'plan.js')}"></script>
 </head>
 <body>
 <ul class="nav nav-tabs">
-  <li><g:link action="delta">${request.userSession.currentCustomDeltaDefinitionName.encodeAsHTML()}</g:link></li>
+  <li><cl:link action="delta">${request.userSession.currentCustomDeltaDefinitionName.encodeAsHTML()}</cl:link></li>
   <li class="active"><a href="#">Plans</a></li>
-  <li><g:link controller="dashboard" action="customize">Customize</g:link></li>
+  <li><cl:link controller="dashboard" action="customize">Customize</cl:link></li>
 </ul>
 <g:if test="${request.system}">
   <g:render template="/plan/selectPlan" model="[title: title, hasDelta: hasDelta]"/>

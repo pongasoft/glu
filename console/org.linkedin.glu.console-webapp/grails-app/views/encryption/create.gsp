@@ -24,13 +24,13 @@
 </head>
 <body>
 <ul class="nav nav-tabs">
-  <li><g:link action="list">List</g:link></li>
+  <li><cl:link action="list">List</cl:link></li>
   <li class="active"><a href="#">New</a></li>
-  <li><g:link action="encrypt">Encrypt/Decrypt</g:link></li>
+  <li><cl:link action="encrypt">Encrypt/Decrypt</cl:link></li>
 </ul>
 <div class="body">
   <h3>Create New Encryption Key</h3>
-  <g:form action="ajaxSave" method="post">
+  <cl:form action="ajaxSave" method="post">
     <div class="dialog">
       <table class="table table-bordered table-condensed noFullWidth">
         <tbody>
@@ -45,7 +45,7 @@
       </table>
     </div>
     <g:submitToRemote class="btn btn-primary" action="ajaxSave" update="status" value='Create'/>
-  </g:form>
+  </cl:form>
 
   <div id="status" class="info">Output Area</div>
 </div>

@@ -35,7 +35,7 @@ A glu script is a groovy class which contains a set of closures where the name o
 
 State machine
 -------------
-Each glu script is backed by a state machine which is an instance of ``org.linkedin.groovy.util.state.StateMachine`` (`StateMachine api <https://github.com/pongasoft/linkedin-utils/blob/master/org.linkedin.util-groovy/src/main/groovy/org/linkedin/groovy/util/state/StateMachine.groovy>`_). The default state machine is the following:
+Each glu script is backed by a state machine which is an instance of ``org.linkedin.groovy.util.state.StateMachine`` (`StateMachine api <https://github.com/pongasoft/utils-misc/blob/master/org.linkedin.util-groovy/src/main/groovy/org/linkedin/groovy/util/state/StateMachine.groovy>`_). The default state machine is the following:
 
 .. image:: /images/state_machine_diagram.png
    :align: center
@@ -85,7 +85,7 @@ Capabilities
 As described in the section :ref:`agent-capabitites`, a glu script can use all the capabilities provided by the agent.
 
 .. tip:: 
-   Implicitely (at runtime), all glu scripts implement the `GluScript <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-impl/src/main/groovy/org/linkedin/glu/agent/impl/GluScript.groovy>`_ interface.
+   Implicitely (at runtime), all glu scripts implement the `GluScript <https://github.com/pongasoft/glu/blob/master/agent/org.linkedin.glu.agent-api/src/main/groovy/org/linkedin/glu/agent/api/GluScript.groovy>`_ interface.
 
 Table of all the properties usable from a ``GluScript``:
 
@@ -115,6 +115,9 @@ Table of all the properties usable from a ``GluScript``:
 |:ref:`state <agent-capabilities-state>`            |Shortcut to current state                                |
 +---------------------------------------------------+---------------------------------------------------------+
 |:ref:`timers <agent-capabilities-timers>`          |Schedule/Cancel timers                                   |
++---------------------------------------------------+---------------------------------------------------------+
+|:ref:`agentZooKeeper                               |Access to the ZooKeeper connection used by the agent     |
+|<agent-integration-zookeeper>`                     |                                                         |
 +---------------------------------------------------+---------------------------------------------------------+
 
 .. _glu-script-parent-script:
@@ -174,6 +177,10 @@ Conventions
 Logs
 ^^^^
 In order to be able to see (in the console) log files produced by an application deployed by the glu script, you can follow the convention described in the ":ref:`console-script-log-files`" section.
+
+Processes
+^^^^^^^^^
+In order to be able to see (in the console) processes managed by the glu script, you can follow the convention described in the ":ref:`console-script-pids`" section.
 
 Fields
 ^^^^^^

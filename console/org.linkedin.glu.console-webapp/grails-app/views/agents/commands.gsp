@@ -34,7 +34,6 @@
 <g:set var="max" value="${params.max ?: '25'}"/>
 <g:set var="isFirstPage" value="${offset == '0'}"/>
 <g:javascript>
-<g:if test="${isFirstPage}">
 function shouldRefresh()
 {
   return document.getElementById('autoRefresh').checked;
@@ -43,7 +42,7 @@ function autoRefresh()
 {
   if(shouldRefresh())
   {
-    setTimeout('refresh()', ${params.refreshRate ?: '2000'});
+    setTimeout('refreshHistory()', ${params.refreshRate ?: '2000'});
     show('#autoRefreshSpinner');
     showHide();
   }
@@ -52,18 +51,21 @@ function autoRefresh()
     hide('#autoRefreshSpinner');
   }
 }
+function refreshHistory()
+{
+  ${cl.remoteFunction(controller: 'commands', action: 'renderHistory', params: [agentId: params.id, offset: offset, max: max], update:[success: 'asyncDetailsHistory', failure: 'asyncErrorHistory'], onComplete: 'autoRefresh();')}
+}
+function refreshCommand()
+{
+  <g:if test="${params.commandId}">
+    ${cl.remoteFunction(controller: 'commands', action: 'renderCommand', id: params.commandId, update:[success: 'asyncDetailsCommand', failure: 'asyncErrorCommand'])}
+  </g:if>
+}
 function refresh()
 {
-  if(shouldRefresh())
-  {
-    ${g.remoteFunction(controller: 'commands', action: 'renderHistory', params: [agentId: params.id, offset: offset, max: max], update:[success: 'asyncDetails', failure: 'asyncError'], onComplete: 'autoRefresh();')}
-  }
-  else
-  {
-    hide('#autoRefreshSpinner');
-  }
+  refreshCommand();
+  refreshHistory();
 }
-</g:if>
 function showHide()
 {
   <g:each in="${filters.keySet()}" var="filter">
@@ -74,16 +76,16 @@ function showHide()
 </head>
 <body onload="refresh();">
 <ul class="nav nav-tabs">
-  <li><g:link controller="agents" action="list">List</g:link></li>
-  <li><g:link controller="commands" action="list">All Commands</g:link></li>
-  <li><g:link action="view" id="${params.id}">agent [${params.id}]</g:link></li>
-  <li><g:link action="plans" id="${params.id}">Plans</g:link></li>
+  <li><cl:link controller="agents" action="list">List</cl:link></li>
+  <li><cl:link controller="commands" action="list">All Commands</cl:link></li>
+  <li><cl:link action="view" id="${params.id}">agent [${params.id}]</cl:link></li>
+  <li><cl:link action="plans" id="${params.id}">Plans</cl:link></li>
   <li class="active"><a href="#">Commands</a></li>
-  <li><g:link action="ps" id="${params.id}">All Processes</g:link></li>
+  <li><cl:link action="ps" id="${params.id}">All Processes</cl:link></li>
 </ul>
 <div class="row">
   <div class="span20">
-    <g:form class="form-inline" id="${params.id}" action="executeCommand" method="post">
+    <cl:form class="form-inline" id="${params.id}" action="executeCommand" method="post">
       <fieldset>
         <div class="clearfix">
           <g:textField name="command" value="" class="input-xxlarge"/>
@@ -92,28 +94,26 @@ function showHide()
           <g:actionSubmit class="btn btn-primary" action="executeCommand" value="Execute"/>
         </div>
       </fieldset>
-    </g:form>
+    </cl:form>
   </div>
 </div>
 
 <g:if test="${params.commandId}">
-  <div><g:include controller="commands" action="renderCommand" id="${params.commandId}"/></div>
+  <div>
+    <div id="asyncDetailsCommand"></div>
+    <div id="asyncErrorCommand"></div>
+  </div>
 </g:if>
 
-<h4><g:if test="${isFirstPage}">Auto Refresh: <cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
-    <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/></g:if>
+<h4>Auto Refresh: <g:if test="${isFirstPage}"><cl:checkBoxInitFromParams name="autoRefresh" id="autoRefresh" onclick="autoRefresh();"/>
+    <img src="${resource(dir:'images',file:'spinner.gif')}" alt="Spinner" id="autoRefreshSpinner"/></g:if><g:else><g:checkBox name="autoRefresh" id="autoRefresh" disabled="true" checked="false"/></g:else>
 <g:each in="${filters}" var="filter">
   |  ${filter.value}: <cl:checkBoxInitFromParams name="${filter.key}" id="${filter.key}" onclick="showHide();"/>
 </g:each>
 </h4>
 
-<g:if test="${isFirstPage}">
-<div id="asyncDetails"></div>
-<div id="asyncError"></div>
-</g:if>
-<g:else>
-  <g:include controller="commands" action="renderHistory" params="[agentId: params.id, offset: offset, max: max]"/>
-</g:else>
+<div id="asyncDetailsHistory"></div>
+<div id="asyncErrorHistory"></div>
 
 </body>
 </html>

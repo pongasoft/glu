@@ -19,6 +19,7 @@ package org.linkedin.glu.agent.rest.resources
 
 import org.linkedin.glu.agent.rest.common.InputStreamOutputRepresentation
 import org.linkedin.util.io.PathUtils
+import org.restlet.data.Status
 import org.restlet.representation.Representation
 import org.restlet.resource.Get
 
@@ -45,7 +46,22 @@ class FileResource extends BaseResource
       }
       else
       {
-        return toRepresentation([res: res])
+        if(res == null)
+        {
+          response.setStatus(Status.CLIENT_ERROR_NOT_FOUND)
+          return null
+        }
+
+        if(res.tailStream)
+        {
+          def stream = res.remove('tailStream')
+          res.each { k,v ->
+            addResponseHeader("X-glu-file-${k}", v)
+          }
+          return new InputStreamOutputRepresentation(stream)
+        }
+        else
+          return toRepresentation([res: res])
       }
     }
   }

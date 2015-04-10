@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Copyright (c) 2013 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,6 +19,7 @@ package org.linkedin.glu.agent.impl.script
 
 import org.linkedin.glu.agent.api.Shell
 import org.linkedin.util.clock.Clock
+import org.linkedin.zookeeper.client.IZKClient
 
 /**
  * Represents the agent context
@@ -29,4 +31,6 @@ public interface AgentContext
   Shell getShellForScripts()
   Shell getShellForCommands()
   MOP getMop()
+  ScriptLoader getScriptLoader()
+  IZKClient getZooKeeper()
 }

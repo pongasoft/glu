@@ -40,9 +40,9 @@ import org.linkedin.util.clock.SettableClock
 import org.linkedin.util.concurrent.ConcurrentUtils
 import org.linkedin.util.concurrent.ThreadControl
 import org.linkedin.util.io.ram.RAMDirectory
+import org.linkedin.util.io.resource.Resource
+import org.linkedin.util.io.resource.ResourceInfo
 import org.linkedin.util.io.resource.internal.RAMResourceProvider
-import org.restlet.Server
-import org.restlet.data.Protocol
 import org.restlet.routing.Router
 import org.restlet.Component
 import org.restlet.routing.Template
@@ -62,6 +62,9 @@ import org.linkedin.util.clock.Timespan
 import org.linkedin.util.clock.Chronos
 import org.linkedin.glu.groovy.utils.test.GluGroovyTestUtils
 
+import java.nio.file.Files
+import java.nio.file.attribute.BasicFileAttributes
+
 /**
  * The code which is in {@link AgentRestClient} is essentially the code to use for calling the rest
  * api. There is no point in duplicating this code at this stage of the game...
@@ -78,7 +81,7 @@ class TestAgentRestClient extends GroovyTestCase
   Component component
   Router router
   URI serverURI
-  def agent
+  AgentImpl agent
   def clock = new SettableClock()
 
   def ram
@@ -531,17 +534,185 @@ gc: 1000
       // adding a directory
       def abc = logFileSystem.mkdirs('ab c').file
 
-      def ls = arc.getFileContent([location: gcLog.parentFile.canonicalPath])
-      assertEquals(3, ls.size())
+      def directory = gcLog.parentFile
+      def ls = arc.getFileContent([location: directory.canonicalPath])
+      assertEquals(4, ls.size())
 
-      [gal, gcLog, abc].each { file ->
-        def details = ls[file.name]
+      [gal, gcLog, abc, directory].each { file ->
+        def details = file == directory ? ls['.'] : ls[file.name]
         assertEquals(file.canonicalPath, details.canonicalPath)
         assertEquals(file.length(), details.length)
-        assertEquals(file.lastModified(), details.lastModified)
+        checkTimeDifference(file.lastModified(), details.lastModified)
         assertEquals(file.isDirectory(), details.isDirectory)
       }
+
+      // testing offset capability
+      agent.rootShell.withTempFile { Resource tempResource ->
+
+        assertNull(arc.getFileContent(location: '/do/not/exists', offset: 0))
+
+        def tempFile = tempResource.file.canonicalPath
+
+        agent.rootShell.saveContent(tempResource, "0123456789")
+
+        BasicFileAttributes attributes =
+          Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
+        def res = arc.getFileContent(location: tempFile, offset: 0)
+        assertEquals("0123456789", res.tailStream.text)
+        assertEquals(10, res.length)
+        assertEquals(10, res.tailStreamMaxLength)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
+        res = arc.getFileContent(location: tempFile, offset: -3)
+        assertEquals("789", res.tailStream.text)
+        assertEquals(10, res.length)
+        assertEquals(3, res.tailStreamMaxLength)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
+        res = arc.getFileContent(location: tempFile, offset: 10)
+        assertEquals("", res.tailStream.text)
+        assertEquals(10, res.length)
+        assertEquals(0, res.tailStreamMaxLength)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        agent.rootShell.saveContent(tempResource, "012345678901")
+
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
+        res = arc.getFileContent(location: tempFile, offset: 10)
+        assertEquals("01", res.tailStream.text)
+        assertEquals(12, res.length)
+        assertEquals(2, res.tailStreamMaxLength)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
+        res = arc.getFileContent(location: tempFile, offset: 12)
+        assertEquals("", res.tailStream.text)
+        assertEquals(12, res.length)
+        assertEquals(0, res.tailStreamMaxLength)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
+        res = arc.getFileContent(location: tempFile, offset: -25)
+        assertEquals("012345678901", res.tailStream.text)
+        assertEquals(12, res.length)
+        assertEquals(12, res.tailStreamMaxLength)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
+        res = arc.getFileContent(location: tempFile, offset: 34)
+        assertEquals("", res.tailStream.text)
+        assertEquals(12, res.length)
+        assertEquals(0, res.tailStreamMaxLength)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        // symbolic link
+        agent.rootShell.withTempFile { Resource t2 ->
+          Files.createSymbolicLink(t2.file.toPath(), tempResource.file.toPath())
+
+          attributes = Files.readAttributes(t2.file.toPath(), BasicFileAttributes)
+          res = arc.getFileContent(location: t2.file.path, offset: 10)
+          assertEquals("01", res.tailStream.text)
+          assertEquals(12, res.length)
+          assertEquals(2, res.tailStreamMaxLength)
+          checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+          checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+          checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+          assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
+          assertTrue(res.isSymbolicLink)
+        }
+
+        // empty file
+        agent.rootShell.saveContent(tempResource, "")
+
+        attributes = Files.readAttributes(tempResource.file.toPath(), BasicFileAttributes)
+        res = arc.getFileContent(location: tempFile, offset: 10)
+        assertEquals("", res.tailStream.text)
+        assertEquals(0, res.length)
+        assertEquals(0, res.tailStreamMaxLength)
+        checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+        checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+        checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+        assertEquals(tempResource.file.canonicalPath, res.canonicalPath)
+        assertFalse(res.isSymbolicLink)
+
+        agent.rootShell.withTempFile { Resource dir ->
+
+          // ${abc} url encoded is %24%7Babc%7D
+          Resource content = agent.rootShell.saveContent(dir.createRelative('%24%7Babc%7D'), "0123456789")
+
+          attributes =
+            Files.readAttributes(content.file.toPath(), BasicFileAttributes)
+          res = arc.getFileContent(location: content.toURI().rawPath, offset: 0)
+          assertEquals("0123456789", res.tailStream.text)
+          assertEquals(10, res.length)
+          assertEquals(10, res.tailStreamMaxLength)
+          checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+          checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+          checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+          assertEquals(content.file.canonicalPath, res.canonicalPath)
+          assertFalse(res.isSymbolicLink)
+          assertTrue(res.canonicalPath.endsWith('/${abc}'))
+
+        }
+
+        agent.rootShell.withTempFile { Resource dir ->
+
+          // abc def
+          Resource content = agent.rootShell.saveContent(dir.createRelative('abc%20def'), "0123456789")
+
+          attributes =
+            Files.readAttributes(content.file.toPath(), BasicFileAttributes)
+          res = arc.getFileContent(location: content.toURI().rawPath, offset: 0)
+          assertEquals("0123456789", res.tailStream.text)
+          assertEquals(10, res.length)
+          assertEquals(10, res.tailStreamMaxLength)
+          checkTimeDifference(attributes.creationTime().toMillis(), res.created)
+          checkTimeDifference(attributes.lastModifiedTime().toMillis(), res.lastModified)
+          checkTimeDifference(attributes.lastAccessTime().toMillis(), res.lastAccessed)
+          assertEquals(content.file.canonicalPath, res.canonicalPath)
+          assertFalse(res.isSymbolicLink)
+          assertTrue(res.canonicalPath.endsWith('/abc def'))
+        }
+      }
     }
+  }
+
+  /**
+   * It seems that timing can vary by up to 1 second... due to os precision...
+   */
+  public void checkTimeDifference(long time1, long time2)
+  {
+    GluGroovyTestUtils.checkTimeDifference(this, time1, time2)
   }
 
   /**

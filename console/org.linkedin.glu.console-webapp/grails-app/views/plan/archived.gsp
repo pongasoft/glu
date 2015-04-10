@@ -37,8 +37,8 @@
 <body>
 <g:if test="${deployment}">
   <ul class="nav nav-tabs">
-    <li><g:link action="deployments">Recent</g:link></li>
-    <li><g:link action="archived">Archived</g:link></li>
+    <li><cl:link action="deployments">Recent</cl:link></li>
+    <li><cl:link action="archived">Archived</cl:link></li>
     <li class="active"><a href="#">Archived [${deployment.description.encodeAsHTML()}]</a></li>
   </ul>
   <table id="deployment" class="table table-bordered table-condensed">
@@ -77,7 +77,7 @@ ${deployment.details.encodeAsHTML()}
 </g:if>
 <g:else>
   <ul class="nav nav-tabs">
-    <li><g:link action="deployments">Recent</g:link></li>
+    <li><cl:link action="deployments">Recent</cl:link></li>
     <li class="active"><a href="#">Archived</a></li>
   </ul>
 <g:if test="${deployments}">
@@ -96,7 +96,7 @@ ${deployment.details.encodeAsHTML()}
     </tr>
     <g:each in="${deployments}" var="deployment">
       <tr class="${deployment.status ?: 'RUNNING'}">
-        <td><g:link action="archived" id="${deployment.id}">${deployment.description.encodeAsHTML()}</g:link></td>
+        <td><cl:link action="archived" id="${deployment.id}">${deployment.description.encodeAsHTML()}</cl:link></td>
         <td>${deployment.username}</td>
         <td>
           <cl:formatDate date="${deployment.startDate}"/>

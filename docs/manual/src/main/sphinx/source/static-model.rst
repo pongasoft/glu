@@ -326,3 +326,26 @@ Example::
   }
 
 .. note:: As you can see in the :doc:`filtering <filtering>` section, expressing filters with tags is simpler and can result in faster results.
+
+.. _static-model-json-groovy-dsl:
+
+Json Groovy DSL
+---------------
+The json groovy dsl uses the convenience of groovy to express the model: instead of defining the model in one chunk, you build it pieces at a time which makes it a lot easier to build and read. You can also use the power of groovy, like variable replacements (``${xxx}``) syntax, loops, iterations, if conditions, etc...
+
+.. tip::
+    This syntax is for convenience only. Once you load the model in the console it will be expanded in full json.
+
+Here are the top entries of the dsl::
+
+  id
+  fabric
+  name
+  metadata
+  entries
+  agentTags
+
+.. note::
+   It is not recommended to define the ``id`` and it is better to let glu compute it for you.
+
+Check the `repository <https://github.com/pongasoft/glu/tree/master/console/org.linkedin.glu.console-server/src/cmdline/resources/glu/repository/systems>`_ for examples on how to use the dsl.

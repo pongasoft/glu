@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -17,6 +17,7 @@
 package test.orchestration.engine.planner
 
 import org.linkedin.glu.orchestration.engine.planner.impl.PlannerImpl
+import org.linkedin.glu.provisioner.plan.api.IPlanBuilder
 import org.linkedin.glu.provisioner.plan.api.IStep.Type
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemEntry
@@ -549,12 +550,12 @@ public class TestPlannerImpl extends GroovyTestCase
 
   private Plan<ActionDescriptor> plan(Type type, SystemModelDelta delta)
   {
-    planner.computeTransitionPlan(delta).buildPlan(type)
+    planner.computeTransitionPlan(delta).buildPlan(type, new IPlanBuilder.Config())
   }
 
   private Plan<ActionDescriptor> plan(Type type, Collection<SystemModelDelta> deltas)
   {
-    planner.computeTransitionPlan(deltas).buildPlan(type)
+    planner.computeTransitionPlan(deltas).buildPlan(type, new IPlanBuilder.Config())
   }
 
   /**

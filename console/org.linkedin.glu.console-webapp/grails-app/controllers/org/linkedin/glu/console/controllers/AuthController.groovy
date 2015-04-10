@@ -26,6 +26,7 @@ class AuthController extends ControllerBase
   def index = { redirect(action: "login", params: params) }
 
   def login = {
+    response.addHeader("X-glu-grails-view", 'login')
     return [username: params.username, rememberMe: (params.rememberMe != null), targetUri: params.targetUri]
   }
 

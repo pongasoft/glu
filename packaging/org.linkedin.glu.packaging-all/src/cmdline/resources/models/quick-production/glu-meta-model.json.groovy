@@ -98,7 +98,6 @@ def agentHosts = ["localhost", ]
  * Pre defined global versions
  */
 metaModelVersion = '1.0.0' // the version of the format of this file
-gluVersion = '@glu.version@' // the glu version
 def zooKeeperVersion = '@zookeeper.version@' // the version for ZooKeeper distribution
 
 fabrics[fabric] = [

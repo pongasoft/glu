@@ -30,8 +30,7 @@ def class FromLocationScriptFactory implements ScriptFactory, Serializable
 
   private final def _location
   private def _scriptFile
-  private transient def _script
-  private transient GroovyClassLoader _gcl
+  private transient LoadedScript _loadedScript
 
   FromLocationScriptFactory(location)
   {
@@ -46,31 +45,27 @@ def class FromLocationScriptFactory implements ScriptFactory, Serializable
 
   public createScript(ScriptConfig scriptConfig)
   {
-    if(!_script)
+    if(!_loadedScript)
     {
       if(!_scriptFile?.exists())
         _scriptFile = scriptConfig.shell.fetch(_location)
 
-      _gcl = new GroovyClassLoader(getClass().classLoader)
-
-      Class scriptClass = _gcl.parseClass(_scriptFile.file)
-
-      _script = scriptClass.newInstance()
+      _loadedScript = scriptConfig.scriptLoader.loadScript(_scriptFile.file)
     }
     
-    return _script
+    return _loadedScript.script
   }
 
   @Override
   void destroyScript(ScriptConfig scriptConfig)
   {
+    scriptConfig.scriptLoader.unloadScript(_loadedScript)
+
     if(_scriptFile?.exists())
       scriptConfig.shell.rm(_scriptFile)
 
     _scriptFile = null
-    _script = null
-    _gcl.clearCache()
-    _gcl = null
+    _loadedScript = null
   }
 
   String toString()

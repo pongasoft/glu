@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +17,7 @@
 
 package org.linkedin.glu.provisioner.core.plan.impl
 
+import org.linkedin.glu.provisioner.plan.api.IPlanBuilder
 import org.linkedin.glu.provisioner.plan.api.IStepBuilder
 import org.linkedin.glu.provisioner.plan.api.LeafStep
 import org.linkedin.glu.provisioner.plan.api.SequentialStepBuilder
@@ -25,6 +27,18 @@ import org.linkedin.glu.provisioner.plan.api.ParallelStepBuilder
  * @author ypujante@linkedin.com  */
 public class StepBuilder extends BuilderSupport
 {
+  IPlanBuilder.Config config
+
+  StepBuilder()
+  {
+    this(null)
+  }
+
+  StepBuilder(IPlanBuilder.Config config)
+  {
+    this.config = config ?: new IPlanBuilder.Config()
+  }
+
   protected void setParent(Object parent, Object child)
   {
   }
@@ -52,7 +66,7 @@ public class StepBuilder extends BuilderSupport
         }
         else
         {
-          stepBuilder = new SequentialStepBuilder()
+          stepBuilder = new SequentialStepBuilder(config)
         }
         stepBuilder.id = attributes.remove('id')
         stepBuilder.metadata = attributes
@@ -65,7 +79,7 @@ public class StepBuilder extends BuilderSupport
       }
       else
       {
-        stepBuilder = new ParallelStepBuilder()
+        stepBuilder = new ParallelStepBuilder(config)
       }
       stepBuilder.id = attributes.remove('id')
       stepBuilder.metadata = attributes

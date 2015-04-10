@@ -57,7 +57,7 @@
   <g:layoutHead/>
   <cl:renderCustomCss/>
   <r:layoutResources/>
-  <g:javascript src="bootstrap.min.js" />
+  <script type="text/javascript" src="${resource(dir:'js',file:'bootstrap.min.js')}"></script>
   <script type="text/javascript" src="${resource(dir:'js',file:'console_jquery.js')}"></script>
 </head>
 <body onload="${pageProperty(name:'body.onload')}">
@@ -67,15 +67,15 @@
 <div class="navbar navbar-fixed-top">
   <div class="navbar-inner">
       <ul class="nav">
-        <li ${cl.navbarEntryClass(entry: 'Dashboard')} id="tab-dashboard"><g:link controller="dashboard" action="delta">Dashboard</g:link></li>
-        <li ${cl.navbarEntryClass(entry: 'Agents')} id="tab-agents"><g:link controller="agents" action="list">Agents</g:link></li>
+        <li ${cl.navbarEntryClass(entry: 'Dashboard')} id="tab-dashboard"><cl:link controller="dashboard" action="delta">Dashboard</cl:link></li>
+        <li ${cl.navbarEntryClass(entry: 'Agents')} id="tab-agents"><cl:link controller="agents" action="list">Agents</cl:link></li>
         <g:if test="${fabric}">
-          <li ${cl.navbarEntryClass(entry: 'Deployments')} id="tab-plans"><g:link controller="plan" action="deployments">Deployments</g:link></li>
-          <li ${cl.navbarEntryClass(entry: 'Model')} id="tab-model"><g:link controller="model" action="list">Model</g:link></li>
+          <li ${cl.navbarEntryClass(entry: 'Deployments')} id="tab-plans"><cl:link controller="plan" action="deployments">Deployments</cl:link></li>
+          <li ${cl.navbarEntryClass(entry: 'Model')} id="tab-model"><cl:link controller="model" action="list">Model</cl:link></li>
         </g:if>
-        <li ${cl.navbarEntryClass(entry: 'Admin')} id="tab-admin"><g:link controller="admin">Admin</g:link></li>
-        <li ${cl.navbarEntryClass(entry: 'User')} id="tab-home"><g:link controller="home"><span id="tab-home-username">${user.username.encodeAsHTML()}</span></g:link></li>
-        <li ${cl.navbarEntryClass(entry: 'Help')} id="tab-help"><g:link controller="help" action="index">Help</g:link></li>
+        <li ${cl.navbarEntryClass(entry: 'Admin')} id="tab-admin"><cl:link controller="admin">Admin</cl:link></li>
+        <li ${cl.navbarEntryClass(entry: 'User')} id="tab-home"><cl:link controller="home"><span id="tab-home-username">${user.username.encodeAsHTML()}</span></cl:link></li>
+        <li ${cl.navbarEntryClass(entry: 'Help')} id="tab-help"><cl:link controller="help" action="index">Help</cl:link></li>
       </ul>
       <ul class="nav pull-right">
         <cl:whenDisconnectedFabric><li><span class="label label-important">NOT CONNECTED!</span></li></cl:whenDisconnectedFabric>

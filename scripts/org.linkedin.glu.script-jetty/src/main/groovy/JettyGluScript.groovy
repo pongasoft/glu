@@ -102,6 +102,7 @@ class JettyGluScript
   def serverLog
   def gcLog
   def pid
+  def pids
   def port
   def webapps
 
@@ -139,9 +140,6 @@ class JettyGluScript
     shell.ls(serverRoot.bin) {
       include(name: '*.sh')
     }.each { shell.chmodPlusX(it) }
-
-    // creating etc/jetty-glu.xml
-    shell.saveContent(serverRoot.'etc/jetty-glu.xml', DEFAULT_JETTY_XML)
 
     log.info "Install complete."
   }
@@ -181,7 +179,7 @@ class JettyGluScript
 
     // we wait for the process to be started (should be quick)
     shell.waitFor(timeout: '5s', heartbeat: '250') {
-      pid = isProcessUp()
+      doSetPid(isProcessUp())
     }
 
     // now that the process should be up, we wait for the server to be up
@@ -264,7 +262,7 @@ class JettyGluScript
       }
     }
 
-    pid = null
+    doSetPid(null)
   }
 
   // a method called by the rest of the code but not by the agent directly
@@ -292,9 +290,9 @@ class JettyGluScript
 
   private Integer isServerUp()
   {
-    Integer pid = isProcessUp()
-    if(pid && shell.listening('localhost', port))
-      return pid
+    Integer newPid = isProcessUp()
+    if(newPid && shell.listening('localhost', port))
+      return newPid
     else
       return null
   }
@@ -461,7 +459,7 @@ class JettyGluScript
   private def checkServerAndWebapps = {
     def up = [server: false, webapps: 'unknown']
 
-    pid = isServerUp()
+    doSetPid(isServerUp())
     up.server = pid != null
     if(up.server)
       up.webapps = checkWebapps()
@@ -490,7 +488,7 @@ class JettyGluScript
         if(!up.server || up.webapps == 'dead')
         {
           newState = 'stopped'
-          pid = null
+          doSetPid(null)
           newError = 'Server down detected. Check the log file for errors.'
           log.warn "${newError} => forcing new state ${newState}"
         }
@@ -536,67 +534,37 @@ class JettyGluScript
     }
   }
 
+  private Closure<Integer> doSetPid = { Integer newPid ->
+    if(newPid)
+    {
+      pid = newPid
+      // in order for groovy/glu to detect the changes inside the map, the entire map should be
+      // recreated every time (simply treat it as an immutable map...)
+      pids = [
+        (newPid): [
+          'org.linkedin.app.name': "Jetty container [${port}]"
+        ]
+      ]
+    }
+    else
+    {
+      pid = null
+      pids = null
+    }
+
+    return newPid
+  }
+
   static String DEFAULT_JETTY_CTL = """#!/bin/bash
 JAVA_OPTIONS="@java.options@" JETTY_RUN="@jetty.run@" @jetty.sh@ "\$@"
 """
 
   static String DEFAULT_JETTY_CONFIG = """
 OPTIONS=Server,jsp,jmx,resources,websocket,ext
-etc/jetty-glu.xml
+etc/jetty.xml
 etc/jetty-deploy.xml
 etc/jetty-webapps.xml
 etc/jetty-contexts.xml
-"""
-
-  /**
-   * The 'default' file etc/jetty.xml contains a lot of hardcoded values and does not use
-   * SystemProperty which is a bug because jetty.sh use -Djetty.port for the port! This script
-   * will create a etc/jetty-glu.xml and use it instead
-   */
-  static String DEFAULT_JETTY_XML = """<?xml version="1.0"?>
-<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
-<Configure id="Server" class="org.eclipse.jetty.server.Server">
-    <Set name="ThreadPool">
-      <!-- Default queued blocking threadpool -->
-      <New class="org.eclipse.jetty.util.thread.QueuedThreadPool">
-        <Set name="minThreads"><SystemProperty name="jetty.minThreads" default="10"/></Set>
-        <Set name="maxThreads"><SystemProperty name="jetty.maxThreads" default="200"/></Set>
-      </New>
-    </Set>
-    <Call name="addConnector">
-      <Arg>
-          <New class="org.eclipse.jetty.server.nio.SelectChannelConnector">
-            <Set name="host"><SystemProperty name="jetty.host" /></Set>
-            <Set name="port"><SystemProperty name="jetty.port" default="8080"/></Set>
-            <Set name="maxIdleTime"><SystemProperty name="jetty.maxIdleTime" default="300000"/></Set>
-            <Set name="Acceptors"><SystemProperty name="jetty.Acceptors" default="2"/></Set>
-            <Set name="statsOn"><SystemProperty name="jetty.statsOn" default="false"/></Set>
-            <Set name="confidentialPort"><SystemProperty name="jetty.confidentialPort" default="8443"/></Set>
-	          <Set name="lowResourcesConnections"><SystemProperty name="jetty.lowResourcesConnections" default="20000"/></Set>
-	          <Set name="lowResourcesMaxIdleTime"><SystemProperty name="jetty.lowResourcesMaxIdleTime" default="5000"/></Set>
-          </New>
-      </Arg>
-    </Call>
-    <Set name="handler">
-      <New id="Handlers" class="org.eclipse.jetty.server.handler.HandlerCollection">
-        <Set name="handlers">
-         <Array type="org.eclipse.jetty.server.Handler">
-           <Item>
-             <New id="Contexts" class="org.eclipse.jetty.server.handler.ContextHandlerCollection"/>
-           </Item>
-           <Item>
-             <New id="DefaultHandler" class="org.eclipse.jetty.server.handler.DefaultHandler"/>
-           </Item>
-         </Array>
-        </Set>
-      </New>
-    </Set>
-    <Set name="stopAtShutdown"><SystemProperty name="jetty.stopAtShutdown" default="true"/></Set>
-    <Set name="sendServerVersion"><SystemProperty name="jetty.sendServerVersion" default="true"/></Set>
-    <Set name="sendDateHeader"><SystemProperty name="jetty.sendDateHeader" default="true"/></Set>
-    <Set name="gracefulShutdown"><SystemProperty name="jetty.gracefulShutdown" default="1000"/></Set>
-
-</Configure>
 """
 
   static String WAR_CONTEXT = """<?xml version="1.0"  encoding="ISO-8859-1"?>

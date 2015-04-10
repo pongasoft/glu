@@ -25,6 +25,8 @@ class TestPerfTimers
 {
   File gluc
   File scriptFile
+  String server = "https://localhost:12906"
+  //String server = "https://localhost:13906"
 
   int nbThreads = 5
 
@@ -69,22 +71,22 @@ class TestPerfTimers
 
   private String executeAction(mountPoint, action)
   {
-    executeCommand("${gluc} -m ${mountPoint} -e ${action}")
+    executeCommand("${gluc} -s ${server} -m ${mountPoint} -e ${action}")
   }
 
   private String executeAction(mountPoint, action, actionArgs)
   {
-    executeCommand("${gluc} -m ${mountPoint} -e ${action} -a ${actionArgs}")
+    executeCommand("${gluc} -s ${server} -m ${mountPoint} -e ${action} -a ${actionArgs}")
   }
 
   private String installScript(mountPoint)
   {
-    executeCommand("${gluc} -m ${mountPoint} -i ${scriptFile.toURI()}")
+    executeCommand("${gluc} -s ${server} -m ${mountPoint} -i ${scriptFile.toURI()}")
   }
 
   private String uninstallScript(mountPoint)
   {
-    executeCommand("${gluc} -m ${mountPoint} -U")
+    executeCommand("${gluc} -s ${server} -m ${mountPoint} -U")
   }
 
   private String executeCommand(String command)

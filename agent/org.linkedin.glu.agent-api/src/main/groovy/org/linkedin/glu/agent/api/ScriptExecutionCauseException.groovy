@@ -37,7 +37,7 @@ public class ScriptExecutionCauseException extends ScriptException
 
   ScriptExecutionCauseException(String message)
   {
-    super(message)
+    super((String) message)
     if(message)
     {
       def matcher = MSG_PATTERN.matcher(message)

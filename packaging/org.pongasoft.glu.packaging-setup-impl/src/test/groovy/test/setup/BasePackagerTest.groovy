@@ -71,7 +71,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
     return closure
   }
 
-  public static final int CONFIG_TEMPLATES_COUNT = 22
+  public static final int CONFIG_TEMPLATES_COUNT = 23
 
   public static final String GLU_VERSION = 'g.v.0'
   public static final String ZOOKEEPER_VERSION = 'z.v.1'
@@ -115,13 +115,13 @@ public abstract class BasePackagerTest extends GroovyTestCase
   protected void setUp() throws Exception
   {
     super.setUp()
+    System.setProperty('glu.version', GLU_VERSION)
     GluMetaModelBuilder builder = new GluMetaModelBuilder()
     builder.deserializeFromJsonGroovyDsl(rootShell.replaceTokens(testModelFile.text,
                                                                  [
-                                                                   'glu.version': GLU_VERSION,
                                                                    'zookeeper.version': ZOOKEEPER_VERSION
                                                                  ]))
-    testModel = builder.toGluMetaModel()
+    testModel = builder.toModel()
   }
 
   protected GluMetaModel toGluMetaModel(String gluMetaModelString)
@@ -130,7 +130,7 @@ public abstract class BasePackagerTest extends GroovyTestCase
 
     builder.deserializeFromJsonGroovyDsl(gluMetaModelString)
 
-    return builder.toGluMetaModel()
+    return builder.toModel()
   }
 
   protected File getTestModelFile()

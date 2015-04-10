@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011 Yan Pujante
+ * Portions Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -22,6 +22,7 @@ import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.rest.client.AgentFactory
 import org.linkedin.glu.agent.tracker.AgentInfo
 import org.linkedin.glu.agent.tracker.MountPointInfo
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
@@ -240,7 +241,9 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider, MountPointSt
       if(agent.mountPoints)
       {
         agent.mountPoints.values().each { MountPointInfo mp ->
-          systemModel.addEntry(createSystemEntry(agentName, mp))
+          def entry = createSystemEntry(agentName, mp)
+          if(entry)
+            systemModel.addEntry(entry)
         }
       }
       else
@@ -305,14 +308,32 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider, MountPointSt
   }
 
   /**
-   * Create the system entry for the given agent and mountpoint.
+   * Create the system entry for the given agent and mountPoint.
    */
   protected SystemEntry createSystemEntry(agentName, MountPointInfo mp)
+  {
+    GluGroovyLangUtils.noExceptionWithValueOnException(null) {
+      try
+      {
+        createSystemEntryWithException(agentName, mp)
+      }
+      catch(Throwable error)
+      {
+        createSystemEntryWithException(agentName, mp.invalidate(error))
+      }
+    }
+  }
+
+  /**
+   * Create the system entry for the given agent and mountPoint.
+   */
+  protected SystemEntry createSystemEntryWithException(agentName, MountPointInfo mp)
   {
     SystemEntry se = new SystemEntry()
 
     se.agent = agentName
     se.mountPoint = mp.mountPoint.toString()
+
     se.parent = mp.parent
     Map data = LangUtils.deepClone(mp.data)
     def scriptFactory = data?.scriptDefinition?.scriptFactory
@@ -359,7 +380,6 @@ class AgentsServiceImpl implements AgentsService, AgentURIProvider, MountPointSt
     {
       se.metadata.scriptState = data.scriptState
     }
-    
     return se
   }
 

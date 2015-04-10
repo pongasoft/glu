@@ -2,7 +2,7 @@
 
 #
 # Copyright (c) 2010-2010 LinkedIn, Inc
-# Portions Copyright (c) 2011 Yan Pujante
+# Portions Copyright (c) 2011-2013 Yan Pujante
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -17,24 +17,31 @@
 # the License.
 #
 
-# set JAVA_HOME (JDK6) & JAVA_CMD
-if [ -z "$JAVA_HOME" ]; then
-  echo "Please set JAVA_HOME manually."
-  exit 1
+if [ -z "$JAVA_CMD" ]; then
+  if [ -f $JAVA_HOME/bin/java ]; then
+    JAVA_CMD=$JAVA_HOME/bin/java
+  else
+    JAVA_CMD=java
+  fi
 fi
 
-if [ -z "$JAVA_CMD" ]; then
-  JAVA_CMD=$JAVA_HOME/bin/java
+JAVA_VER=$("$JAVA_CMD" -version 2>&1 | grep 'java version' | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
+if [ "$JAVA_VER" -lt 17 ]; then
+	echo "### ERROR START ###########"
+	echo "### Java @ $JAVA_CMD too old (required java 1.7)"
+	$JAVA_CMD -version
+	echo "### ERROR END   ###########"
+  exit 1;
 fi
 
 if [ -z "$JAVA_CMD_TYPE" ]; then
   FULLVERSION=$( $JAVA_CMD -fullversion 2>&1 )
   if [ -z "$(echo $FULLVERSION | grep IBM)" ]; then
     JAVA_CMD_TYPE=oracle
-  else    
+  else
     JAVA_CMD_TYPE=ibm
   fi
-fi 
+fi
 
 if [ -z "$GLU_CONFIG_PREFIX" ]; then
   GLU_CONFIG_PREFIX="glu"
@@ -150,7 +157,7 @@ if [ -z "$JVM_GC_LOG" ]; then
     'oracle' ) JVM_GC_LOG="-XX:+PrintGCDateStamps -Xloggc:$GC_LOG"
     	       ;;
   esac
-  
+
 fi
 
 # Log4J configuration

@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,7 +17,6 @@
 
 package org.linkedin.glu.provisioner.plan.api;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.linkedin.util.xml.XMLIndent;
@@ -208,18 +208,38 @@ public class Plan<T>
    */
   public IPlanBuilder<T> toPlanBuilder()
   {
-    return toPlanBuilder(StepFilters.<T>acceptAll());
+    return toPlanBuilder(new IPlanBuilder.Config());
   }
 
   /**
-   * Same as {@link #toPlanBuilder()} except it also filters out unwanted steps.
+   * @return a plan builder representing this plan (usually used to do minor modifications to the
+   *         plan, like adding some steps or removing some).
+   */
+  public IPlanBuilder<T> toPlanBuilder(IPlanBuilder.Config config)
+  {
+    return toPlanBuilder(StepFilters.<T>acceptAll(), config);
+  }
+
+  /**
+   * Same as {@link #toPlanBuilder(IPlanBuilder.Config)} except it also filters out unwanted steps.
    *
    * @param filter the filter to filter out unwanted steps
    * @return a new plan builder
    */
   public IPlanBuilder<T> toPlanBuilder(IStepFilter<T> filter)
   {
-    PlanBuilder<T> builder = new PlanBuilder<T>();
+    return toPlanBuilder(filter, new IPlanBuilder.Config());
+  }
+
+  /**
+   * Same as {@link #toPlanBuilder(IPlanBuilder.Config)} except it also filters out unwanted steps.
+   *
+   * @param filter the filter to filter out unwanted steps
+   * @return a new plan builder
+   */
+  public IPlanBuilder<T> toPlanBuilder(IStepFilter<T> filter, IPlanBuilder.Config config)
+  {
+    PlanBuilder<T> builder = new PlanBuilder<T>(config);
     builder.setMetadata(_metadata);
 
     if(_step != null)
@@ -233,7 +253,15 @@ public class Plan<T>
    */
   public IPlanBuilder<T> createEmptyPlanBuilder()
   {
-    return new PlanBuilder<T>();
+    return createEmptyPlanBuilder(new IPlanBuilder.Config());
+  }
+
+  /**
+   * @return an empty plan builder based of the dependencies in this plan.
+   */
+  public IPlanBuilder<T> createEmptyPlanBuilder(IPlanBuilder.Config config)
+  {
+    return new PlanBuilder<T>(config);
   }
 
   /**

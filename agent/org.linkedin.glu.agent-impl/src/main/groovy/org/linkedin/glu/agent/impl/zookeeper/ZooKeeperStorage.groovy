@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011-2013 Yan Pujante
+ * Portions Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -23,6 +23,7 @@ import org.apache.zookeeper.KeeperException
 import org.apache.zookeeper.ZooDefs.Ids
 import org.linkedin.glu.agent.api.MountPoint
 import org.linkedin.glu.agent.impl.storage.WriteOnlyStorage
+import org.linkedin.glu.groovy.utils.GluGroovyLangUtils
 import org.linkedin.glu.groovy.utils.jvm.JVMInfo
 import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.util.lang.LangUtils
@@ -141,6 +142,13 @@ class ZooKeeperStorage implements WriteOnlyStorage
     }
   }
 
+  @Override
+  def invalidateState(MountPoint mountPoint)
+  {
+    clearState(mountPoint)
+    return null
+  }
+
   public void storeState(MountPoint mountPoint, state)
   {
     zkSafe(_zkState) {  IZKClient zk ->
@@ -150,7 +158,7 @@ class ZooKeeperStorage implements WriteOnlyStorage
       def error = state.scriptState.stateMachine.error
       if(error instanceof Throwable)
       {
-        error = extractStackTrace(error, [])
+        error = GluGroovyLangUtils.extractExceptionDetailsWithCause(error, [])
         state.scriptState.stateMachine.error = error
       }
 
@@ -186,20 +194,19 @@ class ZooKeeperStorage implements WriteOnlyStorage
     return agentProperties
   }
 
+  void clearAgentProperties()
+  {
+    if(log.isDebugEnabled())
+      log.debug "Deleting agent ephemeral node"
+
+    zkSafe(_zkAgentProperties) { IZKClient zk ->
+      zk.delete('/')
+    }
+  }
+
   @Override
   AgentProperties updateAgentProperty(String name, String value)
   {
     throw new UnsupportedOperationException("not supported in this class")
-  }
-
-  private def extractStackTrace(exception, out)
-  {
-    if(exception)
-    {
-      out << [name: exception.getClass().name, message: exception.message]
-      extractStackTrace(exception.cause, out)
-    }
-
-    return out
   }
 }

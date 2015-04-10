@@ -30,12 +30,12 @@ public class DuplicateMountPointException extends AgentException
 
   public DuplicateMountPointException(MountPoint mp)
   {
-    this(mp?.toString())
+    this((String) mp?.toString())
   }
 
   public DuplicateMountPointException(String s)
   {
-    super(s);
+    super((String) s);
   }
 
   public DuplicateMountPointException(String s, Throwable throwable)
@@ -45,6 +45,6 @@ public class DuplicateMountPointException extends AgentException
 
   public DuplicateMountPointException(Throwable throwable)
   {
-    super(throwable);
+    super((Throwable) throwable);
   }
 }

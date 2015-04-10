@@ -25,30 +25,30 @@
 <h2>Admin</h2>
 <h3>Agents</h3>
 <ul>
-  <li><g:link controller="agents" action="listVersions">Upgrade agents</g:link></li>
+  <li><cl:link controller="agents" action="listVersions">Upgrade agents</cl:link></li>
 </ul>
 <h3>Fabric</h3>
 <ul>
-  <li><g:link controller="fabric" action="listAgentFabrics">View agents fabric</g:link></li>
-  <li><g:link controller="fabric" action="refresh">Refresh Fabrics</g:link></li>
-  <li><g:link controller="fabric" action="list">Create/Add Fabric</g:link></li>
+  <li><cl:link controller="fabric" action="listAgentFabrics">View agents fabric</cl:link></li>
+  <li><cl:link controller="fabric" action="refresh">Refresh Fabrics</cl:link></li>
+  <li><cl:link controller="fabric" action="list">Create/Add Fabric</cl:link></li>
 </ul>
 
 <h3>Users</h3>
 <ul>
-  <li><g:link controller="user" action="list">Manager User Roles</g:link></li>
+  <li><cl:link controller="user" action="list">Manage Users</cl:link></li>
 </ul>
 
 <h3>Audit Logs</h3>
 <ul>
-  <li><g:link controller="auditLog" action="list">View Audit Logs</g:link></li>
+  <li><cl:link controller="auditLog" action="list">View Audit Logs</cl:link></li>
 </ul>
 
 <h3>Encryption Keys</h3>
 <ul>
-  <li><g:link controller="encryption" action="list">View Encryption Keys</g:link></li>
-  <li><g:link controller="encryption" action="create">Create Encryption Key</g:link></li>
-  <li><g:link controller="encryption" action="encrypt">Encrypt/Decrypt Text</g:link></li>
+  <li><cl:link controller="encryption" action="list">View Encryption Keys</cl:link></li>
+  <li><cl:link controller="encryption" action="create">Create Encryption Key</cl:link></li>
+  <li><cl:link controller="encryption" action="encrypt">Encrypt/Decrypt Text</cl:link></li>
 </ul>
 
 <h3>JVM Info (Console)</h3>

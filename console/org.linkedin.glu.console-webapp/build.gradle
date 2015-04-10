@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011-2013 Yan Pujante
+ * Portions Copyright (c) 2011-2014 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -28,6 +28,7 @@ dependencies {
   compile spec.external.utilsMiscGroovy
   compile spec.external.utilsZookeeperImpl
   compile spec.external.shiro
+  compile spec.external.jbcrypt
 
   compile spec.external.groovy
 
@@ -120,11 +121,22 @@ console.commandsService.commandExecutionIOStorage.filesystem.rootDir="${buildDir
   logger.lifecycle "Created dev system under: ${new File(buildDir, 'systems/hello-world-system.json')}"
 }
 
+def computeGrailsArgLine(String javaProperties, String taskName, String taskArgs)
+{
+  "${javaProperties ?: ''} -Dgrails.project.work.dir=${buildDir} ${taskName} ${taskArgs ?: ''}"
+}
+
 ['run-app', 'test-app'].each { taskName ->
   task "${taskName}"(dependsOn: lib) << {
     ant.exec(dir: '.', executable: grailsExe, failonerror: true) {
-      arg(line: "${taskName}")
+      arg(line: computeGrailsArgLine(null, taskName, null))
     }
+  }
+}
+
+task "test-integration"(dependsOn: lib) << {
+  ant.exec(dir: '.', executable: grailsExe, failonerror: true) {
+    arg(line: computeGrailsArgLine(null, 'test-app', 'integration:integration'))
   }
 }
 
@@ -132,7 +144,9 @@ def warFile = new File("${buildDir}/distributions/${project.name}-${project.vers
 
 task war(dependsOn: lib) << {
   ant.exec(dir: '.', executable: grailsExe, failonerror: true) {
-    arg(line: "-Dgrails.project.war.file=${warFile} -Dbuild.version=${project.version} war")
+    arg(line: computeGrailsArgLine("-Dgrails.project.war.file=${warFile} -Dbuild.version=${project.version}",
+                                   "war",
+                                   null))
   }
 }
 
