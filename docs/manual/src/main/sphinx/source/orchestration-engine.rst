@@ -1,4 +1,4 @@
-.. Copyright (c) 2011-2014 Yan Pujante
+.. Copyright (c) 2011-2015 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -1494,7 +1494,28 @@ View static model
 * Response:  
 
   * ``200`` (``OK``) with a json representation of the model
+
+    * headers: ``X-glu-timeCreated``, ``X-glu-createdBy`` and if the model requested is the current one, ``X-glu-timeSetAsCurrent``, ``X-glu-setAsCurrentBy``
+
   * ``404`` (``NOT_FOUND``) if the id does not match a previously loaded model
+
+* Example::
+
+      curl -v -u "glua:password" "http://localhost:8080/console/rest/v1/glu-dev-1/model/static?prettyPrint=true"
+      < HTTP/1.1 200 OK
+      < Etag: 11c1038e9cea43b6bf59276de8063db09d5fa496
+      < X-glu-timeCreated: 1429050416211
+      < X-glu-createdBy: <bootstrap>
+      < X-glu-timeSetAsCurrent: 1429053507297
+      < X-glu-setAsCurrentBy: glur
+      <
+      {
+        "fabric": "glu-dev-1",
+        "id": "7328fb4bdffcac106a189f38416fb03502aca68f",
+        "metadata": {
+          "name": "Empty System Model"
+        }
+      }
 
 .. _goe-rest-api-head-models-static:
 
@@ -1565,8 +1586,10 @@ List static models
           "fabric": "glu-dev-1",
           "id": "c036278ff0a47f5bbe9a695809af1515855a686a",
           "name": "Empty System Model 5",
+          "setAsCurrentBy": "glur",
           "size": 113,
           "timeCreated": 1409167185742,
+          "timeSetAsCurrent": 1409167185742,
           "viewURL": "http://192.168.0.117:8080/console/rest/v1/glu-dev-1/model/static/c036278ff0a47f5bbe9a695809af1515855a686a"
         },
         {

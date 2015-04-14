@@ -23,6 +23,7 @@ import org.linkedin.glu.console.provisioner.services.storage.SystemStorageExcept
 import org.linkedin.glu.grails.utils.ConsoleConfig
 import org.linkedin.glu.grails.utils.ConsoleHelper
 import org.linkedin.glu.orchestration.engine.agents.AgentsService
+import org.linkedin.glu.orchestration.engine.system.SystemModelDetails
 import org.linkedin.glu.orchestration.engine.system.SystemService
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.provisioner.core.model.SystemModelRenderer
@@ -326,6 +327,7 @@ public class ModelController extends ControllerBase
     name       : 'name',
     size       : 'size',
     timeCreated: 'id',
+    createdBy  : 'createdBy',
     viewURL    : 'systemId'
   ]
 
@@ -347,21 +349,33 @@ public class ModelController extends ControllerBase
 
     def res = []
 
+    def current = systemService.findCurrentSystemDetails(request.fabric.name)
+
     map.systems.each { def model ->
-      res << [
-        id: model.systemId,
+
+      def modelMap = [
+        id         : model.systemId,
         timeCreated: model.dateCreated.time,
-        fabric: model.fabric,
-        size: model.size,
-        name: model.name,
-        viewURL: g.createLink(absolute: true,
-                              mapping: 'restStaticModel',
-                              id: model.systemId,
-                              params: [fabric: request.fabric.name]).toString()
+        createdBy  : model.createdBy,
+        fabric     : model.fabric,
+        size       : model.size,
+        name       : model.name,
+        viewURL    : g.createLink(absolute: true,
+                                  mapping: 'restStaticModel',
+                                  id: model.systemId,
+                                  params: [fabric: request.fabric.name]).toString()
       ]
+
+      if(current.systemId == model.systemId)
+      {
+        modelMap.timeSetAsCurrent = current.lastUpdated.time
+        modelMap.setAsCurrentBy = current.lastUpdatedBy
+      }
+
+      res << modelMap
     }
 
-    response.addHeader("X-glu-current", request.system.id)
+    response.addHeader("X-glu-current", current.systemId)
     response.addHeader("X-glu-count", map.systems.size().toString())
     response.addHeader("X-glu-totalCount", map.count.toString())
     ['max', 'offset', 'sort', 'order'].each { k ->
@@ -376,20 +390,42 @@ public class ModelController extends ControllerBase
    * Handle GET /model/static/$id?
    */
   def rest_get_static_model = {
-    def system = request.system
+    SystemModelDetails details
+
+    def current = systemService.findCurrentSystemDetails(request.fabric.name)
 
     if(params.id)
     {
-      system = systemService.findDetailsBySystemId(params.id)?.systemModel
+      details = systemService.findDetailsBySystemId(params.id)
+    }
+    else
+    {
+      details = current
     }
 
-    if(!system)
+
+    if(!details)
     {
       response.setStatus(HttpServletResponse.SC_NOT_FOUND)
       render ''
     }
     else
-      renderModelWithETag(system)
+    {
+      def headers = [:]
+
+      headers['X-glu-timeCreated'] = details.dateCreated.time
+      if(details.createdBy)
+        headers['X-glu-createdBy'] = details.createdBy
+
+      if(current.systemId == details.systemId)
+      {
+        headers['X-glu-timeSetAsCurrent'] = current.lastUpdated.time
+        if(current.lastUpdatedBy)
+          headers['X-glu-setAsCurrentBy'] = current.lastUpdatedBy
+      }
+
+      renderModelWithETag(details.systemModel, headers)
+    }
   }
 
   /**
@@ -409,7 +445,7 @@ public class ModelController extends ControllerBase
    * same output), so there is no need of separately computing the systemId to include in the ETag
    * which removes an expensive call!
    */
-  private void renderModelWithETag(SystemModel model)
+  private void renderModelWithETag(SystemModel model, Map headers = [:])
   {
     String modelString
 
@@ -429,6 +465,9 @@ ${modelString}
 ${request['javax.servlet.forward.servlet_path']}
 ${request['javax.servlet.forward.query_string']}
 """
+    if(headers)
+      etag += headers.collect {k, v -> "$k:$v"}.join('\n') + "\n"
+
     etag = ConsoleHelper.computeChecksum(etag)
 
     // handling ETag
@@ -440,6 +479,7 @@ ${request['javax.servlet.forward.query_string']}
     }
 
     response.setHeader('Etag', etag)
+    headers.each {k, v -> response.setHeader(k, v.toString())}
     response.setContentType('text/json')
     render modelString
   }
