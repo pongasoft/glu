@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 Yan Pujante
+ * Copyright (c) 2011-2015 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -92,6 +92,14 @@ public interface SystemService
    * @return
    */
   SystemModel findCurrentSystem(String fabric)
+
+  /**
+   * Find the current system associated to the fabric.
+   *
+   * @param fabric
+   * @return
+   */
+  CurrentSystemModelDetails findCurrentSystemDetails(String fabric)
 
   /**
    * @return <code>null</code> if not found

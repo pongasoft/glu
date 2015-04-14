@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 Yan Pujante
+ * Copyright (c) 2011-2015 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +16,8 @@
 
 package org.linkedin.glu.console.provisioner.services.storage
 
+import org.linkedin.glu.console.domain.AuditLog
+import org.linkedin.glu.orchestration.engine.system.CurrentSystemModelDetails
 import org.linkedin.glu.orchestration.engine.system.SystemStorage
 import org.linkedin.glu.provisioner.core.model.SystemModel
 import org.linkedin.glu.orchestration.engine.fabric.Fabric
@@ -40,9 +42,25 @@ public class SystemStorageImpl implements SystemStorage
   }
 
   @Override
-  SystemModelDetails findCurrentDetailsByFabric(String fabric)
+  CurrentSystemModelDetails findCurrentDetailsByFabric(String fabric)
   {
-    createDetails(DbCurrentSystem.findByFabric(fabric, [cache: false])?.systemModel)
+    def currentSystem = DbCurrentSystem.findByFabric(fabric, [cache: false])
+    if(currentSystem)
+    {
+      def model = currentSystem.systemModel
+
+      new CurrentSystemModelDetails(dateCreated: model.dateCreated,
+                                    createdBy: model.createdBy,
+                                    fabric: model.fabric,
+                                    systemId: model.systemId,
+                                    size: model.size ?: model.content?.size(),
+                                    name: model.name,
+                                    systemModel: model.systemModel,
+                                    lastUpdated: currentSystem.lastUpdated,
+                                    lastUpdatedBy: currentSystem.lastUpdatedBy)
+    }
+    else
+      return null
   }
 
   @Override
@@ -65,12 +83,14 @@ public class SystemStorageImpl implements SystemStorage
 
   void saveCurrentSystem(SystemModel systemModel)
   {
+    def currentPrincipal = AuditLog.getCurrentPrincipal()
+
     DbSystemModel.withTransaction { TransactionStatus txStatus ->
       DbSystemModel dbSystem = DbSystemModel.findBySystemId(systemModel.id)
 
       if(!dbSystem)
       {
-        dbSystem = new DbSystemModel(systemModel: systemModel)
+        dbSystem = new DbSystemModel(systemModel: systemModel, createdBy: currentPrincipal)
         if(!dbSystem.save())
         {
           txStatus.setRollbackOnly()
@@ -85,6 +105,8 @@ public class SystemStorageImpl implements SystemStorage
       else
         dbc = new DbCurrentSystem(systemModel: dbSystem,
                                   fabric: systemModel.fabric)
+
+      dbc.lastUpdatedBy = currentPrincipal
 
       if(!dbc.save())
       {
@@ -103,6 +125,8 @@ public class SystemStorageImpl implements SystemStorage
   @Override
   boolean setAsCurrentSystem(String fabric, String systemId)
   {
+    def currentPrincipal = AuditLog.getCurrentPrincipal()
+
     boolean res = false
 
     DbSystemModel.withTransaction { TransactionStatus txStatus ->
@@ -121,6 +145,8 @@ public class SystemStorageImpl implements SystemStorage
                                   fabric: fabric)
         res = true
       }
+
+      dbc.lastUpdatedBy = currentPrincipal
 
       if(!dbc.save())
       {
@@ -167,6 +193,7 @@ public class SystemStorageImpl implements SystemStorage
       return null
 
     new SystemModelDetails(dateCreated: model.dateCreated,
+                           createdBy: model.createdBy,
                            fabric: model.fabric,
                            systemId: model.systemId,
                            size: model.size ?: model.content?.size(),
@@ -180,6 +207,7 @@ public class SystemStorageImpl implements SystemStorage
       return null
 
     new SystemModelDetails(dateCreated: model.dateCreated,
+                           createdBy: model.createdBy,
                            fabric: model.fabric,
                            systemId: model.systemId,
                            size: model.size,

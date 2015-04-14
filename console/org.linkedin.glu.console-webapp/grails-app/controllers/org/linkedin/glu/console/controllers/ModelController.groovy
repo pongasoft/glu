@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011-2013 Yan Pujante
+ * Portions Copyright (c) 2011-2015 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -53,9 +53,17 @@ public class ModelController extends ControllerBase
     def map =
       systemService.findSystems(request.fabric.name, false, params)
 
+    def current = systemService.findCurrentSystemDetails(request.fabric.name)
+
+    if(current.systemId != request.system?.id)
+    {
+      flash.error("It looks like the current model has been changed... refresh this page")
+    }
+
     [
         systems: map.systems,
-        total: map.count
+        total: map.count,
+        current: current
     ]
   }
 
@@ -64,7 +72,12 @@ public class ModelController extends ControllerBase
    */
   def view = {
     def system = systemService.findDetailsBySystemId(params.id)
-    [systemDetails: system, renderer: systemModelRenderer]
+    def current = systemService.findCurrentSystemDetails(request.fabric.name)
+    if(current.systemId != request.system?.id)
+    {
+      flash.error("It looks like the current model has been changed... refresh this page")
+    }
+    [systemDetails: system, renderer: systemModelRenderer, current: current]
   }
 
   /**
@@ -138,7 +151,7 @@ public class ModelController extends ControllerBase
       }
       else
       {
-        flash.success = "Model loaded succesfully"
+        flash.success = "Model loaded successfully"
         redirect(controller: 'dashboard')
       }
     }

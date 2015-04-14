@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
+ * Portions Copyright (c) 2015 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -46,6 +47,8 @@ class AuditLog
   String details
   String info
 
+  static transients = ['currentPrincipal']
+
   String toString()
   {
     "{username: ${username}, type: ${type}, details: ${details}, info: ${info}}".toString()
@@ -85,7 +88,7 @@ class AuditLog
   /**
    * @return the current principal
    */
-  private static String getCurrentPrincipal()
+  public static String getCurrentPrincipal()
   {
     def principal = null
     try

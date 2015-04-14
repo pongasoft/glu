@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2010-2010 LinkedIn, Inc
- * Portions Copyright (c) 2011-2013 Yan Pujante
+ * Portions Copyright (c) 2011-2015 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -26,7 +26,6 @@ import org.linkedin.groovy.util.net.GroovyNetUtils
 import org.linkedin.util.annotations.Initializable
 import org.linkedin.glu.groovy.utils.plugins.PluginService
 import org.linkedin.groovy.util.io.GroovyIOUtils
-import org.linkedin.glu.provisioner.core.model.JSONSystemModelSerializer
 import org.linkedin.glu.provisioner.core.model.SystemModelRenderer
 
 /**
@@ -189,6 +188,12 @@ public class SystemServiceImpl implements SystemService
   SystemModel findCurrentSystem(String fabric)
   {
     systemStorage.findCurrentByFabric(fabric)
+  }
+
+  @Override
+  CurrentSystemModelDetails findCurrentSystemDetails(String fabric)
+  {
+    systemStorage.findCurrentDetailsByFabric(fabric)
   }
 
   @Override

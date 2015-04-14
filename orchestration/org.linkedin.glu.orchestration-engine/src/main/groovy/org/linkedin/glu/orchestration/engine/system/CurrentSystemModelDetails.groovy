@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 Yan Pujante
+ * Copyright (c) 2015 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -14,24 +14,12 @@
  * the License.
  */
 
-package org.linkedin.glu.console.domain
+package org.linkedin.glu.orchestration.engine.system
 
-class LightDbSystemModel
+/**
+ * @author yan@pongasoft.com  */
+public class CurrentSystemModelDetails extends SystemModelDetails
 {
-  static constraints = {
-    size(nullable: true)
-    name(nullable: true)
-    createdBy(nullable: true) // for backward compatibility
-  }
-
-  static mapping = {
-    table 'db_system_model'
-  }
-
-  Date dateCreated
-  String fabric
-  String systemId
-  Integer size
-  String name
-  String createdBy
+  Date lastUpdated
+  String lastUpdatedBy
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 Yan Pujante
+ * Copyright (c) 2011-2015 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -25,7 +25,7 @@ public interface SystemStorage
 {
   SystemModel findCurrentByFabric(String fabric)
 
-  SystemModelDetails findCurrentDetailsByFabric(String fabric)
+  CurrentSystemModelDetails findCurrentDetailsByFabric(String fabric)
 
   SystemModel findCurrentByFabric(Fabric fabric)
 

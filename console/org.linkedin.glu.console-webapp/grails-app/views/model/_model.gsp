@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011-2013 Yan Pujante
+  - Portions Copyright (c) 2011-2015 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -24,6 +24,8 @@
     <th>Id</th>
     <th>Fabric</th>
     <th>Date Created</th>
+    <th>Created By</th>
+    <th>Set As Current By</th>
     <g:each in="${columns.values()}" var="column">
       <th>${column.name}</th>
     </g:each>
@@ -37,12 +39,14 @@
       <td><cl:renderSystemId id="${system.systemId}" name="${system.name}"/></td>
       <td>${system.fabric}</td>
       <td><cl:formatDate date="${system.dateCreated}"/></td>
+      <td>${system.createdBy?.encodeAsHTML()}</td>
+      <td><g:if test="${system.systemId == current.systemId}">${current.lastUpdatedBy?.encodeAsHTML()}</g:if></td>
       <g:set var="stats" value="${system.systemModel?.computeStats(columns.keySet()) ?: [:]}"/>
       <g:each in="${columns.keySet()}" var="columnName">
         <td>${stats[columnName] ?: 0}</td>
       </g:each>
       <td><g:if test="${system.size}">${new MemorySize(system.size)}</g:if><g:else>N/A</g:else></td>
-      <td><input type="radio" name="id" value="${system.systemId}" ${system.systemId == request.system?.id ? 'checked="checked"' : ''} onclick="if(confirm('Are you sure you want to set system [${system.systemId}] as the current one?')) {this.form.submit()} else return false;"/></td>
+      <td><input type="radio" name="id" value="${system.systemId}" ${system.systemId == current.systemId ? 'checked="checked"' : ''} onclick="if(confirm('Are you sure you want to set system [${system.systemId}] as the current one?')) {this.form.submit()} else return false;"/></td>
     </tr>
   </g:each>
   </tbody>
