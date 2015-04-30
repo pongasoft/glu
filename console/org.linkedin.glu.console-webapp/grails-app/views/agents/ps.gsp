@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011-2014 Yan Pujante
+  - Portions Copyright (c) 2011-2015 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -88,7 +88,7 @@
     <cl:whenFeatureEnabled feature="commands"><li><cl:link action="commands" id="${params.id}">Commands</cl:link></li></cl:whenFeatureEnabled>
     <li class="active"><a href="#">All Processes</a></li>
   </ul>
-  <table class="table table-bordered tight-table zebra-striped">
+  <table class="table table-bordered tight-table noFullWidth alternate-row-colors">
     <tr>
       <th>PID</th>
       <th>COMMAND</th>

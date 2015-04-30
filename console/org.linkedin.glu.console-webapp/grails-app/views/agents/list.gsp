@@ -1,5 +1,5 @@
 %{--
-  - Copyright (c) 2011-2013 Yan Pujante
+  - Copyright (c) 2011-2015 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -25,7 +25,7 @@
   <li class="active"><a href="#">List</a></li>
   <cl:whenFeatureEnabled feature="commands"><li><cl:link controller="commands" action="list">All Commands</cl:link></li></cl:whenFeatureEnabled>
 </ul>
-<table class="table table-bordered noFullWidth">
+<table class="table table-bordered noFullWidth alternate-row-colors">
   <thead>
   <tr>
     <th>Agent</th>

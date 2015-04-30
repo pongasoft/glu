@@ -1,6 +1,6 @@
 %{--
   - Copyright (c) 2010-2010 LinkedIn, Inc
-  - Portions Copyright (c) 2011-2013 Yan Pujante
+  - Portions Copyright (c) 2011-2015 Yan Pujante
   -
   - Licensed under the Apache License, Version 2.0 (the "License"); you may not
   - use this file except in compliance with the License. You may obtain a copy of
@@ -32,7 +32,7 @@
     <g:paginate total="${userInstanceTotal}" max="100"/>
   </div>
   <div class="list">
-    <table class="table table-bordered table-condensed noFullWidth">
+    <table class="table table-bordered table-condensed noFullWidth alternate-row-colors">
       <thead>
       <tr>
         <g:sortableColumn property="username" title="Username"/>
@@ -41,7 +41,7 @@
       </thead>
       <tbody>
       <g:each in="${userInstanceList}" status="i" var="userInstance">
-        <tr class="${(i % 2) == 0 ? 'odd' : 'even'}">
+        <tr>
           <td><cl:link action="show" id="${userInstance.id}">${fieldValue(bean: userInstance, field: 'username')}</cl:link></td>
           <td>${ConsoleUtils.sortByName(userInstance.roles)}</td>
         </tr>

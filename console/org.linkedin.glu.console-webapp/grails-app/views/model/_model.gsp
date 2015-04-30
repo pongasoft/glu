@@ -18,7 +18,7 @@
 <%@ page import="org.linkedin.util.lang.MemorySize; org.linkedin.glu.grails.utils.ConsoleConfig" %>
 <g:set var="columns" value="${columns == null ? ConsoleConfig.getInstance().defaults.model : columns}"/>
 <cl:form action="setAsCurrent" method="post">
-<table class="table table-bordered noFullWidth">
+<table class="table table-bordered noFullWidth alternate-row-colors">
   <thead>
   <tr>
     <th>Id</th>
@@ -35,7 +35,7 @@
   </thead>
   <tbody>
   <g:each in="${systems}" status="i" var="system">
-    <tr class="${(i % 2) == 0 ? 'odd' : 'even'} ${(system.systemId == request.system?.id) ? 'current' : ''}">
+    <tr class="${(system.systemId == request.system?.id) ? 'current' : ''}">
       <td><cl:renderSystemId id="${system.systemId}" name="${system.name}"/></td>
       <td>${system.fabric}</td>
       <td><cl:formatDate date="${system.dateCreated}"/></td>
