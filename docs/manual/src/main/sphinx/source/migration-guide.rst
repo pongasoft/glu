@@ -1,4 +1,4 @@
-.. Copyright (c) 2013-2014 Yan Pujante
+.. Copyright (c) 2013-2015 Yan Pujante
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -54,6 +54,21 @@ General tips and guidelines
 * It is highly recommended to upgrade just a few agents first, make sure the upgrade process is working properly and then upgrade the rest of them in batches: if something goes wrong, it is much easier to address the issue on a smaller set of nodes.
 
 * During the agent upgrade process, the agent is stopped and restarted. During the restart phase, the agent recreates the state as it was prior to being shutdown. In order to do this, some older versions of glu (prior to 4.6.2) may need to fetch the glu scripts they were running from their original location, so you need to make sure that this location is accessible.
+
+.. _migration-guide-5.5.5-5.5.6:
+
+5.5.5 -> 5.5.6
+--------------
+
+Only the console is affected in this release, so no need to upgrade the agents. Of notable changes:
+
+* The database backing up the console is modified by adding some (nullable) columns to the tables ``DB_CURRENT_SYSTEM`` and ``DB_SYSTEM_MODEL``. During bootstrap of the new console, glu (grails) will take care of it automatically.
+* The rest API :ref:`GET /model/static <goe-rest-api-get-model-static>` returns additional data in the form of new headers.
+* The rest API :ref:`GET /models/static <goe-rest-api-get-models-static>` returns additional data in the form of new json entries.
+
+.. note::
+
+    In general this kind of changes should not have any impact since they are entirely backward compatible: addition to nullable columns in the database, and extra headers or json content in the REST api. That being said if your code/tools depend on *exact* forms, then it could have an impact.
 
 .. _migration-guide-5.5.4-5.5.5:
 

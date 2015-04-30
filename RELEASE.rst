@@ -14,19 +14,34 @@ Release Notes (Latest)
 
      * Make sure to check the :doc:`Migration Guide <migration-guide>` for tips on how to upgrade glu.
 
-.. _glu-5.5.5:
+.. _glu-5.5.6:
 
-5.5.5 (2015/03/20)
+5.5.6 (2015/04/30)
 ------------------
 
 .. sidebar:: Download
 
-  .. image:: https://api.bintray.com/packages/pongasoft/binaries/glu/images/download.png?version=5.5.5
+  .. image:: https://api.bintray.com/packages/pongasoft/binaries/glu/images/download.png?version=5.5.6
      :alt: Download the latest version of glu
      :class: sidebar-logo
-     :target: https://bintray.com/pongasoft/glu/releases/5.5.5
+     :target: https://bintray.com/pongasoft/glu/releases/5.5.6
 
   Download glu latest release from Bintray.
+
+This release includes the following:
+
+* Explicitly track the user who changes the static model (and when it is changed). This information was already available in the Audit Log, but it is now part of the data recorded directly in the domain object ``DbSystemModel`` and ``DbCurrentSystem``. This data is now displayed in the UI as well as returned in REST calls (as HTTP headers). Note that past data is *not* populated and will remain blank. Make sure to check the :ref:`Migration Guide <migration-guide-5.5.5-5.5.6>` for some details on impact.
+* Tidy up some UI elements based on SkyHigh Networks feedback (part I).
+
+List of tickets:
+
+* Implemented `glu-287 <https://github.com/pongasoft/glu/issues/287>`_: `Tidy up UI (Part I)`
+* Implemented `glu-286 <https://github.com/pongasoft/glu/issues/286>`_: `Record who changed the model`
+
+.. _glu-5.5.5:
+
+5.5.5 (2015/03/20)
+------------------
 
 This release includes a couple of bug fixes.
 
@@ -35,8 +50,8 @@ This release includes a couple of bug fixes.
 
 List of tickets:
 
-* Fixed `glu-279 <https://github.com/pongasoft/glu/issues/279>`_: `call delegation not working in glu script`
-* Fixed `glu-280 <https://github.com/pongasoft/glu/issues/280>`_: `/console/js/bootstrap.min.js redirects bypasses serverURL`
+* Implemented `glu-279 <https://github.com/pongasoft/glu/issues/279>`_: `call delegation not working in glu script`
+* Implemented `glu-280 <https://github.com/pongasoft/glu/issues/280>`_: `/console/js/bootstrap.min.js redirects bypasses serverURL`
 
 .. _glu-5.5.4:
 
