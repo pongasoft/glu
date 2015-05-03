@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2015 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -87,13 +87,11 @@ public class AgentProperties
     return persistentProperties.get(name)
   }
 
-  @Override
   Object getAt(String name)
   {
     return getExposedProperty(name)
   }
 
-  @Override
   void putAt(String name, Object value)
   {
     setAgentProperty(name, value?.toString())

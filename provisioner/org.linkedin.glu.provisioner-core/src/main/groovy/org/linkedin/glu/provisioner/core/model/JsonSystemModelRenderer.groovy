@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Yan Pujante
+ * Copyright (c) 2012-2015 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -35,8 +35,6 @@ class JsonSystemModelRenderer implements SystemModelRenderer
 
   int prettyPrint = 2
 
-  boolean maintainBackwardCompatibilityInSystemId = false
-
   @Override
   String computeSystemId(SystemModel model)
   {
@@ -45,11 +43,7 @@ class JsonSystemModelRenderer implements SystemModelRenderer
 
     def ext = model.toCanonicalRepresentation()
     ext.remove('id') // we remove id from the computation
-    def json
-    if(maintainBackwardCompatibilityInSystemId)
-      json = JsonUtils.toJSON(ext).toString(prettyPrint)
-    else
-      json = JACKSON_CANONICAL_MAPPER.writeValueAsString(ext)
+    def json = JACKSON_CANONICAL_MAPPER.writeValueAsString(ext)
     return CodecUtils.encodeString(SHA1, json)
   }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2010 LinkedIn, Inc
-  ~ Portions Copyright (c) 2011-2013 Yan Pujante
+  ~ Portions Copyright (c) 2011-2015 Yan Pujante
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not
   ~ use this file except in compliance with the License. You may obtain a copy of
@@ -117,10 +117,7 @@
   </bean>
 
   <bean id="systemModelRenderer"
-        class="org.linkedin.glu.provisioner.core.model.JsonSystemModelRenderer">
-    <property name="maintainBackwardCompatibilityInSystemId"
-              value="${console.systemModelRenderer.maintainBackwardCompatibilityInSystemId}"/>
-  </bean>
+        class="org.linkedin.glu.provisioner.core.model.JsonSystemModelRenderer" />
 
   <!-- *********************** -->
   <!-- auditLogService         -->

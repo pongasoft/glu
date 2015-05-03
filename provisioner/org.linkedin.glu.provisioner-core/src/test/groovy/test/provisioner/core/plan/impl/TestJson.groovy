@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Yan Pujante
+ * Copyright (c) 2011-2015 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -18,6 +18,7 @@ package test.provisioner.core.plan.impl
 
 import org.linkedin.glu.provisioner.core.plan.impl.StepBuilder
 import org.linkedin.glu.provisioner.plan.api.Plan
+import org.linkedin.groovy.util.json.JsonUtils
 
 /**
  * @author ypujante@linkedin.com */
@@ -62,27 +63,39 @@ class TestJson extends GroovyTestCase
         "type": "leaf"
       },
       {
-        "metadata": {"name": "S0.L1.2"},
+        "metadata": {
+          "name": "S0.L1.2"
+        },
         "type": "leaf"
       },
       {
-        "metadata": {"name": "S0.S1.3"},
+        "metadata": {
+          "name": "S0.S1.3"
+        },
         "steps": [
           {
-            "metadata": {"name": "S0.S1.3.L2.1"},
+            "metadata": {
+              "name": "S0.S1.3.L2.1"
+            },
             "type": "leaf"
           },
           {
-            "metadata": {"name": "S0.S1.3.L2.2"},
+            "metadata": {
+              "name": "S0.S1.3.L2.2"
+            },
             "type": "leaf"
           }
         ],
         "type": "sequential"
       },
       {
-        "metadata": {"name": "S0.S2.4"},
+        "metadata": {
+          "name": "S0.S2.4"
+        },
         "steps": {
-          "metadata": {"name": "S0.S2.4.L2.1"},
+          "metadata": {
+            "name": "S0.S2.4.L2.1"
+          },
           "type": "leaf"
         },
         "type": "sequential"
@@ -94,11 +107,15 @@ class TestJson extends GroovyTestCase
         },
         "steps": [
           {
-            "metadata": {"name": "S0.P1.5.L2.1"},
+            "metadata": {
+              "name": "S0.P1.5.L2.1"
+            },
             "type": "leaf"
           },
           {
-            "metadata": {"name": "S0.P1.5.L2.2"},
+            "metadata": {
+              "name": "S0.P1.5.L2.2"
+            },
             "type": "leaf"
           }
         ],
@@ -107,6 +124,6 @@ class TestJson extends GroovyTestCase
     ],
     "type": "sequential"
   }
-}""", plan.toJson().toString(2))
+}""", JsonUtils.prettyPrint(plan.toJson()))
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Yan Pujante
+ * Copyright (c) 2012-2015 Yan Pujante
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -83,8 +83,6 @@ public class TestSystemModelRenderer extends GroovyTestCase
 
     assertEquals('e66425e1e4f005c106c05cc2a018a2f3d8cd3aaa',
                  new JsonSystemModelRenderer().computeSystemId(model))
-    assertEquals('d797963fe1e2a69e2cb0b2dfa6b0fde8a2d2980e',
-                 new JsonSystemModelRenderer(maintainBackwardCompatibilityInSystemId: true).computeSystemId(model))
   }
 
   private SystemModel m(Map... entries)
