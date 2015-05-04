@@ -48,27 +48,26 @@ grails.project.dependency.resolution = {
   legacyResolve false // whether to do a secondary resolve on plugin installation, not advised and here for backwards compatibility
 
   repositories {
-    inherits true // Whether to inherit repository definitions from plugins
+      inherits true // Whether to inherit repository definitions from plugins
 
-    grailsPlugins()
-    grailsHome()
-    grailsCentral()
-
-    mavenLocal()
-    mavenCentral()
-
-    grailsRepo "https://grails.org/plugins"
-    // uncomment these (or add new ones) to enable remote dependency resolution from public Maven repositories
-    //mavenRepo "http://snapshots.repository.codehaus.org"
-    //mavenRepo "http://repository.codehaus.org"
-    //mavenRepo "http://download.java.net/maven/2/"
-    //mavenRepo "http://repository.jboss.com/maven2/"
+      grailsPlugins()
+      grailsHome()
+      mavenLocal()
+      grailsCentral()
+      mavenCentral()
+      // uncomment these (or add new ones) to enable remote dependency resolution from public Maven repositories
+      //mavenRepo "http://repository.codehaus.org"
+      //mavenRepo "http://download.java.net/maven/2/"
+      //mavenRepo "http://repository.jboss.com/maven2/"
   }
 
   dependencies {
     // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes e.g.
 
-    // runtime 'mysql:mysql-connector-java:5.1.22'
+    ///// HACK HACK HACK somehow with grails 2.5.0 those 2 lines are required :(
+    compile 'org.springframework:spring-aop:4.1.5.RELEASE'
+    compile 'org.springframework:spring-expression:4.1.5.RELEASE'
+    ///// HACK HACK HACK somehow with grails 2.5.0 those 2 lines are required :(
   }
 
   plugins {
