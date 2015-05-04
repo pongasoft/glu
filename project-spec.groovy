@@ -23,7 +23,7 @@ spec = [
   versions: [
     jdk: '1.7',
     bootstrap: '2.3.1',
-    grails: '3.0.1',
+    grails: '2.5.0',
     groovy: '2.4.3',
     jetty: '8.1.10.v20130312', // '9.0.0.v20130308' (cannot use 9 -> requires jdk 1.7)
     utilsMisc: '2.1.0-SNAPSHOT',
