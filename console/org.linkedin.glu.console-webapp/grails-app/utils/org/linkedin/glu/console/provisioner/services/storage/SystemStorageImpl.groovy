@@ -78,7 +78,7 @@ public class SystemStorageImpl implements SystemStorage
   @Override
   SystemModelDetails findDetailsBySystemId(String systemId)
   {
-    createDetails(DbSystemModel.findBySystemId(systemId))
+    createDetails((DbSystemModel) DbSystemModel.findBySystemId(systemId))
   }
 
   void saveCurrentSystem(SystemModel systemModel)

@@ -31,23 +31,14 @@ dependencies {
 
 ext {
   noZooKeeper = getNegativeOptionalBooleanProperty("no.zooKeeper")
-  // DISABLING webapp for now!!!
-  // DISABLING webapp for now!!!
-  //noConsoleServer = getNegativeOptionalBooleanProperty("no.console-server")
-  noConsoleServer = true
-  // DISABLING webapp for now!!!
-  // DISABLING webapp for now!!!
+  noConsoleServer = getNegativeOptionalBooleanProperty("no.console-server")
   noAgentServer = getNegativeOptionalBooleanProperty("no.agent-server")
 }
 
 def dependentClis = [
   'agent-server': ':agent:org.linkedin.glu.agent-server',
   'agent-cli': ':agent:org.linkedin.glu.agent-cli',
-  // DISABLING webapp for now!!!
-  // DISABLING webapp for now!!!
-  //'console-server': ':console:org.linkedin.glu.console-server',
-  // DISABLING webapp for now!!!
-  // DISABLING webapp for now!!!
+  'console-server': ':console:org.linkedin.glu.console-server',
   'console-cli': ':console:org.linkedin.glu.console-cli',
   'packaging-setup': ':packaging:org.linkedin.glu.packaging-setup'
 ]

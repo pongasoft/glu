@@ -26,7 +26,8 @@ class UrlMappings
   public static final Logger log = LoggerFactory.getLogger(MODULE);
 
   private static Closure<RoleName> role = { path ->
-    def userRole = ConsoleConfig.getInstance().console.security.roles."${path}"
+    //def userRole = ConsoleConfig.getInstance().console.security.roles."${path}"
+    def userRole = null
     if(!userRole)
     {
       userRole = RoleName.ADMIN.toString()

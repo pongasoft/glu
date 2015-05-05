@@ -53,7 +53,7 @@ spec.scm = 'git'
 spec.external = [
   commonsCli: 'commons-cli:commons-cli:1.2',
   commonsIO: 'commons-io:commons-io:2.2',
-  ehcacheCore: 'net.sf.ehcache:ehcache-core:2.4.6', // using same version embedded in grails
+  ehcacheCore: 'net.sf.ehcache:ehcache-core:2.6.11', // using same version embedded in grails
   grailsBootstrap: "org.grails:grails-bootstrap:${spec.versions.grails}",
   grailsCore: "org.grails:grails-core:${spec.versions.grails}",
   groovy: "org.codehaus.groovy:groovy-all:${spec.versions.groovy}",
