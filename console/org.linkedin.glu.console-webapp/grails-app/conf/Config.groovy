@@ -529,6 +529,8 @@ environments {
       //debug 'org.linkedin.zookeeper.tracker', 'org.linkedin.glu.agent.tracker'
       //debug 'org.apache.http'
 
+      // debug 'org.pongasoft.grailsPlugins'
+
       //debug 'org.linkedin.glu.console.domain'
       //debug 'org.linkedin.glu.spring.resources.GrailsPluginLoadOrderDebugger'
 
