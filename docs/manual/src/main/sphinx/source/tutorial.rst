@@ -43,13 +43,14 @@ Currently glu requires a UNIX like platform (tested on Mac OS X) and the followi
 +----------------+-----------------------------------+
 |glu version     |java version(s)                    |
 +================+===================================+
-| 5.0.0+         |java 1.7                           |
+| 5.6.0+         |java 1.7 or java 1.8               |
++----------------+-----------------------------------+
+| 5.0.0 - 5.5.x  |java 1.7                           |
 +----------------+-----------------------------------+
 | 4.7.x          |java 1.6 (any VM) or java 1.7      |
 +----------------+-----------------------------------+
 | 4.6.x and below|java 1.6 (with Sun/Oracle VM only!)|
 +----------------+-----------------------------------+
-
 
 .. warning::
    Due to a `bug with OpenJDK <https://github.com/pongasoft/glu/issues/74>`_ glu prior to 4.7.0 requires the Sun Java VM.

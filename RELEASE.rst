@@ -14,19 +14,32 @@ Release Notes (Latest)
 
      * Make sure to check the :doc:`Migration Guide <migration-guide>` for tips on how to upgrade glu.
 
-.. _glu-5.5.6:
+.. _glu-5.6.0:
 
-5.5.6 (2015/04/30)
+5.6.0 (2015/05/06)
 ------------------
 
 .. sidebar:: Download
 
-  .. image:: https://api.bintray.com/packages/pongasoft/binaries/glu/images/download.png?version=5.5.6
+  .. image:: https://api.bintray.com/packages/pongasoft/binaries/glu/images/download.png?version=5.6.0
      :alt: Download the latest version of glu
      :class: sidebar-logo
-     :target: https://bintray.com/pongasoft/glu/releases/5.5.6
+     :target: https://bintray.com/pongasoft/glu/releases/5.6.0
 
   Download glu latest release from Bintray.
+
+This release contains no new features or bug fixes. The only change is that this is the first version of glu that is compatible with java 1.8 (and still works with java 1.7).
+
+.. warning:: In order to make glu compatible with java 1.8, most direct dependencies have been upgraded to their most recent versions (and transitively). Although all tests pass and longevity tests are not showing any difference in memory usage and speed, I would strongly advise to use caution when upgrading to this version. Check the :ref:`migration steps <migration-guide-5.5.6-5.6.0>` for more details.
+
+List of tickets:
+
+* Implemented `glu-295 <https://github.com/pongasoft/glu/issues/295>`_: `Make glu work with java 8`
+
+.. _glu-5.5.6:
+
+5.5.6 (2015/04/30)
+------------------
 
 This release includes the following:
 

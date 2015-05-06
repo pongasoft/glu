@@ -25,7 +25,9 @@ General tips and guidelines
   +----------------+-----------------------------------+
   |glu version     |java version(s)                    |
   +================+===================================+
-  | 5.0.0+         |java 1.7                           |
+  | 5.6.0+         |java 1.7 or java 1.8               |
+  +----------------+-----------------------------------+
+  | 5.0.0 - 5.5.x  |java 1.7                           |
   +----------------+-----------------------------------+
   | 4.7.x          |java 1.6 (any VM) or java 1.7      |
   +----------------+-----------------------------------+
@@ -37,12 +39,12 @@ General tips and guidelines
   +----------------------+---------------------------------------+
   |You are running glu...| You should...                         |
   +======================+=======================================+
-  | 5.0.0+               |upgrade to 5.3.1                       |
+  | 5.0.0+               |upgrade to 5.6.0                       |
   +----------------------+---------------------------------------+
-  | 4.7.x                |switch to java 1.7 and upgrade to 5.3.1|
+  | 4.7.x                |switch to java 1.7 and upgrade to 5.6.0|
   +----------------------+---------------------------------------+
   | 4.6.x and below      |upgrade to 4.7.3 (java 1.6),           |
-  |                      |switch to java 1.7 and upgrade to 5.3.1|
+  |                      |switch to java 1.7 and upgrade to 5.6.0|
   +----------------------+---------------------------------------+
 
   .. tip:: If you are upgrading from a version prior to 5.1.0 to a more recent version of glu, you can follow the :ref:`quick and easy steps <migration-guide-5.0.0-5.1.0-quick-and-easy>` to generate the distributions as it was before the change in setup.
@@ -54,6 +56,41 @@ General tips and guidelines
 * It is highly recommended to upgrade just a few agents first, make sure the upgrade process is working properly and then upgrade the rest of them in batches: if something goes wrong, it is much easier to address the issue on a smaller set of nodes.
 
 * During the agent upgrade process, the agent is stopped and restarted. During the restart phase, the agent recreates the state as it was prior to being shutdown. In order to do this, some older versions of glu (prior to 4.6.2) may need to fetch the glu scripts they were running from their original location, so you need to make sure that this location is accessible.
+
+.. _migration-guide-5.5.6-5.6.0:
+
+5.5.6 -> 5.6.0
+--------------
+
+As pointed out in the release notes, the big change in this version is upgrading all libraries to a more recent version so that glu would run under java 1.8 (it still runs with java 1.7 but java 1.7 is no longer supported by Oracle). Of notable changes, ``groovy`` has been upgraded to ``2.4.3`` and grails to ``2.5.0``.
+
+.. warning::
+
+    Although all tests pass and longevity tests are not showing any difference in memory usage and speed, I would strongly advise to use caution when upgrading to this version.
+
+* the flag ``console.systemModelRenderer.maintainBackwardCompatibilityInSystemId = false`` has been removed due to the latest version of the json library which no longer sorts the keys when pretty printing. As a result there is no longer a way to compute the system Id the way it was previously done. This flag was introduced way back in 2012 so you should have migrated to the new system id by now.
+
+Here is the list of (direct) dependencies that have been changed (all transitive dependencies have been updated accordingly)::
+
+    ant: 1.9.4 (was 1.8.2)
+    commons-io: 2.2 (was 2.1)
+    gradle 2.3 (was 1.11)
+    gradle-plugins: 2.2.8 (was 2.2.6)
+    grails 2.5.0 (was 2.2.1)
+    groovy: 2.4.3 (was 2.0.7)
+    httpclient: 4.2.6 (was 4.2.3)
+    ivy: 2.4.0 (was 2.2.0)
+    jackson: 2.5.3 (was 2.1.4)
+    jquery: 1.11.1 (was 1.8.3)
+    json: 20140107 (was 20090211)
+    junit: 4.12 (was 4.10)
+    log4j: 1.2.17 (was 1.2.16)
+    shiro: 1.2.1 (was 1.1.4)
+    slf4j: 1.7.10 (was 1.6.2)
+    utils-misc: 2.1.0 (was 2.0.3)
+    utils-zookeeper: 2.1.0 (was 2.0.3)
+    zookeeper: 3.4.6 (was 3.4.5)
+
 
 .. _migration-guide-5.5.5-5.5.6:
 
