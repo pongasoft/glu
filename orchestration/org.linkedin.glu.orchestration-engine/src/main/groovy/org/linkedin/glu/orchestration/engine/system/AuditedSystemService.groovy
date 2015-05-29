@@ -46,6 +46,20 @@ public class AuditedSystemService implements SystemService
   }
 
   @Override
+  boolean setAsCurrentSystem(String fabric, String systemId)
+  {
+    boolean res = systemService.setAsCurrentSystem(fabric, systemId)
+
+    if(res)
+    {
+      auditLogService.audit('system.change',
+                            "fabric: ${fabric}, systemId: ${systemId}")
+    }
+
+    return res
+  }
+
+  @Override
   boolean deleteCurrentSystem(String fabric)
   {
     boolean res = systemService.deleteCurrentSystem(fabric)

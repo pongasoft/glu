@@ -128,12 +128,6 @@ def computeGrailsArgLine(String javaProperties, String taskName, String taskArgs
 ['run-app', 'test-app'].each { taskName ->
   task "${taskName}"(dependsOn: lib) << {
 
-    // DISABLING webapp for now!!!
-    // DISABLING webapp for now!!!
-    if(true) return
-    // DISABLING webapp for now!!!
-    // DISABLING webapp for now!!!
-
     ant.exec(dir: '.', executable: grailsExe, failonerror: true) {
       arg(line: computeGrailsArgLine(null, taskName, null))
     }

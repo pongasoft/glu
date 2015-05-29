@@ -18,6 +18,7 @@
 package org.linkedin.glu.console.controllers
 
 import com.fasterxml.jackson.core.JsonParseException
+import org.linkedin.glu.console.domain.DbCurrentSystem
 import org.linkedin.glu.console.domain.DbSystemModel
 import org.linkedin.glu.console.provisioner.services.storage.SystemStorageException
 import org.linkedin.glu.grails.utils.ConsoleConfig
@@ -86,6 +87,7 @@ public class ModelController extends ControllerBase
    */
   def save = {
     def system = DbSystemModel.findBySystemId(params.id)
+    def current = systemService.findCurrentSystemDetails(request.fabric.name)
 
     try
     {
@@ -97,21 +99,33 @@ public class ModelController extends ControllerBase
         return
       }
       systemModel.id = null
-      if(systemService.saveCurrentSystem(systemModel))
-        flash.success = "New system properly saved [${systemModel.id}]"
-      else
-        flash.info = "Already current system"
-      redirect(action: 'view', id: systemModel.id)
+
+      try
+      {
+        def res = doSaveCurrentSystem(systemModel)
+
+        if(res.saved)
+          flash.success = "New system properly saved [${res.system.id}]"
+        else
+          flash.info = "Already current system"
+        redirect(action: 'view', id: res.system.id)
+      }
+      finally
+      {
+        if(!systemModel.id)
+          systemModel.id = params.id
+        system.systemModel = systemModel
+      }
     }
     catch(JsonParseException e)
     {
       flash.error = "Error with the model syntax: ${e.message}"
-      render(view: 'view', id: params.id, model: [systemDetails: system])
+      render(view: 'view', id: params.id, model: [systemDetails: system, renderer: systemModelRenderer, current: current])
     }
     catch(Throwable th)
     {
       flashException("Could not save the new model: ${th.message}", th)
-      render(view: 'view', id: params.id, model: [systemDetails: system])
+      render(view: 'view', id: params.id, model: [systemDetails: system, renderer: systemModelRenderer, current: current])
     }
   }
 
@@ -121,7 +135,7 @@ public class ModelController extends ControllerBase
   def setAsCurrent = {
     try
     {
-      boolean res = systemService.setAsCurrentSystem(request.fabric.name, params.id)
+      boolean res = doSetAsCurrent()
 
       if(res)
         flash.success = "Current system has been set to [${params.id}]"
@@ -144,7 +158,7 @@ public class ModelController extends ControllerBase
   def load = {
     try
     {
-      def res = saveCurrentSystem()
+      def res = doSaveCurrentSystem()
 
       if(res.errors)
       {
@@ -171,7 +185,7 @@ public class ModelController extends ControllerBase
 
   def upload = load
 
-  private def saveCurrentSystem()
+  private def doSaveCurrentSystem()
   {
     def source
     def filename
@@ -190,12 +204,12 @@ public class ModelController extends ControllerBase
 
     SystemModel model = systemService.parseSystemModel(source, filename)
 
-    return saveCurrentSystem(model)
+    return doSaveCurrentSystem(model)
   }
 
-  private def saveCurrentSystem(SystemModel model)
+  private def doSaveCurrentSystem(SystemModel model)
   {
-    withLock('ModelController.saveCurrentSystem') {
+    withCurrentSystemTransaction {
       if(model)
       {
         if(model.fabric != request.fabric.name)
@@ -217,13 +231,37 @@ public class ModelController extends ControllerBase
     }
   }
 
+  private boolean doSetAsCurrent()
+  {
+    withCurrentSystemTransaction {
+      return systemService.setAsCurrentSystem(request.fabric.name, params.id)
+    }
+  }
+
+  private def withCurrentSystemTransaction(Closure closure)
+  {
+    withLock('ModelController.modifyCurrentSystem') {
+      DbCurrentSystem.withNewSession { session ->
+        try
+        {
+          closure()
+        }
+        finally
+        {
+          session.flush()
+          session.clear()
+        }
+      }
+    }
+  }
+
   /**
    * POST on /model/static with id
    */
   def rest_set_as_current = {
     try
     {
-      boolean res = systemService.setAsCurrentSystem(request.fabric.name, params.id)
+      boolean res = doSetAsCurrent()
       if(res)
         response.setStatus(HttpServletResponse.SC_OK)
       else
@@ -282,7 +320,7 @@ public class ModelController extends ControllerBase
 
       SystemModel model = systemService.parseSystemModel(source, filename)
 
-      def res = saveCurrentSystem(model)
+      def res = doSaveCurrentSystem(model)
 
       if(!res.errors)
       {
