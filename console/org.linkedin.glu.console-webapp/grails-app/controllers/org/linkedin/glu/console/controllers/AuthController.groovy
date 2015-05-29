@@ -31,7 +31,10 @@ class AuthController extends ControllerBase
   }
 
   def signIn = {
-    def authToken = new UsernamePasswordToken(params.username, params.password)
+    params.username = params.username ?: ''
+    params.password = params.password ?: ''
+
+    def authToken = new UsernamePasswordToken(params.username?.toString(), params.password)
 
     // Support for "remember me"
     if(params.rememberMe)
