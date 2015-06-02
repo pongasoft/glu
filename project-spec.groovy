@@ -18,7 +18,7 @@
 spec = [
   name: 'glu',
   group: 'org.pongasoft',
-  version: '5.6.0',
+  version: '5.6.1',
 
   versions: [
     jdk: '1.7',

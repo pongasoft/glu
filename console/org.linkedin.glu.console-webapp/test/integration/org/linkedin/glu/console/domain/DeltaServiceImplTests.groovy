@@ -16,23 +16,27 @@
 
 package org.linkedin.glu.console.domain
 
-import org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl
+import grails.test.mixin.TestMixin
+import grails.test.mixin.integration.IntegrationTestMixin
 import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
-import org.linkedin.groovy.util.json.JsonUtils
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinition
 import org.linkedin.glu.orchestration.engine.delta.CustomDeltaDefinitionSerializer
+import org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl
 import org.linkedin.glu.orchestration.engine.delta.UserCustomDeltaDefinition
-import java.security.AccessControlException
+import org.linkedin.groovy.util.json.JsonUtils
 
-import org.linkedin.glu.orchestration.engine.session.UserSession
+import java.security.AccessControlException
 
 /**
  * @author yan@pongasoft.com */
+@TestMixin(IntegrationTestMixin)
 public class DeltaServiceImplTests extends GroovyTestCase
 {
   CustomDeltaDefinitionSerializer customDeltaDefinitionSerializer
 
   DeltaServiceImpl deltaService
+
+  private AuthorizationService _authorizationService
 
   // will hold the executing principal
   String executingPrincipal = 'user1'
@@ -74,13 +78,17 @@ public class DeltaServiceImplTests extends GroovyTestCase
   {
     super.setUp()
 
-    def authorizationService = [
+    _authorizationService = [
       getExecutingPrincipal: {
         return executingPrincipal
       }
-    ]
+    ] as AuthorizationService
+  }
 
-    deltaService.authorizationService = authorizationService as AuthorizationService
+  DeltaServiceImpl getDeltaService()
+  {
+    deltaService.authorizationService = _authorizationService
+    return deltaService
   }
 
   /**
@@ -91,14 +99,14 @@ public class DeltaServiceImplTests extends GroovyTestCase
     UserCustomDeltaDefinition ucdd =
       new UserCustomDeltaDefinition(username: 'user1',
                                     customDeltaDefinition: toCustomDeltaDefinition(cdd))
-    assertTrue(deltaService.saveUserCustomDeltaDefinition(ucdd))
+    assertTrue(getDeltaService().saveUserCustomDeltaDefinition(ucdd))
 
     // executing principal mismatch!
     ucdd =
       new UserCustomDeltaDefinition(username: 'user2',
                                     customDeltaDefinition: toCustomDeltaDefinition(cdd))
     shouldFail(AccessControlException) {
-      deltaService.saveUserCustomDeltaDefinition(ucdd)
+      getDeltaService().saveUserCustomDeltaDefinition(ucdd)
     }
   }
 
@@ -114,7 +122,7 @@ public class DeltaServiceImplTests extends GroovyTestCase
     UserCustomDeltaDefinition ucdd1 =
       new UserCustomDeltaDefinition(username: 'user1',
                                     customDeltaDefinition: definition)
-    assertTrue(deltaService.saveUserCustomDeltaDefinition(ucdd1))
+    assertTrue(getDeltaService().saveUserCustomDeltaDefinition(ucdd1))
     println "ucdd1.id=${ucdd1.id}"
 
     // saving name2/desc2
@@ -124,32 +132,32 @@ public class DeltaServiceImplTests extends GroovyTestCase
     UserCustomDeltaDefinition ucdd2 =
       new UserCustomDeltaDefinition(username: 'user1',
                                     customDeltaDefinition: definition)
-    assertTrue(deltaService.saveUserCustomDeltaDefinition(ucdd2))
+    assertTrue(getDeltaService().saveUserCustomDeltaDefinition(ucdd2))
     println "ucdd2.id=${ucdd2.id}"
 
     // saving name2 as new name3
-    ucdd2 = deltaService.findUserCustomDeltaDefinitionByName('name2')
+    ucdd2 = getDeltaService().findUserCustomDeltaDefinitionByName('name2')
     definition = toCustomDeltaDefinition(cdd)
     definition.name = 'name3'
     definition.description = 'desc3'
     ucdd2.customDeltaDefinition = definition
-    UserCustomDeltaDefinition ucdd3 = deltaService.saveAsNewUserCustomDeltaDefinition(ucdd2)
+    UserCustomDeltaDefinition ucdd3 = getDeltaService().saveAsNewUserCustomDeltaDefinition(ucdd2)
     assertFalse(ucdd3.hasErrors())
     println "ucdd3.id=${ucdd3.id}"
 
-    ucdd3 = deltaService.findUserCustomDeltaDefinitionByName('name3')
+    ucdd3 = getDeltaService().findUserCustomDeltaDefinitionByName('name3')
     assertEquals('name3', ucdd3.name)
     assertEquals('desc3', ucdd3.description)
     println "ucdd3.id=${ucdd3.id}"
 
     // saving name2 as name1 (will fail => diplicate name)
-    ucdd2 = deltaService.findUserCustomDeltaDefinitionByName('name2')
+    ucdd2 = getDeltaService().findUserCustomDeltaDefinitionByName('name2')
     println "ucdd2.id=${ucdd2.id}"
     definition = toCustomDeltaDefinition(cdd)
     definition.name = 'name1'
     definition.description = 'desc4'
     ucdd2.customDeltaDefinition = definition
-    UserCustomDeltaDefinition ucdd4 = deltaService.saveAsNewUserCustomDeltaDefinition(ucdd2)
+    UserCustomDeltaDefinition ucdd4 = getDeltaService().saveAsNewUserCustomDeltaDefinition(ucdd2)
     println "ucdd4.id=${ucdd4.id}"
     assertTrue(ucdd4.hasErrors())
     assertEquals(1, ucdd4.errors.errorCount)

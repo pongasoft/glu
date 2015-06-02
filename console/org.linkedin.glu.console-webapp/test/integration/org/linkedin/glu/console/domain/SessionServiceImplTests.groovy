@@ -16,6 +16,8 @@
 
 package org.linkedin.glu.console.domain
 
+import grails.test.mixin.TestMixin
+import grails.test.mixin.integration.IntegrationTestMixin
 import org.linkedin.glu.orchestration.engine.session.UserSession
 import org.linkedin.glu.orchestration.engine.delta.DeltaServiceImpl
 import org.linkedin.glu.orchestration.engine.delta.UserCustomDeltaDefinition
@@ -27,6 +29,7 @@ import org.linkedin.glu.orchestration.engine.authorization.AuthorizationService
 
 /**
  * @author yan@pongasoft.com */
+@TestMixin(IntegrationTestMixin)
 public class SessionServiceImplTests extends GroovyTestCase
 {
   public static final String DCDN = DeltaServiceImpl.DEFAULT_CUSTOM_DELTA_DEFINITION_NAME
@@ -34,6 +37,8 @@ public class SessionServiceImplTests extends GroovyTestCase
   CustomDeltaDefinitionSerializer customDeltaDefinitionSerializer
   SessionServiceImpl sessionService
   DeltaServiceImpl deltaService
+
+  private AuthorizationService _authorizationService
 
   // will hold the executing principal
   String executingPrincipal = 'user1'
@@ -75,14 +80,23 @@ public class SessionServiceImplTests extends GroovyTestCase
   {
     super.setUp()
 
-    def authorizationService = [
+    _authorizationService = [
       getExecutingPrincipal: {
         return executingPrincipal
       }
-    ]
+    ] as AuthorizationService
+  }
 
-    sessionService.authorizationService = authorizationService as AuthorizationService
-    deltaService.authorizationService = authorizationService as AuthorizationService
+  DeltaServiceImpl getDeltaService()
+  {
+    deltaService.authorizationService = _authorizationService
+    return deltaService
+  }
+
+  SessionServiceImpl getSessionService()
+  {
+    sessionService.authorizationService = _authorizationService
+    return sessionService
   }
 
   /**
@@ -91,21 +105,21 @@ public class SessionServiceImplTests extends GroovyTestCase
   void testSession()
   {
     // no entry
-    assertNull(deltaService.findUserCustomDeltaDefinitionByName(DCDN))
+    assertNull(getDeltaService().findUserCustomDeltaDefinitionByName(DCDN))
 
     // 'user1' has no default => it will return the global default
-    UserSession default1 = sessionService.findUserSession('dashboard1')
+    UserSession default1 = getSessionService().findUserSession('dashboard1')
     assertEquals('user1', default1.username)
     assertEquals(DCDN, default1.customDeltaDefinition.name)
 
     // this verifies that a new entry in the database has been created
     UserCustomDeltaDefinition default2 =
-      deltaService.findUserCustomDeltaDefinitionByName(DCDN)
+      getDeltaService().findUserCustomDeltaDefinitionByName(DCDN)
     assertNotNull(default2)
 
     // user2 has a <default> entry
     executingPrincipal = 'user2'
-    assertNull(deltaService.findUserCustomDeltaDefinitionByName(DCDN))
+    assertNull(getDeltaService().findUserCustomDeltaDefinitionByName(DCDN))
 
     CustomDeltaDefinition definition = toCustomDeltaDefinition(cdd)
     definition.name = DCDN
@@ -113,17 +127,17 @@ public class SessionServiceImplTests extends GroovyTestCase
     UserCustomDeltaDefinition ucdd =
       new UserCustomDeltaDefinition(username: 'user2',
                                     customDeltaDefinition: definition)
-    assertTrue(deltaService.saveUserCustomDeltaDefinition(ucdd))
+    assertTrue(getDeltaService().saveUserCustomDeltaDefinition(ucdd))
 
     // verifying that the <default> entry was used
-    default1 = sessionService.findUserSession('dashboard1')
+    default1 = getSessionService().findUserSession('dashboard1')
     assertEquals('user2', default1.username)
     assertEquals(DCDN, default1.customDeltaDefinition.name)
     assertEquals("user2-<default>", default1.customDeltaDefinition.description)
 
     // user3 has a dashboard1 entry
     executingPrincipal = 'user3'
-    assertNull(deltaService.findUserCustomDeltaDefinitionByName(DCDN))
+    assertNull(getDeltaService().findUserCustomDeltaDefinitionByName(DCDN))
 
     definition = toCustomDeltaDefinition(cdd)
     definition.name = 'dashboard1'
@@ -131,31 +145,31 @@ public class SessionServiceImplTests extends GroovyTestCase
     ucdd =
       new UserCustomDeltaDefinition(username: 'user3',
                                     customDeltaDefinition: definition)
-    assertTrue(deltaService.saveUserCustomDeltaDefinition(ucdd))
+    assertTrue(getDeltaService().saveUserCustomDeltaDefinition(ucdd))
 
     // verifying that the dashboard1 entry was used
-    default1 = sessionService.findUserSession('dashboard1')
+    default1 = getSessionService().findUserSession('dashboard1')
     assertEquals('user3', default1.username)
     assertEquals('dashboard1', default1.customDeltaDefinition.name)
     assertEquals("user3-dashboard1", default1.customDeltaDefinition.description)
 
     // no default entry was created
-    assertNull(deltaService.findUserCustomDeltaDefinitionByName(DCDN))
+    assertNull(getDeltaService().findUserCustomDeltaDefinitionByName(DCDN))
 
     // session still active... no change
-    default1 = sessionService.findUserSession('dashboard2')
+    default1 = getSessionService().findUserSession('dashboard2')
     assertEquals('user3', default1.username)
     assertEquals('dashboard1', default1.customDeltaDefinition.name)
     assertEquals("user3-dashboard1", default1.customDeltaDefinition.description)
 
     // clearing the definition
-    sessionService.clearUserSession()
+    getSessionService().clearUserSession()
 
     // dashboard2 does not exist and <default> does not exist either... will be created
-    default1 = sessionService.findUserSession('dashboard2')
+    default1 = getSessionService().findUserSession('dashboard2')
     assertEquals('user3', default1.username)
     assertEquals(DCDN, default1.customDeltaDefinition.name)
-    assertNotNull(deltaService.findUserCustomDeltaDefinitionByName(DCDN))
+    assertNotNull(getDeltaService().findUserCustomDeltaDefinitionByName(DCDN))
   }
 
   CustomDeltaDefinition toCustomDeltaDefinition(LinkedHashMap<String, Serializable> cdd)

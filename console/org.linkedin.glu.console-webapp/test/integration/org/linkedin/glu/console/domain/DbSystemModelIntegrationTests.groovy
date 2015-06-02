@@ -16,6 +16,8 @@
 
 package org.linkedin.glu.console.domain
 
+import grails.test.mixin.TestMixin
+import grails.test.mixin.integration.IntegrationTestMixin
 import org.linkedin.glu.console.provisioner.services.storage.SystemStorageImpl
 import org.linkedin.glu.provisioner.core.model.SystemEntry
 import org.linkedin.glu.provisioner.core.model.SystemModel
@@ -24,19 +26,16 @@ import org.linkedin.glu.orchestration.engine.system.SystemService
 
 /**
  * @author yan@pongasoft.com */
+@TestMixin(IntegrationTestMixin)
 public class DbSystemModelIntegrationTests extends GroovyTestCase
 {
-  SystemStorageImpl systemStorage
-
   /**
    * Injected */
   SystemService systemService
 
-  @Override
-  protected void setUp()
+  SystemStorageImpl getSystemStorage()
   {
-    super.setUp()
-    systemStorage = systemService.systemService.systemStorage
+    systemService.systemService.systemStorage
   }
 
   /**

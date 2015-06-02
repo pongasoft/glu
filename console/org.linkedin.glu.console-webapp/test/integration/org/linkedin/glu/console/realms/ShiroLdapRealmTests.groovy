@@ -16,6 +16,8 @@
 
 package org.linkedin.glu.console.realms
 
+import grails.test.mixin.TestMixin
+import grails.test.mixin.integration.IntegrationTestMixin
 import org.apache.shiro.authc.IncorrectCredentialsException
 import org.apache.shiro.authc.UnknownAccountException
 import org.linkedin.glu.console.domain.DbUserCredentials
@@ -29,22 +31,25 @@ import javax.naming.directory.SearchControls
 
 /**
  * @author yan@pongasoft.com  */
+@TestMixin(IntegrationTestMixin)
 public class ShiroLdapRealmTests extends GroovyTestCase
 {
   def grailsApplication
-  def shiroLdapRealm
+  def _shiroLdapRealm
 
-  @Override
-  protected void setUp() throws Exception
+  def getShiroLdapRealm()
   {
-    super.setUp()
+    if(!_shiroLdapRealm)
+    {
+      _shiroLdapRealm =
+        grailsApplication.getArtefact('Realm', ShiroLdapRealm.class.name).referenceInstance
 
-    shiroLdapRealm =
-      grailsApplication.getArtefact('Realm', ShiroLdapRealm.class.name).referenceInstance
+      _shiroLdapRealm.pluginService = grailsApplication.mainContext.getBean('pluginService')
+      _shiroLdapRealm.grailsApplication = grailsApplication
+      _shiroLdapRealm.initialContextFactoryClass = MockInitialDirContextFactory.class.name
+    }
 
-    shiroLdapRealm.pluginService = grailsApplication.mainContext.getBean('pluginService')
-    shiroLdapRealm.grailsApplication = grailsApplication
-    shiroLdapRealm.initialContextFactoryClass = MockInitialDirContextFactory.class.name
+    return _shiroLdapRealm
   }
 
   public void testNoLdap()

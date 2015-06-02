@@ -24,21 +24,21 @@ import org.linkedin.util.clock.SettableClock
 import org.linkedin.util.clock.Timespan
 import org.linkedin.glu.provisioner.plan.api.IStepCompletionStatus.Status
 import org.linkedin.glu.orchestration.engine.deployment.DeploymentService
+import grails.test.mixin.TestMixin
+import grails.test.mixin.integration.IntegrationTestMixin
 
 /**
  * @author yan@pongasoft.com */
+@TestMixin(IntegrationTestMixin)
 public class DbDeploymentIntegrationTests extends GroovyTestCase
 {
   Clock clock = new SettableClock()
-  DeploymentStorageImpl deploymentStorage
 
   DeploymentService deploymentService
 
-  @Override
-  protected void setUp()
+  DeploymentStorageImpl getDeploymentStorage()
   {
-    super.setUp()
-    deploymentStorage = deploymentService.deploymentService.deploymentStorage
+    deploymentService.deploymentService.deploymentStorage
   }
 
   public void testIncludeDetails()

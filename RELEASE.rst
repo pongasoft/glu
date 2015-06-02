@@ -14,19 +14,31 @@ Release Notes (Latest)
 
      * Make sure to check the :doc:`Migration Guide <migration-guide>` for tips on how to upgrade glu.
 
-.. _glu-5.6.0:
+.. _glu-5.6.1:
 
-5.6.0 (2015/05/06)
+5.6.1 (2015/06/02)
 ------------------
 
 .. sidebar:: Download
 
-  .. image:: https://api.bintray.com/packages/pongasoft/binaries/glu/images/download.png?version=5.6.0
+  .. image:: https://api.bintray.com/packages/pongasoft/binaries/glu/images/download.png?version=5.6.1
      :alt: Download the latest version of glu
      :class: sidebar-logo
-     :target: https://bintray.com/pongasoft/glu/releases/5.6.0
+     :target: https://bintray.com/pongasoft/glu/releases/5.6.1
 
   Download glu latest release from Bintray.
+
+This release contains a couple of bug fixes.
+
+List of tickets:
+
+* Fixed `glu-299 <https://github.com/pongasoft/glu/issues/299>`_: `DbCurrentSystem access not synchronized properly`
+* Fixed `glu-297 <https://github.com/pongasoft/glu/issues/297>`_: `Exception when no credential provided at login`
+
+.. _glu-5.6.0:
+
+5.6.0 (2015/05/06)
+------------------
 
 This release contains no new features or bug fixes. The only change is that this is the first version of glu that is compatible with java 1.8 (and still works with java 1.7).
 
