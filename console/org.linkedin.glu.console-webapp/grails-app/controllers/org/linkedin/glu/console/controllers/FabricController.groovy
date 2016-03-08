@@ -34,7 +34,8 @@ class FabricController extends ControllerBase
   def index = { redirect(action:select, params:params) }
 
   def select = {
-    def fabrics = fabricService.fabrics
+    //Fabrics should be sorted in the fabric select screen in glu
+    def fabrics = fabricService.fabrics.sort { it.name }
 
     if(!fabrics)
     {
